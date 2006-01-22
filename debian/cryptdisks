@@ -73,11 +73,22 @@ start)
 			# Parse the options field, convert to cryptsetup parameters
 			# and contruct the command line
 			while test "x$opt" != "x" ; do
-				ARG=`echo $opt | sed "s/,.*//"`
+				ARG=${opt/,*}
 				opt=${opt##$ARG}
 				opt=${opt##,}
 				PARAM=`echo $ARG | sed "s/=.*//"`
 				VALUE=${ARG##$PARAM=}
+				
+				case "$ARG" in
+					*=*)
+						PARAM=${ARG/=*}
+						VALUE=${ARG##$PARAM=}
+						;;
+					*)
+						PARAM=$ARG
+						VALUE=""
+						;;
+				esac
 				
 				case "$PARAM" in 
 					readonly)
