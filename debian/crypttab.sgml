@@ -85,7 +85,8 @@ used for swap devices).
 If the <replaceable>key file</replaceable> is empty or the string
 <literal>none</literal>, the key data (ie. a password) will be read
 interactively from the console. In this case,
-the options<literal>check</literal> and <literal>retry</literal> may be useful.
+the options<literal>precheck</literal>, <literal>postcheck</literal>
+and <literal>retry</literal> may be useful.
     </para>
 
     <para>The fourth field <replaceable>options</replaceable>
@@ -144,7 +145,21 @@ The following options are supported:
         </listitem>
       </varlistentry>
       <varlistentry>
-        <term><literal>check</literal></term>
+        <term><literal>precheck</literal></term>
+	<listitem>
+	  <para>check the source device by suitable program;
+	  if the check fails the device is not created;
+	  If a program is provided as argument, it is run,
+	  using the decrypted volume as first argument. Some programs are
+	  provided in /usr/share/cryptsetup/prechecks, currently only
+	  <literal>swap</literal>; so, providing <literal>swap</literal>
+	  as argument will run the check for to ensure that a SWAP partition
+	  is a accessible thru the source device.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><literal>postcheck</literal></term>
 	<listitem>
 	  <para>check the content of the device by suitable program;
 	  if the check fails the device is removed; if the

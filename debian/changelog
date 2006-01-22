@@ -1,8 +1,10 @@
 cryptsetup (2:1.0.1-13) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * split the "check" in a "precheck" and a "postcheck" option
+    - adds the possibility to check the source device before creating the
+      decrypted target device, useful for things like swap.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 22 Jan 2006 20:40:04 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 22 Jan 2006 21:24:06 +0100
 
 cryptsetup (2:1.0.1-12) unstable; urgency=low
 
