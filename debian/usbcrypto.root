@@ -1,0 +1,63 @@
+#!/bin/dash -e
+# Boot from an encrypted usb stick
+
+# Host. Do not use `hostname`, you might want to run this in a chroot
+usbenc_host="`cat /etc/hostname`"
+# Encrypted device and key location
+usbenc_devices="/devfs/scsi/host0/bus0/target0/lun0/part2 /devfs/ub/a/part2"
+usbenc_keypath="/hostkeys/${usbenc_host}"
+# Where to write the rootkey
+usbenc_rootkey="/dev2/usbenc_rootkey"
+# Device mapper name to use
+usbenc_dmname="secstick"
+#usbenc_modules="uhci-hcd usb-storage ub sd-mod"
+usbenc_modules="uhci-hcd usb-storage sd-mod"
+usbenc_scriptname="`basename ${0}`"
+
+# The rest should be generic
+
+# Install modules in initrd
+for m in ${usbenc_modules}; do
+	for k in `modprobe --set-version $VERSION --show-depends ${m} | cut -b8-`; do
+		install -d ${INITRDDIR}/${k%/*}
+		install ${k} ${INITRDDIR}/${k}
+	done
+done
+
+# Generate initrd script
+cat <<EOF >${INITRDDIR}/keyscripts/${usbenc_scriptname}
+#!/bin/dash -e
+
+# Install modules into the kernel
+for m in ${usbenc_modules}; do
+	modprobe \${m}
+done
+
+# sleep 4 would be nice here
+
+if [ ! -f ${usbenc_rootkey} ]; then
+    for usbenc_dev in ${usbenc_devices}; do
+	echo
+	echo
+	echo -n "Setting up \${dmname} (trying \${usbenc_dev})...[R]"
+	read dummy
+	if /sbin/cryptsetup create ${usbenc_dmname} \${usbenc_dev} && mount -n /dev/mapper/${usbenc_dmname} /mnt -o ro; then
+	    cat /mnt/${usbenc_keypath} >${usbenc_rootkey}
+	    umount -n /mnt || true
+	    /sbin/cryptsetup remove ${usbenc_dmname} || true
+	    break
+	fi
+    done
+fi
+
+if [ -f ${usbenc_rootkey} ]; then
+    /sbin/cryptsetup -d ${usbenc_rootkey} -c \${cipher_mode} create \${dmname} \${device}
+    echo
+    echo "=> \${dmname} is set up."
+    echo
+fi
+
+exit 0
+EOF
+
+chmod +x ${INITRDDIR}/keyscripts/${usbenc_scriptname}

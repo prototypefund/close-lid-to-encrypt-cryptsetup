@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# An example script which when placed in /etc/mkinitrd/scripts will enable
+# the use of a USB stick to provide keys at boot time.
+
+modules="usb-storage sd-mod nls_cp437 ehci-hcd uhci-hcd nls_iso8859-1"
+
+mkdir $INITRDDIR/keys
+cp /boot/keys/* $INITRDDIR/keys
+
+for mod in $modules; do
+  for ko in `modprobe --set-version $VERSION --show-depends $mod | cut -b8-`; do
+    install -d $INITRDDIR/${ko%/*}
+    install $ko $INITRDDIR/$ko
+  done
+done
+
+cp /usr/local/bin/xor   $INITRDDIR/bin
+cp /usr/local/bin/delay $INITRDDIR/bin
+
+cat <<EOF >$INITRDDIR/keyscripts/usbkeys
+modprobe uhci-hcd
+modprobe ehci-hcd
+modprobe usb-storage
+modprobe sd-mod
+
+#read old nil < /proc/sys/kernel/printk
+#echo 0 > /proc/sys/kernel/printk
+
+echo
+echo
+echo "Root disk is encrypted. Please provide keys on a usb stick."
+echo
+echo -n "Waiting for keys "
+while [ ! -f /dev2/rootkey ]; do
+  echo -n "."
+  /bin/delay
+  for d in	/devfs/scsi/host*/bus*/target*/lun*/part1 \\
+		/devfs/scsi/host*/bus*/target*/lun*/disc; do
+    if ! mount -n \$d /mnt -o ro -t vfat 2>/dev/null >/dev/null; then continue; fi
+    for i in keys/*; do
+      if [ -f /mnt/\${i%.*}.key ]; then
+        /bin/xor /mnt/\${i%.*}.key \$i > /dev2/rootkey
+      fi
+    done
+    umount -n /mnt
+  done
+done
+
+echo " Found"
+#echo $old > /proc/sys/kernel/printk
+
+if [ -f /dev2/rootkey ]; then
+  /sbin/cryptsetup -v -d /dev2/rootkey -c \$cipher_mode create \$dmname \$device
+fi
+EOF
+
+chmod +x $INITRDDIR/keyscripts/usbkeys

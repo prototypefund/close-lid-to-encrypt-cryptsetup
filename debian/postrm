@@ -1,0 +1,26 @@
+#! /bin/sh -e
+
+case "$1" in
+  remove)
+  ;;
+
+  purge)
+    update-rc.d cryptdisks remove > /dev/null
+    
+    # remove crypttab and keys
+    echo "Removing /etc/crypttab and /etc/keys."
+    rm -rf /etc/crypttab /etc/keys
+  ;;
+
+  upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+  ;;
+
+  *)
+    echo "postrm called with unknown argument '$1'" >&2
+    exit 1
+  ;;
+esac
+
+#DEBHELPER#
+
+exit 0

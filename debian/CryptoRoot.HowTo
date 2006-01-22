@@ -1,0 +1,69 @@
+To setup cryptoroot you will need several things:
+	- an existing /boot partition
+	- a boot loader pointing at /boot (i recommend grub)
+	- a standard debian kernel
+	- an encrypted partition for the root filesystem
+	- a /etc/crypttab describing the root filesystem
+	- a /etc/fstab referring to the encrypted device mapper name
+
+Step by step:
+
+# Enter run-level 1
+init 1
+
+# Install a standard debian kernel (>= 2.6.4) and the initrd-tools packages
+# Replace 386 with whatever architecture you have (such as k8)
+apt-get install initrd-tools kernel-image-2.6.8-1-386
+
+# Edit /etc/crypttab and add the following line
+# Replace /dev/hda4 with your backing device (lvm is ok, as is raid)
+root	/dev/hda4    none    cipher=aes-cbc-essiv:sha256
+
+# Note: Specifying this cipher and IV generation through the "cipher="
+# parameter mode avoids the watermark attack mentioned in README.html.
+# However, unlike the default parameters, it creates an encrypted
+# partition that is incompatible with the old cryptoloop implementation.
+# If that matters to you, omit the cipher specification (and live with
+# the watermark attack).
+
+# Start the encrypted root filesystem
+/etc/init.d/cryptdisks start
+
+# Enter a password for the filesystem when prompted
+my_boot_password
+
+# Now, setup a filesystem (/dev/mapper/root is always the encrypted disk)
+mkfs.ext3 /dev/mapper/root
+
+# Mount the device for initialization
+mount /dev/mapper/root /mnt
+
+# Copy your root filesystem into place
+cp -axv / /mnt
+
+# Edit the new root's /mnt/etc/fstab to add the line
+/dev/mapper/root	/	ext3	defaults	0 1
+# Remove whatever the old root filesystem line was
+
+# Enter the new root filesystem
+chroot /mnt /bin/bash
+
+# Mount your core filesystems (/usr, /var, etc)
+mount sysfs /sys  -t sysfs
+mount proc  /proc -t proc
+mount /dev/??? /boot
+
+# Setup the initrd (change 386 to the correct value)
+mkinitrd -o /boot/initrd.img-2.6.7-1-386
+
+# Configure your boot loader to use /dev/mapper/root for the root filesystem
+# If you are using grub, you can test boot without changing your old setup
+
+# Re-run your boot-loader setup program if needed (lilo)
+# Reboot!
+
+# If all works out, you will be prompted for a password at boot-up
+
+# You can now add entries in /etc/crypttab for other partitions.
+# Note that since /etc/keys is encrypted, it is ok to keep keys for the other
+# partitions in this directory. This is _NOT_ ok for unencrypted root.

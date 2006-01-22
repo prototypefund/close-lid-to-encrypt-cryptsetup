@@ -1,0 +1,3 @@
+cryptsetup-luks source: configure-generated-file-in-source config.log
+cryptsetup-luks: non-dev-pkg-with-shlib-symlink usr/lib/libcryptsetup.so.0.0.0 usr/lib/libcryptsetup.so
+cryptsetup-luks: package-name-doesnt-match-sonames libcryptsetup0

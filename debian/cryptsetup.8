@@ -1,0 +1,147 @@
+.TH CRYPTSETUP "8" "March 2005" "cryptsetup 1.0" "Maintainance Commands"
+.SH NAME
+cryptsetup \- setup cryptographic volumes for dm\-crypt (including LUKS extension)
+.SH SYNOPSIS
+
+.B cryptsetup <options> <action> <action args>
+
+.SH DESCRIPTION
+.\" Add any additional description here
+.PP
+cryptsetup is used to conveniently setup up dm\-crypt managed device\-mapper mappings. For basic dm\-crypt mappings, there are five operations.
+.SH ACTIONS
+These strings are valid for \fB<action>\fR, followed by their \fB<action args>\fR:
+
+\fIcreate\fR <name> <device>
+.IP
+creates a mapping with <name> backed by device <device>.
+<options> can be [\-\-hash, \-\-cipher, \-\-verify\-passphrase, \-\-key\-file, \-\-key\-size, \-\-offset, \-\-skip, \-\-readonly]
+.PP
+\fIremove\fR <name>
+.IP
+removes an existing mapping <name>. No options.
+.PP
+\fIstatus\fR <name>
+.IP
+reports the status for the mapping <name>. No options.
+.PP
+\fIreload\fR <name>
+.IP
+modifies an active mapping <name>. Same options as for create.
+.PP
+\fIresize\fR <name>
+.IP
+resizes an active mapping <name>. <options> must include \-\-size 
+.PP
+.br
+.SH LUKS EXTENSION
+
+LUKS, Linux Unified Key Setup, is a standard for hard disk encryption. It standardizes a partition header, as well as the format of the bulk data. LUKS can manage multiple passwords, that can be revoked effectively and that are protected against dictionary attacks with PBKDF2. 
+
+These are valid LUKS actions:
+
+\fIluksFormat\fR <device> [<key file>]
+.IP
+initializes a LUKS partition and set the initial key, either via prompting or via <key file>.
+<options> can be [\-\-cipher, \-\-verify\-passphrase, \-\-key\-size]
+.PP
+\fIluksOpen\fR <device> <name>
+.IP
+opens the LUKS partition <device> and sets up a mapping <name> after successful verification of the supplied key material (either via key file by \-\-key\-file, or via prompting).
+<options> can be [\-\-key\-file].
+.PP
+\fIluksClose\fR <name>
+.IP
+identical to \fIremove\fR.
+.PP
+\fIluksAddKey\fR <device> [<new key file>]
+.IP
+add a new key file/passphrase. An existing passphrase or key file (via \-\-key\-file) must be supplied. The key file with the new material is supplied as after \fIluksAddKey\fR as positional argument. <options> can be [\-\-key\-file].
+.PP
+\fIluksDelKey\fR <key slot number>
+.IP
+remove key from key slot. No options.
+.PP
+\fIluksUUID\fR <device>
+.IP
+print UUID, if <device> has a LUKS header. No options.
+.PP
+\fIisLuks\fR <device>
+.IP
+returns true, if <device> is a LUKS partition. Otherwise, false. No options.
+.PP
+\fIluksDump\fR <device>
+.IP
+dumps the header information of a LUKS partition. No options.
+.PP
+
+For more information about LUKS, see \fBhttp://luks.endorphin.org\fR
+.SH OPTIONS
+.TP
+.B "\-\-hash, \-h"
+specifies hash to use for password hashing. This option is only relevant for the "create" action. The hash string is passed to libgcrypt, so all hashes accepted by gcrypt are supported.
+.TP
+.B "\-\-cipher, \-c"
+set cipher specification string. Usually, this is "aes\-cbc\-plain". For pre\-2.6.10 kernels, use "aes\-plain" as they don't understand the new cipher spec strings. To use ESSIV, use "aes\-cbc\-essiv:sha256".
+.TP
+.B "\-\-verify-passphrase, \-y"
+query for passwords twice. Useful, when creating a (regular) mapping for the first time, or when running \fIluksFormat\fR.
+.TP
+.B "\-\-key-file, \-d"
+use file as key material. With LUKS, key material supplied in key files via \-d are always used for existing passphrases. If you want to set a new key via a key file, you have to use a positional arg to \fIluksFormat\fR or \fIluksAddKey\fR.
+.TP
+.B "\-\-key-size, \-s"
+set key size in bits. Usually, this is 128, 192 or 256. Can be used for \fIcreate\fR or \fIluksFormat\fR, all other LUKS actions will ignore this flag, as the key\-size is specified by the partition header.
+.TP
+.B "\-\-size, \-b"
+force the size of the underlaying device in sectors.
+.TP
+.B "\-\-offset, \-o"
+start offset in the backend device.
+.TP
+.B "\-\-skip, \-p"
+how many sectors of the encrypted data to skip at the beginning. This is different from the \-\-offset options with respect to IV calculations. Using \-\-offset will shift the IV calculcation by the same negative amount. Hence, if \-\-offset \fIn\fR, sector \fIn\fR will be the first sector on the mapping with IV \fI0\fR. Using \-\-skip would have resulted in sector \fIn\fR being the first sector also, but with IV \fIn\fR.
+.TP
+.B "\-\-readonly"
+setup a read\-only mapping.
+.TP
+.B "\-\-iter-time, \-i"
+The number of seconds to spend with PBKDF2 password processing. This options is only relevant to LUKS key setting operations as \fIluksFormat\fR or \fIluksAddKey\fR.
+
+.SH NOTES ON PASSWORD PROCESSING FOR REGULAR MAPPINGS
+\fIFrom a file descriptor or a terminal\fR: Password processing is new\-line sensitive, meaning the reading will stop after encountering \\n. It will processed the read material with the default hash or the hash given by \-\-hash. After hashing it will be cropped to the key size given by \-s (or default 256bit).
+
+\fIFrom a key file\fR: It will be cropped to the size given by \-s. If there is insufficient key material in the key file, cryptsetup will quit with an error.
+.SH NOTES ON PASSWORD PROCESSING FOR LUKS
+Password processing is totally different for LUKS. LUKS uses PBKDF2 to protect against dictionary attacks (see RFC 2898). 
+LUKS will always use SHA1 in HMAC mode, and no other mode is supported at the moment. 
+Hence, \-h is ignored.
+
+LUKS will always do an exhaustive password reading. Hence, password can not be read from /dev/random, /dev/zero or any other stream, that does not terminate.
+
+LUKS saves the processing options when a password is set to the respective key slot.
+Therefore, no options can be given to luksOpen. 
+For any password creation action (luksAddKey, or luksFormat), the user specify, how much the time the password processing should consume. 
+Increasing the time will lead to a more secure password, but also will take luksOpen longer to complete. The default setting of one second is sufficient for good security.
+.SH NOTES ON PASSWORDS
+Mathematic can't be bribed. Make sure you keep your passwords save. There are a few nice tricks for constructing a fallback, when suddely out of (or after being) blue, your brain refuses to cooperate. These fallbacks are possible with LUKS, as it's only possible with LUKS to have multiple passwords.
+.SH AUTHORS
+cryptsetup is written by Christophe Saout <christophe@saout.de>
+.br
+LUKS extensions, and man page by Clemens Fruhwirth <clemens@endorphin.org>
+.SH "REPORTING BUGS"
+Report bugs to <dm\-crypt@saout.de>.
+.SH COPYRIGHT
+Copyright \(co 2004 Christophe Saout
+.br
+Copyright \(co 2004\-2005 Clemens Fruhwirth
+
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+.SH "SEE ALSO"
+
+dm\-crypt website, \fBhttp://www.saout.de/misc/dm\-crypt/\fR
+
+LUKS website, \fBhttp://luks.endorphin.org\fR
+
+dm\-crypt TWiki, \fBhttp://www.saout.de/tikiwiki/tiki\-index.php\fR

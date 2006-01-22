@@ -1,0 +1,144 @@
+cryptsetup (1.0.1-9) unstable; urgency=low
+
+  * rename the package to cryptsetup, provide a dummy cryptsetup-luks package
+  * initial upload to debian
+
+ -- Jonas Meurer <mejo@debian.org>  Sun, 22 Jan 2006 07:33:33 +0100
+
+cryptsetup-luks (1.0.1-8) unstable; urgency=low
+
+  * use upstream tarball as orig.tar.gz and keep debian changes in diff.gz
+  * change to use dpatch
+  * adjust build environment to work with upstream sources, and without
+    autogen.sh
+  * merge fixes for debian scripts from cryptsetup.
+  * keep cryptsetup manpage untouched, as merging cryptsetup and
+    cryptsetup-luks manpages is rather complex.
+  * set mandir to /usr/share/man for configure
+  * add a lintian-override file
+
+ -- Jonas Meurer <mejo@debian.org>  Sun, 22 Jan 2006 06:48:30 +0100
+
+cryptsetup-luks (1.0.1-7) unstable; urgency=high
+
+  * make cryptsetup create work again (patch for lib/libdevmapper.c) 
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Sat, 21 Jan 2006 14:39:36 +0100
+
+cryptsetup-luks (1.0.1-6) unstable; urgency=low
+
+  * recompile for new libdevmapper 
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Tue, 10 Jan 2006 15:10:17 +0100
+
+cryptsetup-luks (1.0.1-5) unstable; urgency=low
+
+  * improved documentation for /etc/crypttab 
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Mon,  7 Nov 2005 17:05:20 +0100
+
+cryptsetup-luks (1.0.1-4) unstable; urgency=low
+
+  * added luks option for /etc/crypttab (thx to Fabian Thorns
+    <fabian@thorns.it> for the initial patch)
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Thu,  3 Nov 2005 19:22:59 +0100
+
+cryptsetup-luks (1.0.1-3) unstable; urgency=low
+
+  * completly switched to luks upstream
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Thu, 11 Aug 2005 22:14:16 +0200
+
+cryptsetup-luks (1.0.1-2) unstable; urgency=low
+
+  * fixed build dependencies 
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Mon, 20 Jun 2005 22:30:38 +0200
+
+cryptsetup-luks (1.0.1-1) unstable; urgency=low
+
+  * synced with luks upstream
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Mon, 20 Jun 2005 16:22:53 +0200
+
+cryptsetup-luks (1.0-5) unstable; urgency=low
+
+  * fixed a small typo in the manpage
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Sat, 23 Apr 2005 11:06:31 +0200
+
+cryptsetup-luks (1.0-4) unstable; urgency=low
+
+  * cleand source-tree for submitting a wishlist report into debian BTS
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Tue, 19 Apr 2005 18:44:13 +0200
+
+cryptsetup-luks (1.0-3) unstable; urgency=low
+
+  * updatet dependencies (libdevmapper1.00 => libdevmapper1.01) 
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Tue, 19 Apr 2005 13:51:10 +0200
+
+cryptsetup-luks (1.0-2) unstable; urgency=low
+
+  * replaced original debian cryptsetup manpage with manpage from
+    cryptsetup-luks 
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Sun,  3 Apr 2005 13:33:55 +0200
+
+cryptsetup-luks (1.0-1) unstable; urgency=low
+
+  * new upstream release
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Sat,  2 Apr 2005 23:29:43 +0200
+
+cryptsetup-luks (0.993-3) unstable; urgency=low
+
+  * fixed dependencis 
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Sun, 13 Feb 2005 01:28:11 +0100
+
+cryptsetup-luks (0.993-2) unstable; urgency=low
+
+  * fixed a few source problems
+  * fixed post/pre install scripts
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Sat, 12 Feb 2005 16:18:07 +0100
+
+cryptsetup-luks (0.993-1) unstable; urgency=low
+
+  * synced with luks upstream 
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Sat, 12 Feb 2005 15:50:21 +0100
+
+cryptsetup-luks (0.992-5) unstable; urgency=low
+
+  * fixed a few problems in den debian source package 
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Sat, 12 Feb 2005 04:22:30 +0100
+
+cryptsetup-luks (0.992-4) unstable; urgency=low
+
+  * debianized the package
+  * cleand up build system
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Sat, 12 Feb 2005 00:12:43 +0100
+
+cryptsetup-luks (0.992-3) unstable; urgency=low
+
+  * Fixed typo
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Fri, 11 Feb 2005 18:38:42 +0100
+
+cryptsetup-luks (0.992-2) unstable; urgency=low
+
+  * Added note within description 
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Fri, 11 Feb 2005 18:21:03 +0100
+
+cryptsetup-luks (0.992-1) unstable; urgency=low
+
+  * "integrated LUKS" support (very messy hack)
+
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Thu, 10 Feb 2005 18:16:21 +0100

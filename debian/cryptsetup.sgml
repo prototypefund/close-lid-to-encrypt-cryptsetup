@@ -1,0 +1,248 @@
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+
+  <!-- Fill in your name for FIRSTNAME and SURNAME. -->
+  <!ENTITY dhfirstname "<firstname>Wesley W.</firstname>">
+  <!ENTITY dhsurname   "<surname>Terpstra</surname>">
+  <!-- Please adjust the date whenever revising the manpage. -->
+  <!ENTITY dhdate      "<date>Dec 28, 2004</date>">
+  <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
+       allowed: see man(7), man(1). -->
+  <!ENTITY dhsection   "<manvolnum>8</manvolnum>">
+  <!ENTITY dhemail    "<email>terpstra@debian.org</email>">
+  <!ENTITY dhusername "Wesley W. Terpstra">
+  <!ENTITY dhucpackage "<refentrytitle>CRYPTSETUP</refentrytitle>">
+  <!ENTITY dhpackage   "cryptsetup">
+
+  <!ENTITY debian      "<productname>Debian</productname>">
+  <!ENTITY lurker      "<productname>lurker</productname>">
+  <!ENTITY gnu         "<acronym>GNU</acronym>">
+]>
+
+<refentry>
+  <refentryinfo>
+    <address>
+      &dhemail;
+    </address>
+    <author>
+      &dhfirstname;
+      &dhsurname;
+    </author>
+    <copyright>
+      <year>2003</year>
+      <holder>&dhusername;</holder>
+    </copyright>
+    &dhdate;
+  </refentryinfo>
+  <refmeta>
+    &dhucpackage;
+
+    &dhsection;
+  </refmeta>
+  <refnamediv>
+    <refname>&dhpackage;</refname>
+
+    <refpurpose>manage encrypted block devices</refpurpose>
+  </refnamediv>
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>&dhpackage;</command>
+      <arg choice="opt" rep="repeat"><replaceable>OPTION</replaceable></arg>
+      <arg choice="req"><replaceable>action</replaceable></arg>
+      <arg choice="req"><replaceable>name</replaceable></arg>
+      <arg choice="opt"><replaceable>device</replaceable></arg>
+    </cmdsynopsis>
+  </refsynopsisdiv>
+  <refsect1>
+    <title>DESCRIPTION</title>
+    <para><command>&dhpackage;</command> provides a command-line interface
+      for configuring encrypted block devices. Typically, a filesystem is
+      run overtop of this device to create an encrypted filesystem.</para>
+    <para>This facility is supported in kernels newer than 2.6.4 and is
+      called dm-crypt. It is backwards compatible with the old
+      cryptoloop system.</para>
+  </refsect1>
+  <refsect1>
+    <title>OPTIONS</title>
+    <variablelist>
+      <varlistentry>
+        <term><option>-v</option>, <option>--verbose</option>
+        </term>
+        <listitem>
+          <para>Shows more detailed error messages.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term>
+<option>-c</option> <replaceable>STRING</replaceable>, <option>--cipher=</option><replaceable>STRING</replaceable>
+        </term>
+        <listitem>
+          <para>The cipher used to encrypt the disk (see
+                <filename>/proc/crypto</filename>)
+                (default: <quote>aes</quote>).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-h</option> <replaceable>STRING</replaceable>, <option>--hash=</option><replaceable>STRING</replaceable>
+        </term>
+        <listitem>
+          <para>The hash used to create the encryption key from
+                the passphrase (default: <quote>ripemd160</quote>).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-y</option>, <option>--verify-passphrase</option>
+        </term>
+        <listitem>
+          <para>Verifies the passphrase by asking for it twice.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-d</option> <replaceable>STRING</replaceable>, <option>--key-file=</option><replaceable>STRING</replaceable>
+        </term>
+        <listitem>
+          <para>Read the raw key data from a file (can be
+          <filename>/dev/random</filename>). The key data will not
+          be hashed, ie. the <option>-h</option> option will be ignored.
+          This implies that <option>-d</option>
+          <literal>/dev/stdin</literal> is only the same as running
+          <literal>cryptsetup</literal> without the <option>-d</option> option when
+          <option>-h</option> <literal>plain</literal> is used.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-s</option> <replaceable>BITS</replaceable>, <option>--key-size=</option><replaceable>BITS</replaceable>
+        </term>
+        <listitem>
+          <para>The size of the encryption key (default: 256).</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-b</option> <replaceable>SECTORS</replaceable>, <option>--size=</option><replaceable>SECTORS</replaceable>
+        </term>
+        <listitem>
+          <para>The size of the device.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-o</option> <replaceable>SECTORS</replaceable>, <option>--offset=</option><replaceable>SECTORS</replaceable>
+        </term>
+        <listitem>
+          <para>The start offset in the backend device.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-p</option> <replaceable>SECTORS</replaceable>, <option>--skip=</option><replaceable>SECTORS</replaceable>
+        </term>
+        <listitem>
+          <para>How many sectors of the encrypted data to skip
+                at the beginning.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-r</option>, <option>--readonly</option>
+        </term>
+        <listitem>
+          <para>Create a readonly mapping.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>-?</option>, <option>--help</option>
+        </term>
+        <listitem>
+          <para>Show a help message.</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><option>--usage</option>
+        </term>
+        <listitem>
+          <para>Display brief usage.</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+  </refsect1>
+  <refsect1>
+    <title>ARGUMENTS</title>
+    <para><replaceable>action</replaceable> is one of:</para>
+    <blockquote>
+    <variablelist>
+      <varlistentry>
+        <term><literal>create</literal></term>
+        <listitem>
+          <para>create device</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><literal>remove</literal></term>
+        <listitem>
+          <para>remove device</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><literal>reload</literal></term>
+        <listitem>
+          <para>modify active device</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><literal>resize</literal></term>
+        <listitem>
+          <para>resize active device</para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><literal>status</literal></term>
+        <listitem>
+          <para>show device status</para>
+        </listitem>
+      </varlistentry>
+    </variablelist>
+    </blockquote>
+    <para><replaceable>name</replaceable> is the device to create under
+    /dev/mapper.</para>
+    <para><replaceable>device</replaceable> is the encrypted device.</para>
+  </refsect1>
+  <refsect1>
+    <title>EXAMPLES</title>
+    <programlisting>cryptsetup create crypted\-hda1 /dev/hda1</>
+    <programlisting>openssl enc \-d \-aes\-256\-ecb \-in crypt.key | \\
+       cryptsetup \-c twofish \-h sha512 create _dev_hda1 /dev/hda1</>
+    <programlisting>cryptsetup remove crypted\-hda1</>
+  </refsect1>
+  <refsect1>
+    <title>SEE ALSO</title>
+    <para>
+    <citerefentry>
+      <refentrytitle>dmsetup</refentrytitle>
+      <manvolnum>8</manvolnum>
+    </citerefentry>,
+    <filename>/usr/share/doc/cryptsetup</filename>,
+    <command>/sbin/cryptsetup \-\-help</command>
+    </para>
+  </refsect1>
+  <refsect1>
+    <title>AUTHOR</title>
+    <para>This manual page was written for the &debian; system by 
+      &dhusername; &lt;&dhemail;&gt; and Bastian Kleineidam
+      &lt;calvin@debian.org&gt;.  Permission is granted to copy, distribute
+      and/or modify this document under the terms of the <acronym>GNU</acronym> 
+      General Public License <acronym>GPL</acronym>; version 2.</para>
+  </refsect1>
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->

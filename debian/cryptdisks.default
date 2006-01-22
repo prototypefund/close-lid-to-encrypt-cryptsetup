@@ -1,0 +1,2 @@
+# Run cryptdisks at startup ?
+CRYPTDISKS_ENABLE=Yes

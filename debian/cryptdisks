@@ -1,0 +1,223 @@
+#! /bin/sh
+#
+# cryptodisks	Now that all block devices should be available, setup
+#		encrypted block devices
+
+### BEGIN INIT INFO
+# Provides:          cryptdisks
+# Required-Start:    checkroot
+# Required-Stop:     umountroot
+# Should-Start:      udev devfsd raid2 mdadm lvm
+# Should-Stop:
+# Default-Start:     S
+# Default-Stop:      0 6
+### END INIT INFO
+
+CRYPTCMD=/sbin/cryptsetup
+DEVMAPCMD=/sbin/dmsetup
+TABFILE=/etc/crypttab
+MAPPER=/dev/mapper
+
+test -x $CRYPTCMD  || exit 0
+test -x $DEVMAPCMD || exit 0
+test -f $TABFILE   || exit 0             
+
+[ -r /etc/default/cryptdisks ] && . /etc/default/cryptdisks
+
+case "$CRYPTDISKS_ENABLE" in
+        [Nn]*)
+                exit 0
+                ;;
+esac
+
+$DEVMAPCMD mknodes
+
+case "$1" in
+start)
+	echo -n "Starting crypto disks:"
+	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opt; do
+		echo -n " $dst"
+		if test -b $MAPPER/$dst; then
+			echo -n "(running)"
+		else
+			echo -n "(starting)"
+			if [ "x$key" != "x" ] && [ "x$key" != "xnone" ]; then
+				INTERACTIVE="no"
+				if test -e "$key" ; then
+					MODE=`ls -l $key | sed 's/^....\(......\).*/\1/'`
+					OWNER=`ls -l $key | sed 's/^[^ ]* *[^ ]* *\([^ ]*\).*/\1/'`
+					if test "$MODE" != "------" && \
+					   test "$key" != "/dev/urandom"  && \
+					   test "$key" != "/dev/hwrandom" && \
+					   test "$key" != "/dev/random"; then
+						echo " - INSECURE MODE FOR $key" >&2
+					fi
+					if test $OWNER != root; then
+						echo " - INSECURE OWNER FOR $key" >&2
+					fi
+				else
+					echo " - Keyfile for $dst not found, skipping" >&2
+					continue
+				fi
+			else
+				INTERACTIVE="yes"
+				echo "..."
+			fi
+
+			PARAMS=""
+			USELUKS=""
+			MAKETMP=""
+			MAKESWAP=""
+			SKIP=""
+
+			# Parse the options field, convert to cryptsetup parameters
+			# and contruct the command line
+			while test "x$opt" != "x" ; do
+				ARG=`echo $opt | sed "s/,.*//"`
+				opt=${opt##$ARG}
+				opt=${opt##,}
+				PARAM=`echo $ARG | sed "s/=.*//"`
+				VALUE=${ARG##$PARAM=}
+				
+				case "$PARAM" in 
+					readonly)
+						PARAM=-r
+						VALUE=""
+						;;
+					cipher)
+						PARAM=-c
+						if test "x$VALUE" = "x" ; then
+							echo " - no value for cipher option, skipping" >&2
+							SKIP="yes"
+						fi
+						;;
+					size)
+						PARAM=-s
+						if test "x$VALUE" = "x" ; then
+							echo " - no value for size option, skipping" >&2
+							SKIP="yes"
+						fi
+						;;
+					hash)
+						PARAM=-h
+						if test "x$VALUE" = "x" ; then
+							echo " - no value for hash option, skipping" >&2
+							SKIP=yes
+						fi
+						;;
+					verify)
+						PARAM=-y
+						VALUE=""
+						;;
+					swap)
+						MAKESWAP=yes
+						PARAM=""
+						VALUE=""
+						;;
+					tmp)
+						MAKETMP=yes
+						PARAM=""
+						VALUE=""
+						;;
+					luks)
+						USELUKS=yes
+						PARAM=""
+						VALUE=""
+				esac
+				PARAMS="$PARAMS $PARAM $VALUE"
+			done
+
+			# Set up loopback devices
+			if test -f "$src" ; then
+				test -d /sys/block/loop0 || modprobe loop || SKIP=yes
+				LOOP_ID=
+				for i in 0 1 2 3 4 5 6 7 ; do
+					if test "x`cat /sys/block/loop$i/size`" = "x0" ; then
+						LOOP_ID=$i
+						break
+					fi
+				done
+				if test "x$LOOP_ID" = "x" ; then
+					SKIP=yes
+				else
+					losetup /dev/loop$LOOP_ID $src || SKIP=yes
+					src=/dev/loop$LOOP_ID
+				fi
+			fi
+
+			if test "x$SKIP" = "xyes" ; then
+				continue
+			fi
+
+			# Password processing in luks* from cryptsetup is newline sensitive
+			# reading stops after \n is received!
+			if test "x$USELUKS" = "xyes" && \
+			   test "x$MAKESWAP" = "xyes" && \
+			   test "x$INTERACTIVE" != "xyes"; then
+				echo -e "\n - you should not mix swap and luks, skipping" >&2
+				continue
+			fi
+
+			if test "x$USELUKS" = "xyes" && $CRYPTCMD isLuks $src ; then
+				if test "x$INTERACTIVE" = "xyes" ; then
+					$CRYPTCMD $PARAMS luksOpen $src $dst <&1
+				else
+					$CRYPTCMD $PARAMS luksOpen $src $dst --key-file $key <&1
+				fi
+			else
+				if test "x$INTERACTIVE" = "xyes" ; then
+					$CRYPTCMD $PARAMS create $dst $src <&1
+				else
+					$CRYPTCMD $PARAMS -d $key create $dst $src
+				fi
+			fi
+
+			if test "x$MAKESWAP" = "xyes" && test -b $MAPPER/$dst; then
+				mkswap $MAPPER/$dst 2>/dev/null >/dev/null
+			fi
+
+			if test "x$MAKETMP" = "xyes" && test -b $MAPPER/$dst; then
+				mke2fs $MAPPER/$dst 2>/dev/null >/dev/null
+				mount -t ext2 $MAPPER/$dst /tmp
+				chmod 1777 /tmp
+				umount /tmp
+			fi
+		fi
+	done
+	echo "."
+	;;
+stop)
+	echo -n "Stopping crypto disks:"
+	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key; do
+		echo -n " $dst"
+		if test -b $MAPPER/$dst; then
+			if $DEVMAPCMD info $dst | grep -q '^Open count: *0$'; then
+				dev=`$DEVMAPCMD table $dst | sed 's/^.* \([0-9]*:[0-9]*\) .*/\1/'`
+				major=`echo $dev | sed 's/:.*//'`
+				minor=`echo $dev | sed 's/.*://'`
+				
+				echo -n "(stopping)"
+				$CRYPTCMD remove $dst
+				
+				# Detach loopback device, if attached
+				if test -f $src -a $major -eq 7; then
+					losetup -d /dev/loop$minor
+				fi
+			else
+				echo -n "(busy)"
+			fi
+		else
+			echo -n "(stopped)"
+		fi
+	done
+
+	echo "."
+	;;
+restart|reload|force-reload)
+	$0 stop
+	$0 start
+	;;
+*)
+	echo "Usage: $0 {start|stop|restart|reload|force-reload}"
+	;;
+esac

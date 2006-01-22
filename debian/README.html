@@ -1,0 +1,401 @@
+<!DOCTYPE html
+	PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<base href="http://www.saout.de/misc/dm-crypt/">
+	<title>dm-crypt - a device-mapper crypto target</title>
+	<meta name="robots" content="index" />
+	<meta name="robots" content="nofollow" />
+	<meta name="MSSmartTagsPreventParsing" content="TRUE" />
+	<style type="text/css">
+		<!--
+			body, h1, div {
+				font-family: Arial, Helvetica, Sans-Serif;
+				background-color: rgb(255, 255, 255);
+				color: rgb(0, 0, 0);
+			}
+			img {
+				vertical-align: bottom;
+			}
+			acronym {
+				color: rgb(255, 255, 255);
+			}
+			dt {
+				margin-top: 6pt;
+			}
+			dd {
+				margin-bottom: 12pt;
+			}
+			ul {
+				margin-top: 6pt;
+				margin-bottom: 6pt;
+			}
+		// -->
+	</style>
+</head>
+<body>
+	<h1>dm-crypt: a device-mapper crypto target</h1>
+	<div>
+		<h3>About</h3>
+		<p>
+			Device-mapper is a new infrastructure in the Linux 2.6 kernel that provides
+			a generic way to create virtual layers of block devices that can do different
+			things on top of real block devices like striping, concatenation, mirroring,
+			snapshotting, etc... The device-mapper is used by the
+			<a href="http://www.sistina.com/products_lvm.htm">LVM2</a> and
+			<a href="http://evms.sourceforge.net/">EVMS 2.x</a> tools.<br />
+			dm-crypt is such a device-mapper target that provides transparent encryption of
+			block devices using the new Linux 2.6 cryptoapi. The user can basically specify
+			one of the symmetric ciphers, a key (of any allowed size), an iv generation mode
+			and then he can create a new block device in /dev. Writes to this device will
+			be encrypted and reads decrypted. You can mount your filesystem on it as usual.
+			But without the key you can't access your data.<br />
+			It does basically the same as cryptoloop only that it's a much cleaner code and
+			better suits the need of a block device and has a more flexible configuration
+			interface. The on-disk format is also compatible. In the future you will be able
+			to specify other iv generation modes for enhanced security (you'll have to
+			reencrypt your filesystem though).<br />
+		</p>
+		<p>
+			I've set up a <a href="/tikiwiki/">Wiki</a>. It's naked at the moment, feel free
+			to fill it with some useful informations.<br />
+			There's a mailing list at <a href="mailto:dm-crypt@saout.de">dm-crypt@saout.de</a>.
+			If you want to subscribe just send an empty mail to
+			<a href="mailto:dm-crypt-subscribe@saout.de">dm-crypt-subscribe@saout.de</a>.<br />
+			<a href="http://www.gmane.org/">Gmane</a> provides a NNTP interface and
+			<a href="http://news.gmane.org/gmane.linux.kernel.device-mapper.dm-crypt">web archive</a>
+			for this mailing list.<br />
+		</p>
+	</div>
+	<div>
+		<h3>Download</h3>
+		<p>
+			There is support for dm-crypt in the latest official kernel
+			<a href="http://www.kernel.org/pub/linux/kernel/v2.6/ChangeLog-2.6.4">2.6.4</a>
+			which you can find on <a href="http://www.kernel.org/">kernel.org</a>.
+			Please use the <a href="http://www.kernel.org/mirrors/">mirrors</a> for downloads.<br />
+			<em>There is a <code>HIGHMEM</code> cryptoapi bug in kernels before 2.6.4-rc2, please
+			upgrade if you were using such a kernel.</em><br />
+			The latest version of the native userspace setup tool is <a href="cryptsetup-0.1.tar.bz2">cryptsetup 0.1</a>.<br />
+			Clemens Fruhwirth is maintaining an
+			<a href="http://luks.endorphin.org/dm-crypt">enhanced
+			version of cryptsetup with the LUKS extension</a> that allows you to have an
+			on-disk block of metadata which is superior to the current mechanism and was
+			my long term plan anyway but I didn't find the time to implement that yet...
+		</p>
+	</div>
+	<div>
+		<h3>Description</h3>
+		<p>
+			<em>NEW:</em> I've set up a <a href="/tikiwiki/">Wiki</a>. It's naked at the moment, feel free
+			to fill it with some useful informations.<br />
+		</p>
+		<p>
+			<strong>Installation:</strong><br />
+			Once you have a Linux 2.6 kernel with dm-crypt support on your machine,
+			you need to activate device-mapper and dm-crypt in your kernel.<br />
+			You can find both config options under
+			<code>Device Drivers &gt; Multi-device support (RAID and LVM)</code>.
+			Both can be compiled statically or as modules (code which you can insert
+			and remove from the kernel at runtime).<br />
+			The config options are also called <code>CONFIG_BLK_DEV_DM</code> and
+			<code>CONFIG_DM_CRYPT</code>.<br />
+			You also need some userspace tools. You need to install the device-mapper
+			package, you can find the latest version
+			<a href="ftp://sources.redhat.com/pub/dm/">here</a>.
+		</p>
+		<p>
+			If you have compiled device-mapper as a module you must load it using
+			<code>modprobe dm-mod</code>, the dm-crypt module should autoload when
+			used.<br />
+			You should make sure that you have the <code>/dev/mapper</code> directory
+			and the <code>/dev/mapper/control</code> device node.<br />
+			If not, you should follow the instructions in the INSTALL file found in
+			the <a href="ftp://sources.redhat.com/pub/dm/">device-mapper package</a>.
+			The INTRO file also explains some device-mapper basics which might be useful.<br />
+		</p>
+		<p>
+			<strong>Setup:</strong><br />
+			The mapped device can be created through userspace tools calling the appropriate
+			device-mapper ioctl. Since there are no dedicated tools yet everything is done
+			through <code>dmsetup</code>.<br />
+			<em>(note: If you don't want to know the details you might want to skipt the next
+			paragraphs and directly go to the description of <a href="#cryptsetup">cryptsetup</a>)</em><br />
+		</p>
+		<p>
+			<code>dmsetup</code> is used to create and remove devices, get information about
+			devices or reload tables (that means changing the mapping while the device is in
+			use).<br />
+			The syntax for device creation is: <code>dmsetup create <em>&lt;name&gt;</em></code><br />
+			<em>&lt;name&gt;</em> is the name of the created device. It will appear under
+			/dev/mapper/<em>&lt;name&gt;</em>.<br />
+			<code>dmsetup</code> then expects the <em>table</em> on stdin (you could also give
+			a file name as third parameter).<br />
+			The table is a list of lines with a sector range, target type and target config. It looks like:<br />
+			<code><em>&lt;start sector&gt;</em> <em>&lt;sector count&gt;</em> <em>&lt;target type&gt;</em> <em>&lt;arguments&gt;</em></code><br />
+			I'm not going into every detail here. A dm-crypt table looks like:<br />
+		</p>
+		<p>
+			<code><strong>0 <em>&lt;sector count&gt;</em> crypt <em>&lt;sector format&gt;</em> <em>&lt;key&gt;</em> <em>&lt;IV offset&gt;</em> <em>&lt;real device&gt;</em> <em>&lt;sector offset&gt;</em></strong></code>
+		</p>
+		<dl>
+			<dt><em>&lt;sector format&gt;</em></dt>
+			<dd>
+				It consists of the name of the symmetric	encryption cipher and an optional
+				IV generation mode (if none is selected the cryptoloop compatible <em>plain</em> mode
+				is chosen).<br />
+				Currently the IV generation modes <em>ecb</em> and <em>plain</em> are available.
+				<em>ecb</em> means no cipher block chaining and IV is used at all (don't do this
+				if you don't know what you're doing, it is a security catastrophe!). <em>plain</em>
+				uses the unhashed 32 bit sector number as IV. The IV generation mode is appended
+				using a dash or since Linux 2.6.10 <em>cbc-essiv:&lt;hash&gt;</em>
+				(this prevents a watermark attack weakness). Examples for this parameter are: <code>des</code>,
+				<code>aes-cbc-essiv:sha256</code> or <code>twofish-ecb</code>.<br />
+				<code>cat /proc/crypto</code> will show you the supported ciphers.<br />
+			</dd>
+
+			<dt><em>&lt;key&gt;</em></dt>
+			<dd>
+				This is the key used for encryption. It is encoded as a hexadecimal number.
+				You can only use key sizes that are valid for the selected cipher. See /proc/crypto output.<br />
+			</dd>
+
+			<dt><em>&lt;IV offset&gt;</em></dt>
+			<dd>
+				The IV offset is a sector count that is added to the sector number before
+				creating the IV. It can be used to create a map that starts after the first encrypted
+				sector. Usually you'll set it to zero except your device is only partially available
+				or something like this.<br />
+			</dd>
+
+			<dt><em>&lt;real device&gt;</em></dt>
+			<dd>
+				This is the device that is going to be used as backend and
+				contains the encrypted data. You can specify the path like <em>/dev/xxx</em> or a device
+				number <em>&lt;major&gt;:&lt;minor&gt;</em>.<br />
+			</dd>
+
+			<dt><em>&lt;sector offset&gt;</em></dt>
+			<dd>
+				Finally this is the sector (number of 512 byte sectors) offset
+				where the encrypted data begins in the given real device.<br />
+			</dd>
+		</dl>
+		<p>
+			So a complete line to setup the device might look like:<br />
+			<code><strong>echo 0 `blockdev --getsize /dev/hda5` crypt aes-plain 0123456789abcdef0123456789abcdef 0 /dev/hda5 0 | dmsetup create volume1</strong></code><br />
+			Note the use of the <em>blockdev</em> command to get the number of sectors on <em>/dev/hda5</em>.<br />
+			The created device will be named <code>/dev/mapper/volume1</code>.
+		</p>
+		<p>
+			The device can then be mounted (you should not forget to create a filesystem first).
+			You can remove the device again using <code>dmsetup remove <em>&lt;name&gt;</em></code>.
+			If the creation fails see the syslog for kernel messages. Don't forget to remove the
+			device before trying to recreate it.
+		</p>
+		<p>
+			Except for the additional parameters dmsetup can be used somewhat like losetup for cryptoloop.
+			You can use hexdump to create the hex key representation and pipe the output from
+			<a href="http://www.paranoiacs.org/~sluskyb/hacks/hashalot/">hashalot</a> into
+			it or something. This is what the cryptsetup tool below does.
+		</p>
+		<p>
+			<a id="cryptsetup" name="cryptsetup"><strong>cryptsetup:</strong></a><br />
+			Because the way using dmsetup directly is too complicated for most people I'm currently writing
+			a native cryptsetup program to behave like one of the patched losetup's out there. It's going to
+			support a lot more features in the future.<br />
+			<em><strong>NEW:</strong> A first version of the native cryptsetup implementation in C is ready:<br />
+			<a href="cryptsetup-0.1.tar.bz2">cryptsetup 0.1</a> requires <a href="http://www.g10code.de/p-libgcrypt.html">libgcrypt</a> 1.1.x and libdevmapper</em><br />
+			I've got a CVS server, if you're interested in development I can give you write access.
+			The old version is a shell script that uses dmsetup and hashalot to do the same. I'm using the same
+			syntax. The script can be found <a href="cryptsetup.sh">here</a>.
+			You can put it into /usr/local/sbin or somewhere you like. The old script requires the tools <code>dmsetup</code>,
+			<code>hashalot</code>, <code>hexdump</code>, <code>sed</code>, <code>head</code>, <code>awk</code>
+			and <code>ls</code>. Most of these will most likely come with your distribution.<br />
+			The <code>hashalot</code> tool can be found <a href="http://www.paranoiacs.org/~sluskyb/hacks/hashalot/">here</a> <em>(not required with <code>-h plain</code>)</em>.<br />
+			The <code>dmsetup</code> tool can be found in the device-mapper package
+			<a href="ftp://sources.redhat.com/pub/dm/">here</a>.<br />
+			Don't forget to call <code>scripts/devmap_mknod.sh</code> (only once) in the device-mapper package
+			to create the <code>/dev/mapper/control</code> device node if you don't use
+			devfs or udev.<br />
+		</p>
+<pre>
+Syntax: /usr/local/sbin/cryptsetup [&lt;OPTIONS&gt;] &lt;action&gt; &lt;name&gt; [&lt;device&gt;]
+        &lt;OPTIONS&gt;:
+            -c &lt;cipher&gt; (see /proc/crypto)
+            -h {plain/&lt;hash&gt;} (see hashalot, WARNING: use ripemd160 instead of rmd160)
+            -y (verifies the passphrase by asking for it twice)
+            -d &lt;file&gt; (read key from file
+                 e.g. /dev/urandom; useful for swap devices.
+                 If set, the parameters -h and -y will be ignored)
+            -s &lt;keysize&gt; (in bits) (WARNING: in bytes for cryptsetup.sh)
+            -b &lt;size&gt; (in sectors)
+            -o &lt;offset&gt; (in sectors)
+            -p &lt;skipped&gt; (in sectors)
+        &lt;action&gt; is one of:
+            create - create device
+            remove - remove device
+            reload - modify active device
+            resize - resize active device
+            status - show device status
+        &lt;name&gt; is the device to create under /dev/mapper/
+        &lt;device&gt; is the encrypted device
+</pre>
+		<p>
+			When creating a device the program will ask for the a passphrase. The passphrase
+			will then be hashed using the <em>hashalot</em> program and be used as key.<br />
+			Alternatively a passphrase can be piped through stdin.<br />
+			The hashing can be turned off with <code>-h plain</code>.
+		</p>
+		<p>
+			The defaults are <code>aes</code> with a <code>256 bit</code> key, hashed using
+			<code>ripemd160</code>. Since Linux 2.6.10 you can
+			use an alternative IV scheme to prevent a watermark attack weakness.
+			<code>aes-cbc-essiv:sha256</code> should do it.
+		</p>
+		<p>
+			Don't forget: cryptsetup only creates a mapping. If you call cryptsetup again
+			after a reboot and supply the same passphrase you will be able to mount your
+			filesystem you created before.<br />
+		</p>
+	</div>
+	<div>
+		<h3>Migration from cryptoloop and compatibility</h3>
+		<p>
+			The on-disk layouts used by the current 2.6 cryptoloop are supported by dm-crypt.<br />
+			Cryptoloop also uses cryptoapi so the name of the ciphers are the same. Cryptoloop also
+			supports ECB and CBC mode. Use <code><em>&lt;cipher&gt;</em>-ecb</code> and
+			<code><em>&lt;cipher&gt;</em>-plain</code> accordingly with dm-crypt. If you didn't
+			explicitly specify either -ecb or -cbc before you don't need it now, the default <em>plain</em>
+			IV generation will be used. There will be additional (incompatible, but more secure) possibilites
+			in the future because the unhashed sector number as IV is too predictible.<br />
+		</p>
+		<p>
+			You'll need to figure out how your passphrase was turned into a key to use for losetup.
+			There are several patches floating around doing things differently. But usually <code>cryptsetup</code>
+			will provide a working solution to recreate the same key from your passphrase.<br />
+		</p>
+		<p>
+			If you want to migrate from 2.4 cryptoloop please take a look at Clemens Fruhwirth's
+			<a href="http://clemens.endorphin.org/Cryptoloop_Migration_Guide.html">Cryptoloop
+			Migration Guide</a>. He describes the differences between 2.4 and 2.6 cryptoapi (or basically
+			the bugs in 2.4 cryptoapi...). If you need to cut the key size you can use the <code>-s</code>
+			option instead of playing with <code>dd</code>.<br />
+			<em>(BTW: Clemens has a i586 optimized version of the aes and serpent cipher on his page,
+			about twice as fast as the kernel implementation.)</em>
+		</p>
+	</div>
+	<div>
+		<h3>Why</h3>
+		<p>
+			<em>Why dm-crypt?</em><br />
+			Originally it started as a fun project because I wanted to play with the new Linux 2.6 internals.
+			I got a lot of great help from the device-mapper guys at Sistina (now Redhat). Thank you very
+			much!<br />
+			It turned out that this implementation worked great and is very clean compared to the hacked
+			loop device. The device-mapper core provides much better facilities to stack block devices.
+			dm-crypt uses mempools to assure we never run into out-of-memory deadlocks when allocating
+			buffers.<br />
+			Also the device-mapper configuration interface provides much more flexibility than the losetup
+			ioctl. And you can create as many devices as you want with any names you want and combine them
+			with other dm targets. Online device resizing is also possible, e.g. if you use dm-crypt on top
+			of a logical volume. There might perhaps even be LVM or EVMS support for device encryption
+			in the future.<br />
+		</p>
+	</div>
+	<div>
+		<h3>FAQ</h3>
+		<p>
+			<em>But I don't want to use LVM!</em><br />
+			You don't need LVM. Device-mapper is an all-purpose kernel feature,
+			not tied to LVM in any way.<br />
+		</p>
+		<p>
+			<em>What if I want to encrypt a filesystem and keep it in a file?</em><br />
+			You can use dm-crypt on top of a normal loop device, call losetup and cryptsetup.<br />
+			I'm going to add loop support to cryptsetup so it can do this for you.<br />
+		</p>
+		<p>
+			<em>I created my filesystem on the encrypted device. How can I keep it across reboots?</em><br />
+			Very simple. Call cryptsetup again and supply the same passphrase. It only creates
+			a mapping, not a filesystem.<br />
+		</p>
+		<p>
+			<em>What if I want to change my passphrase?</em><br />
+			At the moment you'll need to reencrypt your device because the passphrase is directly
+			tied to the key. <br />
+			There are plans to write a tool that stores the master key on disk
+			and encrypted so it can be unlocked using a passphrase. You can then
+			change your passphrase on a regular basis.<br />
+			If you want to reencrypt your filesystem you'll have to recreate a new one and move your files.<br />
+			(I've got an experimantal tool in the works that allows you to reencrypt your block device on the fly,
+			assuming you don't reboot your machine...)<br />
+		</p>
+		<p>
+			<em>I've read about security problems.</em><br />
+			Yes, the IV schemes currently supported by dm-crypt are the same as the ones supported by
+			cryptloop. There's the ECB mode which is a catastrophe (no IV at all) and the &quot;plain&quot;
+			mode, which is already a lot better. Older cryptoloops used ECB by default, but with dm-crypt
+			the default is &quot;plain&quot; (which is the unhashes sector number used as IV).<br />
+			Since dm-crypt is extensible there will be better possibilities in the future, but they will be
+			on-disk incompatible with cryptoloop so you'll have to reencrypt.<br />
+		</p>
+		<p>
+			<em>Help! I can't figure out how to use my old encrypted data! I was using...</em><br />
+			There are different implementations out there. Some are non-cryptoapi and/or
+			broken implementations. SuSE uses its own loop-twofish implementation which
+			makes dangerous assumptions and is broken when changing the blocksize
+			(&quot;timebomb crypto&quot;). You cannot use this with dm-crypt.
+		</p>
+		<p>
+			<em>Can I reencrypt my data without copying all the files?</em><br />
+			There's an experimental and unfinished <a href="dmconvert-0.2.tar.bz2">dmconvert</a> program
+			that can reencrypt the data while the filesystem is mounted. If you can get it running it should
+			be safe enough to not eat your data, but make sure you don't interrupt it or crash your system
+			while it is running. Don't blame me if something goes wrong.<br />
+		</p>
+		<p>
+			<em>Can I use encrypted swap?</em><br />
+			Yes. You can specify a key file /dev/random and run mkswap afterwards, so the device will be
+			created with a different key each time and the data is not accessible at all after a reboot.<br />
+		</p>
+		<p>
+			<em>Is there a mailing list?</em><br />
+			There's a mailing list at <a href="mailto:dm-crypt@saout.de">dm-crypt@saout.de</a>.
+			If you want to subscribe just send an empty mail to
+			<a href="mailto:dm-crypt-subscribe@saout.de">dm-crypt-subscribe@saout.de</a>.<br />
+			<a href="http://www.gmane.org/">Gmane</a> provides a NNTP interface and
+			<a href="http://news.gmane.org/gmane.linux.kernel.device-mapper.dm-crypt">web archive</a>
+			for this mailing list.<br />
+		</p>
+		<p>
+			<em>My system hangs for some time in regular intervals when writing to encrypted disks.</em><br />
+			You are probably using Linux 2.6.4. Du to the introduction of kthread pdflush is running at nice level -10,
+			which means that the kernels treats dm-crypt writes as a real time task and doesn't allow scheduling.<br />
+			Solution: Switch to 2.6.5 or later or renice pdflush manually.<br />
+		</p>
+		<p>
+			<em>Can I use the mount command itself to do all the magic needed?</em><br />
+			I've written an experimental patch for this, see
+			<a href="http://article.gmane.org/gmane.linux.kernel.device-mapper.dm-crypt/34">my post
+				in the mailing list</a> archive.<br />
+		</p>
+		<p>
+			<em>Where can I send my contributions?</em><br />
+			Because maintaining a web page takes time and people keep mailing me a lot of
+			things I could integrate they can enter it into this nice <a href="/tikiwiki/">Wiki</a>.<br />
+		</p>
+	</div>
+	<div>
+		<h3>Questions, suggestions, criticism?</h3>
+		<p>
+			Feel free to contact me: <a href="mailto:christophe@saout.de">christophe@saout.de</a>.
+		</p>
+	</div>
+	<div>
+		<a href="http://validator.w3.org/check/referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" border="0" /></a>
+		<a href="http://jigsaw.w3.org/css-validator/check/referer"><img src="http://jigsaw.w3.org/css-validator/images/vcss" alt="Valid CSS!" height="31" width="88" border="0" /></a>
+	</div>
+</body>
+</html>

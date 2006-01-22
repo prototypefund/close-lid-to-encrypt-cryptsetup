@@ -1,0 +1,32 @@
+#! /bin/sh -e
+
+create_etc_keys() {
+	[ -d /etc/keys/ ] || mkdir -p /etc/keys/
+}
+
+create_crypttab() {
+	if [ ! -f /etc/crypttab ]; then
+		cat <<-EOC >/etc/crypttab
+		# <target device> <source device> <key file> <options>
+		EOC
+	fi
+}
+
+case "$1" in
+  install)
+    create_etc_keys
+    create_crypttab
+  ;;
+	
+  upgrade|abort-upgrade)
+  ;;
+	
+  *)
+    echo "preinst called with unknown argument '$1'" >&2
+    exit 1
+  ;;
+esac
+
+#DEBHELPER#
+
+exit 0
