@@ -10,8 +10,7 @@ Package: cryptsetup
 Architecture: any
 Depends: ${shlibs:Depends}, dmsetup
 Conflicts: cryptsetup-luks (<= 1.0.1-8), hashalot (<= 0.3-1)
-Replaces: cryptsetup-luks
-Provides: cryptsetup-luks
+Replaces: cryptsetup-luks (<= 1.0.1-8)
 Description: configures encrypted block devices
  Since kernel 2.6.4, encrypted filesystem support is provided by the device
  mapper target dm-crypt. This utility provides a command-line interface for
@@ -29,7 +28,6 @@ Description: configures encrypted block devices
 Package: cryptsetup-luks
 Architecture: all
 Depends: cryptsetup (>= 1.0.1-9)
-Conflicts: cryptsetup (<= 1.0.1-8)
 Description: Transitional package to install cryptsetup
  This is a transitional package depending on cryptsetup. You can safely
  remove it.

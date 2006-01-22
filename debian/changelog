@@ -3,7 +3,7 @@ cryptsetup (1.0.1-9) unstable; urgency=low
   * rename the package to cryptsetup, provide a dummy cryptsetup-luks package
   * initial upload to debian
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 22 Jan 2006 07:33:33 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 22 Jan 2006 08:06:25 +0100
 
 cryptsetup-luks (1.0.1-8) unstable; urgency=low
 
