@@ -7,7 +7,7 @@ create_etc_keys() {
 create_crypttab() {
 	if [ ! -f /etc/crypttab ]; then
 		cat <<-EOC >/etc/crypttab
-		# <target device> <source device> <key file> <options>
+		# <target name>	<source device>		<key file>	<options>
 		EOC
 	fi
 }

@@ -16,7 +16,7 @@ for mod in $modules; do
 done
 
 cp /usr/local/bin/xor   $INITRDDIR/bin
-cp /usr/local/bin/delay $INITRDDIR/bin
+cp /bin/sleep $INITRDDIR/bin
 
 cat <<EOF >$INITRDDIR/keyscripts/usbkeys
 modprobe uhci-hcd
@@ -34,7 +34,7 @@ echo
 echo -n "Waiting for keys "
 while [ ! -f /dev2/rootkey ]; do
   echo -n "."
-  /bin/delay
+  /bin/sleep 0.5s
   for d in	/devfs/scsi/host*/bus*/target*/lun*/part1 \\
 		/devfs/scsi/host*/bus*/target*/lun*/disc; do
     if ! mount -n \$d /mnt -o ro -t vfat 2>/dev/null >/dev/null; then continue; fi
