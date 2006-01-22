@@ -1,18 +1,17 @@
 #!/bin/sh
 
-
 case "$1" in
-  /dev/[ehsx]d[a-h][1-20])
-    #if /sbin/fdisk $1 2>/dev/null 1>&2; then
+  /dev/[ehsx]d[a-h][0-9][0-9])
+    drive=`echo $1| sed -e 's/[0-9]//g'`
+    if /sbin/fdisk $drive | grep $1 | grep -q "swap"; then
       exit 0
-    #else
-    #  echo "The device $1 is not a SWAP partition."
-    #  exit 1
-    #fi
+    else
+      echo "The device $1 is not a SWAP partition."
+      exit 1
+    fi
   ;;
   *)
     echo "WARNING: Could not check the device $1 for a swap partition."
     exit 0
   ;;
 esac
-fi
