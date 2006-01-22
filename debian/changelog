@@ -1,3 +1,9 @@
+cryptsetup (2:1.0.1-10) unstable; urgency=low
+
+  * introduce an epoch to make upgrade happen 
+
+ -- Jonas Meurer <mejo@debian.org>  Sun, 22 Jan 2006 09:02:47 +0100
+
 cryptsetup (1.0.1-9) unstable; urgency=low
 
   * rename the package to cryptsetup, provide a dummy cryptsetup-luks package
