@@ -1,9 +1,8 @@
 #!/bin/sh
 
-if /sbin/e2label $1 2> /dev/null 1>&2 ; then
-  # echo ok the device $1 is accessible : boot will continue
+if /sbin/e2label $1 2>/dev/null 1>&2; then
   exit 0
 else
-  echo The device $1 does not contain a valid EXT2 or EXT3 filesystem.
+  echo "The device $1 does not contain a valid EXT2 or EXT3 filesystem."
   exit 1
 fi

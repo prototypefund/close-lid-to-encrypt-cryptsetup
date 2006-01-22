@@ -2,9 +2,9 @@
 #thanks Martin Steigerwald <ms@teamix.de>
 
 ulimit -c 0
-if /usr/sbin/xfs_admin -l $1 &>/dev/null ; then
+if /usr/sbin/xfs_admin -l $1 2>/dev/null 1>&2; then
   exit 0
 else
-  echo The device $1 does not contain a valid XFS filesystem
+  echo "The device $1 does not contain a valid XFS filesystem"
   exit 1
 fi
