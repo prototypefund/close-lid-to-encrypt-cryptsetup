@@ -89,7 +89,7 @@ install: build
 	install -m 0755 debian/checks/* $(CURDIR)/debian/cryptsetup/usr/share/cryptsetup/checks
 	install -m 0644 debian/cryptsetup.lintian-override \
 			$(CURDIR)/debian/cryptsetup/usr/share/lintian/overrides/cryptsetup
-	rmdir -f $(CURDIR)/debian/cryptsetup/usr/lib/cryptsetup
+	rmdir $(CURDIR)/debian/cryptsetup/usr/lib/cryptsetup
 
 binary-indep: build install
 # We have nothing to do by default.
