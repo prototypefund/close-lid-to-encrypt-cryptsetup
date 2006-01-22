@@ -65,9 +65,11 @@ start)
 			fi
 
 			PARAMS=""
-			USELUKS=""
+			RETRY="no"
+			CHECK=""
 			MAKETMP=""
 			MAKESWAP=""
+			USELUKS=""
 			SKIP=""
 
 			# Parse the options field, convert to cryptsetup parameters
@@ -87,56 +89,74 @@ start)
 					*)
 						PARAM=$ARG
 						VALUE=""
-						;;
 				esac
 				
 				case "$PARAM" in 
 					readonly)
-						PARAM=-r
-						VALUE=""
+						PARAMS="$PARAMS -r"
 						;;
 					cipher)
-						PARAM=-c
+						PARAMS="$PARAMS -c $VALUE"
 						if test "x$VALUE" = "x" ; then
 							echo " - no value for cipher option, skipping" >&2
 							SKIP="yes"
 						fi
 						;;
 					size)
-						PARAM=-s
+						PARAMS="$PARAMS -s $VALUE"
 						if test "x$VALUE" = "x" ; then
 							echo " - no value for size option, skipping" >&2
 							SKIP="yes"
 						fi
 						;;
 					hash)
-						PARAM=-h
+						PARAMS="$PARAMS -h $VALUE"
 						if test "x$VALUE" = "x" ; then
 							echo " - no value for hash option, skipping" >&2
 							SKIP=yes
 						fi
 						;;
 					verify)
-						PARAM=-y
-						VALUE=""
+						PARAMS="$PARAMS -y"
+						;;
+					check)
+						if test "x$VALUE" = "x" ; then
+							CHECK="$CRYPTDISKS_CHECK"
+						else
+							CHECK="$VALUE"
+						fi
+						;;
+					retry)
+						if test "x$VALUE" = "x" ; then
+							RETRY="$CRYPTDISKS_RETRY"
+						else
+							RETRY="$VALUE"
+						fi
 						;;
 					swap)
 						MAKESWAP=yes
-						PARAM=""
-						VALUE=""
 						;;
 					tmp)
 						MAKETMP=yes
-						PARAM=""
-						VALUE=""
 						;;
 					luks)
 						USELUKS=yes
-						PARAM=""
-						VALUE=""
 				esac
-				PARAMS="$PARAMS $PARAM $VALUE"
 			done
+
+			if [ "$RETRY" != "no" ] ; then
+				case "$RETRY" in
+					[0-9]*)
+					;;
+					*)
+						echo " - option RETRY is wrongly set to $RETRY - forced to 'no' " >&2
+						RETRY="no"
+					;;
+				esac
+			fi
+			if [ "$CHECK" -a -x /usr/share/cryptsetup/checks/"$CHECK"  ] ; then
+				CHECK="/usr/share/cryptsetup/checks/$CHECK"
+			fi
 
 			# Set up loopback devices
 			if test -f "$src" ; then
@@ -170,17 +190,53 @@ start)
 			fi
 
 			if test "x$USELUKS" = "xyes" && $CRYPTCMD isLuks $src ; then
-				if test "x$INTERACTIVE" = "xyes" ; then
-					$CRYPTCMD $PARAMS luksOpen $src $dst <&1
-				else
-					$CRYPTCMD $PARAMS luksOpen $src $dst --key-file $key <&1
-				fi
+				while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
+					if test "x$INTERACTIVE" = "xyes" ; then
+						$CRYPTCMD $PARAMS luksOpen $src $dst <&1
+						RESULT=$?
+					else
+						$CRYPTCMD $PARAMS luksOpen $src $dst --key-file $key <&1
+						RESULT=$?
+					fi
+					if [ $RESULT = 0 ] ; then
+						if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
+							break
+						else
+							echo " - the check for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
+							echo " - removing the crypto device $dst" >&2
+							$CRYPTCMD luksClose $dst
+							sleep 1
+						fi
+					fi
+					test "x$RETRY" = "xno" && break
+					RETRY=`expr $RETRY - 1`
+					[ $RETRY -gt 0 ] && echo " - retrying for $dst"
+				done
+							
 			else
-				if test "x$INTERACTIVE" = "xyes" ; then
-					$CRYPTCMD $PARAMS create $dst $src <&1
-				else
-					$CRYPTCMD $PARAMS -d $key create $dst $src
-				fi
+				while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
+					if test "x$INTERACTIVE" = "xyes" ; then
+						$CRYPTCMD $PARAMS create $dst $src <&1
+						RESULT=$?
+					else
+						$CRYPTCMD $PARAMS -d $key create $dst $src
+						RESULT=$?
+					fi
+					# test : echo RESULT $RESULT
+					if [ $RESULT = 0 ] ; then
+						if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
+							break
+						else
+							echo " - the check for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
+							echo " - removing the crypto device $dst" >&2
+							$CRYPTCMD remove $dst
+							sleep 1
+						fi
+					fi
+					test "x$RETRY" = "xno" && break
+					RETRY=`expr $RETRY - 1`
+					[ $RETRY -gt 0 ] && echo " - retrying for $dst"
+				done
 			fi
 
 			if test "x$MAKESWAP" = "xyes" && test -b $MAPPER/$dst; then

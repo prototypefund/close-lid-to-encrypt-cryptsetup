@@ -84,7 +84,8 @@ used for swap devices).
 
 If the <replaceable>key file</replaceable> is empty or the string
 <literal>none</literal>, the key data (ie. a password) will be read
-interactively from the console.
+interactively from the console. In this case,
+the options<literal>check</literal> and <literal>retry</literal> may be useful.
     </para>
 
     <para>The fourth field <replaceable>options</replaceable>
@@ -115,7 +116,7 @@ The following options are supported:
       <varlistentry>
         <term><literal>verify</literal></term>
         <listitem>
-          <para>Verify pasword. See <command>cryptsetup -y</command>.</para>
+          <para>Verify pasword. Uses <command>cryptsetup -y</command>.</para>
         </listitem>
       </varlistentry>
       <varlistentry>
@@ -141,6 +142,33 @@ The following options are supported:
         <listitem>
           <para>Run <command>mke2fs</command> on the created device.</para>
         </listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><literal>check</literal></term>
+	<listitem>
+	  <para>check the content of the device by suitable program;
+	  if the check fails the device is removed; if the
+	  <literal>retry</literal> option is given, the
+	  creation is repeated.
+	  If a program is provided as argument, it is run,
+	  using the decrypted volume as first argument. Some programs are
+	  provided in /usr/share/cryptsetup/checks, namely <literal>ext2</literal>
+	  and <literal>xfs</literal>; so, providing <literal>ext2</literal>
+	  as argument will run the check for to ensure that a EXT2 or EXT3
+	  filesystem is a accessible thru the device.
+	  </para>
+	</listitem>
+      </varlistentry>
+      <varlistentry>
+        <term><literal>retry</literal></term>
+	<listitem>
+	  <para>If the device creation fails, or if the check
+	  program fails, remove the device, and try again to
+	  create it: if <literal>key</literal> is "none" this
+	  will ask for the password again. The option specifies
+	  how many times to repeat.
+	  </para>
+	</listitem>
       </varlistentry>
     </variablelist>
     </para>

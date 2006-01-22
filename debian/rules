@@ -86,6 +86,7 @@ install: build
 	install -m 0644 debian/cryptdisks.default $(CURDIR)/debian/cryptsetup/etc/default/cryptdisks
 	install -m 0644 debian/cryptsetup.8 $(CURDIR)/debian/cryptsetup/usr/share/man/man8
 	install -m 0644 debian/crypttab.5 $(CURDIR)/debian/cryptsetup/usr/share/man/man5
+	install -m 0755 debian/checks/* $(CURDIR)/debian/cryptsetup/usr/share/cryptsetup/checks
 	install -m 0644 debian/cryptsetup.lintian-override \
 			$(CURDIR)/debian/cryptsetup/usr/share/lintian/overrides/cryptsetup
 	rmdir -f $(CURDIR)/debian/cryptsetup/usr/lib/cryptsetup

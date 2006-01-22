@@ -5,8 +5,10 @@ cryptsetup (2:1.0.1-12) unstable; urgency=low
     empty anyway (closes: #334648)
   * replace /usr/local/bin/delay with /bin/sleep in usbcrypto.mkinitrd
   * cosmetical changes to /etc/crypttab
+  * add "check" and "retry" options to cryptdisks script,
+    thanks to A Mennucc <debdev@mennucci.sns.it>. (closes: #290626)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 22 Jan 2006 19:06:03 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 22 Jan 2006 19:46:18 +0100
 
 cryptsetup (2:1.0.1-11) unstable; urgency=low
 
