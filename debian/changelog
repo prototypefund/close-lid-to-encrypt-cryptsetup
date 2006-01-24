@@ -1,8 +1,10 @@
 cryptsetup (2:1.0.1-14) unstable; urgency=low
 
   * NOT RELEASED YET
+  * added a configurable timeout option for interactive password
+    prompt. (closes: #328961)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 22 Jan 2006 22:28:41 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 25 Jan 2006 00:53:58 +0100
 
 cryptsetup (2:1.0.1-13) unstable; urgency=low
 

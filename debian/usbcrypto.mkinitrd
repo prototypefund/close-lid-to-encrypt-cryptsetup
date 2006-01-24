@@ -15,8 +15,15 @@ for mod in $modules; do
   done
 done
 
-cp /usr/local/bin/xor   $INITRDDIR/bin
-cp /bin/sleep $INITRDDIR/bin
+cat <<EOF >$INITRDDIR/bin/xor
+perl -e 'open(F2,@ARGV[0]) && open(F1,@ARGV[1]) or die "
+Usage: $0 <file1> <file2>\n"; print $buf1 ^ $buf2 while (read (F1, $buf1,65536) &
+& read (F2,$buf2,65536));' -- $STICKMNT/$STICKKEYDIR/$KEYNAME $HOSTKEYDIR/$HOSTKEY | $CRYPTSETUP create $CRYPTVOLNAME $CRYPTRAWVOL
+EOF
+
+cat <<EOF >$INITRDDIR/bin/delay
+/bin/sleep 0.5s
+EOF
 
 cat <<EOF >$INITRDDIR/keyscripts/usbkeys
 modprobe uhci-hcd
@@ -34,7 +41,7 @@ echo
 echo -n "Waiting for keys "
 while [ ! -f /dev2/rootkey ]; do
   echo -n "."
-  /bin/sleep 0.5s
+  /bin/delay
   for d in	/devfs/scsi/host*/bus*/target*/lun*/part1 \\
 		/devfs/scsi/host*/bus*/target*/lun*/disc; do
     if ! mount -n \$d /mnt -o ro -t vfat 2>/dev/null >/dev/null; then continue; fi

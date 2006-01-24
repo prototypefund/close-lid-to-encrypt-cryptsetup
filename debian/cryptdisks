@@ -72,6 +72,7 @@ start)
 			MAKESWAP=""
 			USELUKS=""
 			SKIP=""
+			TIMEOUT=""
 
 			# Parse the options field, convert to cryptsetup parameters
 			# and contruct the command line
@@ -141,6 +142,13 @@ start)
 							RETRY="$VALUE"
 						fi
 						;;
+					timeout)
+						if test "x$VALUE" = "x" ; then
+							TIMEOUT="60"
+						else
+							TIMEOUT="$VALUE"
+						fi
+						;;
 					swap)
 						MAKESWAP=yes
 						;;
@@ -204,7 +212,8 @@ start)
 				if [ "$PRECHECK" = "" ] || $PRECHECK $src; then
 					while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
 						if test "x$INTERACTIVE" = "xyes" ; then
-							$CRYPTCMD $PARAMS luksOpen $src $dst <&1
+							/usr/bin/timeout $TIMEOUT "$CRYPTCMD $PARAMS luksOpen $src $dst <&1" \
+									|| echo "TIMEOUT: No password entered for $dst"
 							RESULT=$?
 						else
 							$CRYPTCMD $PARAMS luksOpen $src $dst --key-file $key <&1
@@ -232,7 +241,8 @@ start)
 				if [ "$PRECHECK" = "" ] || $PRECHECK $src; then
 					while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
 						if test "x$INTERACTIVE" = "xyes" ; then
-							$CRYPTCMD $PARAMS create $dst $src <&1
+							/usr/bin/timeout $TIMEOUT "$CRYPTCMD $PARAMS create $dst $src <&1" \
+									|| echo "TIMEOUT: No password entered for $dst"
 							RESULT=$?
 						else
 							$CRYPTCMD $PARAMS -d $key create $dst $src
