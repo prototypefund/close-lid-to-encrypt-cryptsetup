@@ -3,6 +3,8 @@ on Debian systems. An encrypted swap partition prevents spying on
 plaintext secrets (passwords) that may be written to disk when memory
 is swapped to disk.
 
+First deactivate your swap: swapoff -a
+
 Your /etc/fstab file should have a swap entry like this (/dev/hda9
 might be a different partition on your system):
 # <file system> <mount point>   <type>  <options>     <dump>  <pass>
@@ -18,7 +20,10 @@ your own swap partition):
 # <target device> <source device> <key file> <options>
 cswap /dev/hda9 /dev/random swap
 
-Reboot, and that's it! You have a crypted swap device. Note that the
+Now start your crypted device:  /etc/init.d/cryptdisks start
+And reaktivate your swap:       swapon -a
+
+Thats it! You have a crypted swap device. Note that the
 /dev/random device might not generate enough random bytes, so the boot
 process can wait indefinitely unless you press some keys on your
 keyboard. To be sure that booting is not interrupted, use the (less
