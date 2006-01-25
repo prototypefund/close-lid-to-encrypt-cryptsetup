@@ -1,0 +1,11 @@
+#!/bin/sh
+
+ulimit -c 0
+if dd if="$1" bs=4k count=1 2>/dev/null |strings |grep -E \
+    '(SWAPSPACE2)|(SWAP_SPACE)' &>/dev/null; then
+  exit 0
+else
+  echo "The device $1 is not a SWAP partition."
+  exit 1
+fi
+

@@ -6,9 +6,10 @@ cryptsetup (2:1.0.1-14) unstable; urgency=low
     prompt. (closes: #328961)
 
   [ Michael Gebetsroither ]
-  * make small fixes to CryptoSwap.HowTo 
+  * make small fixes to CryptoSwap.HowTo
+  * added postcheck for swap 
 
- -- Michael Gebetsroither <michael.geb@gmx.at>  Wed, 25 Jan 2006 02:02:19 +0100
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Wed, 25 Jan 2006 02:36:31 +0100
 
 cryptsetup (2:1.0.1-13) unstable; urgency=low
 
