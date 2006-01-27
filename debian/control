@@ -24,10 +24,3 @@ Description: configures encrypted block devices
  .
  For information on how to convert your system to use encrypted filesystems
  please read /usr/share/doc/cryptsetup/CryptoRoot.HowTo.
-
-Package: cryptsetup-luks
-Architecture: all
-Depends: cryptsetup (>= 1.0.1-9)
-Description: Transitional package to install cryptsetup
- This is a transitional package depending on cryptsetup. You can safely
- remove it.
