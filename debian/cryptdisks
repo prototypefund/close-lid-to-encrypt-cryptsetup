@@ -144,7 +144,7 @@ start)
 						;;
 					timeout)
 						if test "x$VALUE" = "x" ; then
-							TIMEOUT="60"
+							TIMEOUT="$CRYPTDISKS_TIMEOUT"
 						else
 							TIMEOUT="$VALUE"
 						fi

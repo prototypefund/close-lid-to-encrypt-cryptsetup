@@ -185,6 +185,16 @@ The following options are supported:
 	  </para>
 	</listitem>
       </varlistentry>
+      <varlistentry>
+        <term><literal>timout</literal></term>
+	<listitem>
+	  <para>If <literal>key</literal> is "none", the
+	  cryptdisks script interactively prompts for a password.
+	  The timout option specifies the time in seconds to wait
+	  for the password before timing out.
+	  </para>
+	</listitem>
+      </varlistentry>
     </variablelist>
     </para>
   </refsect1>

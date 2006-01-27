@@ -1,8 +1,16 @@
 # Run cryptdisks at startup ?
 CRYPTDISKS_ENABLE=Yes
 
-# Default check program ; look in /usr/share/cryptsetup/checks
-CRYPTDISKS_CHECK=ext2
+# Default precheck program
+# see /usr/share/cryptsetup/prechecks
+CRYPTDISKS_PRECHECK=
+
+# Default postcheck program
+# see /usr/share/cryptsetup/postchecks
+CRYPTDISKS_POSTCHECK=ext2
 
 # How many times to ask for the password if the check fails
 CRYPTDISKS_RETRY=3
+
+# Timeout for password prompt in seconds
+CRYPTDISKS_TIMEOUT=180
