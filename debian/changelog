@@ -1,3 +1,13 @@
+cryptsetup (2:1.0.1-16) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+  * already fixed in 2:1.0.1-14: binaries xor and delay from
+    usbcrypto.mkinitrd don't exist in debian. replaces with
+    a perl script and /bin/sleep. thanks to wesley terpstra
+    for the help. (closes: #324353)
+
+ -- Jonas Meurer <mejo@debian.org>  Sat, 28 Jan 2006 00:43:23 +0100
+
 cryptsetup (2:1.0.1-15) unstable; urgency=low
 
   [ Jonas Meurer ]
