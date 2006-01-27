@@ -212,8 +212,12 @@ start)
 				if [ "$PRECHECK" = "" ] || $PRECHECK $src; then
 					while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
 						if test "x$INTERACTIVE" = "xyes" ; then
-							/usr/bin/timeout $TIMEOUT "$CRYPTCMD $PARAMS luksOpen $src $dst <&1" \
-									|| echo "TIMEOUT: No password entered for $dst"
+							if test "x$TIMEOUT" = "x"; then
+							  $CRYPTCMD $PARAMS luksOpen $src $dst <&1
+							else
+							  /usr/bin/timeout $TIMEOUT "$CRYPTCMD $PARAMS luksOpen $src $dst <&1" \
+							  		|| echo "TIMEOUT: No password entered for $dst"
+							fi
 							RESULT=$?
 						else
 							$CRYPTCMD $PARAMS luksOpen $src $dst --key-file $key <&1
@@ -241,8 +245,12 @@ start)
 				if [ "$PRECHECK" = "" ] || $PRECHECK $src; then
 					while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
 						if test "x$INTERACTIVE" = "xyes" ; then
-							/usr/bin/timeout $TIMEOUT "$CRYPTCMD $PARAMS create $dst $src <&1" \
-									|| echo "TIMEOUT: No password entered for $dst"
+							if test "x$TIMEOUT" = "x"; then
+							  $CRYPTCMD $PARAMS create $dst $src <&1
+							else
+							  /usr/bin/timeout $TIMEOUT "$CRYPTCMD $PARAMS create $dst $src <&1" \
+							  		|| echo "TIMEOUT: No password entered for $dst"
+							fi
 							RESULT=$?
 						else
 							$CRYPTCMD $PARAMS -d $key create $dst $src
