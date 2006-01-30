@@ -1,12 +1,21 @@
-cryptsetup (2:1.0.1-16) UNRELEASED; urgency=low
+cryptsetup (2:1.0.1-16) unstable; urgency=low
 
-  * NOT RELEASED YET
+  [ Jonas Meurer ]
   * already fixed in 2:1.0.1-14: binaries xor and delay from
-    usbcrypto.mkinitrd don't exist in debian. replaces with
-    a perl script and /bin/sleep. thanks to wesley terpstra
-    for the help. (closes: #324353)
+    usbcrypto.mkinitrd don't exist in debian. replaces with a perl script
+    and /bin/sleep. thanks to wesley terpstra for the help.
+    (closes: #324353)
+  * clean cryptdisks from bashisms (closes: #350360)
+  * check for /usr/bin/timeout before using it in cryptdisks. First, it's
+    only available when /usr is mounted, and that is not definitive when
+    cryptdisks is run at boot time. Second, timeout is a non-essential
+    debian package, and not neccecarily installed. The usage of
+    /usr/bin/timeout in any case is only a temporary workaround.
+  * move /usr/share/cryptsetup to /lib/cryptsetup, as the checks need to be
+    available at boot time, before local filesystems (like i.e. /usr) are
+    mounted.
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 28 Jan 2006 00:46:44 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 30 Jan 2006 17:20:18 +0100
 
 cryptsetup (2:1.0.1-15) unstable; urgency=low
 
