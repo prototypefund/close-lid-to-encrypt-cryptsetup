@@ -4,9 +4,9 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * merged ubuntu patches:
     - modify cryptdisks init script to use lsb functions
     - add luksformat, and a manpage
-  * remove postinst and preinst, empty script
+  * remove postinst and postrm, empty script
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 30 Jan 2006 19:48:08 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 30 Jan 2006 19:48:47 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 
