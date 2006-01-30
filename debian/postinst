@@ -2,7 +2,6 @@
 
 case "$1" in
   configure)
-    update-rc.d cryptdisks start 28 S . stop 48 0 6 . >/dev/null
   ;;
 
   abort-upgrade|abort-remove|abort-deconfigure)

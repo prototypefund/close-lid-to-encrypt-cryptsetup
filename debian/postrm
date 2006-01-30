@@ -5,8 +5,6 @@ case "$1" in
   ;;
 
   purge)
-    update-rc.d cryptdisks remove > /dev/null
-    
     # remove crypttab and keys
     echo "Removing /etc/crypttab and /etc/keys."
     rm -rf /etc/crypttab /etc/keys
