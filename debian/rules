@@ -82,8 +82,8 @@ install: build
 	$(MAKE) DESTDIR=$(CURDIR)/debian/cryptsetup install
 	cp src/cryptsetup.static $(CURDIR)/debian/cryptsetup/sbin/cryptsetup
 
-	install debian/cryptdisks $(CURDIR)/debian/cryptsetup/etc/init.d
-	install -m 0644 debian/cryptdisks.default $(CURDIR)/debian/cryptsetup/etc/default/cryptdisks
+	#install debian/cryptdisks $(CURDIR)/debian/cryptsetup/etc/init.d
+	#install -m 0644 debian/cryptdisks.default $(CURDIR)/debian/cryptsetup/etc/default/cryptdisks
 	install -m 0644 debian/cryptsetup.8 $(CURDIR)/debian/cryptsetup/usr/share/man/man8
 	install -m 0644 debian/crypttab.5 $(CURDIR)/debian/cryptsetup/usr/share/man/man5
 	#install -m 0755 debian/prechecks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/prechecks
@@ -101,23 +101,13 @@ binary-arch: build install
 	dh_installchangelogs ChangeLog
 	dh_installdocs
 	dh_installexamples
+	dh_installinit --no-start --name=cryptdisks --update-rcd-params="start 28 S . stop 48 0 6 ."
 #	dh_install
-#	dh_installmenu
-#	dh_installdebconf	
-#	dh_installlogrotate
-#	dh_installemacsen
-#	dh_installpam
-#	dh_installmime
-#	dh_installinit
-#	dh_installcron
-#	dh_installinfo
 	dh_installman
 	dh_link
 	dh_strip
 	dh_compress
 	dh_fixperms
-#	dh_perl
-#	dh_python
 	dh_makeshlibs
 	dh_installdeb
 	dh_shlibdeps
