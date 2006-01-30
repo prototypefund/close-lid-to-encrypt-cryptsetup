@@ -14,11 +14,13 @@ cryptsetup (2:1.0.1-16) unstable; urgency=low
   * move /usr/share/cryptsetup to /lib/cryptsetup, as the checks need to be
     available at boot time, before local filesystems (like i.e. /usr) are
     mounted.
+  * replace RETRY=`expr $RETRY - 1` with RETRY=$(($RETRY-1)), as expr is in
+    /usr/bin.
   * install init.d script and default file with dh_installinit
     (closes: #350548)
   * don't build-depend on cvs
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 30 Jan 2006 17:40:50 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 30 Jan 2006 17:54:50 +0100
 
 cryptsetup (2:1.0.1-15) unstable; urgency=low
 

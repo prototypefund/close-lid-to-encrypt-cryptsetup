@@ -233,7 +233,7 @@ start)
 							fi
 						fi
 						test "x$RETRY" = "xno" && break
-						RETRY=`expr $RETRY - 1`
+						RETRY=$(($RETRY-1))
 						[ $RETRY -gt 0 ] && echo " - retrying for $dst"
 					done
 				else
@@ -267,7 +267,7 @@ start)
 							fi
 						fi
 						test "x$RETRY" = "xno" && break
-						RETRY=`expr $RETRY - 1`
+						RETRY=$(($RETRY-1))
 						[ $RETRY -gt 0 ] && echo " - retrying for $dst"
 					done
 				else
