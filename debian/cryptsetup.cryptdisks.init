@@ -169,11 +169,15 @@ start)
 					;;
 				esac
 			fi
-			if [ "$POSTCHECK" -a -x /usr/share/cryptsetup/postchecks/"$POSTCHECK"  ] ; then
-				POSTCHECK="/usr/share/cryptsetup/postchecks/$POSTCHECK"
+			if [ "$POSTCHECK" -a -x /lib/cryptsetup/postchecks/"$POSTCHECK" ]; then
+				POSTCHECK="/lib/cryptsetup/postchecks/$POSTCHECK"
+			else
+				POSTCHECK=""
 			fi
-			if [ "$PRECHECK" -a -x /usr/share/cryptsetup/prechecks/"$PRECHECK"  ] ; then
-				PRECHECK="/usr/share/cryptsetup/prechecks/$PRECHECK"
+			if [ "$PRECHECK" -a -x /lib/cryptsetup/prechecks/"$PRECHECK" ]; then
+				PRECHECK="/lib/cryptsetup/prechecks/$PRECHECK"
+			else
+				PRECHECK=""
 			fi
 
 			# Set up loopback devices
