@@ -54,8 +54,9 @@ build-stamp: config.status patch-stamp
 	docbook-to-man debian/crypttab.sgml > debian/crypttab.5
 	$(MAKE)
 	# cannot depend on libraries in /usr !
-	gcc lib/.libs/*.o src/*.o luks/.libs/*.o -o src/cryptsetup.static -lpopt -ldevmapper -luuid \
-		/usr/lib/libgcrypt.a /usr/lib/libgpg-error.a
+	gcc lib/.libs/*.o src/*.o luks/.libs/*.o -o src/cryptsetup.static \
+		-lpopt -ldevmapper -luuid /usr/lib/libgcrypt.a \
+		/usr/lib/libgpg-error.a
 	touch build-stamp
 
 clean: unpatch
@@ -66,7 +67,6 @@ clean: unpatch
 	if test -f Makefile; then $(MAKE) clean; fi
 	if test -f config.mess; then rm -f `cat config.mess`; fi
 
-	#rm -f debian/cryptsetup.8 debian/crypttab.5 config.mess
 	rm -f debian/crypttab.5 config.mess
 	rm -rf autom4te.cache m4
 	rm -f src/cryptsetup.static
@@ -86,6 +86,9 @@ install: build
 	#install -m 0644 debian/cryptdisks.default $(CURDIR)/debian/cryptsetup/etc/default/cryptdisks
 	install -m 0644 debian/cryptsetup.8 $(CURDIR)/debian/cryptsetup/usr/share/man/man8
 	install -m 0644 debian/crypttab.5 $(CURDIR)/debian/cryptsetup/usr/share/man/man5
+	install -m 0755 debian/luksformat $(CURDIR)/debian/cryptsetup/sbin/
+	pod2man --section=8 --center="Administrative commands" \
+		debian/luksformat --release="" > $(CURDIR)/debian/cryptsetup/usr/share/man/man8/luksformat.8
 	#install -m 0755 debian/prechecks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/prechecks
 	install -m 0755 debian/postchecks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/postchecks
 	install -m 0644 debian/cryptsetup.lintian-override \

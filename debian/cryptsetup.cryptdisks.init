@@ -18,6 +18,8 @@ DEVMAPCMD=/sbin/dmsetup
 TABFILE=/etc/crypttab
 MAPPER=/dev/mapper
 
+. /lib/lsb/init-functions
+
 test -x $CRYPTCMD  || exit 0
 test -x $DEVMAPCMD || exit 0
 test -f $TABFILE   || exit 0             
@@ -34,7 +36,7 @@ $DEVMAPCMD mknodes
 
 case "$1" in
 start)
-	echo -n "Starting crypto disks:"
+	log_begin_msg "Starting crypto disks..."
 	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opt; do
 		echo -n " $dst"
 		if test -b $MAPPER/$dst; then
@@ -259,7 +261,6 @@ start)
 							$CRYPTCMD $PARAMS -d $key create $dst $src
 							RESULT=$?
 						fi
-						# test : echo RESULT $RESULT
 						if [ $RESULT = 0 ] ; then
 							if [ "$POSTCHECK" = ""  ] || $POSTCHECK $MAPPER/$dst ; then
 								break
@@ -292,10 +293,10 @@ start)
 			fi
 		fi
 	done
-	echo "."
+	log_end_msg $?
 	;;
 stop)
-	echo -n "Stopping crypto disks:"
+	log_begin_msg "Stopping crypto disks..."
 	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key; do
 		echo -n " $dst"
 		if test -b $MAPPER/$dst; then
@@ -319,13 +320,14 @@ stop)
 		fi
 	done
 
-	echo "."
+	log_end_msg $?
 	;;
 restart|reload|force-reload)
 	$0 stop
 	$0 start
 	;;
 *)
-	echo "Usage: $0 {start|stop|restart|reload|force-reload}"
+	log_success_msg "Usage: $0 {start|stop|restart|reload|force-reload}"
+	exit 1
 	;;
 esac
