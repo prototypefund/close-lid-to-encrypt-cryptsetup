@@ -1,0 +1,20 @@
+Cryptsetup for Debian
+---------------------
+
+Cryptsetup is a command-line interface for configuring encrypted block
+devices via dm-crypt, a kernel device-mapper target.
+The Debian cryptsetup package provides the initscript /etc/init.d/cryptdisks
+and a configuration file /etc/crypttab for automatically configuring
+encrypted devices at boot time. See man crypttab(5) for more information.
+
+The /sbin/luksformat script provides a simple interface for creating an
+encrypted device that follows the LUKS standard and for putting a file system
+onto the encrypted device. See man luksformat(8) for more information.
+
+For instructions about how to encrypt your swap partition(s), see
+	/usr/share/doc/cryptsetup/CryptoSwap.HowTo
+
+For instructions about how to encrypt your root filesystem, see
+	/usr/share/doc/cryptsetup/CryptoRoot.HowTo
+
+ -- Jonas Meurer <mejo@debian.org>, Thu,  2 Feb 2006 21:10:42 +0100
