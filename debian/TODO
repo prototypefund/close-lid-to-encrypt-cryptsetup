@@ -1,0 +1,17 @@
+TODO-list for cryptsetup in Debian
+----------------------------------
+* provide support for LVM on encryped devices
+  - check for existance of source device before running cryptsetup
+  - run cryptdisks twice in boot process: once before lvm/raid is started,
+    and once after that
+* improve the checks
+  - distinguish between luks, plain cryptsetup and swap
+   swap:
+     + precheck for any existing filesystem, fail if possitive
+     + postcheck for nothing, just go ahead with mkswap, swapon
+   plain cryptsetup:
+     + precheck for any existing filesystem, fail if possitive
+     + postcheck for the expected filesystem, fail if negative
+   luks cryptsetup:
+     + precheck for a valid luks partition, fail if negative
+     + postcheck for the expected filesystem, fail if negative

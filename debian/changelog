@@ -5,12 +5,12 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
     - modify cryptdisks init script to use lsb functions
     - add luksformat and a manpage
   * removed postinst and postrm, empty scripts
-  * added a README.Debian
+  * added a README.Debian and a TODO
 
   [ Michael Gebetsroither ]
   * added "batch mode" patch (allready accepted by upstream)
 
- -- Jonas Meurer <mejo@debian.org>  Thu,  2 Feb 2006 21:11:42 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu,  2 Feb 2006 22:35:37 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 
