@@ -1,0 +1,74 @@
+this is the documentation for implementing a robust check system
+    into /etc/init.d/cryptdisks!
+
+
+things marked with default should be checked always...
+
+we should only check things per default if one of OUR actions causes dataloss!
+
+the user should be able to deaktivate the default checks through some option in
+crypttab.
+
+there are a few branches:
+
+
+##
+# swap
+##
+    no luks allowed with swap option, because it's useless
+precheck:
+    - check if the device exists (default)
+    - check if the partition has a swap id (82) (default)
+        - if no, abort
+    - maybe a check for suspend/resume (there are reported problems
+        with some of this on grml, but are not restricted to grml) (?default?)
+    - mkswap
+postcheck:
+    uesless
+
+note to swap:
+imho it's the useres fault to mark a partition with type swap.
+Every live-cd will format partitions with type swap.
+
+
+##
+# plain cryptsetup (current solution)
+##
+precheck:
+    - check if the device exists (default)
+    - check if there is a known filesystem on the partition (could be skipped in favor
+        of a "required" postcheck).
+        - if there is a known filesystem, abort
+postcheck:
+    - check what the user requested us to check (filesystem, raid, lvm, evms, ...)
+
+IDEA:
+IMHO it's too error prone to check for all filesystems and hope to not find any, 
+because there are too many out there.
+It's the same situation as software tests...
+You could test as much as you want and find bugs, but it's not an indicator that
+the software is bugfree.
+The problem is with the current system we rely on the fact that it's bugfree!
+
+what about this:
+precheck:
+    - check if the device exists (default)
+postcheck: (required)
+    - check what the user requested us to check
+        - if check failed simpy remove the dm-crypt device
+        - if check succeeds, everything is fine
+
+if the user doesn't supply a postcheck with plain cryptsetup partitions print a
+REALLY BIG WARNING that we could not garantee anything.
+
+
+##
+# luks
+##
+precheck:
+    - check if the device exists (default)
+    - check the partition with isLuks or grep for the signature (same as for swap)
+        - if it is NOT luks, abort
+postcheck:
+    - check what the user requested us to check (filesystem, raid, lvm, evms, ...)
+
