@@ -6,11 +6,13 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
     - add luksformat and a manpage
   * removed postinst and postrm, empty scripts
   * added a README.Debian and a TODO
+  * added a NEWS file for Debian, and explain the upstream transition
+    from plain cryptsetup to cryptsetup-luks.
 
   [ Michael Gebetsroither ]
   * added "batch mode" patch (allready accepted by upstream)
 
- -- Jonas Meurer <mejo@debian.org>  Thu,  2 Feb 2006 22:35:37 +0100
+ -- Jonas Meurer <mejo@debian.org>  Fri,  3 Feb 2006 13:42:20 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 

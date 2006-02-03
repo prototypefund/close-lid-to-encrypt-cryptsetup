@@ -1,0 +1,11 @@
+cryptsetup (2:1.0.1-17) unstable; urgency=low
+
+    Since release 2:1.0.1-9, the cryptsetup package uses cryptsetup-luks as
+    upstream source. This is a enhanced version of plain cryptsetup which
+    includes support for the LUKS extension, a standard on-disk format for
+    hard disk encryption. Plain dm-crypt (as provided by the old cryptsetup
+    package) is still available, thus backwards compability is given.
+    Nevertheless it is recomented to update your encrypted partitions to
+    LUKS, as this implementation is more secure than the plain dm-crypt.
+
+ -- Jonas Meurer <mejo@debian.org>  Fri,  3 Feb 2006 13:41:35 +0100
