@@ -8,13 +8,14 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * added a README.Debian and a TODO
   * added a NEWS file for Debian, and explain the upstream transition
     from plain cryptsetup to cryptsetup-luks.
+  * install manpages using dh_installman, not with install
 
   [ Michael Gebetsroither ]
   * added "batch mode" patch (allready accepted by upstream)
   * converted crypttab.sgml to asciidoc
   * added dependencies for asciidoc to manpage conversion
 
- -- Michael Gebetsroither <michael.geb@gmx.at>  Fri,  3 Feb 2006 15:29:41 +0100
+ -- Jonas Meurer <mejo@debian.org>  Fri,  3 Feb 2006 15:57:09 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 
