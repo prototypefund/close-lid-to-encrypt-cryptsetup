@@ -9,6 +9,7 @@ we should only check things per default if one of OUR actions causes dataloss!
 the user should be able to deaktivate the default checks through some option in
 crypttab.
 
+
 there are a few branches:
 
 
@@ -55,11 +56,12 @@ precheck:
     - check if the device exists (default)
 postcheck: (required)
     - check what the user requested us to check
-        - if check failed simpy remove the dm-crypt device
+        - if check failed simpy remove the dm-crypt device (in interactive mode 
+            reask the password and retry)
         - if check succeeds, everything is fine
 
-if the user doesn't supply a postcheck with plain cryptsetup partitions print a
-REALLY BIG WARNING that we could not garantee anything.
+if the user doesn't supply a postcheck with plain cryptsetup partitions just open the
+mapping and print a REALLY BIG WARNING that we could not garantee anything.
 
 
 ##
@@ -67,8 +69,10 @@ REALLY BIG WARNING that we could not garantee anything.
 ##
 precheck:
     - check if the device exists (default)
-    - check the partition with isLuks or grep for the signature (same as for swap)
+    - check the partition with isLuks or grep for the signature (default)
         - if it is NOT luks, abort
 postcheck:
     - check what the user requested us to check (filesystem, raid, lvm, evms, ...)
+        - if check failed luksClose the device (in interactive mode reask
+            the password and retry)
 
