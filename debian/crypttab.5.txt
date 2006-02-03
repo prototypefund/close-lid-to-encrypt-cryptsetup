@@ -1,0 +1,106 @@
+CRYPTTAB(5)
+===========
+Michael Gebetsroither <michael.geb@gmx.at>
+
+
+NAME
+----
+crypttab - static information about crypted filesystems
+
+
+SYNOPSIS
+--------
+*crypttab*::
+'<target device>' '<source device>' '[key file]' '[options]'
+
+    
+DESCRIPTION
+-----------
+The file *crypttab* (usually located at */etc/crypttab*) contains descriptive information about encrypted file systems.
+*crypttab* is only read by programs, and not written; it is the duty of the system administrator to properly create and maintain this file.
+Each filesystem is described on a separate line; fields on each line are separated by tabs or spaces. Lines starting with "'#'" are comments, empty lines are ignored.
+The order of records in *crypttab* is important because the */etc/init.d/cryptdisks* script sequentially iterates through *crypttab* doing its thing.
+
+The first field 'target device' describes the mapped 'device name'.
+It must be a plain filename without any directories.
+A mapped device */dev/mapper/*'device name' will be created by *cryptsetup(8)* crypting data from and onto the 'source device'.
+
+The second field 'source device' describes the block special device that should hold the encrypted data.
+
+The third field 'key file' describes the file holding the key data used for decrypting the encrypted data of the 'source device'.
+
+It can also be a device name (eg. */dev/random* used for swap devices).
+
+If the 'key file' is empty or the string *none*, the key data (ie. a password) will be read interactively from the console.
+In this case, the optionsprecheck, postcheck and retry may be useful.
+
+The fourth field 'options' describes the cryptsetup options associated with the encryption process.
+Options are in the format: 'key'='value'[,'key'='value' ...] The following options are supported:
+
+
+OPTOINS
+-------
+*cipher*::
+Encryption algorithm. See *cryptsetup -c*.
+
+*size*::
+Encryption key size. See *cryptsetup -s*.
+
+*hash*::
+Hash algorithm. See *cryptsetup -h*.
+
+*verify*::
+Verify pasword. Uses *cryptsetup -y*.
+
+*readonly*::
+The backing device is read-only (eg: a dvd).
+
+*luks*::
+Use device with luks extensions.
+
+*swap*::
+Run *mkswap* on the created device.
+
+*tmp*::
+Run *mke2fs* on the created device.
+
+*precheck*::
+Check the source device by suitable program; if the check fails the device is not created; If a program is provided as argument, it is run, using the decrypted volume as first argument.
+Some programs are provided in /usr/share/cryptsetup/prechecks, currently only swap; so, providing swap as argument will run the check for to ensure that a SWAP partition is a accessible through the source device.
+
+*postcheck*::
+Check the content of the device by suitable program; if the check fails the device is removed; if the retry option is given, the creation is repeated.
+If a program is provided as argument, it is run, using the decrypted volume as first argument.
+Some programs are provided in /usr/share/cryptsetup/checks, namely ext2 and xfs; so, providing ext2 as argument will run the check for to ensure that a EXT2 or EXT3 filesystem is a accessible thru the device.
+
+*retry*::
+If the device creation fails, or if the check program fails, remove the device, and try again to create it: if key is "none" this will ask for the password again.
+The option specifies how many times to repeat.
+
+*timout*::
+If key is "'none'", the cryptdisks script interactively prompts for a password.
+The timout option specifies the time in seconds to wait for the password before timing out.
+
+
+EXAMPLES
+--------
+*Mounting an encrypted swap device*::
+cswap /dev/sda6 /dev/random swap
+
+*Mounting an encrypted disk with interactive password*::
+cdisk /dev/sda2
+
+*Cipher choosing option*::
+cdisk2 /dev/sda3 none cipher=twofish
+
+
+SEE ALSO
+--------
+cryptsetup(8), /etc/crypttab
+
+
+AUTHOR
+------
+This manual page was converted to asciidoc from Michael Gebetsroither <michael.geb@gmx.at>.
+This manual page was originally written by Bastian Kleineidam <calvin@debian.org> for the Debian distribution of cryptsetup (but can be used by others).
+Parts of this manual are taken and adapted from the fstab(5) manual page.

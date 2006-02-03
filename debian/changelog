@@ -11,8 +11,10 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
 
   [ Michael Gebetsroither ]
   * added "batch mode" patch (allready accepted by upstream)
+  * converted crypttab.sgml to asciidoc
+  * added dependencies for asciidoc to manpage conversion
 
- -- Jonas Meurer <mejo@debian.org>  Fri,  3 Feb 2006 13:42:20 +0100
+ -- Michael Gebetsroither <michael.geb@gmx.at>  Fri,  3 Feb 2006 15:29:41 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 

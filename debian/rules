@@ -51,7 +51,11 @@ build: build-stamp
 build-stamp: config.status patch-stamp
 	dh_testdir
 	#docbook-to-man debian/cryptsetup.sgml > debian/cryptsetup.8
-	docbook-to-man debian/crypttab.sgml > debian/crypttab.5
+	#docbook-to-man debian/crypttab.sgml > debian/crypttab.5
+	asciidoc -d manpage -b docbook debian/crypttab.5.txt
+	sed -i 's/<emphasis role="strong">/<emphasis role="bold">/g' debian/crypttab.5.xml
+	xsltproc -o debian/crypttab.5 /usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl \
+		debian/crypttab.5.xml
 	$(MAKE)
 	# cannot depend on libraries in /usr !
 	gcc lib/.libs/*.o src/*.o luks/.libs/*.o -o src/cryptsetup.static \
@@ -67,7 +71,7 @@ clean: unpatch
 	if test -f Makefile; then $(MAKE) clean; fi
 	if test -f config.mess; then rm -f `cat config.mess`; fi
 
-	rm -f debian/crypttab.5 config.mess
+	rm -f debian/crypttab.5 debian/crypttab.5.xml config.mess
 	rm -rf autom4te.cache m4
 	rm -f src/cryptsetup.static
 

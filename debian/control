@@ -3,7 +3,7 @@ Section: admin
 Priority: optional
 Maintainer: Debian Cryptsetup Team <pkg-cryptsetup-devel@lists.alioth.debian.org>
 Uploaders: Jonas Meurer <mejo@debian.org>
-Build-Depends: debhelper (>= 4.0.0), libgcrypt11-dev, libdevmapper-dev, libpopt-dev, uuid-dev, docbook-to-man, gettext, libtool, autoconf, automake1.9, dpatch
+Build-Depends: debhelper (>= 4.0.0), libgcrypt11-dev, libdevmapper-dev, libpopt-dev, uuid-dev, gettext, libtool, autoconf, automake1.9, dpatch, xsltproc, docbook-xsl, asciidoc
 Standards-Version: 3.6.2.1
 
 Package: cryptsetup
