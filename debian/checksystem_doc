@@ -6,6 +6,9 @@ things marked with default should be checked always...
 
 we should only check things per default if one of OUR actions causes dataloss!
 
+it should be 100% clear, that none of our checks cause any  modifications to the
+underlying device.
+
 the user should be able to deaktivate the default checks through some option in
 crypttab.
 
@@ -20,7 +23,8 @@ there are a few branches:
 precheck:
     - check if the device exists (default)
     - check if the partition has a swap id (82) (default)
-        - if no, abort
+        - if no, check for known filesystems
+            - if we find a known filesystem, abort
     - maybe a check for suspend/resume (there are reported problems
         with some of this on grml, but are not restricted to grml) (?default?)
     - mkswap
@@ -37,31 +41,16 @@ Every live-cd will format partitions with type swap.
 ##
 precheck:
     - check if the device exists (default)
-    - check if there is a known filesystem on the partition (could be skipped in favor
-        of a "required" postcheck).
-        - if there is a known filesystem, abort
-postcheck:
-    - check what the user requested us to check (filesystem, raid, lvm, evms, ...)
-
-IDEA:
-IMHO it's too error prone to check for all filesystems and hope to not find any, 
-because there are too many out there.
-It's the same situation as software tests...
-You could test as much as you want and find bugs, but it's not an indicator that
-the software is bugfree.
-The problem is with the current system we rely on the fact that it's bugfree!
-
-what about this:
-precheck:
-    - check if the device exists (default)
-postcheck: (required)
+    - check if there is a known filesystem on the partition.
+        - if we find a known filesystem, abort
+postcheck: (user should be educated to give us a postcheck=<filesystem on cryptopartition>)
     - check what the user requested us to check
         - if check failed simpy remove the dm-crypt device (in interactive mode 
             reask the password and retry)
         - if check succeeds, everything is fine
 
-if the user doesn't supply a postcheck with plain cryptsetup partitions just open the
-mapping and print a REALLY BIG WARNING that we could not garantee anything.
+if the user doesn't supply a postcheck warn, that we are not able to check if
+the user provided us with the right password.
 
 
 ##
@@ -73,6 +62,5 @@ precheck:
         - if it is NOT luks, abort
 postcheck:
     - check what the user requested us to check (filesystem, raid, lvm, evms, ...)
-        - if check failed luksClose the device (in interactive mode reask
-            the password and retry)
+        - if check failed just print a warning (user supplied the right password)
 
