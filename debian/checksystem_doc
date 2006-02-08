@@ -1,66 +1,49 @@
-this is the documentation for implementing a robust check system
-    into /etc/init.d/cryptdisks!
+This is the documentation for implementing a robust
+check system into /etc/init.d/cryptdisks
 
+checks marked with [default] should always be enabled.
 
-things marked with default should be checked always...
+basic ideas:
+ - default checks are only necessary where one of OUR actions causes
+   dataloss.
+ - our checks must not cause any modifications to the underlying device.
+ - it should be possible to decativate all default checks with options
+   in crypttab.
 
-we should only check things per default if one of OUR actions causes dataloss!
+The only default check which applies to all situations is:
+ * precheck: does the source device exist? [default]
 
-it should be 100% clear, that none of our checks cause any  modifications to the
-underlying device.
+Currently, three different branches exist:
 
-the user should be able to deaktivate the default checks through some option in
-crypttab.
+### swap ###
+ - luks and swap is not compatible, thus disable this combination
+ * precheck:
+   - is the device a physical partition with type 'swap' (id 82)? [default]
+     + false: check for all known filesystems on the device
+       + true: abort
+   - maybe a check for suspend/resume (there are reported problems
+     with some of this on grml, but are not restricted to grml) [?default?]
+ * postcheck: useless
 
+note to swap: It's the users fault to mark a partition with type swap.
+              Every live-cd will format partitions with type swap.
 
-there are a few branches:
+### plain dm-crypt ###
+ * precheck:
+   - check for all known filesystems on the device
+     + true: abort
+ * postcheck:
+   - check what the user requested us to check [filesystem, lvm, ...]
+     + false: remove the dm-crypt device, retry as often as configured
 
+note to plain dm-crypt: The postcheck (for filesystem or whatever) is the only
+                        way to verify that the given password/key is correct.
 
-##
-# swap
-##
-    no luks allowed with swap option, because it's useless
-precheck:
-    - check if the device exists (default)
-    - check if the partition has a swap id (82) (default)
-        - if no, check for known filesystems
-            - if we find a known filesystem, abort
-    - maybe a check for suspend/resume (there are reported problems
-        with some of this on grml, but are not restricted to grml) (?default?)
-    - mkswap
-postcheck:
-    uesless
-
-note to swap:
-imho it's the useres fault to mark a partition with type swap.
-Every live-cd will format partitions with type swap.
-
-
-##
-# plain cryptsetup (current solution)
-##
-precheck:
-    - check if the device exists (default)
-    - check if there is a known filesystem on the partition.
-        - if we find a known filesystem, abort
-postcheck: (user should be educated to give us a postcheck=<filesystem on cryptopartition>)
-    - check what the user requested us to check
-        - if check failed simpy remove the dm-crypt device (in interactive mode 
-            reask the password and retry)
-        - if check succeeds, everything is fine
-
-if the user doesn't supply a postcheck warn, that we are not able to check if
-the user provided us with the right password.
-
-
-##
-# luks
-##
-precheck:
-    - check if the device exists (default)
-    - check the partition with isLuks or grep for the signature (default)
-        - if it is NOT luks, abort
-postcheck:
-    - check what the user requested us to check (filesystem, raid, lvm, evms, ...)
-        - if check failed just print a warning (user supplied the right password)
-
+### luks ###
+ * precheck:
+   - check whether the device is a LUKS partition [default]
+     + false: abort
+     + true: go on
+ * postcheck:
+   - check what the user requested us to check [filesystem, lvm, ...]
+     + false: just print a warning, the right password has been supplied.
