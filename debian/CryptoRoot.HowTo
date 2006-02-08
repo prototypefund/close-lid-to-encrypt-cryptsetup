@@ -11,9 +11,10 @@ Step by step:
 # Enter run-level 1
 init 1
 
-# Install a standard debian kernel (>= 2.6.4) and the initrd-tools packages
-# Replace 386 with whatever architecture you have (such as k8)
-apt-get install initrd-tools kernel-image-2.6.8-1-386
+# Install a standard debian linux kernel (>= 2.6.4) and the initrd-tools
+# packages, replace 2.6.12-1 with the kernel version you'dd like to install,
+# and 386 with whatever architecture you have (such as k8)
+apt-get install initrd-tools linux-image-2.6.12-1-386
 
 # Edit /etc/crypttab and add the following line
 # Replace /dev/hda4 with your backing device (lvm is ok, as is raid)
@@ -53,8 +54,13 @@ mount sysfs /sys  -t sysfs
 mount proc  /proc -t proc
 mount /dev/??? /boot
 
-# Setup the initrd (change 386 to the correct value)
-mkinitrd -o /boot/initrd.img-2.6.7-1-386
+# Prepare mkinitrd to create the initrd. Add the following lines to
+# /etc/mkinitrd/modules (varies depending on the cipher you use):
+sha256
+aes_i586
+
+# Setup the initrd (change 2.6.12-1-386 to the correct value, just as above)
+mkinitrd -o /boot/initrd.img-2.6.12-1-386
 
 # Configure your boot loader to use /dev/mapper/root for the root filesystem
 # If you are using grub, you can test boot without changing your old setup

@@ -9,14 +9,16 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * added a NEWS file for Debian, and explain the upstream transition
     from plain cryptsetup to cryptsetup-luks.
   * install manpages using dh_installman, not with install
+  * updated CryptoRoot.HowTo, mention /etc/mkinitrd/modules and different
+    linux-image versions. (closes: #344867)
 
   [ Michael Gebetsroither ]
   * added "batch mode" patch (allready accepted by upstream)
   * converted crypttab.sgml to asciidoc
   * added dependencies for asciidoc to manpage conversion
-  * added developer documentation for a robust checksystem into cryptdisks 
+  * added developer documentation for a robust checksystem into cryptdisks
 
- -- Michael Gebetsroither <michael.geb@gmx.at>  Fri,  3 Feb 2006 18:00:48 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed,  8 Feb 2006 14:40:33 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 
