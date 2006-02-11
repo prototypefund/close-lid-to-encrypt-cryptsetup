@@ -11,6 +11,7 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * install manpages using dh_installman, not with install
   * updated CryptoRoot.HowTo, mention /etc/mkinitrd/modules and different
     linux-image versions. (closes: #344867)
+  * removed needless debian/hack
 
   [ Michael Gebetsroither ]
   * added "batch mode" patch (allready accepted by upstream)
@@ -18,7 +19,7 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * added dependencies for asciidoc to manpage conversion
   * added developer documentation for a robust checksystem into cryptdisks
 
- -- Jonas Meurer <mejo@debian.org>  Wed,  8 Feb 2006 14:40:33 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sat, 11 Feb 2006 21:31:55 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 
