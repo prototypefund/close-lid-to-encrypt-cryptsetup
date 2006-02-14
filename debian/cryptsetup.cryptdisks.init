@@ -27,9 +27,9 @@ test -f $TABFILE   || exit 0
 [ -r /etc/default/cryptdisks ] && . /etc/default/cryptdisks
 
 case "$CRYPTDISKS_ENABLE" in
-        [Nn]*)
-                exit 0
-                ;;
+  [Nn]*)
+  	exit 0
+  	;;
 esac
 
 $DEVMAPCMD mknodes
@@ -54,98 +54,99 @@ parse_opts () {
 		PARAM=`echo $ARG | sed "s/=.*//"`
 		
 		case "$ARG" in
-			*=*)
-				PARAM=`echo $ARG | sed "s/=.*//"`
-				VALUE=${ARG##$PARAM=}
-				;;
-			*)
-				PARAM=$ARG
-				VALUE=""
+		  *=*)
+		  	PARAM=`echo $ARG | sed "s/=.*//"`
+		  	VALUE=${ARG##$PARAM=}
+		  	;;
+		  *)
+		  	PARAM=$ARG
+		  	VALUE=""
+			;;
 		esac
 		
 		case "$PARAM" in 
-			readonly)
-				PARAMS="$PARAMS -r"
-				;;
-			cipher)
-				PARAMS="$PARAMS -c $VALUE"
-				if test "x$VALUE" = "x" ; then
-					echo " - no value for cipher option, skipping" >&2
-					SKIP="yes"
-				fi
-				;;
-			size)
-				PARAMS="$PARAMS -s $VALUE"
-				if test "x$VALUE" = "x" ; then
-					echo " - no value for size option, skipping" >&2
-					SKIP="yes"
-				fi
-				;;
-			hash)
-				PARAMS="$PARAMS -h $VALUE"
-				if test "x$VALUE" = "x" ; then
-					echo " - no value for hash option, skipping" >&2
-					SKIP=yes
-				fi
-				;;
-			verify)
-				PARAMS="$PARAMS -y"
-				;;
-			postcheck)
-				if test "x$VALUE" = "x" ; then
-					POSTCHECK="$CRYPTDISKS_POSTCHECK"
-				else
-					POSTCHECK="$VALUE"
-				fi
-				if [ "$POSTCHECK" -a -x /lib/cryptsetup/postchecks/"$POSTCHECK" ]; then
-					POSTCHECK="/lib/cryptsetup/postchecks/$POSTCHECK"
-				else
-					POSTCHECK=""
-				fi
-				;;
-			precheck)
-				if test "x$VALUE" = "x" ; then
-					PRECHECK="$CRYPTDISKS_PRECHECK"
-				else
-					PRECHECK="$VALUE"
-				fi
-				if [ "$PRECHECK" -a -x /lib/cryptsetup/prechecks/"$PRECHECK" ]; then
-					PRECHECK="/lib/cryptsetup/prechecks/$PRECHECK"
-				else
-					PRECHECK=""
-				fi
-				;;
-			retry)
-				if test "x$VALUE" = "x" ; then
-					RETRY="$CRYPTDISKS_RETRY"
-				else
-					RETRY="$VALUE"
-				fi
-				case "$RETRY" in
-					no|[0-9]*)
-					;;
-					*)
-						echo " - option RETRY is wrongly set to $RETRY - forced to 'no' " >&2
-						RETRY="no"
-					;;
-				esac
-				;;
-			timeout)
-				if test "x$VALUE" = "x" ; then
-					TIMEOUT="$CRYPTDISKS_TIMEOUT"
-				else
-					TIMEOUT="$VALUE"
-				fi
-				[ -x $TIMEOUTCMD ] || TIMEOUT=""
-				;;
-			swap)
-				MAKESWAP=yes
-				;;
-			tmp)
-				MAKETMP=yes
-				;;
-			luks)
-				USELUKS=yes
+		  readonly)
+		  	PARAMS="$PARAMS -r"
+		  	;;
+		  cipher)
+		  	PARAMS="$PARAMS -c $VALUE"
+		  	if test "x$VALUE" = "x" ; then
+		  		echo " - no value for cipher option, skipping" >&2
+		  		SKIP="yes"
+		  	fi
+		  	;;
+		  size)
+		  	PARAMS="$PARAMS -s $VALUE"
+		  	if test "x$VALUE" = "x" ; then
+		  		echo " - no value for size option, skipping" >&2
+		  		SKIP="yes"
+		  	fi
+		  	;;
+		  hash)
+		  	PARAMS="$PARAMS -h $VALUE"
+		  	if test "x$VALUE" = "x" ; then
+		  		echo " - no value for hash option, skipping" >&2
+		  		SKIP=yes
+		  	fi
+		  	;;
+		  verify)
+		  	PARAMS="$PARAMS -y"
+		  	;;
+		  postcheck)
+		  	if test "x$VALUE" = "x" ; then
+		  		POSTCHECK="$CRYPTDISKS_POSTCHECK"
+		  	else
+		  		POSTCHECK="$VALUE"
+		  	fi
+		  	if [ "$POSTCHECK" -a -x /lib/cryptsetup/postchecks/"$POSTCHECK" ]; then
+		   		POSTCHECK="/lib/cryptsetup/postchecks/$POSTCHECK"
+		  	else
+		  		POSTCHECK=""
+		  	fi
+		  	;;
+		  precheck)
+		  	if test "x$VALUE" = "x" ; then
+		  		PRECHECK="$CRYPTDISKS_PRECHECK"
+		  	else
+		  		PRECHECK="$VALUE"
+		  	fi
+		   	if [ "$PRECHECK" -a -x /lib/cryptsetup/prechecks/"$PRECHECK" ]; then
+		  		PRECHECK="/lib/cryptsetup/prechecks/$PRECHECK"
+		  	else
+		  		PRECHECK=""
+		  	fi
+		  	;;
+		  retry)
+		  	if test "x$VALUE" = "x" ; then
+		  		RETRY="$CRYPTDISKS_RETRY"
+		  	else
+		  		RETRY="$VALUE"
+		  	fi
+		  	case "$RETRY" in
+		  	  no|[0-9]*)
+		  	  	;;
+		  	  *)
+			  	echo " - option RETRY is wrongly set to $RETRY - forced to 'no' " >&2
+			  	RETRY="no"
+			  	;;
+			esac
+		  	;;
+		  timeout)
+		  	if test "x$VALUE" = "x" ; then
+		  		TIMEOUT="$CRYPTDISKS_TIMEOUT"
+		  	else
+		  		TIMEOUT="$VALUE"
+		  	fi
+		  	[ -x $TIMEOUTCMD ] || TIMEOUT=""
+		  	;;
+		  swap)
+		  	MAKESWAP=yes
+		  	;;
+		  tmp)
+		  	MAKETMP=yes
+		  	;;
+		  luks)
+		  	USELUKS=yes
 		esac
 	done
 
@@ -180,14 +181,14 @@ lo_setup () {
 }
 
 case "$1" in
-start)
-	log_begin_msg "Starting crypto disks..."
+  start)
+	log_action_begin_msg "Starting crypto disks"
 	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opt; do
-		echo -n " $dst"
+		log_progress_msg "$dst"
 		if test -b $MAPPER/$dst; then
-			echo -n "(running)"
+			log_action_cont_msg "(running)"
 		else
-			echo -n "(starting)"
+			log_action_cont_msg "(starting)"
 			if [ "x$key" != "x" ] && [ "x$key" != "xnone" ]; then
 				INTERACTIVE="no"
 				if test -e "$key" ; then
@@ -203,12 +204,17 @@ start)
 						echo " - INSECURE OWNER FOR $key" >&2
 					fi
 				else
-					echo " - Keyfile for $dst not found, skipping" >&2
+					echo " - Keyfile for '$dst' not found, skipping" >&2
 					continue
 				fi
 			else
 				INTERACTIVE="yes"
-				echo "..."
+				echo ""
+			fi
+
+			if ! test -r "$src" ; then
+				echo " - Device '$src' does not exist, skipping" >&2
+				continue
 			fi
 
 			parse_opts
@@ -219,8 +225,8 @@ start)
 				continue
 			fi
 
-			if test "x$USELUKS" = "xyes" && $CRYPTCMD isLuks $src ; then
-				if [ "$PRECHECK" = "" ] || $PRECHECK $src; then
+			if test "x$USELUKS" = "xyes" ; then
+				if $CRYPTCMD isLuks $src ; then
 					while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
 						if test "x$INTERACTIVE" = "xyes" ; then
 							if test "x$TIMEOUT" = "x"; then
@@ -249,7 +255,8 @@ start)
 						[ $RETRY -gt 0 ] && echo " - retrying for $dst"
 					done
 				else
-					echo " - the precheck for '$src' failed" >&2
+					echo " - Device '$src' is not a LUKS partition, skipping" >&2
+					continue
 				fi
 							
 			else
@@ -299,19 +306,19 @@ start)
 			fi
 		fi
 	done
-	log_end_msg $?
+	log_action_end_msg $?
 	;;
-stop)
-	log_begin_msg "Stopping crypto disks..."
+  stop)
+	log_action_begin_msg "Stopping crypto disks..."
 	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key; do
-		echo -n " $dst"
+		log_progress_msg "$dst"
 		if test -b $MAPPER/$dst; then
 			if $DEVMAPCMD info $dst | grep -q '^Open count: *0$'; then
 				dev=`$DEVMAPCMD table $dst | sed 's/^.* \([0-9]*:[0-9]*\) .*/\1/'`
 				major=`echo $dev | sed 's/:.*//'`
 				minor=`echo $dev | sed 's/.*://'`
 				
-				echo -n "(stopping)"
+				log_action_cont_msg "(stopping)"
 				$CRYPTCMD remove $dst
 				
 				# Detach loopback device, if attached
@@ -319,21 +326,21 @@ stop)
 					$LOSETUP -d /dev/loop$minor
 				fi
 			else
-				echo -n "(busy)"
+				log_action_cont_msg "(busy)"
 			fi
 		else
-			echo -n "(stopped)"
+			log_action_cont_msg "(stopped)"
 		fi
 	done
 
-	log_end_msg $?
+	log_action_end_msg $?
 	;;
-restart|reload|force-reload)
+  restart|reload|force-reload)
 	$0 stop
 	$0 start
 	;;
-*)
-	log_success_msg "Usage: $0 {start|stop|restart|reload|force-reload}"
+  *)
+	echo "Usage: cryptdisks {start|stop|restart|reload|force-reload}"
 	exit 1
 	;;
 esac
