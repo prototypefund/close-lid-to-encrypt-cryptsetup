@@ -1,8 +1,4 @@
 #! /bin/sh
-#
-# cryptodisks	Now that all block devices should be available, setup
-#		encrypted block devices
-
 ### BEGIN INIT INFO
 # Provides:          cryptdisks
 # Required-Start:    checkroot
@@ -11,14 +7,18 @@
 # Should-Stop:
 # Default-Start:     S
 # Default-Stop:      0 6
+# Short-Description: Setup encrypted block devices.
+# Description:
 ### END INIT INFO
+
+. /lib/lsb/init-functions
 
 CRYPTCMD=/sbin/cryptsetup
 DEVMAPCMD=/sbin/dmsetup
+LOSETUP=/sbin/losetup
 TABFILE=/etc/crypttab
 MAPPER=/dev/mapper
-
-. /lib/lsb/init-functions
+TIMEOUTCMD=/usr/bin/timeout
 
 test -x $CRYPTCMD  || exit 0
 test -x $DEVMAPCMD || exit 0
@@ -33,6 +33,151 @@ case "$CRYPTDISKS_ENABLE" in
 esac
 
 $DEVMAPCMD mknodes
+
+parse_opts () {
+	PARAMS=""
+	POSTCHECK=""
+	PRECHECK=""
+	RETRY="no"
+	MAKETMP=""
+	MAKESWAP=""
+	USELUKS=""
+	SKIP=""
+	TIMEOUT=""
+
+	# Parse the options field, convert to cryptsetup parameters
+	# and contruct the command line
+	while test "x$opt" != "x" ; do
+		ARG=`echo $opt | sed "s/,.*//"`
+		opt=${opt##$ARG}
+		opt=${opt##,}
+		PARAM=`echo $ARG | sed "s/=.*//"`
+		
+		case "$ARG" in
+			*=*)
+				PARAM=`echo $ARG | sed "s/=.*//"`
+				VALUE=${ARG##$PARAM=}
+				;;
+			*)
+				PARAM=$ARG
+				VALUE=""
+		esac
+		
+		case "$PARAM" in 
+			readonly)
+				PARAMS="$PARAMS -r"
+				;;
+			cipher)
+				PARAMS="$PARAMS -c $VALUE"
+				if test "x$VALUE" = "x" ; then
+					echo " - no value for cipher option, skipping" >&2
+					SKIP="yes"
+				fi
+				;;
+			size)
+				PARAMS="$PARAMS -s $VALUE"
+				if test "x$VALUE" = "x" ; then
+					echo " - no value for size option, skipping" >&2
+					SKIP="yes"
+				fi
+				;;
+			hash)
+				PARAMS="$PARAMS -h $VALUE"
+				if test "x$VALUE" = "x" ; then
+					echo " - no value for hash option, skipping" >&2
+					SKIP=yes
+				fi
+				;;
+			verify)
+				PARAMS="$PARAMS -y"
+				;;
+			postcheck)
+				if test "x$VALUE" = "x" ; then
+					POSTCHECK="$CRYPTDISKS_POSTCHECK"
+				else
+					POSTCHECK="$VALUE"
+				fi
+				if [ "$POSTCHECK" -a -x /lib/cryptsetup/postchecks/"$POSTCHECK" ]; then
+					POSTCHECK="/lib/cryptsetup/postchecks/$POSTCHECK"
+				else
+					POSTCHECK=""
+				fi
+				;;
+			precheck)
+				if test "x$VALUE" = "x" ; then
+					PRECHECK="$CRYPTDISKS_PRECHECK"
+				else
+					PRECHECK="$VALUE"
+				fi
+				if [ "$PRECHECK" -a -x /lib/cryptsetup/prechecks/"$PRECHECK" ]; then
+					PRECHECK="/lib/cryptsetup/prechecks/$PRECHECK"
+				else
+					PRECHECK=""
+				fi
+				;;
+			retry)
+				if test "x$VALUE" = "x" ; then
+					RETRY="$CRYPTDISKS_RETRY"
+				else
+					RETRY="$VALUE"
+				fi
+				case "$RETRY" in
+					no|[0-9]*)
+					;;
+					*)
+						echo " - option RETRY is wrongly set to $RETRY - forced to 'no' " >&2
+						RETRY="no"
+					;;
+				esac
+				;;
+			timeout)
+				if test "x$VALUE" = "x" ; then
+					TIMEOUT="$CRYPTDISKS_TIMEOUT"
+				else
+					TIMEOUT="$VALUE"
+				fi
+				[ -x $TIMEOUTCMD ] || TIMEOUT=""
+				;;
+			swap)
+				MAKESWAP=yes
+				;;
+			tmp)
+				MAKETMP=yes
+				;;
+			luks)
+				USELUKS=yes
+		esac
+	done
+
+	# Password processing in luks* from cryptsetup is newline sensitive
+	# reading stops after \n is received!
+	if test "x$USELUKS" = "xyes" && \
+	   test "x$MAKESWAP" = "xyes" && \
+	   test "x$INTERACTIVE" != "xyes"; then
+		echo -e "\n - you should not mix swap and luks, skipping" >&2
+		continue
+	fi
+}
+
+lo_setup () {
+	# Set up loopback devices
+	if test -f "$src" ; then
+		test -d /sys/block/loop0 || modprobe loop || SKIP=yes
+		LOOP_ID=
+		for i in 0 1 2 3 4 5 6 7 ; do
+			if test "x`cat /sys/block/loop$i/size`" = "x0" ; then
+				LOOP_ID=$i
+				break
+			fi
+		done
+		if test "x$LOOP_ID" = "x" ; then
+			SKIP=yes
+		else
+			$LOSETUP /dev/loop$LOOP_ID $src || SKIP=yes
+			src=/dev/loop$LOOP_ID
+		fi
+	fi
+}
 
 case "$1" in
 start)
@@ -66,150 +211,11 @@ start)
 				echo "..."
 			fi
 
-			PARAMS=""
-			RETRY="no"
-			POSTCHECK=""
-			PRECHECK=""
-			MAKETMP=""
-			MAKESWAP=""
-			USELUKS=""
-			SKIP=""
-			TIMEOUT=""
+			parse_opts
 
-			# Parse the options field, convert to cryptsetup parameters
-			# and contruct the command line
-			while test "x$opt" != "x" ; do
-				ARG=`echo $opt | sed "s/,.*//"`
-				opt=${opt##$ARG}
-				opt=${opt##,}
-				PARAM=`echo $ARG | sed "s/=.*//"`
-				
-				case "$ARG" in
-					*=*)
-						PARAM=`echo $ARG | sed "s/=.*//"`
-						VALUE=${ARG##$PARAM=}
-						;;
-					*)
-						PARAM=$ARG
-						VALUE=""
-				esac
-				
-				case "$PARAM" in 
-					readonly)
-						PARAMS="$PARAMS -r"
-						;;
-					cipher)
-						PARAMS="$PARAMS -c $VALUE"
-						if test "x$VALUE" = "x" ; then
-							echo " - no value for cipher option, skipping" >&2
-							SKIP="yes"
-						fi
-						;;
-					size)
-						PARAMS="$PARAMS -s $VALUE"
-						if test "x$VALUE" = "x" ; then
-							echo " - no value for size option, skipping" >&2
-							SKIP="yes"
-						fi
-						;;
-					hash)
-						PARAMS="$PARAMS -h $VALUE"
-						if test "x$VALUE" = "x" ; then
-							echo " - no value for hash option, skipping" >&2
-							SKIP=yes
-						fi
-						;;
-					verify)
-						PARAMS="$PARAMS -y"
-						;;
-					postcheck)
-						if test "x$VALUE" = "x" ; then
-							POSTCHECK="$CRYPTDISKS_POSTCHECK"
-						else
-							POSTCHECK="$VALUE"
-						fi
-						;;
-					precheck)
-						if test "x$VALUE" = "x" ; then
-							PRECHECK="$CRYPTDISKS_PRECHECK"
-						else
-							PRECHECK="$VALUE"
-						fi
-						;;
-					retry)
-						if test "x$VALUE" = "x" ; then
-							RETRY="$CRYPTDISKS_RETRY"
-						else
-							RETRY="$VALUE"
-						fi
-						;;
-					timeout)
-						if test "x$VALUE" = "x" ; then
-							TIMEOUT="$CRYPTDISKS_TIMEOUT"
-						else
-							TIMEOUT="$VALUE"
-						fi
-						;;
-					swap)
-						MAKESWAP=yes
-						;;
-					tmp)
-						MAKETMP=yes
-						;;
-					luks)
-						USELUKS=yes
-				esac
-			done
-
-			if [ "$RETRY" != "no" ] ; then
-				case "$RETRY" in
-					[0-9]*)
-					;;
-					*)
-						echo " - option RETRY is wrongly set to $RETRY - forced to 'no' " >&2
-						RETRY="no"
-					;;
-				esac
-			fi
-			if [ "$POSTCHECK" -a -x /lib/cryptsetup/postchecks/"$POSTCHECK" ]; then
-				POSTCHECK="/lib/cryptsetup/postchecks/$POSTCHECK"
-			else
-				POSTCHECK=""
-			fi
-			if [ "$PRECHECK" -a -x /lib/cryptsetup/prechecks/"$PRECHECK" ]; then
-				PRECHECK="/lib/cryptsetup/prechecks/$PRECHECK"
-			else
-				PRECHECK=""
-			fi
-
-			# Set up loopback devices
-			if test -f "$src" ; then
-				test -d /sys/block/loop0 || modprobe loop || SKIP=yes
-				LOOP_ID=
-				for i in 0 1 2 3 4 5 6 7 ; do
-					if test "x`cat /sys/block/loop$i/size`" = "x0" ; then
-						LOOP_ID=$i
-						break
-					fi
-				done
-				if test "x$LOOP_ID" = "x" ; then
-					SKIP=yes
-				else
-					losetup /dev/loop$LOOP_ID $src || SKIP=yes
-					src=/dev/loop$LOOP_ID
-				fi
-			fi
+			lo_setup
 
 			if test "x$SKIP" = "xyes" ; then
-				continue
-			fi
-
-			# Password processing in luks* from cryptsetup is newline sensitive
-			# reading stops after \n is received!
-			if test "x$USELUKS" = "xyes" && \
-			   test "x$MAKESWAP" = "xyes" && \
-			   test "x$INTERACTIVE" != "xyes"; then
-				echo -e "\n - you should not mix swap and luks, skipping" >&2
 				continue
 			fi
 
@@ -310,7 +316,7 @@ stop)
 				
 				# Detach loopback device, if attached
 				if test -f $src -a $major -eq 7; then
-					losetup -d /dev/loop$minor
+					$LOSETUP -d /dev/loop$minor
 				fi
 			else
 				echo -n "(busy)"

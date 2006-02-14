@@ -9,8 +9,9 @@ CRYPTDISKS_PRECHECK=
 # see /usr/share/cryptsetup/postchecks
 CRYPTDISKS_POSTCHECK=ext2
 
-# How many times to ask for the password if the check fails
+# Default number of times to retry the password
+# input, in the case that the postcheck fails.
 CRYPTDISKS_RETRY=3
 
-# Timeout for password prompt in seconds
+# Default timeout in seconds for password prompt
 CRYPTDISKS_TIMEOUT=180
