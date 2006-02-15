@@ -71,21 +71,21 @@ parse_opts () {
 		  cipher)
 		  	PARAMS="$PARAMS -c $VALUE"
 		  	if test "x$VALUE" = "x" ; then
-		  		echo " - no value for cipher option, skipping" >&2
+		  		echo -e "\n - no value for cipher option, skipping" >&2
 		  		SKIP="yes"
 		  	fi
 		  	;;
 		  size)
 		  	PARAMS="$PARAMS -s $VALUE"
 		  	if test "x$VALUE" = "x" ; then
-		  		echo " - no value for size option, skipping" >&2
+		  		echo -e "\n - no value for size option, skipping" >&2
 		  		SKIP="yes"
 		  	fi
 		  	;;
 		  hash)
 		  	PARAMS="$PARAMS -h $VALUE"
 		  	if test "x$VALUE" = "x" ; then
-		  		echo " - no value for hash option, skipping" >&2
+		  		echo -e "\n - no value for hash option, skipping" >&2
 		  		SKIP=yes
 		  	fi
 		  	;;
@@ -185,6 +185,12 @@ case "$1" in
 	log_action_begin_msg "Starting crypto disks"
 	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opt; do
 		log_progress_msg "$dst"
+		
+		if ! test -r "$src" ; then
+			echo -e "\n - Device '$src' does not exist, skipping" >&2
+			continue
+		fi
+
 		if test -b $MAPPER/$dst; then
 			log_action_cont_msg "(running)"
 		else
@@ -204,17 +210,12 @@ case "$1" in
 						echo " - INSECURE OWNER FOR $key" >&2
 					fi
 				else
-					echo " - Keyfile for '$dst' not found, skipping" >&2
+					echo -e "\n - Keyfile for '$dst' not found, skipping" >&2
 					continue
 				fi
 			else
 				INTERACTIVE="yes"
 				echo ""
-			fi
-
-			if ! test -r "$src" ; then
-				echo " - Device '$src' does not exist, skipping" >&2
-				continue
 			fi
 
 			parse_opts
@@ -226,7 +227,7 @@ case "$1" in
 			fi
 
 			if test "x$USELUKS" = "xyes" ; then
-				if $CRYPTCMD isLuks $src ; then
+				if $CRYPTCMD isLuks $src >/dev/null 2>&1; then
 					while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
 						if test "x$INTERACTIVE" = "xyes" ; then
 							if test "x$TIMEOUT" = "x"; then
@@ -255,7 +256,7 @@ case "$1" in
 						[ $RETRY -gt 0 ] && echo " - retrying for $dst"
 					done
 				else
-					echo " - Device '$src' is not a LUKS partition, skipping" >&2
+					echo -e "\n - Device '$src' is not a LUKS partition, skipping" >&2
 					continue
 				fi
 							
