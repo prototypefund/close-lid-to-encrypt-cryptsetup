@@ -20,6 +20,8 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
     - hardcode precheck for LUKS to use 'cryptsetup isLuks'. this is much safer
       than allowing other random prechecks, as it manifests that the source
       device actually is a LUKS partition.
+    - don't remove the LUKS device when postcheck fails, as the supplied
+      password/key is correct anyway.
 
   [ Michael Gebetsroither ]
   * added "batch mode" patch (already accepted by upstream)
@@ -27,7 +29,7 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * added dependencies for asciidoc to manpage conversion
   * added developer documentation for a robust checksystem into cryptdisks
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 14 Feb 2006 23:14:04 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 15 Feb 2006 17:42:15 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 

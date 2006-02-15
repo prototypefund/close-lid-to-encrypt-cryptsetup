@@ -43,7 +43,6 @@ note to plain dm-crypt: The postcheck (for filesystem or whatever) is the only
  * precheck:
    - check whether the device is a LUKS partition [default]
      + false: abort
-     + true: go on
  * postcheck:
    - check what the user requested us to check [filesystem, lvm, ...]
      + false: just print a warning, the right password has been supplied.

@@ -245,9 +245,9 @@ case "$1" in
 							if [ "$POSTCHECK" = ""  ] || $POSTCHECK $MAPPER/$dst ; then
 								break
 							else
-								echo " - the postcheck for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
-								echo " - removing the crypto device $dst" >&2
-								$CRYPTCMD luksClose $dst
+								echo " - the postcheck for '$MAPPER/$dst' failed" >&2
+								#echo " - removing the crypto device $dst" >&2
+								#$CRYPTCMD luksClose $dst
 								sleep 1
 							fi
 						fi
