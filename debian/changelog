@@ -12,6 +12,7 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * updated CryptoRoot.HowTo, mention /etc/mkinitrd/modules and different
     linux-image versions. (closes: #344867)
   * removed needless debian/hack
+  * added debian/watch
   * updated cryptdisks
     - modify init script to use lsb functions
     - updated comments for cryptdisks.default
@@ -29,7 +30,7 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * added dependencies for asciidoc to manpage conversion
   * added developer documentation for a robust checksystem into cryptdisks
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 15 Feb 2006 17:42:15 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 16 Feb 2006 21:36:25 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 
