@@ -32,7 +32,7 @@ The third field 'key file' describes the file holding the key data used for decr
 It can also be a device name (eg. */dev/random* used for swap devices).
 
 If the 'key file' is empty or the string *none*, the key data (ie. a password) will be read interactively from the console.
-In this case, the optionsprecheck, postcheck and retry may be useful.
+In this case, the options precheck, check and retry may be useful.
 
 The fourth field 'options' describes the cryptsetup options associated with the encryption process.
 Options are in the format: 'key'='value'[,'key'='value' ...] The following options are supported:
@@ -65,13 +65,12 @@ Run *mkswap* on the created device.
 Run *mke2fs* on the created device.
 
 *precheck*::
-Check the source device by suitable program; if the check fails the device is not created; If a program is provided as argument, it is run, using the decrypted volume as first argument.
-Some programs are provided in /usr/share/cryptsetup/prechecks, currently only swap; so, providing swap as argument will run the check for to ensure that a SWAP partition is a accessible through the source device.
+Check the source device by suitable program; if the check fails the device is not created; If a program is provided as argument, it is run, using the decrypted volume as first argument. The program is assumed to be a script in /usr/share/cryptsetup/checks.
 
-*postcheck*::
+*check*::
 Check the content of the device by suitable program; if the check fails the device is removed; if the retry option is given, the creation is repeated.
-If a program is provided as argument, it is run, using the decrypted volume as first argument.
-Some programs are provided in /usr/share/cryptsetup/checks, namely ext2 and xfs; so, providing ext2 as argument will run the check for to ensure that a EXT2 or EXT3 filesystem is a accessible thru the device.
+If a program is provided as argument, it is run, using the decrypted volume as first argument. Cryptdisks searchs for the given
+program in /usr/share/cryptsetup/checks.
 
 *retry*::
 If the device creation fails, or if the check program fails, remove the device, and try again to create it: if key is "none" this will ask for the password again.

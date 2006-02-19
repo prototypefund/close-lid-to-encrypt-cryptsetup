@@ -88,9 +88,9 @@ install: build
 	$(MAKE) DESTDIR=$(CURDIR)/debian/cryptsetup install
 	cp src/cryptsetup.static $(CURDIR)/debian/cryptsetup/sbin/cryptsetup
 
+	install -m 0644 debian/init_functions $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
 	install -m 0644 debian/cryptsetup.8 $(CURDIR)/debian/cryptsetup/usr/share/man/man8/
-	#install -m 0755 debian/prechecks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/prechecks/
-	install -m 0755 debian/postchecks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/postchecks/
+	install -m 0755 debian/checks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/checks/
 	install -m 0755 debian/luksformat $(CURDIR)/debian/cryptsetup/sbin/
 	install -m 0644 debian/cryptsetup.lintian-override \
 			$(CURDIR)/debian/cryptsetup/usr/share/lintian/overrides/cryptsetup
