@@ -1,0 +1,149 @@
+# 03_timeout.dpatch by Jonas Meurer <mejo@debian.org>
+#
+# All lines beginning with `## DP:' are a description of the patch.
+## DP: add a --timeout option to cryptsetup
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+        exit 1;;
+esac
+
+exit 0
+
+@DPATCH@
+diff -rNu cryptsetup-1.0.1.orig/lib/libcryptsetup.h cryptsetup-1.0.1/lib/libcryptsetup.h
+--- cryptsetup-1.0.1.orig/lib/libcryptsetup.h	2005-06-20 11:06:23.000000000 +0200
++++ cryptsetup-1.0.1/lib/libcryptsetup.h	2006-02-19 01:56:40.000000000 +0100
+@@ -26,6 +26,7 @@
+ 	uint64_t	offset;
+ 	uint64_t	skip;
+ 	uint64_t        iteration_time;
++	uint64_t	timeout;
+ };
+ 
+ int crypt_create_device(struct crypt_options *options);
+diff -rNu cryptsetup-1.0.1.orig/lib/setup.c cryptsetup-1.0.1/lib/setup.c
+--- cryptsetup-1.0.1.orig/lib/setup.c	2005-06-20 11:24:44.000000000 +0200
++++ cryptsetup-1.0.1/lib/setup.c	2006-02-19 01:49:51.000000000 +0100
+@@ -8,6 +8,7 @@
+ #include <fcntl.h>
+ #include <unistd.h>
+ #include <errno.h>
++#include <signal.h>
+ #include <assert.h>
+ 
+ #include "libcryptsetup.h"
+@@ -23,6 +24,12 @@
+ static int memory_unsafe = 0;
+ static char *default_backend = NULL;
+ 
++static void catch_alarm(int sig_num)
++{
++       fprintf(stderr, "Operation timed out. Exiting.\n");
++       exit(0);
++}
++
+ static int setup_enter(struct setup_backend *backend)
+ {
+ 	int r;
+@@ -98,6 +105,13 @@
+ 		fd = options->passphrase_fd;
+ 		newline_stop = 1;
+ 	}	
++
++	signal(SIGALRM, catch_alarm);
++	if(options->timeout) {
++		alarm(options->timeout);
++	} else {
++		alarm(0);
++	}
+ 	
+ 	/* Interactive case */
+ 	if(isatty(fd)) {
+@@ -170,6 +184,8 @@
+ 		pass[i] = 0;
+ 		*key = pass;
+ 		*passLen = i;
++
++		alarm(0);
+ 	}
+ 	return;
+ 
+diff -rNu cryptsetup-1.0.1.orig/po/de.po cryptsetup-1.0.1/po/de.po
+--- cryptsetup-1.0.1.orig/po/de.po	2006-02-19 01:09:08.000000000 +0100
++++ cryptsetup-1.0.1/po/de.po	2006-02-19 01:10:25.000000000 +0100
+@@ -190,6 +190,14 @@
+ msgid "Do not ask for confirmation"
+ msgstr "Es wird nicht nach einer Bestätigung gefragt"
+ 
++#: src/cryptsetup.c:373
++msgid "Timeout for interactive passphrase prompt (in seconds)"
++msgstr "Zeit in Sekunden vor Abbruch der Abfrage des Passwort"
++
++#: src/cryptsetup.c:373
++msgid "secs"
++msgstr ""
++
+ #: src/cryptsetup.c:386
+ #, fuzzy
+ msgid "[OPTION...] <action> <action-specific>]"
+diff -rNu cryptsetup-1.0.1.orig/src/cryptsetup.c cryptsetup-1.0.1/src/cryptsetup.c
+--- cryptsetup-1.0.1.orig/src/cryptsetup.c	2006-02-19 01:09:08.000000000 +0100
++++ cryptsetup-1.0.1/src/cryptsetup.c	2006-02-19 02:13:31.000000000 +0100
+@@ -23,6 +23,7 @@
+ static int opt_readonly = 0;
+ static int opt_iteration_time = 1000;
+ static int opt_batch_mode = 0;
++static int opt_timeout = 0;
+ 
+ static const char **action_argv;
+ static int action_argc;
+@@ -98,7 +99,8 @@
+ 		.flags = 0,
+ 		.size = opt_size,
+ 		.offset = opt_offset,
+-		.skip = opt_skip
++		.skip = opt_skip,
++		.timeout = opt_timeout
+ 	};
+ 	int r;
+ 
+@@ -199,6 +201,7 @@
+ 		.new_key_file = action_argc>1?action_argv[1]:NULL,
+ 		.flags = opt_verify_passphrase?CRYPT_FLAG_VERIFY:0,
+ 		.iteration_time = opt_iteration_time,
++		.timeout = opt_timeout,
+ 	};
+ 	int r; char *msg;
+ 
+@@ -225,6 +228,7 @@
+ 		.name = action_argv[1],
+ 		.device = action_argv[0],
+ 		.key_file = opt_key_file,
++		.timeout = opt_timeout,
+ 	};
+ 	int r; 
+ 
+@@ -269,6 +273,7 @@
+ 		.key_file = opt_key_file,
+ 		.flags = opt_verify_passphrase?CRYPT_FLAG_VERIFY:0,
+ 		.iteration_time = opt_iteration_time,
++		.timeout = opt_timeout,
+ 	};
+ 	int r; 
+ 
+@@ -370,6 +375,7 @@
+ 		{ "iter-time",         'i',  POPT_ARG_INT,                                &opt_iteration_time,        0, N_("PBKDF2 iteration time for LUKS (in ms)"),
+ 		  N_("msecs") },
+ 		{ "batch-mode",        'q',  POPT_ARG_NONE,                               &opt_batch_mode,        0, N_("Do not ask for confirmation"),                                     NULL },
++		{ "timeout",           't',  POPT_ARG_INT,                                &opt_timeout,           0, N_("Timeout for interactive passphrase prompt (in seconds)"),          N_("secs") },
+ 		POPT_TABLEEND
+ 	};
+ 	poptContext popt_context;

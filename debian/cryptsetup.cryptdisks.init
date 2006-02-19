@@ -18,7 +18,6 @@ DEVMAPCMD=/sbin/dmsetup
 LOSETUP=/sbin/losetup
 TABFILE=/etc/crypttab
 MAPPER=/dev/mapper
-TIMEOUTCMD=/usr/bin/timeout
 
 test -x $CRYPTCMD  || exit 0
 test -x $DEVMAPCMD || exit 0
@@ -137,7 +136,7 @@ parse_opts () {
 		  	else
 		  		TIMEOUT="$VALUE"
 		  	fi
-		  	[ -x $TIMEOUTCMD ] || TIMEOUT=""
+		  	PARAMS="$PARAMS --timeout $TIMEOUT"
 		  	;;
 		  swap)
 		  	MAKESWAP=yes
@@ -230,12 +229,7 @@ case "$1" in
 				if $CRYPTCMD isLuks $src >/dev/null 2>&1; then
 					while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
 						if test "x$INTERACTIVE" = "xyes" ; then
-							if test "x$TIMEOUT" = "x"; then
-							  $CRYPTCMD $PARAMS luksOpen $src $dst <&1
-							else
-							  /usr/bin/timeout $TIMEOUT "$CRYPTCMD $PARAMS luksOpen $src $dst <&1" \
-							  		|| echo "TIMEOUT: No password entered for $dst"
-							fi
+							$CRYPTCMD $PARAMS luksOpen $src $dst <&1
 							RESULT=$?
 						else
 							$CRYPTCMD $PARAMS luksOpen $src $dst --key-file $key <&1
@@ -264,12 +258,7 @@ case "$1" in
 				if [ "$PRECHECK" = "" ] || $PRECHECK $src; then
 					while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
 						if test "x$INTERACTIVE" = "xyes" ; then
-							if test "x$TIMEOUT" = "x"; then
-							  $CRYPTCMD $PARAMS create $dst $src <&1
-							else
-							  /usr/bin/timeout $TIMEOUT "$CRYPTCMD $PARAMS create $dst $src <&1" \
-							  		|| echo "TIMEOUT: No password entered for $dst"
-							fi
+							$CRYPTCMD $PARAMS create $dst $src <&1
 							RESULT=$?
 						else
 							$CRYPTCMD $PARAMS -d $key create $dst $src

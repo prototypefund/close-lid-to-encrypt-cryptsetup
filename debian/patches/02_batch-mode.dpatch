@@ -1,8 +1,21 @@
-#! /bin/sh /usr/share/dpatch/dpatch-run
-## 02_batch-mode.dpatch by  <michael.geb@gmx.at>
-##
-## All lines beginning with `## DP:' are a description of the patch.
+# 02_batch-mode.dpatch by  <michael.geb@gmx.at>
+#
+# All lines beginning with `## DP:' are a description of the patch.
 ## DP: Implements batch-mode for cryptsetup
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+        exit 1;;
+esac
+
+exit 0
 
 @DPATCH@
 diff -aurp cryptsetup-luks-1.0.1.orig/po/de.po cryptsetup-luks-1.0.1/po/de.po

@@ -25,6 +25,10 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
       device actually is a LUKS partition.
     - don't remove the LUKS device when postcheck fails, as the supplied
       password/key is correct anyway.
+    - use the new 'timeout' commandline option of cryptsetup instead of an
+      external wrapper
+  * patches/02_timeout.dpatch:
+    - new cryptsetup commandline option: timeout for password prompt
 
   [ Michael Gebetsroither ]
   * added "batch mode" patch (already accepted by upstream)
@@ -32,7 +36,7 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * added dependencies for asciidoc to manpage conversion
   * added developer documentation for a robust checksystem into cryptdisks
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 16 Feb 2006 21:55:58 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 19 Feb 2006 02:23:41 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 
