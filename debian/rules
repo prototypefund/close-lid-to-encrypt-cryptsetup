@@ -51,7 +51,6 @@ build: build-stamp
 build-stamp: config.status patch-stamp
 	dh_testdir
 	#docbook-to-man debian/cryptsetup.sgml > debian/cryptsetup.8
-	#docbook-to-man debian/crypttab.sgml > debian/crypttab.5
 	asciidoc -d manpage -b docbook debian/crypttab.5.txt
 	sed -i 's/<emphasis role="strong">/<emphasis role="bold">/g' debian/crypttab.5.xml
 	xsltproc -o debian/crypttab.5 /usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl \

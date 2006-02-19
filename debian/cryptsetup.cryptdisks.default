@@ -1,13 +1,13 @@
 # Run cryptdisks at startup ?
 CRYPTDISKS_ENABLE=Yes
 
-# Default precheck program
-# see /usr/share/cryptsetup/prechecks
+# Default precheck script
+# see /usr/share/cryptsetup/checks
 CRYPTDISKS_PRECHECK=
 
-# Default postcheck program
-# see /usr/share/cryptsetup/postchecks
-CRYPTDISKS_POSTCHECK=ext2
+# Default check script
+# see /usr/share/cryptsetup/checks
+CRYPTDISKS_CHECK=ext2
 
 # Default number of times to retry the password
 # input, in the case that the postcheck fails.

@@ -16,7 +16,7 @@ The only default check which applies to all situations is:
 Currently, three different branches exist:
 
 ### swap ###
- - luks and swap is not compatible, thus disable this combination
+ - luks and a /dev/*random key are not compatible. disable this combination
  * precheck:
    - is the device a physical partition with type 'swap' (id 82)? [default]
      + false: check for all known filesystems on the device

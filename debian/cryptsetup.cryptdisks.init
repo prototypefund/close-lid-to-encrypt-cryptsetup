@@ -52,31 +52,9 @@ case "$1" in
 			log_action_cont_msg "(running)"
 		else
 			log_action_cont_msg "(starting)"
-			if [ "x$key" != "x" ] && [ "x$key" != "xnone" ]; then
-				INTERACTIVE="no"
-				if test -e "$key" ; then
-					MODE=`ls -l $key | sed 's/^....\(......\).*/\1/'`
-					OWNER=`ls -l $key | sed 's/^[^ ]* *[^ ]* *\([^ ]*\).*/\1/'`
-					if test "$MODE" != "------" && \
-					   test "$key" != "/dev/urandom"  && \
-					   test "$key" != "/dev/hwrandom" && \
-					   test "$key" != "/dev/random"; then
-						echo " - INSECURE MODE FOR $key" >&2
-					fi
-					if test $OWNER != root; then
-						echo " - INSECURE OWNER FOR $key" >&2
-					fi
-				else
-					echo -e "\n - Keyfile for '$dst' not found, skipping" >&2
-					continue
-				fi
-			else
-				INTERACTIVE="yes"
-				echo ""
-			fi
 
+			check_key
 			parse_opts
-
 			lo_setup
 
 			if test "x$SKIP" = "xyes" ; then
@@ -84,74 +62,13 @@ case "$1" in
 			fi
 
 			if test "x$USELUKS" = "xyes" ; then
-				if $CRYPTCMD isLuks $src >/dev/null 2>&1; then
-					while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
-						if test "x$INTERACTIVE" = "xyes" ; then
-							$CRYPTCMD $PARAMS luksOpen $src $dst <&1
-							RESULT=$?
-						else
-							$CRYPTCMD $PARAMS luksOpen $src $dst --key-file $key <&1
-							RESULT=$?
-						fi
-						if [ $RESULT = 0 ] ; then
-							if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
-								break
-							else
-								echo " - the check for '$MAPPER/$dst' failed" >&2
-								#echo " - removing the crypto device $dst" >&2
-								#$CRYPTCMD luksClose $dst
-								sleep 1
-							fi
-						fi
-						test "x$RETRY" = "xno" && break
-						RETRY=$(($RETRY-1))
-						[ $RETRY -gt 0 ] && echo " - retrying for $dst"
-					done
-				else
-					echo -e "\n - Device '$src' is not a LUKS partition, skipping" >&2
-					continue
-				fi
-							
+				do_luks
 			else
-				if [ "$PRECHECK" = "" ] || $PRECHECK $src; then
-					while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
-						if test "x$INTERACTIVE" = "xyes" ; then
-							$CRYPTCMD $PARAMS create $dst $src <&1
-							RESULT=$?
-						else
-							$CRYPTCMD $PARAMS -d $key create $dst $src
-							RESULT=$?
-						fi
-						if [ $RESULT = 0 ] ; then
-							if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
-								break
-							else
-								echo " - the check for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
-								echo " - removing the crypto device $dst" >&2
-								$CRYPTCMD remove $dst
-								sleep 1
-							fi
-						fi
-						test "x$RETRY" = "xno" && break
-						RETRY=$(($RETRY-1))
-						[ $RETRY -gt 0 ] && echo " - retrying for $dst"
-					done
-				else
-					echo " - the precheck for '$src' failed" >&2
-					sleep 1
-				fi
+				do_noluks
 			fi
 
-			if test "x$MAKESWAP" = "xyes" && test -b $MAPPER/$dst; then
-				mkswap $MAPPER/$dst 2>/dev/null >/dev/null
-			fi
-
-			if test "x$MAKETMP" = "xyes" && test -b $MAPPER/$dst; then
-				mke2fs $MAPPER/$dst 2>/dev/null >/dev/null
-				mount -t ext2 $MAPPER/$dst /tmp
-				chmod 1777 /tmp
-				umount /tmp
-			fi
+			do_swap
+			do_tmp
 		fi
 	done
 	log_action_end_msg $?

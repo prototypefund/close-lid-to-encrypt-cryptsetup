@@ -27,9 +27,10 @@ A mapped device */dev/mapper/*'device name' will be created by *cryptsetup(8)* c
 
 The second field 'source device' describes the block special device that should hold the encrypted data.
 
-The third field 'key file' describes the file holding the key data used for decrypting the encrypted data of the 'source device'.
+The third field 'key file' describes the file to use for decrypting the encrypted data of the 'source device'.
 
-It can also be a device name (eg. */dev/random* used for swap devices).
+It can also be a device name (eg. */dev/random*, which is usefull for encrypted swap devices).
+Warning: luks does not support random data keys (like */dev/random*), it requires a persistent key.
 
 If the 'key file' is empty or the string *none*, the key data (ie. a password) will be read interactively from the console.
 In this case, the options precheck, check and retry may be useful.
@@ -38,7 +39,7 @@ The fourth field 'options' describes the cryptsetup options associated with the 
 Options are in the format: 'key'='value'[,'key'='value' ...] The following options are supported:
 
 
-OPTOINS
+OPTIONS
 -------
 *cipher*::
 Encryption algorithm. See *cryptsetup -c*.
@@ -88,8 +89,11 @@ EXAMPLES
 *Mounting an encrypted swap device*::
 cswap /dev/sda6 /dev/random swap
 
-*Mounting an encrypted disk with interactive password*::
-cdisk /dev/sda2
+*Mounting an encrypted luks disk with interactive password*::
+cdisk1 /dev/hda1 none luks
+
+*Mounting an encrypted ext2 disk with interactive password, retry 3 times if the postcheck fails*::
+cdisk0 /dev/sda2 none postcheck=ext2,retry=3
 
 *Cipher choosing option*::
 cdisk2 /dev/sda3 none cipher=twofish
