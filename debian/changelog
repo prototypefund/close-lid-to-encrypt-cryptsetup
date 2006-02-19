@@ -38,6 +38,7 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
     - remerge postchecks and prechecks into checks.
     - don't disable swap & luks combination, instead disable luks with
       /dev/random, /dev/urandom or /dev/hwrandom as key.
+    - run parse_opts before check_key, to know whether we use luks or not
 
   [ Michael Gebetsroither ]
   * added "batch mode" patch (already accepted by upstream)
@@ -45,7 +46,7 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * added dependencies for asciidoc to manpage conversion
   * added developer documentation for a robust checksystem into cryptdisks
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 19 Feb 2006 19:56:36 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 19 Feb 2006 20:19:07 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 

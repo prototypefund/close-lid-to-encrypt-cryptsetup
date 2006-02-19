@@ -90,7 +90,7 @@ parse_opts () {
 		  	  no|[0-9]*)
 		  	  	;;
 		  	  *)
-			  	echo " - option RETRY is wrongly set to $RETRY - forced to 'no' " >&2
+			  	echo -e "\n - option RETRY is wrongly set to $RETRY - forced to 'no' " >&2
 			  	RETRY="no"
 			  	;;
 			esac
@@ -116,15 +116,6 @@ parse_opts () {
 		  	LOUD=yes
 		esac
 	done
-
-	# Password processing in luks* from cryptsetup is newline sensitive
-	# reading stops after \n is received!
-	#if test "x$USELUKS" = "xyes" && \
-	#   test "x$MAKESWAP" = "xyes" && \
-	#   test "x$INTERACTIVE" != "xyes"; then
-	#	echo -e "\n - you should not mix swap and luks, skipping" >&2
-	#	continue
-	#fi
 }
 
 lo_setup () {
@@ -154,12 +145,12 @@ check_key () {
 			MODE=`ls -l $key | sed 's/^....\(......\).*/\1/'`
 			OWNER=`ls -l $key | sed 's/^[^ ]* *[^ ]* *\([^ ]*\).*/\1/'`
 
-			#
-			if test "x$USELUKS == "xyes"; then
+			# luks requires a persistent key, /dev/*random is not supported
+			if test "x$USELUKS" == "xyes"; then
 				if test "$key" == "/dev/urandom" || \
 				   test "$key" == "/dev/hwrandom" || \
 				   test "$key" == "/dev/random"; then
-					echo "- LUKS does not work with a random data key, skipping" >&2
+					echo -e "\n - LUKS does not work with a random data key, skipping" >&2
 					continue
 				fi
 			fi
@@ -167,10 +158,10 @@ check_key () {
 			   test "$key" != "/dev/urandom"  && \
 			   test "$key" != "/dev/hwrandom" && \
 			   test "$key" != "/dev/random"; then
-				echo " - INSECURE MODE FOR $key" >&2
+				echo -e "\n - INSECURE MODE FOR $key" >&2
 			fi
 			if test $OWNER != root; then
-				echo " - INSECURE OWNER FOR $key" >&2
+				echo -e "\n - INSECURE OWNER FOR $key" >&2
 			fi
 		else
 			echo -e "\n - Keyfile for '$dst' not found, skipping" >&2
@@ -196,7 +187,7 @@ do_luks () {
 				if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
 					break
 				else
-					echo " - the check for '$MAPPER/$dst' failed" >&2
+					echo -e "\n - the check for '$MAPPER/$dst' failed" >&2
 					#echo " - removing the crypto device $dst" >&2
 					#$CRYPTCMD luksClose $dst
 					sleep 1
@@ -226,7 +217,7 @@ do_noluks () {
 				if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
 					break
 				else
-					echo " - the check for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
+					echo -e "\n - the check for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
 					echo " - removing the crypto device $dst" >&2
 					$CRYPTCMD remove $dst
 					sleep 1
@@ -237,7 +228,7 @@ do_noluks () {
 			[ $RETRY -gt 0 ] && echo " - retrying for $dst"
 		done
 	else
-		echo " - the precheck for '$src' failed" >&2
+		echo -e "\n - the precheck for '$src' failed" >&2
 		sleep 1
 	fi
 }

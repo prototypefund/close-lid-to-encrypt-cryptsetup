@@ -53,8 +53,8 @@ case "$1" in
 		else
 			log_action_cont_msg "(starting)"
 
-			check_key
 			parse_opts
+			check_key
 			lo_setup
 
 			if test "x$SKIP" = "xyes" ; then
