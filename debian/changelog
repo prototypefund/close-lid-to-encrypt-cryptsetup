@@ -40,7 +40,7 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * added dependencies for asciidoc to manpage conversion
   * added developer documentation for a robust checksystem into cryptdisks
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 19 Feb 2006 03:11:28 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 19 Feb 2006 03:18:19 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 

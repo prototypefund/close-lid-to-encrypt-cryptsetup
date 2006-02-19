@@ -304,7 +304,7 @@ case "$1" in
 	log_action_end_msg $?
 	;;
   stop)
-	log_action_begin_msg "Stopping crypto disks..."
+	log_action_begin_msg "Stopping crypto disks"
 	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key; do
 		log_progress_msg "$dst"
 		if test -b $MAPPER/$dst; then
