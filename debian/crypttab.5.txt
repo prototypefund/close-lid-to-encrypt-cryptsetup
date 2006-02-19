@@ -77,10 +77,12 @@ Some programs are provided in /usr/share/cryptsetup/checks, namely ext2 and xfs;
 If the device creation fails, or if the check program fails, remove the device, and try again to create it: if key is "none" this will ask for the password again.
 The option specifies how many times to repeat.
 
-*timout*::
+*timeout*::
 If key is "'none'", the cryptdisks script interactively prompts for a password.
 The timout option specifies the time in seconds to wait for the password before timing out.
 
+*loud*::
+Be loud. Print warnings if a device does not exist.
 
 EXAMPLES
 --------

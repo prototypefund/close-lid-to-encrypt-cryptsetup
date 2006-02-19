@@ -146,6 +146,9 @@ parse_opts () {
 		  	;;
 		  luks)
 		  	USELUKS=yes
+			;;
+		  loud)
+		  	LOUD=yes
 		esac
 	done
 
@@ -186,7 +189,9 @@ case "$1" in
 		log_progress_msg "$dst"
 		
 		if ! test -r "$src" ; then
-			echo -e "\n - Device '$src' does not exist, skipping" >&2
+			if [ "x$LOUD" == "xyes" ]; then
+				echo -e "\n - Device '$src' does not exist, skipping" >&2
+			fi
 			continue
 		fi
 
