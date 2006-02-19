@@ -3,5 +3,4 @@ TODO-list for cryptsetup in Debian
 * provide support for LVM on encryped devices
   - run cryptdisks twice in boot process: once before lvm/raid is started,
     and once after that
-* split cryptdisks in a main script and an include file
 * improve the checks, see CheckSystem.Doc for more information
