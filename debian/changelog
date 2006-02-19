@@ -30,6 +30,8 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
       password/key is correct anyway.
     - use the new 'timeout' commandline option of cryptsetup instead of an
       external wrapper
+    - be silent for not existing devices per default. Implement the lout
+      option for crypttab to warn if a device does not exist.
 
   [ Michael Gebetsroither ]
   * added "batch mode" patch (already accepted by upstream)
@@ -37,7 +39,7 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * added dependencies for asciidoc to manpage conversion
   * added developer documentation for a robust checksystem into cryptdisks
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 19 Feb 2006 02:52:44 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 19 Feb 2006 02:54:20 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 
