@@ -1,8 +1,7 @@
 /sbin
 /etc/init.d
 /etc/default
-/lib/cryptsetup/prechecks
-/lib/cryptsetup/postchecks
+/lib/cryptsetup/checks
 /usr/share/man/man5
 /usr/share/man/man8
 /usr/share/lintian/overrides

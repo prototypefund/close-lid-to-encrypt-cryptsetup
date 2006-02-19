@@ -10,7 +10,7 @@ CRYPTDISKS_PRECHECK=
 CRYPTDISKS_CHECK=ext2
 
 # Default number of times to retry the password
-# input, in the case that the postcheck fails.
+# input, in the case that the check fails.
 CRYPTDISKS_RETRY=3
 
 # Default timeout in seconds for password prompt

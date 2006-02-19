@@ -92,8 +92,8 @@ cswap /dev/sda6 /dev/random swap
 *Mounting an encrypted luks disk with interactive password*::
 cdisk1 /dev/hda1 none luks
 
-*Mounting an encrypted ext2 disk with interactive password, retry 3 times if the postcheck fails*::
-cdisk0 /dev/sda2 none postcheck=ext2,retry=3
+*Mounting an encrypted ext2 disk with interactive password, retry 3 times if the check fails*::
+cdisk0 /dev/sda2 none check=ext2,retry=3
 
 *Cipher choosing option*::
 cdisk2 /dev/sda3 none cipher=twofish
