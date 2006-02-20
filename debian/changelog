@@ -19,6 +19,8 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
     - new cryptsetup commandline option: timeout for password prompt
   * update debian/cryptsetup.8 to mention batch-mode and timeout
   * install local cryptsetup.8 copy instead of the upstream manpage
+  * mention --readonly as possible option to luksOpen in cryptsetup.8, fix
+    remaining dashes from '-' to '\-'. (closes: #353753)
   * updated cryptdisks
     - modify init script to use lsb functions
     - updated comments for cryptdisks.default
@@ -46,7 +48,7 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * added dependencies for asciidoc to manpage conversion
   * added developer documentation for a robust checksystem into cryptdisks
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 19 Feb 2006 20:19:07 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 20 Feb 2006 21:50:18 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 

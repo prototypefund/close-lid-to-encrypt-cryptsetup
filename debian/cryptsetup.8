@@ -48,7 +48,7 @@ initializes a LUKS partition and set the initial key, either via prompting or vi
 \fIluksOpen\fR <device> <name>
 .IP
 opens the LUKS partition <device> and sets up a mapping <name> after successful verification of the supplied key material (either via key file by \-\-key\-file, or via prompting).
-<options> can be [\-\-key\-file].
+<options> can be [\-\-key\-file, \-\-readonly].
 .PP
 \fIluksClose\fR <name>
 .IP
@@ -84,13 +84,13 @@ specifies hash to use for password hashing. This option is only relevant for the
 .B "\-\-cipher, \-c"
 set cipher specification string. Usually, this is "aes\-cbc\-plain". For pre\-2.6.10 kernels, use "aes\-plain" as they don't understand the new cipher spec strings. To use ESSIV, use "aes\-cbc\-essiv:sha256".
 .TP
-.B "\-\-verify-passphrase, \-y"
+.B "\-\-verify\-passphrase, \-y"
 query for passwords twice. Useful, when creating a (regular) mapping for the first time, or when running \fIluksFormat\fR.
 .TP
-.B "\-\-key-file, \-d"
+.B "\-\-key\-file, \-d"
 use file as key material. With LUKS, key material supplied in key files via \-d are always used for existing passphrases. If you want to set a new key via a key file, you have to use a positional arg to \fIluksFormat\fR or \fIluksAddKey\fR.
 .TP
-.B "\-\-key-size, \-s"
+.B "\-\-key\-size, \-s"
 set key size in bits. Usually, this is 128, 192 or 256. Can be used for \fIcreate\fR or \fIluksFormat\fR, all other LUKS actions will ignore this flag, as the key\-size is specified by the partition header.
 .TP
 .B "\-\-size, \-b"
@@ -105,10 +105,10 @@ how many sectors of the encrypted data to skip at the beginning. This is differe
 .B "\-\-readonly"
 setup a read\-only mapping.
 .TP
-.B "\-\-iter-time, \-i"
+.B "\-\-iter\-time, \-i"
 The number of seconds to spend with PBKDF2 password processing. This options is only relevant to LUKS key setting operations as \fIluksFormat\fR or \fIluksAddKey\fR.
 .TP
-.B "\-\-batch-mode, \-q"
+.B "\-\-batch\-mode, \-q"
 Do not ask for confirmation. This option is only relevant for \fIluksFormat\fR.
 .TP
 .B "\-\-timeout, \-t"
