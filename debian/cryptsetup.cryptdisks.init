@@ -38,7 +38,6 @@ $DEVMAPCMD mknodes
 case "$1" in
   start)
 	log_action_begin_msg "Starting crypto disks"
-	log_progress_msg ""
 	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opt; do
 		
 		if ! test -r "$src" ; then
@@ -71,11 +70,11 @@ case "$1" in
 			do_tmp
 		fi
 	done
+	echo -n " "
 	log_action_end_msg $?
 	;;
   stop)
 	log_action_begin_msg "Stopping crypto disks"
-	log_progress_msg ""
 	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key; do
 		if test -b $MAPPER/$dst; then
 			if $DEVMAPCMD info $dst | grep -q '^Open count: *0$'; then
@@ -98,6 +97,7 @@ case "$1" in
 		fi
 	done
 
+	echo -n " "
 	log_action_end_msg $?
 	;;
   restart|reload|force-reload)
