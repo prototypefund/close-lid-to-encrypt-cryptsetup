@@ -1,6 +1,9 @@
-cryptsetup (2:1.0.1-17) unstable; urgency=low
+cryptsetup (2:1.0.2-1) unstable; urgency=low
 
   [ Jonas Meurer ]
+  * new upstream version (1.0.2) released
+    - add --timeout option for interactive usage
+    - add --batch-mode option to suppress input verifications
   * merged ubuntu patches:
     - modify cryptdisks init script to use lsb functions
     - add luksformat and a manpage
@@ -15,8 +18,6 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
   * added debian/watch
   * bumped debhelper compat level to 5, add versioned depends on
     debhelper (>> 5.0.0)
-  * patches/02_timeout.dpatch:
-    - new cryptsetup commandline option: timeout for password prompt
   * update debian/cryptsetup.8 to mention batch-mode and timeout
   * install local cryptsetup.8 copy instead of the upstream manpage
   * mention --readonly as possible option to luksOpen in cryptsetup.8, fix
@@ -43,7 +44,6 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
     - run parse_opts before check_key, to know whether we use luks or not
 
   [ Michael Gebetsroither ]
-  * added "batch mode" patch (already accepted by upstream)
   * converted crypttab.sgml to asciidoc
   * added dependencies for asciidoc to manpage conversion
   * added developer documentation for a robust checksystem into cryptdisks
