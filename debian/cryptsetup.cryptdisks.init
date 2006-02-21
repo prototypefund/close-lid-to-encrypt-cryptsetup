@@ -38,8 +38,8 @@ $DEVMAPCMD mknodes
 case "$1" in
   start)
 	log_action_begin_msg "Starting crypto disks"
+	log_progress_msg ""
 	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opt; do
-		log_progress_msg "$dst"
 		
 		if ! test -r "$src" ; then
 			if [ "x$LOUD" == "xyes" ]; then
@@ -49,9 +49,9 @@ case "$1" in
 		fi
 
 		if test -b $MAPPER/$dst; then
-			log_action_cont_msg "(running)"
+			log_progress_msg "$dst(running)"
 		else
-			log_action_cont_msg "(starting)"
+			log_progress_msg "$dst(starting)"
 
 			parse_opts
 			check_key
@@ -75,15 +75,15 @@ case "$1" in
 	;;
   stop)
 	log_action_begin_msg "Stopping crypto disks"
+	log_progress_msg ""
 	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key; do
-		log_progress_msg "$dst"
 		if test -b $MAPPER/$dst; then
 			if $DEVMAPCMD info $dst | grep -q '^Open count: *0$'; then
 				dev=`$DEVMAPCMD table $dst | sed 's/^.* \([0-9]*:[0-9]*\) .*/\1/'`
 				major=`echo $dev | sed 's/:.*//'`
 				minor=`echo $dev | sed 's/.*://'`
 				
-				log_action_cont_msg "(stopping)"
+				log_progress_msg "$dst(stopping)"
 				$CRYPTCMD remove $dst
 				
 				# Detach loopback device, if attached
@@ -91,10 +91,10 @@ case "$1" in
 					$LOSETUP -d /dev/loop$minor
 				fi
 			else
-				log_action_cont_msg "(busy)"
+				log_progress_msg "$dst(busy)"
 			fi
 		else
-			log_action_cont_msg "(stopped)"
+			log_progress_msg "$dst(stopped)"
 		fi
 	done
 
