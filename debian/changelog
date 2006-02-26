@@ -1,8 +1,10 @@
 cryptsetup (2:1.0.2+1.0.3-rc2-2) unstable; urgency=low
 
+  [ Jonas Meurer]
   * new package release, 2:1.0.2+1.0.3-rc2-1 has been released
+  * fixed spelling error in README.Debian
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 26 Feb 2006 20:18:48 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 26 Feb 2006 20:20:44 +0100
 
 cryptsetup (2:1.0.2+1.0.3-rc2-1) unstable; urgency=low
 

@@ -37,7 +37,7 @@ a device that shall be used as swap partition, it could verify that only
 partitions with type 'swap' (82) are used for encrypted swap.
 
  Please send us your checks, if you write new ones. If they are generally
-usefull, we will include them in the package.
+useful, we will include them in the package.
 
  See CheckSystem.Doc and man crypttab(5) for more information about the
 checksystem.
