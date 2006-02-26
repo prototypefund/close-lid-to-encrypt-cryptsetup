@@ -1,11 +1,11 @@
 cryptsetup (2:1.0.3-rc1-1) unstable; urgency=low
 
   [ Jonas Meurer ]
+  * new upstream version 1.0.3-rc2, fixing issues with devmapper
+  * new upstream version 1.0.3-rc1, doesn't use essiv per default
   * new upstream version (1.0.2) released
     - add --timeout option for interactive usage
     - add --batch-mode option to suppress input verifications
-  * again a new upstream version (1.0.3-rc1) released
-    - doesn't use essiv per default
   * install local cryptsetup.8 copy instead of the upstream manpage
     - mention --batch-mode, --timeout, --version
     - change remaining dashes from '-' to '\-'
@@ -52,7 +52,7 @@ cryptsetup (2:1.0.3-rc1-1) unstable; urgency=low
   * added dependencies for asciidoc to manpage conversion
   * added developer documentation for a robust checksystem into cryptdisks
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 23 Feb 2006 17:48:34 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 26 Feb 2006 05:24:58 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 
