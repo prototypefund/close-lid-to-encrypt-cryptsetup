@@ -1,13 +1,13 @@
 Cryptsetup for Debian
 ---------------------
 
-Cryptsetup is a command-line interface for configuring encrypted block
+ Cryptsetup is a command-line interface for configuring encrypted block
 devices via dm-crypt, a kernel device-mapper target.
 The Debian cryptsetup package provides the initscript /etc/init.d/cryptdisks
 and a configuration file /etc/crypttab for automatically configuring
 encrypted devices at boot time. See man crypttab(5) for more information.
 
-The /sbin/luksformat script provides a simple interface for creating an
+ The /sbin/luksformat script provides a simple interface for creating an
 encrypted device that follows the LUKS standard and for putting a file system
 onto the encrypted device. See man luksformat(8) for more information.
 
@@ -17,4 +17,29 @@ For instructions about how to encrypt your swap partition(s), see
 For instructions about how to encrypt your root filesystem, see
 	/usr/share/doc/cryptsetup/CryptoRoot.HowTo
 
- -- Jonas Meurer <mejo@debian.org>, Thu,  2 Feb 2006 21:10:42 +0100
+ The 'check' option in crypttab allows to configure checks to be run against
+the target device after cryptsetup has been invoked.
+Checks can for example check for a filesystem. The checkscripts are placed in
+/lib/cryptsetup/checks/. If need to write a check that is not yet provided
+by the package, see the existing ones as a reference.
+
+ The 'precheck' option is for configuring checks to be run against the source
+device before cryptsetup has been invoked. They are only available for plain
+cryptsetup devices. LUKS devices have a hardcoded precheck that uses the
+'isLuks' command of cryptsetup.
+As there is no way to check a device for plain cryptsetup data, you can only
+check for data that should not be on the device. for example the check could
+search for common filesystems on the device, and abort if it finds any.
+As this will never really ensure that no data is lost, the package doesn't
+provide such a check.
+Another example for a precheck could be to check the partition table id. For
+a device that shall be used as swap partition, it could verify that only
+partitions with type 'swap' (82) are used for encrypted swap.
+
+ Please send us your checks, if you write new ones. If they are generally
+usefull, we will include them in the package.
+
+ See CheckSystem.Doc and man crypttab(5) for more information about the
+checksystem.
+
+ -- Jonas Meurer <mejo@debian.org>, Sun, 26 Feb 2006 20:03:28 +0100

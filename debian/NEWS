@@ -1,4 +1,4 @@
-cryptsetup (2:1.0.1-17) unstable; urgency=low
+cryptsetup (2:1.0.2+1.0.3-rc2-1) unstable; urgency=low
 
     Since release 2:1.0.1-9, the cryptsetup package uses cryptsetup-luks as
     upstream source. This is a enhanced version of plain cryptsetup which
@@ -7,5 +7,10 @@ cryptsetup (2:1.0.1-17) unstable; urgency=low
     package) is still available, thus backwards compability is given.
     Nevertheless it is recomented to update your encrypted partitions to
     LUKS, as this implementation is more secure than the plain dm-crypt.
+
+    Another major change is the check option for crypttab. It allows to
+    configure checks that are run after cryptsetup has been invoked, and
+    prechecks to be run against the source device before cryptsetup has been
+    invoked. See man crypttab(5) or README.Debian for more information.
 
  -- Jonas Meurer <mejo@debian.org>  Fri,  3 Feb 2006 13:41:35 +0100

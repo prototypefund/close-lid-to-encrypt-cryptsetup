@@ -15,8 +15,9 @@ cryptsetup (2:1.0.2+1.0.3-rc2-1) unstable; urgency=low
     - add luksformat and a manpage
   * removed postinst and postrm, empty scripts
   * added a README.Debian and a TODO
-  * added a NEWS file for Debian, and explain the upstream transition
-    from plain cryptsetup to cryptsetup-luks.
+  * added a NEWS file for Debian, and explain both the upstream transition
+    from plain cryptsetup to cryptsetup-luks, and the check options for
+    crypttab.
   * install manpages using dh_installman, not with install
   * updated CryptoRoot.HowTo, mention /etc/mkinitrd/modules and different
     linux-image versions. (closes: #344867)
@@ -51,7 +52,7 @@ cryptsetup (2:1.0.2+1.0.3-rc2-1) unstable; urgency=low
   * added dependencies for asciidoc to manpage conversion
   * added developer documentation for a robust checksystem into cryptdisks
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 26 Feb 2006 19:39:42 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 26 Feb 2006 20:04:49 +0100
 
 cryptsetup (2:1.0.1-16) unstable; urgency=low
 
