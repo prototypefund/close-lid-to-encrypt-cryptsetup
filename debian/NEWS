@@ -4,8 +4,8 @@ cryptsetup (2:1.0.2+1.0.3-rc2-1) unstable; urgency=low
     upstream source. This is a enhanced version of plain cryptsetup which
     includes support for the LUKS extension, a standard on-disk format for
     hard disk encryption. Plain dm-crypt (as provided by the old cryptsetup
-    package) is still available, thus backwards compability is given.
-    Nevertheless it is recomented to update your encrypted partitions to
+    package) is still available, thus backwards compatibility is given.
+    Nevertheless it is recommended to update your encrypted partitions to
     LUKS, as this implementation is more secure than the plain dm-crypt.
 
     Another major change is the check option for crypttab. It allows to

@@ -7,7 +7,7 @@ basic ideas:
  - default checks are only necessary where one of OUR actions causes
    dataloss.
  - our checks must not cause any modifications to the underlying device.
- - it should be possible to decativate all default checks with options
+ - it should be possible to deactivate all default checks with options
    in crypttab.
 
 The only default check which applies to all situations is:

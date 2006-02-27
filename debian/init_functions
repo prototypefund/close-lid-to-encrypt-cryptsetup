@@ -10,7 +10,7 @@ parse_opts () {
 	TIMEOUT=""
 
 	# Parse the options field, convert to cryptsetup parameters
-	# and contruct the command line
+	# and construct the command line
 	while test "x$opt" != "x" ; do
 		ARG=`echo $opt | sed "s/,.*//"`
 		opt=${opt##$ARG}

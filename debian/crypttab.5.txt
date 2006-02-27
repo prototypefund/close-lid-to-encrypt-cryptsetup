@@ -18,7 +18,7 @@ DESCRIPTION
 -----------
 The file *crypttab* (usually located at */etc/crypttab*) contains descriptive information about encrypted file systems.
 *crypttab* is only read by programs, and not written; it is the duty of the system administrator to properly create and maintain this file.
-Each filesystem is described on a separate line; fields on each line are separated by tabs or spaces. Lines starting with "'#'" are comments, empty lines are ignored.
+Each file system is described on a separate line; fields on each line are separated by tabs or spaces. Lines starting with "'#'" are comments, empty lines are ignored.
 The order of records in *crypttab* is important because the */etc/init.d/cryptdisks* script sequentially iterates through *crypttab* doing its thing.
 
 The first field 'target device' describes the mapped 'device name'.
@@ -29,7 +29,7 @@ The second field 'source device' describes the block special device that should 
 
 The third field 'key file' describes the file to use for decrypting the encrypted data of the 'source device'.
 
-It can also be a device name (eg. */dev/random*, which is usefull for encrypted swap devices).
+It can also be a device name (eg. */dev/random*, which is useful for encrypted swap devices).
 Warning: luks does not support random data keys (like */dev/random*), it requires a persistent key.
 
 If the 'key file' is empty or the string *none*, the key data (ie. a password) will be read interactively from the console.
@@ -51,7 +51,7 @@ Encryption key size. See *cryptsetup -s*.
 Hash algorithm. See *cryptsetup -h*.
 
 *verify*::
-Verify pasword. Uses *cryptsetup -y*.
+Verify password. Uses *cryptsetup -y*.
 
 *readonly*::
 The backing device is read-only (eg: a dvd).
@@ -70,7 +70,7 @@ Check the source device by suitable program; if the check fails the device is no
 
 *check*::
 Check the content of the device by suitable program; if the check fails the device is removed; if the retry option is given, the creation is repeated.
-If a program is provided as argument, it is run, using the decrypted volume as first argument. Cryptdisks searchs for the given
+If a program is provided as argument, it is run, using the decrypted volume as first argument. Cryptdisks searches for the given
 program in /usr/share/cryptsetup/checks.
 
 *retry*::
@@ -79,7 +79,7 @@ The option specifies how many times to repeat.
 
 *timeout*::
 If key is "'none'", the cryptdisks script interactively prompts for a password.
-The timout option specifies the time in seconds to wait for the password before timing out.
+The timeout option specifies the time in seconds to wait for the password before timing out.
 
 *loud*::
 Be loud. Print warnings if a device does not exist.

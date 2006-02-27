@@ -3,7 +3,7 @@
 # 	/etc/hotplug.d/block/cryptostick.hotplug
 #
 #	description:
-#	skript checks for certain USB-sticks plugged in, loads and reconstructs 
+#	script checks for certain USB-sticks plugged in, loads and reconstructs 
 #	AES256 keys by xor and runs cryptsetup to setup a dm-crypt device to decrypt 
 #	an encrypted raw partition. it automatically mounts the dm-crypt device.
 #
@@ -18,15 +18,15 @@ FS_UUID="c3d9cb8e-1cb5-485c-9369-6404ec57b2c0"
 #
 CRYPTRAWVOL=/dev/loop0					# RAW volume to be decrypted
 CRYPTVOLNAME=stuff						# name of decrypted volume (in /dev/mapper)
-CRYPTVOLMNT=/export/stuff				# mountpoint the decrypted volume
+CRYPTVOLMNT=/export/stuff				# mount-point the decrypted volume
 STICKKEYDIR=/keys						# directory with the keys on the USB stick
 HOSTKEYDIR=/etc/keys					# directory with host keys of this computer
 CRYPTSETUP=/sbin/cryptsetup				# needed to setup dm-crypt (package cryptsetup)
 MOUNT=/bin/mount						# just in case you have your own mount program...
-RUN_EXPORTFS=no							# run "exportfs -r" after successfull mount? 
+RUN_EXPORTFS=no							# run "exportfs -r" after successful mount? 
 TUNE2FS=/sbin/tune2fs					# tune2fs needed to check for ext2/3 fs UUID (e2fsprogs)
 LOCKFILE=/var/lock/cryptostick.hotplug	# lockfile for this script
-LOCK_CMD=/usr/bin/lockfile				# lock programm from procmail (package procmail)
+LOCK_CMD=/usr/bin/lockfile				# lock program from procmail (package procmail)
 
 export DEBUG=yes
 
@@ -35,7 +35,7 @@ source /etc/hotplug/hotplug.functions
 # devices need a little time to appear in /sys:
 sleep 1
 
-# Serialize script execution
+# Serialise script execution
 $LOCK_CMD -sleeptime 2 -r 1 -locktimeout 5 $LOCKFILE
 
 DEVICE=$(echo "${DEVPATH}" | awk -F\/ '{ print $3 }')
@@ -59,7 +59,7 @@ if [ "$ACTION" != "add" ]; then
 fi
 # I'm only interested in USB devices
 if [ "$(echo $BUS|cut -b 1-3)" != "usb" ]; then
-	debug_mesg "I only care about USB devices but not $DEVICE. Exititing"
+	debug_mesg "I only care about USB devices but not $DEVICE. Exiting"
 	myexit 0
 fi
 # Check if RAW-Volume exists
@@ -88,7 +88,7 @@ if [ -b /dev/mapper/$CRYPTVOLNAME ]; then
 	fi
 fi
 
-# Fetches the key from the partition/device and runs crypsetup
+# Fetches the key from the partition/device and runs cryptsetup
 get_key_from_device(){
 	# Check if fs uuid is wanted and correct
 	if [ ! -z $FS_UUID ]; then
@@ -97,7 +97,7 @@ get_key_from_device(){
 		uid=`echo $uid|awk '{print $3}'`
 		debug_mesg "Found UUID: $uid on /dev/$1"
 		if [ "$uid" != "$FS_UUID" ]; then
-			mesg "Wrong filesystem UUID $uid found on /dev/$1. Exititing"
+			mesg "Wrong file-system UUID $uid found on /dev/$1. Exiting"
 			myexit 1
 		fi
 	fi
@@ -134,7 +134,7 @@ get_key_from_device(){
 			mesg "Using /dev/$1/keys/$KEYNAME as userkey"
 			HOSTKEY=`echo $KEYNAME|cut -d. -f1`.host
 			if [ ! -e $HOSTKEYDIR/$HOSTKEY ]; then
-				mesg "Machtching hostkey $HOSTKEYDIR/$HOSTKEY. Exiting"
+				mesg "Matching hostkey $HOSTKEYDIR/$HOSTKEY. Exiting"
 				rmdir $STICKMNT || mesg "Unable to remove temporary mountpoint $STICKMNT"
 				myexit 1
 			else 
