@@ -66,12 +66,12 @@ Run *mkswap* on the created device.
 Run *mke2fs* on the created device.
 
 *precheck*::
-Check the source device by suitable program; if the check fails the device is not created; If a program is provided as argument, it is run, using the decrypted volume as first argument. The program is assumed to be a script in /usr/share/cryptsetup/checks.
+Check the source device by suitable program; if the check fails the device is not created; If a program is provided as argument, it is run, using the decrypted volume as first argument. The program is assumed to be a script in /lib/cryptsetup/checks.
 
 *check*::
 Check the content of the device by suitable program; if the check fails the device is removed; if the retry option is given, the creation is repeated.
 If a program is provided as argument, it is run, using the decrypted volume as first argument. Cryptdisks searches for the given
-program in /usr/share/cryptsetup/checks.
+program in /lib/cryptsetup/checks.
 
 *retry*::
 If the device creation fails, or if the check program fails, remove the device, and try again to create it: if key is "none" this will ask for the password again.
