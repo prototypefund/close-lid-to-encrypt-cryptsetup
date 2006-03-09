@@ -4,3 +4,7 @@ TODO-list for cryptsetup in Debian
   - run cryptdisks twice in boot process: once before lvm/raid is started,
     and once after that
 * improve the checks, see CheckSystem.Doc for more information
+* add support for gnupg/openssl encrypted keys to cryptdisks
+* add support for removable devices to cryptdisks
+* add udebs for cryptsetup and its dependencies.
+
