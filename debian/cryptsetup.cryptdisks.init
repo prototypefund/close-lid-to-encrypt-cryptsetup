@@ -41,7 +41,7 @@ case "$1" in
 	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opt; do
 		
 		if ! test -r "$src" ; then
-			if [ "x$LOUD" == "xyes" ]; then
+			if [ "x$LOUD" = "xyes" ]; then
 				echo -e "\n - Device '$src' does not exist, skipping" >&2
 			fi
 			continue

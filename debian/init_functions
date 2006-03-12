@@ -146,10 +146,10 @@ check_key () {
 			OWNER=`ls -l $key | sed 's/^[^ ]* *[^ ]* *\([^ ]*\).*/\1/'`
 
 			# luks requires a persistent key, /dev/*random is not supported
-			if test "x$USELUKS" == "xyes"; then
-				if test "$key" == "/dev/urandom" || \
-				   test "$key" == "/dev/hwrandom" || \
-				   test "$key" == "/dev/random"; then
+			if test "x$USELUKS" = "xyes"; then
+				if test "$key" = "/dev/urandom" || \
+				   test "$key" = "/dev/hwrandom" || \
+				   test "$key" = "/dev/random"; then
 					echo -e "\n - LUKS does not work with a random data key, skipping" >&2
 					continue
 				fi

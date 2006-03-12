@@ -9,8 +9,10 @@ cryptsetup (2:1.0.2+1.0.3-rc2-2) unstable; urgency=low
   * add --build (and maybe even --host) to configure flags, for
     cross-compiling.
   * remove debian/luksformat.8 in clean target
+  * fix bashism in cryptdisks. thanks to Michal Politowski
+    <mpol@charybda.icm.edu.pl> (closes: #356484)
 
- -- Jonas Meurer <mejo@debian.org>  Thu,  9 Mar 2006 04:03:53 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 12 Mar 2006 15:09:30 +0100
 
 cryptsetup (2:1.0.2+1.0.3-rc2-1) unstable; urgency=low
 
