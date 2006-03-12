@@ -84,20 +84,28 @@ The timeout option specifies the time in seconds to wait for the password before
 *loud*::
 Be loud. Print warnings if a device does not exist.
 
+*ssl*::
+Decrypt the keyfile with openssl before actually using it for cryptsetup. This requires /usr/bin/openssl to be available. Thus it doesn't work for encrypted root filesystems or if /usr is a seperate filesystem.
+
+*gpg*::
+Decrypt the keyfile with gnupg before actually using it for cryptsetup. This requires /usr/bin/gnupg to be available. Thus it doesn't work for encrypted root filesystems or if /usr is a seperate filesystem.
+
 EXAMPLES
 --------
-*Mounting an encrypted swap device*::
+*Encrypted swap device*::
 cswap /dev/sda6 /dev/random swap
 
-*Mounting an encrypted luks disk with interactive password*::
+*Encrypted luks disk with interactive password*::
 cdisk1 /dev/hda1 none luks
 
-*Mounting an encrypted ext2 disk with interactive password, retry 3 times if the check fails*::
+*Encrypted ext2 disk with interactive password, retry 3 times if the check fails*::
 cdisk0 /dev/sda2 none check=ext2,retry=3
 
-*Cipher choosing option*::
+*Encrypted disk with twofish as cipher*::
 cdisk2 /dev/sda3 none cipher=twofish
 
+*Encrypted luks disk with a openssl-encrypted keyfile*::
+cdisk3 /dev/hda2 /etc/keys/keyfile luks,ssl
 
 SEE ALSO
 --------
@@ -107,5 +115,5 @@ cryptsetup(8), /etc/crypttab
 AUTHOR
 ------
 This manual page was converted to asciidoc from Michael Gebetsroither <michael.geb@gmx.at>.
-This manual page was originally written by Bastian Kleineidam <calvin@debian.org> for the Debian distribution of cryptsetup (but can be used by others).
+This manual page was originally written by Bastian Kleineidam <calvin@debian.org> for the Debian distribution of cryptsetup (but can be used by others). It has been improved by Jonas Meurer <jonas@freesources.org>.
 Parts of this manual are taken and adapted from the fstab(5) manual page.

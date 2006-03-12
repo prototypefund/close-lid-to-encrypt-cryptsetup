@@ -68,6 +68,7 @@ case "$1" in
 
 			do_swap
 			do_tmp
+			clean_keys
 		fi
 	done
 	echo -n " "

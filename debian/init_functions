@@ -8,6 +8,8 @@ parse_opts () {
 	USELUKS=""
 	SKIP=""
 	TIMEOUT=""
+	SSL=""
+	GPG=""
 
 	# Parse the options field, convert to cryptsetup parameters
 	# and construct the command line
@@ -114,8 +116,67 @@ parse_opts () {
 			;;
 		  loud)
 		  	LOUD=yes
+			;;
+		  ssl)
+		  	SSL=yes
+			;;
+		  gpg)
+		  	GPG=yes
+			;;
 		esac
 	done
+
+	if [ "$SSL" != "" -a "$GPG" != "" ]; then
+		echo -e "\n - ssl and gpg options are not allowed together, skipping" >&2
+		continue
+	fi
+}
+
+decrypt_ssl () {
+	origumask=`umask`
+	umask 077
+	tmpkey=`tempfile`
+
+	while ( ! /usr/bin/openssl enc -aes256 -d -salt -in $key -out $tmpkey \
+	          -k $password > /dev/null 2>&1 ); do
+		echo -en "\nSecond password for key $key: "
+		read -s password <${CONSOLE:-/dev/tty}
+		echo
+		[ "$password" = "" ] && return 0
+	done
+
+	deckey=`tempfile`
+	while ( ! /usr/bin/openssl dsa -in $tmpkey -out $deckey -passin \
+	          pass:$password > /dev/null 2>&1 ); do
+		echo -en "\nFirst password for key $key: "
+		read -s password <${CONSOLE:-/dev/tty}
+		echo
+		[ "$password" = "" ] && return 0
+	done
+
+	password=""
+	rm -f $tmpkey && tmpkey=""
+	umask $origumask
+}
+
+decrypt_gpg () {
+	origumask=`umask`
+	umask 077
+	deckey=`tempfile`
+
+	echo -e "\n - gpg option is not implemented yet, skipping" >&2
+	continue
+
+	while ( ! echo $password | /usr/bin/gpg --passphrase-fd 0 -o $deckey \
+	          --decrypt $key >/dev/null 2>&1 ); do
+		echo -en "\nPassphrase for key $key: "
+		read -s password <${CONSOLE:-/dev/tty}
+		echo
+		[ "$password" = "" ] && return 0
+	done
+	
+	password=""
+	umask $origumask
 }
 
 lo_setup () {
@@ -150,7 +211,7 @@ check_key () {
 				if test "$key" = "/dev/urandom" || \
 				   test "$key" = "/dev/hwrandom" || \
 				   test "$key" = "/dev/random"; then
-					echo -e "\n - LUKS does not work with a random data key, skipping" >&2
+					echo -e "\n - LUKS does not work with random data as key, skipping" >&2
 					continue
 				fi
 			fi
@@ -166,6 +227,21 @@ check_key () {
 		else
 			echo -e "\n - Keyfile for '$dst' not found, skipping" >&2
 			continue
+		fi
+		if [ "x$SSL" = "xyes" ]; then
+			if [ -x /usr/bin/openssl ]; then
+				decrypt_ssl && key=$deckey
+			else
+				echo -e "\n - Openssl isnot available, skipping" >&2
+				continue
+			fi
+		elif [ "x$GPG" = "xyes" ]; then
+			if [ -x /usr/bin/gnupg ]; then
+				decrypt_gpg && key=$deckey
+			else
+				echo -e "\n - Gnupg is not available, skipping" >&2
+				continue
+			fi
 		fi
 	else
 		INTERACTIVE="yes"
@@ -245,5 +321,11 @@ do_tmp () {
 		mount -t ext2 $MAPPER/$dst /tmp
 		chmod 1777 /tmp
 		umount /tmp
+	fi
+}
+
+clean_keys () {
+	if [ "$deckey" -a -f "$deckey" ]; then
+	  rm -f $deckey && deckey=""
 	fi
 }
