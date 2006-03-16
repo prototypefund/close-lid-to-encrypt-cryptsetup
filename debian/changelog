@@ -1,6 +1,10 @@
-cryptsetup (2:1.0.2+1.0.3-rc2-2) unstable; urgency=low
+cryptsetup (2:1.0.2+1.0.3-rc3-1) unstable; urgency=low
 
   [ Jonas Meurer ]
+  * new upstream release candidate:
+    - fixes sector size of the temporary mapping (closes: #355156)
+    - more verbose error logging (closes: #353755, #356288, #258376)
+    - upstream accepted my patches to the manpage
   * fixed spelling error in README.Debian
   * removed debian/cryptsetup.sgml, outdated
   * ran ispell against doc files in debian/, fixed many typos
@@ -15,7 +19,7 @@ cryptsetup (2:1.0.2+1.0.3-rc2-2) unstable; urgency=low
     <generalstone@gmx.net> (closes: #350615)
   * add some code to support gnupg encrypted keys, some parts are missing.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 12 Mar 2006 19:54:11 +0100
+ -- Jonas Meurer <mejo@debian.org>  Fri, 17 Mar 2006 00:42:41 +0100
 
 cryptsetup (2:1.0.2+1.0.3-rc2-1) unstable; urgency=low
 
