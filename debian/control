@@ -24,3 +24,19 @@ Description: configures encrypted block devices
  .
  For information on how to convert your system to use encrypted filesystems
  please read /usr/share/doc/cryptsetup/CryptoRoot.HowTo.
+
+Package: cryptsetup-udeb
+XC-Package-Type: udeb
+Section: debian-installer
+Architecture: any
+Depends: ${shlibs:Depends}, dmsetup-udeb
+Description: configures encrypted block devices
+ Since kernel 2.6.4, encrypted filesystem support is provided by the device
+ mapper target dm-crypt. This utility provides a command-line interface for
+ configuring this facility. It has integrated support for LUKS.
+ .
+ cryptsetup is backwards compatible with the on-disk format of cryptoloop,
+ but also supports more secure formats. This package also includes support
+ for automatically configuring encrypted devices at boot time via the config
+ file /etc/crypttab. When combined with newer versions of the debian
+ initrd-tools and standard debian kernels, cryptoroot is also supported.

@@ -26,6 +26,10 @@ ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
 	INSTALL_PROGRAM += -s
 endif
 
+CRYPTSETUP_UDEB=cryptsetup-udeb
+
+UDEBNAME=$(CRYPTSETUP_UDEB)_$(DEBVERSION)_$(shell dpkg --print-architecture).udeb
+
 # Include dpatch stuff.
 include /usr/share/dpatch/dpatch.make
 
@@ -116,7 +120,7 @@ binary-arch: build install
 	dh_strip
 	dh_compress
 	dh_fixperms
-	dh_makeshlibs
+	dh_makeshlibs --add-udeb="${CRYPTSETUP_UDEB}"
 	dh_installdeb
 	dh_shlibdeps
 	dh_gencontrol
