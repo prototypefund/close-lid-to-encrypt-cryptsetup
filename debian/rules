@@ -105,10 +105,6 @@ install: build
 			$(CURDIR)/debian/cryptsetup/usr/share/lintian/overrides/cryptsetup
 	rmdir $(CURDIR)/debian/cryptsetup/usr/lib/cryptsetup
 
-	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
-	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
-	cp -a $(CURDIR)/debian/cryptsetup/sbin $(CURDIR)/debian/cryptsetup-udeb/
-
 binary-indep: build install
 # We have nothing to do by default.
 
@@ -119,6 +115,9 @@ binary-arch: build install
 	dh_installdocs
 	dh_installexamples debian/gen-ssl-key
 	dh_installinit -a --no-start --name=cryptdisks --update-rcd-params="start 28 S . stop 48 0 6 ."
+	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
+	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
+	cp -a $(CURDIR)/debian/cryptsetup/sbin $(CURDIR)/debian/cryptsetup-udeb/
 #	dh_install
 	dh_installman debian/crypttab.5 debian/luksformat.8
 	dh_link -a
