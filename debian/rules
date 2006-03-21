@@ -120,7 +120,7 @@ binary-arch: build install
 	dh_strip
 	dh_compress
 	dh_fixperms
-	dh_makeshlibs --add-udeb="${CRYPTSETUP_UDEB}"
+	dh_makeshlibs --add-udeb="$(CRYPTSETUP_UDEB)"
 	dh_installdeb
 	dh_shlibdeps
 	dh_gencontrol
