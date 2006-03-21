@@ -26,8 +26,8 @@ Description: configures encrypted block devices
  please read /usr/share/doc/cryptsetup/CryptoRoot.HowTo.
 
 Package: cryptsetup-udeb
-XC-Package-Type: udeb
 Section: debian-installer
+XC-Package-Type: udeb
 Architecture: any
 Depends: ${shlibs:Depends}, dmsetup-udeb
 Description: configures encrypted block devices
