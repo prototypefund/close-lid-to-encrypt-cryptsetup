@@ -91,16 +91,12 @@ clean: unpatch
 install: build
 	dh_testdir
 	dh_testroot
-	dh_clean -k -a
+	dh_clean -a -k
 	dh_installdirs
-	mkdir -p debian/cryptsetup-udeb
+	mkdir -p $(CURDIR)/debian/cryptsetup-udeb/
 
 	$(MAKE) DESTDIR=$(CURDIR)/debian/cryptsetup install
 	cp src/cryptsetup.static $(CURDIR)/debian/cryptsetup/sbin/cryptsetup
-	cp src/cryptsetup.static $(CURDIR)/debian/cryptsetup-udeb/sbin/cryptsetup
-	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
-	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
-	cp -a $(CURDIR)/debian/cryptsetup/sbin $(CURDIR)/debian/cryptsetup-udeb/
 
 	install -m 0644 debian/init_functions $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
 	install -m 0755 debian/checks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/checks/
@@ -108,6 +104,10 @@ install: build
 	install -m 0644 debian/cryptsetup.lintian-override \
 			$(CURDIR)/debian/cryptsetup/usr/share/lintian/overrides/cryptsetup
 	rmdir $(CURDIR)/debian/cryptsetup/usr/lib/cryptsetup
+
+	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
+	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
+	cp -a $(CURDIR)/debian/cryptsetup/sbin $(CURDIR)/debian/cryptsetup-udeb/
 
 binary-indep: build install
 # We have nothing to do by default.
@@ -118,14 +118,14 @@ binary-arch: build install
 	dh_installchangelogs ChangeLog
 	dh_installdocs
 	dh_installexamples debian/gen-ssl-key
-	dh_installinit --no-start --name=cryptdisks --update-rcd-params="start 28 S . stop 48 0 6 ." -a
+	dh_installinit -a --no-start --name=cryptdisks --update-rcd-params="start 28 S . stop 48 0 6 ."
 #	dh_install
 	dh_installman debian/crypttab.5 debian/luksformat.8
 	dh_link -a
 	dh_strip -a
 	dh_compress -a
 	dh_fixperms -a
-	dh_makeshlibs --add-udeb="$(CRYPTSETUP_UDEB)"
+	dh_makeshlibs -a
 	dh_installdeb -a
 	dh_shlibdeps -a
 	dh_gencontrol -a
