@@ -4,8 +4,9 @@ cryptsetup (2:1.0.2+1.0.3-rc3-2) unstable; urgency=low
 
   [ Jonas Meurer ]
   * add support for a cryptsetup-udeb package
+  * remove debian/luksformat.8 in clean target (closes: #358386)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 21 Mar 2006 01:32:08 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 22 Mar 2006 17:11:45 +0100
 
 cryptsetup (2:1.0.2+1.0.3-rc3-1) unstable; urgency=low
 

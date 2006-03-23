@@ -81,7 +81,7 @@ clean: unpatch
 	if test -f Makefile; then $(MAKE) clean; fi
 	if test -f config.mess; then rm -f `cat config.mess`; fi
 
-	rm -f debian/crypttab.5 debian/crypttab.5.xml luksformat.8
+	rm -f debian/crypttab.5 debian/crypttab.5.xml debian/luksformat.8
 	rm -f config.mess
 	rm -rf autom4te.cache m4
 	rm -f src/cryptsetup.static
