@@ -1,15 +1,17 @@
-cryptsetup (2:1.0.2+1.0.3-rc3-2) unstable; urgency=low
-
-  * NOT RELEASED YET
+cryptsetup (2:1.0.3-1) unstable; urgency=low
 
   [ Jonas Meurer ]
+  * new upstream release, 1.0.3 final
+    - Add alignPayload patch by Peter Palfrader (closes: #358388)
+    - meaningful exitcodes and password retrying by Johannes Weißl
+      (closes: #359277)
   * provida a cryptsetup-udeb package (closes: #358422)
   * remove debian/luksformat.8 in clean target (closes: #358386)
   * fix update-rc.d arguments to start cryptdisks in rc0 and rc6.
     it is not really started [but stopped], but still the links need to be
-    named S48cryptdisks. otherwise it will be called before umountfs.
+    named S48cryptdisks. otherwise it will be invoked before umountfs.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 28 Mar 2006 20:25:17 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri,  7 Apr 2006 11:16:40 +0200
 
 cryptsetup (2:1.0.2+1.0.3-rc3-1) unstable; urgency=low
 
