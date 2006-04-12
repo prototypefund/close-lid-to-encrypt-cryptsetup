@@ -1,0 +1,125 @@
+#!/bin/sh
+
+PREREQ=""
+
+prereqs()
+{
+	echo "$PREREQ"
+}
+
+case $1 in
+prereqs)
+	prereqs
+	exit 0
+	;;
+esac
+
+. /usr/share/initramfs-tools/hook-functions
+
+find_root_device() {
+	[ -r /etc/fstab ] || return
+
+	grep '^[^#]' /etc/fstab | ( \
+	while read device mount type options dump pass; do
+		if [ "$mount" = "/" ]; then
+			echo "$device"
+			return
+		fi
+	done )
+}
+
+get_root_opts() {
+	local node rootopts
+	node=$1
+
+	[ -z $node ] && return
+	[ -r /etc/crypttab ] || return
+
+	rootopts=$( grep ^$node /etc/crypttab | \
+		    head -1 | sed 's/[[:space:]]+*/ /g' | cut -d " " -f 4-)
+	echo "$rootopts"
+	[ ! -z $rootopts ] || return 1
+	return 0
+}
+
+get_root_modules() {
+	local rootopts
+	rootopts=$1
+
+	[ ! -z $rootopts ] || return
+
+	echo "dm_mod"
+	echo "dm_crypt"
+	local IFS=", "
+	for opt in $rootopts; do
+		# Does option start with cipher=?
+		value=${opt#cipher=}
+		[ $value != $opt ] || continue
+
+		# Add the cipher to the list of modules
+		cipher=${value%%-*}
+		echo $cipher
+
+		# Possibly add a hash as well
+		hash=${value##*:}
+		[ ! -z $hash -o $hash != $value ] || continue
+		echo $hash
+	done
+}
+
+get_root_initramfsopts() {
+	local rootnode rootopts
+	rootnode=$1
+	rootopts=$2
+
+	[ ! -z $rootnode ] || return
+	[ ! -z $rootopts ] || return
+
+	echo -n "node=$rootnode"
+	local IFS=", "
+	for opt in $rootopts; do
+		case $opt in
+			cipher=*)
+				echo -n ",$opt"
+				;;
+			hash=*)
+				echo -n ",$opt"
+				;;
+			size=*)
+				echo -n ",$opt"
+				;;
+			*)
+				# Presumably a non-supported option
+				;;
+		esac
+	done
+	echo ""
+}
+
+# Find out which device root is on
+rootdev=$(find_root_device)
+[ ! -z $rootdev ] || exit 0
+
+# Check that it is a node under /dev/mapper/
+node=${rootdev#/dev/mapper/}
+[ "$node" != $rootdev ] || exit 0
+
+# Get crypttab root options
+rootopts=$(get_root_opts $node $opts)
+[ ! -z $rootopts ] || exit 0
+
+# Calculate needed modules
+modules=$(get_root_modules $rootopts | sort | uniq)
+for x in $modules; do
+	force_load ${x}
+done
+
+# Check the root options to write to the initramfs
+initramfsopts=$(get_root_initramfsopts $node $rootopts)
+echo "CRYPTOPTS=\"$initramfsopts\"" > ${DESTDIR}/conf/conf.d/cryptroot
+
+copy_exec /sbin/cryptsetup /sbin
+copy_exec /sbin/dmsetup /sbin
+[ -x "/etc/mkinitramfs/cryptgetpw" ] && copy_exec /etc/mkinitramfs/cryptgetpw /sbin
+
+exit 0

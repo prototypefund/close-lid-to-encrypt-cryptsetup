@@ -5,3 +5,5 @@
 /usr/share/man/man5
 /usr/share/man/man8
 /usr/share/lintian/overrides
+etc/mkinitramfs/hooks
+etc/mkinitramfs/scripts/local-premount

@@ -1,0 +1,113 @@
+#!/bin/sh
+
+PREREQ=""
+
+prereqs()
+{
+	echo "$PREREQ"
+}
+
+case $1 in
+# get pre-requisites
+prereqs)
+	prereqs
+	exit 0
+	;;
+esac
+
+# Do we have any settings from the /conf/conf.d/cryptroot file?
+[ -r /conf/conf.d/cryptroot ] && . /conf/conf.d/cryptroot
+cryptopts="${CRYPTOPTS}"
+
+# Does the kernel boot command line override them?
+for x in $(cat /proc/cmdline); do
+	case $x in
+	cryptopts=*)
+		cryptopts=${x#cryptopts=}
+		;;
+	esac
+done
+
+# Sanity checks
+eval $(fstype < ${ROOT})
+if [ "$FSTYPE" != "luks" -a -z "$cryptopts" ]; then
+	# Apparently the root partition isn't encrypted
+	echo "No cryptoroot configured or detected"
+	exit 0
+fi
+
+# There are two possible scenarios here:
+#
+# 1) The fstype of the root device has been identified as "luks"
+# 2) The fstype is not "luks" but cryptopts has been set
+#
+# The former means that we use the luks functionality of cryptsetup, the
+# latter means that we do it the old-fashioned way.
+
+# Start by parsing some options, all options are relevant to regular cryptsetup
+# but only cryptnode is relevant to luks which picks up the rest of the 
+# parameters by reading the partition header
+cryptcipher=aes-cbc-essiv:sha256
+cryptsize=256
+crypthash=sha256
+cryptnode=cryptroot
+if [ -n "$cryptopts" ]; then
+	IFS=" ,"
+	for x in $cryptopts; do
+		case $x in
+		hash=*)
+			crypthash=${x#hash=}
+			;;
+		size=*)
+			cryptsize=${x#size=}
+			;;
+		cipher=*)
+			cryptcipher=${x#cipher=}
+			;;
+		node=*)
+			cryptnode=${x#node=}
+			;;
+		esac
+	done
+	unset IFS
+fi
+NEWROOT="/dev/mapper/$cryptnode"
+
+# Check which cryptosolution we want
+if [ "$FSTYPE" = "luks" ]; then
+	# 1) The fstype of the root device has been identified as "luks"
+	cryptcreate="/sbin/cryptsetup luksOpen $ROOT $cryptnode"
+	cryptremove=""
+else
+	# 2) The fstype is not "luks" but cryptopts have been set
+	cryptcreate="/sbin/cryptsetup -c $cryptcipher -s $cryptsize -h $crypthash create $cryptnode $ROOT"
+	cryptremove="/sbin/cryptsetup remove $cryptnode"
+fi
+
+# Loop until we have a satisfactory password
+while [ 1 ]; do
+	if [ -x "/sbin/cryptgetpw" ]; then
+		/sbin/cryptgetpw < /dev/console | $cryptcreate
+	else
+		$cryptcreate < /dev/console
+	fi
+
+	if [ $? -eq 0 ]; then
+		fstype < "$NEWROOT" > /dev/.initramfs/source.me
+		if [ $? -eq 0 ]; then
+			. /dev/.initramfs/source.me
+			if [ "$FSTYPE" != "unknown" ]; then
+				break
+			fi
+		fi
+	fi
+
+	echo "$0: cryptsetup failed or fstype not recognized, bad password or options?"
+	$cryptremove
+	sleep 3
+done
+
+# init can now pick up new FSTYPE, FSSIZE and ROOT
+echo "ROOT=\"$NEWROOT\"" >> /dev/.initramfs/source.me
+
+exit 0

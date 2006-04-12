@@ -52,6 +52,7 @@ config.status: configure.in
 		--prefix=/usr \
 		--sbindir=/sbin \
 		--mandir=/usr/share/man
+		#--enable-static \
 	
 	find -xtype f > manifest.new
 	diff manifest manifest.new | grep '>' | cut -b3- > config.mess
@@ -103,6 +104,10 @@ install: build
 	install -m 0755 debian/luksformat $(CURDIR)/debian/cryptsetup/sbin/
 	install -m 0644 debian/cryptsetup.lintian-override \
 			$(CURDIR)/debian/cryptsetup/usr/share/lintian/overrides/cryptsetup
+	install -m 0644 debian/cryptroot-hook \
+			$(CURDIR)/debian/cryptsetup/etc/mkinitramfs/hooks/cryptroot
+	install -m 0644 debian/cryptroot-script \
+		$(CURDIR)/debian/cryptsetup/etc/mkinitramfs/scripts/local-premount/cryptroot
 	rmdir $(CURDIR)/debian/cryptsetup/usr/lib/cryptsetup
 
 binary-indep: build install

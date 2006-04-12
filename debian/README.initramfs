@@ -1,0 +1,35 @@
+The cryptroot works in two different ways depending on whether the root
+partition is a luks partition or not.
+
+
+o With LUKS
+-----------
+The kernel only needs to be booted with root=/dev/path/to/luks-partition
+
+
+o Without LUKS
+--------------
+The kernel should be booted with root=/dev/path/to/partition and
+cryptopts=OPTIONS.
+
+OPTIONS can be cipher, size, hash and cryptnode. The first three should
+be self-explanatory, while cryptnode is the name of the cryptnode to
+setup (i.e. /dev/mapper/something).
+
+
+o Additionally
+--------------
+The cryptnode option is also honoured with a luks partition.
+
+An example of cryptopts would be:
+cryptopts=cipher=aes-cbc-essiv:sha256,size=256,hash=plain
+
+These options can also be set by creating
+/etc/mkinitramfs/conf.d/cryptroot with the CRYPTOPTS variable (it will
+be sourced by the relevant scripts, so something like
+CRYPTOPTS="cipher=aes-cbc-essiv:sha256,size=256,hash=plain").
+
+Oh, and if the user wants some more esoteric way of getting the key, a
+script can be placed in /etc/mkinitramfs/cryptgetpw which outputs the
+key on stdout (which allows e.g. usb-key based keys with a suitable
+script).

@@ -5,13 +5,15 @@ cryptsetup (2:1.0.3-1) unstable; urgency=low
     - Add alignPayload patch by Peter Palfrader (closes: #358388)
     - meaningful exitcodes and password retrying by Johannes Weißl
       (closes: #359277)
-  * provida a cryptsetup-udeb package (closes: #358422)
+  * provide a cryptsetup-udeb package (closes: #358422)
   * remove debian/luksformat.8 in clean target (closes: #358386)
   * fix update-rc.d arguments to start cryptdisks in rc0 and rc6.
     it is not really started [but stopped], but still the links need to be
     named S48cryptdisks. otherwise it will be invoked before umountfs.
+  * add initramfs cryptroot functionality, thanks to David Härdeman
+    <david@2gen.com> for the patch (closes: #358452)
 
- -- Jonas Meurer <mejo@debian.org>  Fri,  7 Apr 2006 11:16:40 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 12 Apr 2006 18:39:25 +0200
 
 cryptsetup (2:1.0.2+1.0.3-rc3-1) unstable; urgency=low
 
