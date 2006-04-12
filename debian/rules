@@ -104,9 +104,9 @@ install: build
 	install -m 0755 debian/luksformat $(CURDIR)/debian/cryptsetup/sbin/
 	install -m 0644 debian/cryptsetup.lintian-override \
 			$(CURDIR)/debian/cryptsetup/usr/share/lintian/overrides/cryptsetup
-	install -m 0644 debian/cryptroot-hook \
+	install -m 0755 debian/cryptroot-hook \
 			$(CURDIR)/debian/cryptsetup/etc/mkinitramfs/hooks/cryptroot
-	install -m 0644 debian/cryptroot-script \
+	install -m 0755 debian/cryptroot-script \
 		$(CURDIR)/debian/cryptsetup/etc/mkinitramfs/scripts/local-premount/cryptroot
 	rmdir $(CURDIR)/debian/cryptsetup/usr/lib/cryptsetup
 
