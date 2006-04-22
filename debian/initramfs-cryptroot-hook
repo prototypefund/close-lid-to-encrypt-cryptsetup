@@ -120,6 +120,6 @@ echo "CRYPTOPTS=\"$initramfsopts\"" > ${DESTDIR}/conf/conf.d/cryptroot
 
 copy_exec /sbin/cryptsetup /sbin
 copy_exec /sbin/dmsetup /sbin
-[ -x "/etc/mkinitramfs/cryptgetpw" ] && copy_exec /etc/mkinitramfs/cryptgetpw /sbin
+[ -x "/sbin/cryptgetpw" ] && copy_exec /sbin/cryptgetpw /sbin
 
 exit 0
