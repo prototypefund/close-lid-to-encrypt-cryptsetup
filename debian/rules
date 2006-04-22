@@ -105,9 +105,9 @@ install: build
 	install -m 0644 debian/cryptsetup.lintian-override \
 			$(CURDIR)/debian/cryptsetup/usr/share/lintian/overrides/cryptsetup
 	install -m 0755 debian/cryptroot-hook \
-			$(CURDIR)/debian/cryptsetup/etc/mkinitramfs/hooks/cryptroot
+			$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptroot
 	install -m 0755 debian/cryptroot-script \
-		$(CURDIR)/debian/cryptsetup/etc/mkinitramfs/scripts/local-premount/cryptroot
+		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-premount/cryptroot
 	rmdir $(CURDIR)/debian/cryptsetup/usr/lib/cryptsetup
 
 binary-indep: build install

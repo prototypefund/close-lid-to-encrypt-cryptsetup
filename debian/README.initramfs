@@ -1,35 +1,96 @@
-The cryptroot works in two different ways depending on whether the root
-partition is a luks partition or not.
+1. Introduction
+---------------
+Kernels more recent than 2.6.12 have dropped support for devfs, which
+means that initrd-tools can no longer be used to boot into an encrypted
+root partition. Instead, a similar functionality has been developed for 
+use with an initramfs-image.
 
 
-o With LUKS
------------
-The kernel only needs to be booted with root=/dev/path/to/luks-partition
+2. A fresh installation
+-----------------------
+If you plan to perform a completely new installation of Debian onto a 
+machine and to do so using an encrypted root partition, you might want 
+to consider using a version of Debian Installer with the (experimental) 
+partman-crypto included (see http://wiki.debian.org/DebianInstaller/PartmanCrypto).
+
+The installation will then take care of all the details and perform the
+necessary configuration for you, meaning that you should not have to 
+read the rest of this document to get a machine with an encrypted
+root fs up and running.
+
+However, if you are not planning to perform a new installation from scratch,
+the following information might be useful to you.
 
 
-o Without LUKS
---------------
-The kernel should be booted with root=/dev/path/to/partition and
-cryptopts=OPTIONS.
+3. Requirements
+---------------
+In order to boot from an encrypted root fs, you need an initramfs-image
+which includes the necessary kernel modules and scripts to setup
+the root device after the kernel has been initialized, but before the rest 
+of the operating system is booted.
 
-OPTIONS can be cipher, size, hash and cryptnode. The first three should
-be self-explanatory, while cryptnode is the name of the cryptnode to
-setup (i.e. /dev/mapper/something).
+To do so, you need two partitions:
+- an unencrypted /boot partition
+- an encrypted / partition
+
+In addition, you need to have initramfs-tools installed.
 
 
-o Additionally
---------------
-The cryptnode option is also honoured with a luks partition.
+4. Setup
+--------
+First of all, you must edit /etc/crypttab and add a line describing your
+root device, for example:
 
-An example of cryptopts would be:
-cryptopts=cipher=aes-cbc-essiv:sha256,size=256,hash=plain
+cryptroot	/dev/hda2    none    cipher=aes-cbc-essiv:sha256,size=256,hash=sha256
 
-These options can also be set by creating
-/etc/mkinitramfs/conf.d/cryptroot with the CRYPTOPTS variable (it will
-be sourced by the relevant scripts, so something like
-CRYPTOPTS="cipher=aes-cbc-essiv:sha256,size=256,hash=plain").
+This will allow cryptsetup to create /dev/mapper/cryptroot from the 
+encrypted partition /dev/hda2 during boot.
 
-Oh, and if the user wants some more esoteric way of getting the key, a
-script can be placed in /etc/mkinitramfs/cryptgetpw which outputs the
-key on stdout (which allows e.g. usb-key based keys with a suitable
-script).
+In addition, you must also make sure that the root device is listed in 
+/etc/fstab, for example by a line like this:
+
+/dev/mapper/cryptroot	/	ext3	defaults	0 1
+
+This will allow the initramfs support scripts to know which of the devices
+in the crypttab that is the root device.
+
+After doing these changes, you should regenerate the initramfs by running
+"initramfs-update -u", then make sure that your boot loader is configured
+to feed the iniramfs to the kernel when booting and that the kernel root 
+argument has been set to /dev/hda2 (the underlying root device in the
+above example).
+
+Now, reboot the machine, and if everything is correctly configured, you
+should be given a prompt to type in the passphrase for the encrypted
+root partition before the boot can continue.
+
+
+5. LUKS support
+---------------
+If you are using the LUKS feature of cryptsetup, the above recipe should still
+work without any changes. However, you can then remove the cipher, size and hash
+arguments in /etc/crypttab as they will be automatically derived from the
+information stored in the luks header on-disk.
+
+
+6. Kernel command line
+----------------------
+The options set in the crypttab can also be overridden at boot time by passing
+the cryptopts argument to the kernel, with a colon-separated list of
+crypttab-like options as the value.
+
+In addition to the options supported by crypttab, the variable "node" can also 
+be set to control the name that should be used for the encrypted device 
+mapping (e.g. /dev/mapper/croot).
+
+Example:
+cryptopts=cipher=twofish-cbc-essiv:sha256,size=256,hash=plain,node=croot
+
+
+7. Exotic key types
+-------------------
+The above examples assume that you use a regular passphrase as the key to the
+encrypted filesystem. However, if you wish to make use of more complex setups
+(such as root-key-on-usb-memory), you can place a script or executable
+named "cryptgetpw" in /etc/mkinitramfs/. The script will be executed during
+boot and its output on stdout will be used as the key to cryptsetup.

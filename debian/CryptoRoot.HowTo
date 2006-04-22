@@ -1,3 +1,25 @@
+********
+* NOTE *
+********
+
+This procedure describes how to setup an encrypted root fs using 
+initrd-tools and cryptsetup.
+
+initrd-tools are no longer supported (for kernels > 2.6.12), and
+if you are going to setup an encrypted root file system, you are
+probably better off following the instructions in README.initramfs
+which describes a similar procedure but for initramfs-tools which
+support more recent 2.6 kernels.
+
+If you wish to perform a Debian installation to an encrypted root,
+you might be interested in using a version of Debian Installer
+with partman-crypto (experimental at the time of writing), which
+will install the system and setup cryptsetup and initramfs-tools.
+
+************
+* END NOTE *
+************
+
 To setup cryptoroot you will need several things:
 	- an existing /boot partition
 	- a boot loader pointing at /boot (i recommend grub)
