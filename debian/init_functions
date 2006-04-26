@@ -322,7 +322,7 @@ do_noluks () {
 				fi
 			fi
 			test "x$RETRY" = "xno" && break
-			RETRY=$(($RETRY-1))
+  			RETRY=$(($RETRY-1))
 			[ $RETRY -gt 0 ] && echo " - retrying for $dst"
 		done
 	else
@@ -332,7 +332,7 @@ do_noluks () {
 }
 
 mount_fs () {
-	if grep -vq $MOUNT /etc/mtab; then
+	if ! grep -q $MOUNT /etc/mtab; then
 		if ! mount $MOUNT 2>/dev/null; then
 			echo -e "\n - mounting $MOUNT failed, skipping" >&2
 			continue
