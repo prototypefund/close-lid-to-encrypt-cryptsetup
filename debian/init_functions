@@ -332,7 +332,7 @@ do_noluks () {
 }
 
 mount_fs () {
-	if test -b $MOUNT && grep -vq $MOUNT /etc/mtab; then
+	if grep -vq $MOUNT /etc/mtab; then
 		if ! mount $MOUNT 2>/dev/null; then
 			echo -e "\n - mounting $MOUNT failed, skipping" >&2
 			continue
