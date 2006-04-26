@@ -19,6 +19,7 @@ parse_opts () {
 	USELUKS=""
 	SKIP=""
 	TIMEOUT=""
+	MOUNT=""
 	SSL=""
 	GPG=""
 
@@ -331,15 +332,18 @@ do_noluks () {
 }
 
 mount_fs () {
-	if ! mount $MOUNT 2>/dev/null; then
-		echo -e "\n - mounting $MOUNT failed, skipping" >&2
-		continue
+	if test -b $MOUNT && grep -vq $MOUNT /etc/mtab; then
+		if ! mount $MOUNT 2>/dev/null; then
+			echo -e "\n - mounting $MOUNT failed, skipping" >&2
+			continue
+		fi
+		MOUNT_YES="yes"
 	fi
 }
 
 umount_fs () {
-	if ! umount $MOUNT; then
-		echo -e "\n - WARNING: umounting $MOUNT failed" >&2
+	if [ "x$MOUNT_YES" = "xyes" ]; then
+		umount $MOUNT
 	fi
 }
 
@@ -392,6 +396,8 @@ do_start () {
 			else
 				do_noluks
 			fi
+			
+			clean_keys
 		fi
 	done
 	
