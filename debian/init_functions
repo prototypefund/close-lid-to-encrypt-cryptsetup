@@ -1,3 +1,14 @@
+CRYPTCMD=/sbin/cryptsetup
+DEVMAPCMD=/sbin/dmsetup
+LOSETUP=/sbin/losetup
+TABFILE=/etc/crypttab
+MAPPER=/dev/mapper
+
+test -x $CRYPTCMD  || exit 0
+test -x $DEVMAPCMD || exit 0
+test -f $TABFILE   || exit 0
+
+
 parse_opts () {
 	PARAMS=""
 	CHECK=""
@@ -105,6 +116,11 @@ parse_opts () {
 		  	fi
 		  	PARAMS="$PARAMS --timeout=$TIMEOUT"
 		  	;;
+		  mount)
+			if [ "x$VALUE" != "x" ] ; then
+				MOUNT="$VALUE"
+			fi
+		  	;;
 		  swap)
 		  	MAKESWAP=yes
 		  	;;
@@ -128,6 +144,10 @@ parse_opts () {
 
 	if [ "$SSL" != "" -a "$GPG" != "" ]; then
 		echo -e "\n - ssl and gpg options are not allowed together, skipping" >&2
+		continue
+	fi
+
+	if test "x$SKIP" = "xyes" ; then
 		continue
 	fi
 }
@@ -182,7 +202,7 @@ decrypt_gpg () {
 lo_setup () {
 	# Set up loopback devices
 	if test -f "$src" ; then
-		test -d /sys/block/loop0 || modprobe loop || SKIP=yes
+		test -d /sys/block/loop0 || modprobe loop || continue
 		LOOP_ID=
 		for i in 0 1 2 3 4 5 6 7 ; do
 			if test "x`cat /sys/block/loop$i/size`" = "x0" ; then
@@ -191,9 +211,9 @@ lo_setup () {
 			fi
 		done
 		if test "x$LOOP_ID" = "x" ; then
-			SKIP=yes
+			continue
 		else
-			$LOSETUP /dev/loop$LOOP_ID $src || SKIP=yes
+			$LOSETUP /dev/loop$LOOP_ID $src || continue
 			src=/dev/loop$LOOP_ID
 		fi
 	fi
@@ -202,6 +222,7 @@ lo_setup () {
 check_key () {
 	if [ "x$key" != "x" ] && [ "x$key" != "xnone" ]; then
 		INTERACTIVE="no"
+		if [ "x$MOUNT" != "x" ]; then mount_fs; fi
 		if test -e "$key" ; then
 			MODE=`ls -l $key | sed 's/^....\(......\).*/\1/'`
 			OWNER=`ls -l $key | sed 's/^[^ ]* *[^ ]* *\([^ ]*\).*/\1/'`
@@ -309,6 +330,19 @@ do_noluks () {
 	fi
 }
 
+mount_fs () {
+	if ! mount $MOUNT 2>/dev/null; then
+		echo -e "\n - mounting $MOUNT failed, skipping" >&2
+		continue
+	fi
+}
+
+umount_fs () {
+	if ! umount $MOUNT; then
+		echo -e "\n - WARNING: umounting $MOUNT failed" >&2
+	fi
+}
+
 do_swap () {
 	if test "x$MAKESWAP" = "xyes" && test -b $MAPPER/$dst; then
 		mkswap $MAPPER/$dst 2>/dev/null >/dev/null
@@ -326,6 +360,71 @@ do_tmp () {
 
 clean_keys () {
 	if [ "$deckey" -a -f "$deckey" ]; then
-	  rm -f $deckey && deckey=""
+		rm -f $deckey && deckey=""
+	fi
+	if [ "x$MOUNT" != "x" ]; then
+		umount_fs
 	fi
 }
+
+do_start () {
+	$DEVMAPCMD mknodes
+	log_action_begin_msg "Starting $INITSTATE crypto disks"
+	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opt; do
+		if ! test -r "$src" ; then
+			if [ "x$LOUD" = "xyes" ]; then
+				echo -e "\n - Device '$src' does not exist, skipping" >&2
+			fi
+			continue
+		fi
+
+		if test -b $MAPPER/$dst; then
+			log_progress_msg "$dst(running)"
+		else
+			log_progress_msg "$dst(starting)"
+
+			parse_opts
+			check_key
+			lo_setup
+
+			if test "x$USELUKS" = "xyes" ; then
+				do_luks
+			else
+				do_noluks
+			fi
+		fi
+	done
+	
+	echo -n " "
+	log_action_end_msg $?
+}
+
+do_stop () {
+	$DEVMAPCMD mknodes
+	log_action_begin_msg "Stopping $INITSTATE crypto disks"
+	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key; do
+		if test -b $MAPPER/$dst; then
+			if $DEVMAPCMD info $dst | grep -q '^Open count: *0$'; then
+				dev=`$DEVMAPCMD table $dst | sed 's/^.* \([0-9]*:[0-9]*\) .*/\1/'`
+				major=`echo $dev | sed 's/:.*//'`
+				minor=`echo $dev | sed 's/.*://'`
+
+				log_progress_msg "$dst(stopping)"
+				$CRYPTCMD remove $dst
+
+				# Detach loopback device, if attached
+				if test -f $src -a $major -eq 7; then
+					$LOSETUP -d /dev/loop$minor
+				fi
+			else
+				log_progress_msg "$dst(busy)"
+			fi
+		else
+			log_progress_msg "$dst(stopped)"
+		fi
+	done
+
+	echo -n " "
+	log_action_end_msg $?
+}
+

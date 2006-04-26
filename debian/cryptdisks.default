@@ -1,17 +1,19 @@
 # Run cryptdisks at startup ?
 CRYPTDISKS_ENABLE=Yes
 
-# Default precheck script
-# see /usr/share/cryptsetup/checks
+# Default precheck script, see /usr/share/cryptsetup/checks/
+# Takes effect, if the precheck option is set in crypttab without a value
 CRYPTDISKS_PRECHECK=
 
-# Default check script
-# see /usr/share/cryptsetup/checks
+# Default check script, see /usr/share/cryptsetup/checks/
+# Takes effect, if the check option is set in crypttab without a value
 CRYPTDISKS_CHECK=ext2
 
-# Default number of times to retry the password
-# input, in the case that the check fails.
+# Default number of times to retry the password input, in the case that
+# the check fails.
+# Takes effect, if the retry option is set in crypttab without a value
 CRYPTDISKS_RETRY=3
 
 # Default timeout in seconds for password prompt
+# Takes effect, if the timeout option is set in crypttab without a value
 CRYPTDISKS_TIMEOUT=180

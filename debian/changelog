@@ -5,15 +5,32 @@ cryptsetup (2:1.0.3-1) unstable; urgency=low
     - Add alignPayload patch by Peter Palfrader (closes: #358388)
     - meaningful exitcodes and password retrying by Johannes Weißl
       (closes: #359277)
+  * add 01_terminal_timeout.dpatch from Andres Salomon <dilinger@debian.org>.
+    - gets rid of getpass(), which is obsolete according to manpage
+    - restores the terminal state before doing the timeout (closes: #364153)
   * provide a cryptsetup-udeb package (closes: #358422)
   * remove debian/luksformat.8 in clean target (closes: #358386)
   * fix update-rc.d arguments to start cryptdisks in rc0 and rc6.
     it is not really started [but stopped], but still the links need to be
     named S48cryptdisks. otherwise it will be invoked before umountfs.
   * add initramfs cryptroot functionality, thanks to David Härdeman
-    <david@2gen.com> for the patch (closes: #358452)
+    <david@2gen.com> for the patch (closes: #358452, #362564)
+  * move most of /etc/init.d/cryptdisks to /lib/cryptsetup/init_functions.
+    /etc/init.d/cryptdisks now does not much more than importing
+    init_functions. required for running two seperate cryptdisks initscripts.
+  * split the cryptdisks initscript into cryptdisks-early and cryptdisks.
+    actually both scripts do the same except having slightly different output.
+    the early script is run before lvm/evms/... are started, and the other one
+    after they are started. (closes: #363007)
+  * add support for mount to cryptdisks. this makes it possible to use
+    keyfiles from removable media. see the crypttab.5 manpage for more
+    information.
+  * document the fact, that the default settings in /etc/default/cryptdisks
+    take only effect if the relevant option is set without a value in
+    crypttab. (closes: #364203)
+  * update the TODO list.
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 12 Apr 2006 18:39:25 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 26 Apr 2006 21:44:02 +0200
 
 cryptsetup (2:1.0.2+1.0.3-rc3-1) unstable; urgency=low
 

@@ -119,6 +119,7 @@ binary-arch: build install
 	dh_installchangelogs ChangeLog
 	dh_installdocs
 	dh_installexamples debian/gen-ssl-key
+	dh_installinit -a --no-start --name=cryptdisks-early --update-rcd-params="start 26 S . start 59 0 6 ."
 	dh_installinit -a --no-start --name=cryptdisks --update-rcd-params="start 28 S . start 48 0 6 ."
 	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/

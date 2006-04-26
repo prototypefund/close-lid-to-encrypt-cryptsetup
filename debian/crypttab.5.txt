@@ -80,6 +80,10 @@ If the device creation fails, or if the check program fails, remove the device, 
 If key is "'none'", the cryptdisks script interactively prompts for a password.
 The timeout option specifies the time in seconds to wait for the password before timing out.
 
+*mount*=<mountpoint>::
+Mount the specified <mountpoint> before invoking cryptsetup, umount it afterwards.
+This is useful if keyfiles are stored on removable devices like usbstick, flashcard, etc.
+
 *loud*::
 Be loud. Print warnings if a device does not exist.
 
