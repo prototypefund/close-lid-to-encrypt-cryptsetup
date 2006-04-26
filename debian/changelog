@@ -14,7 +14,7 @@ cryptsetup (2:1.0.3-1) unstable; urgency=low
     it is not really started [but stopped], but still the links need to be
     named S48cryptdisks. otherwise it will be invoked before umountfs.
   * add initramfs cryptroot functionality, thanks to David Härdeman
-    <david@2gen.com> for the patch (closes: #358452, #362564)
+    <david@2gen.com> for the patch (closes: #358452)
   * move most of /etc/init.d/cryptdisks to /lib/cryptsetup/init_functions.
     /etc/init.d/cryptdisks now does not much more than importing
     init_functions. required for running two seperate cryptdisks initscripts.
@@ -30,7 +30,7 @@ cryptsetup (2:1.0.3-1) unstable; urgency=low
     crypttab. (closes: #364203)
   * update the TODO list.
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 26 Apr 2006 21:44:02 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 26 Apr 2006 22:53:36 +0200
 
 cryptsetup (2:1.0.2+1.0.3-rc3-1) unstable; urgency=low
 
