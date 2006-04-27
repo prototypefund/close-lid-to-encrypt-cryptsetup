@@ -14,7 +14,7 @@ if [ "$1" = "" -o "$1" = "-h" -o "$1" = "--help" ]; then
   usage
 fi
 
-[ -f /usr/bin/openssl ] || exit 1
+[ -x /usr/bin/openssl ] || exit 1
 
 if [ "$2" = "" ]; then
   dsaparam=`tempfile`
