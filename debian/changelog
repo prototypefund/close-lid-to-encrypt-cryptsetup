@@ -8,6 +8,7 @@ cryptsetup (2:1.0.3-1) unstable; urgency=low
   * add 01_terminal_timeout.dpatch from Andres Salomon <dilinger@debian.org>.
     - gets rid of getpass(), which is obsolete according to manpage
     - restores the terminal state before doing the timeout (closes: #364153)
+  * add 02_docs_tries.dpatch, to describe --tries in the cryptsetup manpage.
   * provide a cryptsetup-udeb package (closes: #358422)
   * remove debian/luksformat.8 in clean target (closes: #358386)
   * fix update-rc.d arguments to start cryptdisks in rc0 and rc6.
@@ -35,7 +36,7 @@ cryptsetup (2:1.0.3-1) unstable; urgency=low
     cryptdisks. rename cryptdisks 'retry' option to 'tries'.
   * update crypdisks.default
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 28 Apr 2006 17:41:21 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 28 Apr 2006 19:27:22 +0200
 
 cryptsetup (2:1.0.2+1.0.3-rc3-1) unstable; urgency=low
 
