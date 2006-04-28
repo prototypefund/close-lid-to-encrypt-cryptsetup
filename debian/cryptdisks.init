@@ -18,7 +18,7 @@ LOUD="yes"
 
 [ -r /etc/default/cryptdisks ] && . /etc/default/cryptdisks
 
-[ -r /lib/cryptsetup/init_functions ] && . /lib/cryptsetup/init_functions
+[ -r /lib/cryptsetup/cryptdisks.functions ] && . /lib/cryptsetup/cryptdisks.functions
 
 case "$CRYPTDISKS_ENABLE" in
   [Nn]*)

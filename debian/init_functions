@@ -13,7 +13,7 @@ parse_opts () {
 	PARAMS=""
 	CHECK=""
 	PRECHECK=""
-	RETRY="no"
+	RETRY="3"
 	MAKETMP=""
 	MAKESWAP=""
 	USELUKS=""
@@ -96,7 +96,7 @@ parse_opts () {
 		  	;;
 		  retry)
 		  	if test "x$VALUE" = "x" ; then
-		  		RETRY="$CRYPTDISKS_RETRY"
+		  		RETRY="3"
 		  	else
 		  		RETRY="$VALUE"
 		  	fi
@@ -104,8 +104,8 @@ parse_opts () {
 		  	  no|[0-9]*)
 		  	  	;;
 		  	  *)
-			  	echo -e "\n - option RETRY is wrongly set to $RETRY - forced to 'no' " >&2
-			  	RETRY="no"
+			  	echo -e "\n - option RETRY is wrongly set to $RETRY - forced to '3' " >&2
+			  	RETRY="3"
 			  	;;
 			esac
 		  	;;
@@ -273,28 +273,21 @@ check_key () {
 
 do_luks () {
 	if $CRYPTCMD isLuks $src >/dev/null 2>&1; then
-		while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
-			if test "x$INTERACTIVE" = "xyes" ; then
-				$CRYPTCMD $PARAMS luksOpen $src $dst <&1
-				RESULT=$?
+		if test "x$INTERACTIVE" != "xyes" ; then
+			$PARAMS="$PARAMS --key-file=$key"
+		fi
+		$CRYPTCMD $PARAMS --tries=$RETRY luksOpen $src $dst <&1
+		RESULT=$?
+		if [ $RESULT = 0 ] ; then
+			if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
+				break
 			else
-				$CRYPTCMD $PARAMS luksOpen $src $dst --key-file $key <&1
-				RESULT=$?
+				echo -e "\n - the check for '$MAPPER/$dst' failed" >&2
+				#echo " - removing the crypto device $dst" >&2
+				#$CRYPTCMD luksClose $dst
+				sleep 1
 			fi
-			if [ $RESULT = 0 ] ; then
-				if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
-					break
-				else
-					echo -e "\n - the check for '$MAPPER/$dst' failed" >&2
-					#echo " - removing the crypto device $dst" >&2
-					#$CRYPTCMD luksClose $dst
-					sleep 1
-				fi
-			fi
-			test "x$RETRY" = "xno" && break
-			RETRY=$(($RETRY-1))
-			[ $RETRY -gt 0 ] && echo " - retrying for $dst"
-		done
+		fi
 	else
 		echo -e "\n - Device '$src' is not a LUKS partition, skipping" >&2
 		continue
@@ -303,28 +296,21 @@ do_luks () {
 
 do_noluks () {
 	if [ "$PRECHECK" = "" ] || $PRECHECK $src; then
-		while [ "x$RETRY" = xno ]  || [ "$RETRY" -gt 0 ] ; do
-			if test "x$INTERACTIVE" = "xyes" ; then
-				$CRYPTCMD $PARAMS create $dst $src <&1
-				RESULT=$?
+		if test "x$INTERACTIVE" != "xyes" ; then
+			$PARAMS="$PARAMS --key-file=$key"
+		fi
+		$CRYPTCMD $PARAMS --tries=$RETRY create $dst $src <&1
+		RESULT=$?
+		if [ $RESULT = 0 ] ; then
+			if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
+				break
 			else
-				$CRYPTCMD $PARAMS -d $key create $dst $src
-				RESULT=$?
+				echo -e "\n - the check for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
+				echo " - removing the crypto device $dst" >&2
+				$CRYPTCMD remove $dst
+				sleep 1
 			fi
-			if [ $RESULT = 0 ] ; then
-				if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
-					break
-				else
-					echo -e "\n - the check for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
-					echo " - removing the crypto device $dst" >&2
-					$CRYPTCMD remove $dst
-					sleep 1
-				fi
-			fi
-			test "x$RETRY" = "xno" && break
-  			RETRY=$(($RETRY-1))
-			[ $RETRY -gt 0 ] && echo " - retrying for $dst"
-		done
+		fi
 	else
 		echo -e "\n - the precheck for '$src' failed" >&2
 		sleep 1

@@ -69,12 +69,12 @@ Run *mke2fs* on the created device.
 Check the source device by suitable program; if the check fails the device is not created; If a program is provided as argument, it is run, using the decrypted volume as first argument. The program is assumed to be a script in /lib/cryptsetup/checks.
 
 *check*=<check>::
-Check the content of the device by suitable program; if the check fails the device is removed; if the retry option is given, the creation is repeated.
-If a program is provided as argument, it is run, using the decrypted volume as first argument. Cryptdisks searches for the given
-program in /lib/cryptsetup/checks.
+Check the content of the device by a suitable program; if the check fails the device is removed.
+If a program is provided as argument, it is run, giving the decrypted volume (target device) as argument. Cryptdisks searches
+for the given program in /lib/cryptsetup/checks.
 
 *retry*=<num>::
-If the device creation fails, or if the check program fails, remove the device, and try again to create it: if key is "none" this will ask for the password again. This is repeated <num> times. Default is 3.
+Retry device creation <num> times in case that it fails. If you want to disable retries, give retry=1 as argument. Default is 3.
 
 *timeout*=<sec>::
 If key is "'none'", the cryptdisks script interactively prompts for a password.
@@ -101,8 +101,8 @@ cswap /dev/sda6 /dev/random swap
 *Encrypted luks disk with interactive password*::
 cdisk1 /dev/hda1 none luks
 
-*Encrypted ext2 disk with interactive password, retry 3 times if the check fails*::
-cdisk0 /dev/sda2 none check=ext2,retry=3
+*Encrypted ext2 disk with interactive password, retry 5 times if the check fails*::
+cdisk0 /dev/sda2 none check=ext2,retry=5
 
 *Encrypted disk with twofish as cipher*::
 cdisk2 /dev/sda3 none cipher=twofish

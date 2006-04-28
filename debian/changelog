@@ -29,8 +29,13 @@ cryptsetup (2:1.0.3-1) unstable; urgency=low
     take only effect if the relevant option is set without a value in
     crypttab. (closes: #364203)
   * update the TODO list.
+  * use upstream cryptsetup retry option instead of the shell code in
+    cryptdisks.
+  * update crypdisks.default
+  * rename /lib/cryptsetup/init_functions to
+    /lib/cryptsetup/cryptdisks.functions
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 26 Apr 2006 22:53:36 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 28 Apr 2006 17:16:03 +0200
 
 cryptsetup (2:1.0.2+1.0.3-rc3-1) unstable; urgency=low
 
