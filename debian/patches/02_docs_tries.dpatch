@@ -1,0 +1,61 @@
+#! /bin/sh -e
+# 02_docs_tries.dpatch by Jonas Meurer <mejo@debian.org>
+#
+## DP: patch documentation about the --tries option
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+        exit 1;;
+esac
+
+exit 0
+
+@DPATCH@
+--- cryptsetup-1.0.3.orig/man/cryptsetup.8	2006-03-30 15:23:56.000000000 +0200
++++ cryptsetup-1.0.3/man/cryptsetup.8	2006-04-28 17:32:19.000000000 +0200
+@@ -79,7 +79,7 @@
+ .SH OPTIONS
+ .TP
+ .B "\-\-hash, \-h"
+-specifies hash to use for password hashing. This option is only relevant for the "create" action. The hash string is passed to libgcrypt, so all hashes accepted by gcrypt are supported.
++specifies hash to use for password hashing. This option is only relevant for the "create" action. The hash string is passed to libgcrypt, so all hashes accepted by gcrypt are supported. Default is "ripemd160".
+ .TP
+ .B "\-\-cipher, \-c"
+ set cipher specification string. Usually, this is "aes-cbc-plain". For pre-2.6.10 kernels, use "aes-plain" as they don't understand the new cipher spec strings. To use ESSIV, use "aes-cbc-essiv:sha256".
+@@ -91,7 +91,7 @@
+ use file as key material. With LUKS, key material supplied in key files via \-d are always used for existing passphrases. If you want to set a new key via a key file, you have to use a positional arg to \fIluksFormat\fR or \fIluksAddKey\fR.
+ .TP
+ .B "\-\-key-size, \-s"
+-set key size in bits. Usually, this is 128, 192 or 256. Can be used for \fIcreate\fR or \fIluksFormat\fR, all other LUKS actions will ignore this flag, as the key-size is specified by the partition header.
++set key size in bits. Usually, this is 128, 192 or 256. Can be used for \fIcreate\fR or \fIluksFormat\fR, all other LUKS actions will ignore this flag, as the key-size is specified by the partition header. Default is 0.
+ .TP
+ .B "\-\-size, \-b"
+ force the size of the underlaying device in sectors.
+@@ -114,6 +114,9 @@
+ .B "\-\-timeout, \-t"
+ The number of seconds to wait before timeout. This option is relevant evertime a password is asked, like \fIcreate\fR, \fIluksOpen\fR, \fIluksFormat\fR or \fIluksAddKey\fR.
+ .TP
++.B "\-\-tries, \-T"
++How often the input of the passphrase shall be retried. This option is relevant evertime a password is asked, like \fIcreate\fR, \fIluksOpen\fR, \fIluksFormat\fR or \fIluksAddKey\fR. The default is 3 tries.
++.TP
+ .B "\-\-align-payload=\fIvalue\fR"
+ Align payload at a boundary of \fIvalue\fR 512-byte sectors.  This option is relevant for \fIluksFormat\fR.  If your block device lives on a RAID it is
+ useful to align the filesystem at full stripe boundaries so it can take advantage of the RAID's geometry.  See for instance the sunit and swidth options
+--- cryptsetup-1.0.3.orig/src/cryptsetup.c	2006-04-02 10:18:42.000000000 +0200
++++ cryptsetup-1.0.3/src/cryptsetup.c	2006-04-28 17:31:10.000000000 +0200
+@@ -385,7 +385,7 @@
+ 		{ "batch-mode",        'q',  POPT_ARG_NONE,                               &opt_batch_mode,        0, N_("Do not ask for confirmation"),                                     NULL },
+ 		{ "version",        '\0',  POPT_ARG_NONE,                               &opt_version_mode,        0, N_("Print package version"),                                     NULL },
+  		{ "timeout",           't',  POPT_ARG_INT,                                &opt_timeout,           0, N_("Timeout for interactive passphrase prompt (in seconds)"),          N_("secs") },
+-  		{ "tries",             'T',  POPT_ARG_INT,                                &opt_tries,             0, N_("How often the input of the passphrase can be retried"),            NULL },
++  		{ "tries",             'T',  POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT     &opt_tries,             0, N_("How often the input of the passphrase is retried"),            NULL },
+  		{ "align-payload",     '\0',  POPT_ARG_INT,                                &opt_align_payload,     0, N_("Align payload at <n> sector boundaries - for luksFormat"),         N_("SECTORS") },
+ 		POPT_TABLEEND
+ 	};
