@@ -48,14 +48,3 @@ exit 0
  .B "\-\-align-payload=\fIvalue\fR"
  Align payload at a boundary of \fIvalue\fR 512-byte sectors.  This option is relevant for \fIluksFormat\fR.  If your block device lives on a RAID it is
  useful to align the filesystem at full stripe boundaries so it can take advantage of the RAID's geometry.  See for instance the sunit and swidth options
---- cryptsetup-1.0.3.orig/src/cryptsetup.c	2006-04-02 10:18:42.000000000 +0200
-+++ cryptsetup-1.0.3/src/cryptsetup.c	2006-04-28 17:31:10.000000000 +0200
-@@ -385,7 +385,7 @@
- 		{ "batch-mode",        'q',  POPT_ARG_NONE,                               &opt_batch_mode,        0, N_("Do not ask for confirmation"),                                     NULL },
- 		{ "version",        '\0',  POPT_ARG_NONE,                               &opt_version_mode,        0, N_("Print package version"),                                     NULL },
-  		{ "timeout",           't',  POPT_ARG_INT,                                &opt_timeout,           0, N_("Timeout for interactive passphrase prompt (in seconds)"),          N_("secs") },
--  		{ "tries",             'T',  POPT_ARG_INT,                                &opt_tries,             0, N_("How often the input of the passphrase can be retried"),            NULL },
-+  		{ "tries",             'T',  POPT_ARG_INT | POPT_ARGFLAG_SHOW_DEFAULT     &opt_tries,             0, N_("How often the input of the passphrase is retried"),            NULL },
-  		{ "align-payload",     '\0',  POPT_ARG_INT,                                &opt_align_payload,     0, N_("Align payload at <n> sector boundaries - for luksFormat"),         N_("SECTORS") },
- 		POPT_TABLEEND
- 	};
