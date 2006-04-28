@@ -1,3 +1,11 @@
+cryptsetup (2:1.0.2+1.0.3-rc2-2) unstable; urgency=low
+
+   The crypttab 'retry' has been renamed to 'tries' to reflect upstreams
+   functionality. Default is 3 tries now, even if the option is not given.
+   See the crypttab.5 manpage for more information.
+
+ -- Jonas Meurer <mejo@debian.org>  Fri, 28 Apr 2006 17:42:15 +0200
+
 cryptsetup (2:1.0.2+1.0.3-rc2-1) unstable; urgency=low
 
     Since release 2:1.0.1-9, the cryptsetup package uses cryptsetup-luks as

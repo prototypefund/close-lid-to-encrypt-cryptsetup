@@ -33,7 +33,7 @@ It can also be a device name (eg. */dev/random*, which is useful for encrypted s
 Warning: luks does not support random data keys (like */dev/random*), it requires a persistent key.
 
 If the 'key file' is empty or the string *none*, the key data (ie. a password) will be read interactively from the console.
-In this case, the options precheck, check and retry may be useful.
+In this case, the options precheck, check and tries may be useful.
 
 The fourth field 'options' describes the cryptsetup options associated with the encryption process.
 Options are in the format: 'key'='value'[,'key'='value' ...] The following options are supported:
@@ -66,32 +66,42 @@ Run *mkswap* on the created device.
 Run *mke2fs* on the created device.
 
 *precheck*=<precheck>::
-Check the source device by suitable program; if the check fails the device is not created; If a program is provided as argument, it is run, using the decrypted volume as first argument. The program is assumed to be a script in /lib/cryptsetup/checks.
+Check the source device by suitable program; if the check fails the device is
+not created; <precheck> is a script to check the source device. The source
+device is given as argument to the script.
 
 *check*=<check>::
-Check the content of the device by a suitable program; if the check fails the device is removed.
-If a program is provided as argument, it is run, giving the decrypted volume (target device) as argument. Cryptdisks searches
-for the given program in /lib/cryptsetup/checks.
+Check the content of the device by a suitable program; if the check fails the
+device is removed. If a program is provided as argument, it is run, giving the
+decrypted volume (target device) as argument. Cryptdisks searches for the
+given program in /lib/cryptsetup/checks. Default is ext2.
 
-*retry*=<num>::
-Retry device creation <num> times in case that it fails. If you want to disable retries, give retry=1 as argument. Default is 3.
+*tries*=<num>::
+The input of the passphrase is tried <num> times in case that it fails. If you
+want to disable retries, give tries=1 as argument. Default is 3.
 
 *timeout*=<sec>::
-If key is "'none'", the cryptdisks script interactively prompts for a password.
-The timeout option specifies the time in seconds to wait for the password before timing out.
+If key is "'none'", the cryptdisks script interactively prompts for a
+password. The timeout option specifies the time in seconds to wait for
+the password before timing out.
 
 *mount*=<mountpoint>::
-Mount the specified <mountpoint> before invoking cryptsetup, umount it afterwards.
-This is useful if keyfiles are stored on removable devices like usbstick, flashcard, etc.
+Mount the specified <mountpoint> before invoking cryptsetup, umount it
+afterwards. This is useful if keyfiles are stored on removable devices
+like usbstick, flashcard, etc.
 
 *loud*::
 Be loud. Print warnings if a device does not exist.
 
 *ssl*::
-Decrypt the keyfile with openssl before actually using it for cryptsetup. This requires /usr/bin/openssl to be available. Thus it doesn't work for encrypted root filesystems or if /usr is a seperate filesystem.
+Decrypt the keyfile with openssl before actually using it for cryptsetup. This
+requires /usr/bin/openssl to be available. Thus it doesn't work for encrypted
+root filesystems or if /usr is a seperate filesystem.
 
 *gpg*::
-Decrypt the keyfile with gnupg before actually using it for cryptsetup. This requires /usr/bin/gnupg to be available. Thus it doesn't work for encrypted root filesystems or if /usr is a seperate filesystem.
+Decrypt the keyfile with gnupg before actually using it for cryptsetup. This
+requires /usr/bin/gnupg to be available. Thus it doesn't work for encrypted
+root filesystems or if /usr is a seperate filesystem.
 
 EXAMPLES
 --------
@@ -102,7 +112,7 @@ cswap /dev/sda6 /dev/random swap
 cdisk1 /dev/hda1 none luks
 
 *Encrypted ext2 disk with interactive password, retry 5 times if the check fails*::
-cdisk0 /dev/sda2 none check=ext2,retry=5
+cdisk0 /dev/sda2 none check=ext2,tries=5
 
 *Encrypted disk with twofish as cipher*::
 cdisk2 /dev/sda3 none cipher=twofish

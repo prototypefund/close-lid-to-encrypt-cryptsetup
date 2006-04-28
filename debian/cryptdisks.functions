@@ -13,7 +13,7 @@ parse_opts () {
 	PARAMS=""
 	CHECK=""
 	PRECHECK=""
-	RETRY="3"
+	TRIES="3"
 	MAKETMP=""
 	MAKESWAP=""
 	USELUKS=""
@@ -94,18 +94,18 @@ parse_opts () {
 		  		PRECHECK=""
 		  	fi
 		  	;;
-		  retry)
+		  tries)
 		  	if test "x$VALUE" = "x" ; then
-		  		RETRY="3"
+		  		TRIES="3"
 		  	else
-		  		RETRY="$VALUE"
+		  		TRIES="$VALUE"
 		  	fi
-		  	case "$RETRY" in
-		  	  no|[0-9]*)
+		  	case "$TRIES" in
+		  	  [0-9]*)
 		  	  	;;
 		  	  *)
-			  	echo -e "\n - option RETRY is wrongly set to $RETRY - forced to '3' " >&2
-			  	RETRY="3"
+			  	echo -e "\n - option TRIES is wrongly set to $TRIES - forced to '3' " >&2
+			  	TRIES="3"
 			  	;;
 			esac
 		  	;;
@@ -276,7 +276,7 @@ do_luks () {
 		if test "x$INTERACTIVE" != "xyes" ; then
 			$PARAMS="$PARAMS --key-file=$key"
 		fi
-		$CRYPTCMD $PARAMS --tries=$RETRY luksOpen $src $dst <&1
+		$CRYPTCMD $PARAMS --tries=$TRIES luksOpen $src $dst <&1
 		RESULT=$?
 		if [ $RESULT = 0 ] ; then
 			if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
@@ -299,7 +299,7 @@ do_noluks () {
 		if test "x$INTERACTIVE" != "xyes" ; then
 			$PARAMS="$PARAMS --key-file=$key"
 		fi
-		$CRYPTCMD $PARAMS --tries=$RETRY create $dst $src <&1
+		$CRYPTCMD $PARAMS --tries=$TRIES create $dst $src <&1
 		RESULT=$?
 		if [ $RESULT = 0 ] ; then
 			if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
