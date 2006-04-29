@@ -85,11 +85,6 @@ If key is "'none'", the cryptdisks script interactively prompts for a
 password. The timeout option specifies the time in seconds to wait for
 the password before timing out.
 
-*mount*=<mountpoint>::
-Mount the specified <mountpoint> before invoking cryptsetup, umount it
-afterwards. This is useful if keyfiles are stored on removable devices
-like usbstick, flashcard, etc.
-
 *loud*::
 Be loud. Print warnings if a device does not exist.
 
@@ -119,6 +114,32 @@ cdisk2 /dev/sda3 none cipher=twofish
 
 *Encrypted luks disk with a openssl-encrypted keyfile*::
 cdisk3 /dev/hda2 /etc/keys/keyfile luks,ssl
+
+ENVIRONMENT
+-----------
+*CRYPTDISKS_ENABLE*::
+Set to 'yes' to run cryptdisks at startup. Set to 'no' to disable cryptdisks.
+
+*CRYPTDISKS_MOUNT*::
+Specifies the mountpoints that are mounted before cryptdisks is invoked. Useful
+for keys on removable devices, such as cdrom, usbstick, flashcard, ...
+
+*CRYPTDISKS_CHECK*::
+Specifies the checkscript to be run against the target device, after cryptdisks
+has been invoked. The target device is given as only argument to the
+checkscript. Takes effect, if the 'check' option is given in crypttab with no
+value.
+
+*CRYPTDISKS_PRECHECK*::
+Specifies the checkscript to be run against the source device, before
+cryptdisks has been invoked. The source device is given as only argument to the
+checkscript. Takes effect, if the 'precheck' option is given in crypttab with
+no value.
+
+*CRYPTDISKS_TIMEOUT*::
+Specifies the time in seconds to wait for the password before timing out. Takes
+effect, if the 'timeout' option is given in crypttab with no value.
+
 
 SEE ALSO
 --------

@@ -4,6 +4,8 @@ LOSETUP=/sbin/losetup
 TABFILE=/etc/crypttab
 MAPPER=/dev/mapper
 
+MOUNT="${CRYPTDISKS_MOUNT}"
+
 test -x $CRYPTCMD  || exit 0
 test -x $DEVMAPCMD || exit 0
 test -f $TABFILE   || exit 0
@@ -19,7 +21,6 @@ parse_opts () {
 	USELUKS=""
 	SKIP=""
 	TIMEOUT=""
-	MOUNT=""
 	SSL=""
 	GPG=""
 
@@ -72,8 +73,8 @@ parse_opts () {
 		  	;;
 		  check)
 		  	if test "x$VALUE" = "x" ; then
-		  		CHECK="$CRYPTDISKS_CHECK"
-		  	else
+				CHECK="${CRYPTDISKS_CHECK}"
+			else
 		  		CHECK="$VALUE"
 		  	fi
 		  	if [ "$CHECK" -a -x /lib/cryptsetup/checks/"$CHECK" ]; then
@@ -84,8 +85,8 @@ parse_opts () {
 		  	;;
 		  precheck)
 		  	if test "x$VALUE" = "x" ; then
-		  		PRECHECK="$CRYPTDISKS_PRECHECK"
-		  	else
+				PRECHECK="${CRYPTDISKS_PRECHECK}"
+			else
 		  		PRECHECK="$VALUE"
 		  	fi
 		   	if [ "$PRECHECK" -a -x /lib/cryptsetup/checks/"$PRECHECK" ]; then
@@ -95,9 +96,7 @@ parse_opts () {
 		  	fi
 		  	;;
 		  tries)
-		  	if test "x$VALUE" = "x" ; then
-		  		TRIES="3"
-		  	else
+		  	if test "x$VALUE" != "x" ; then
 		  		TRIES="$VALUE"
 		  	fi
 		  	case "$TRIES" in
@@ -108,19 +107,23 @@ parse_opts () {
 			  	TRIES="3"
 			  	;;
 			esac
+		  	PARAMS="$PARAMS --tries=$TRIES"
 		  	;;
 		  timeout)
 		  	if test "x$VALUE" = "x" ; then
-		  		TIMEOUT="$CRYPTDISKS_TIMEOUT"
-		  	else
+				TIMEOUT="${CRYPTDISKS_TIMEOUT}"
+			else
 		  		TIMEOUT="$VALUE"
 		  	fi
+			case "$TIMEOUT" in
+			  [0-9]*)
+			  	;;
+			  *)
+			  	echo - "\n - option TIMEOUT is wrongly set to $TIMEOUT - forced to '0' " >&2
+				TIMEOUT="0"
+				;;
+			esac
 		  	PARAMS="$PARAMS --timeout=$TIMEOUT"
-		  	;;
-		  mount)
-			if [ "x$VALUE" != "x" ] ; then
-				MOUNT="$VALUE"
-			fi
 		  	;;
 		  swap)
 		  	MAKESWAP=yes
@@ -223,7 +226,6 @@ lo_setup () {
 check_key () {
 	if [ "x$key" != "x" ] && [ "x$key" != "xnone" ]; then
 		INTERACTIVE="no"
-		if [ "x$MOUNT" != "x" ]; then mount_fs; fi
 		if test -e "$key" ; then
 			MODE=`ls -l $key | sed 's/^....\(......\).*/\1/'`
 			OWNER=`ls -l $key | sed 's/^[^ ]* *[^ ]* *\([^ ]*\).*/\1/'`
@@ -274,9 +276,9 @@ check_key () {
 do_luks () {
 	if $CRYPTCMD isLuks $src >/dev/null 2>&1; then
 		if test "x$INTERACTIVE" != "xyes" ; then
-			$PARAMS="$PARAMS --key-file=$key"
+			PARAMS="$PARAMS --key-file=$key"
 		fi
-		$CRYPTCMD $PARAMS --tries=$TRIES luksOpen $src $dst <&1
+		$CRYPTCMD $PARAMS luksOpen $src $dst <&1
 		RESULT=$?
 		if [ $RESULT = 0 ] ; then
 			if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
@@ -297,9 +299,9 @@ do_luks () {
 do_noluks () {
 	if [ "$PRECHECK" = "" ] || $PRECHECK $src; then
 		if test "x$INTERACTIVE" != "xyes" ; then
-			$PARAMS="$PARAMS --key-file=$key"
+			PARAMS="$PARAMS --key-file=$key"
 		fi
-		$CRYPTCMD $PARAMS --tries=$TRIES create $dst $src <&1
+		$CRYPTCMD $PARAMS create $dst $src <&1
 		RESULT=$?
 		if [ $RESULT = 0 ] ; then
 			if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
@@ -318,18 +320,18 @@ do_noluks () {
 }
 
 mount_fs () {
-	if ! grep -q $MOUNT /etc/mtab; then
-		if ! mount $MOUNT 2>/dev/null; then
-			echo -e "\n - mounting $MOUNT failed, skipping" >&2
-			continue
-		fi
+	for point in $MOUNT; do
+		mount $MOUNT 2>/dev/null 1>&2
 		MOUNT_YES="yes"
 	fi
+	done
 }
 
 umount_fs () {
 	if [ "x$MOUNT_YES" = "xyes" ]; then
-		umount $MOUNT
+		for point in $MOUNT; do
+			umount $point
+		done
 	fi
 }
 
@@ -352,14 +354,12 @@ clean_keys () {
 	if [ "$deckey" -a -f "$deckey" ]; then
 		rm -f $deckey && deckey=""
 	fi
-	if [ "x$MOUNT" != "x" ]; then
-		umount_fs
-	fi
 }
 
 do_start () {
 	$DEVMAPCMD mknodes
 	log_action_begin_msg "Starting $INITSTATE crypto disks"
+	mount_fs
 	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opt; do
 		if ! test -r "$src" ; then
 			if [ "x$LOUD" = "xyes" ]; then
@@ -387,6 +387,7 @@ do_start () {
 		fi
 	done
 	
+	umount_fs
 	echo -n " "
 	log_action_end_msg $?
 }

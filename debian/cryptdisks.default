@@ -1,6 +1,10 @@
 # Run cryptdisks at startup ?
 CRYPTDISKS_ENABLE=Yes
 
+# Mountpoints to mount, before starting cryptsetup. This is useful for
+# keyfiles on removable media. Seperate mountpoints by space.
+CRYPTDISKS_MOUNT=""
+
 # Default check script, see /lib/cryptsetup/checks/
 # Takes effect, if the 'check' option is set in crypttab without a value
 CRYPTDISKS_CHECK=ext2
