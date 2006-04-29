@@ -323,7 +323,6 @@ mount_fs () {
 	for point in $MOUNT; do
 		mount $MOUNT 2>/dev/null 1>&2
 		MOUNT_YES="yes"
-	fi
 	done
 }
 
