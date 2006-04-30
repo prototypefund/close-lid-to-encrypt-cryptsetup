@@ -28,15 +28,15 @@ cryptsetup (2:1.0.3-1) unstable; urgency=low
   * add support for mount to cryptdisks. this makes it possible to use
     keyfiles from removable media. see the crypttab.5 manpage for more
     information.
+  * use upstream cryptsetup tries option instead of the shell code in
+    cryptdisks. rename cryptdisks 'retry' option to 'tries'.
   * document the fact, that the default settings in /etc/default/cryptdisks
     take only effect if the relevant option is set without a value in
     crypttab. add the environment section to crypttab.5.txt (closes: #364203)
   * update the TODO list.
-  * use upstream cryptsetup tries option instead of the shell code in
-    cryptdisks. rename cryptdisks 'retry' option to 'tries'.
   * update crypdisks.default
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 29 Apr 2006 14:45:58 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 30 Apr 2006 18:10:27 +0200
 
 cryptsetup (2:1.0.2+1.0.3-rc3-1) unstable; urgency=low
 

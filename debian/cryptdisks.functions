@@ -281,9 +281,7 @@ do_luks () {
 		$CRYPTCMD $PARAMS luksOpen $src $dst <&1
 		RESULT=$?
 		if [ $RESULT = 0 ] ; then
-			if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
-				break
-			else
+			if [ "$CHECK" != ""  ] && ! $CHECK $MAPPER/$dst; then
 				echo -e "\n - the check for '$MAPPER/$dst' failed" >&2
 				#echo " - removing the crypto device $dst" >&2
 				#$CRYPTCMD luksClose $dst
@@ -304,9 +302,7 @@ do_noluks () {
 		$CRYPTCMD $PARAMS create $dst $src <&1
 		RESULT=$?
 		if [ $RESULT = 0 ] ; then
-			if [ "$CHECK" = ""  ] || $CHECK $MAPPER/$dst ; then
-				break
-			else
+			if [ "$CHECK" != ""  ] && ! $CHECK $MAPPER/$dst; then
 				echo -e "\n - the check for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
 				echo " - removing the crypto device $dst" >&2
 				$CRYPTCMD remove $dst
@@ -314,8 +310,8 @@ do_noluks () {
 			fi
 		fi
 	else
-		echo -e "\n - the precheck for '$src' failed" >&2
-		sleep 1
+		echo -e "\n - the precheck for '$src' failed, skipping" >&2
+		continue
 	fi
 }
 
