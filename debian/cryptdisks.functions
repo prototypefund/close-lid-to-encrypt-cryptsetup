@@ -377,6 +377,8 @@ do_start () {
 			else
 				do_noluks
 			fi
+			do_swap
+			do_tmp
 			
 			clean_keys
 		fi
