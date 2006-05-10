@@ -1,0 +1,83 @@
+#! /bin/sh -e
+# 03_stdin_input.dpatch by David Härdeman <david@2gen.com>
+#
+## DP: fix stdin input, allow more than 32 characters
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+        exit 1;;
+esac
+
+exit 0
+
+@DPATCH@
+--- cryptsetup-1.0.3.orig/lib/setup.c	2006-05-10 22:48:20.000000000 +0200
++++ cryptsetup-1.0.3/lib/setup.c	2006-05-10 22:52:19.000000000 +0200
+@@ -130,13 +130,13 @@
+ /*
+  * Password reading behaviour matrix of get_key
+  * 
+- *                    p   v   n
+- * -----------------+---+---+----
+- * interactive      | Y | Y | Y
+- * from fd          | N | N | Y
+- * from binary file | N | N | N
++ *                    p   v   n   h
++ * -----------------+---+---+---+---
++ * interactive      | Y | Y | Y | Inf
++ * from fd          | N | N | Y | Inf
++ * from binary file | N | N | N | Inf or options->key_size
+  *
+- * Legend: p..prompt, v..can verify, n..newline-stop
++ * Legend: p..prompt, v..can verify, n..newline-stop, h..read horizon
+  * 
+  * Returns true when more keys are available (that is when password
+  * reading can be retried as for interactive terminals).
+@@ -149,6 +149,7 @@
+ 	const int verify_if_possible = options->flags & CRYPT_FLAG_VERIFY_IF_POSSIBLE;
+ 	char *pass = NULL;
+ 	int newline_stop;
++	int read_horizon;
+ 	
+ 	if(options->key_file) {
+ 		fd = open(options->key_file, O_RDONLY);
+@@ -159,9 +160,14 @@
+ 			goto out_err;
+ 		}	
+ 		newline_stop = 0;
++
++		/* This can either be 0 (LUKS) or the actually number
++		 * of key bytes (default or passed by -s) */
++		read_horizon = options->key_size;
+ 	} else {
+ 		fd = options->passphrase_fd;
+ 		newline_stop = 1;
++		read_horizon = 0;   /* Infinite, if read from terminal or fd */
+ 	}	
+ 
+ 	/* Interactive case */
+@@ -202,7 +208,7 @@
+ 		 * such as /dev/random, because in this case, the loop
+ 		 * will read forever.
+ 		 */ 
+-		if(options->key_file && options->key_size == 0) {
++		if(options->key_file && read_horizon == 0) {
+ 			struct stat st;
+ 			if(stat(options->key_file, &st) < 0) {
+ 		 		set_error("Can't stat key file");
+@@ -215,7 +221,7 @@
+ 			}
+ 		}
+ 		buflen = 0;
+-		for(i = 0; options->key_size == 0 || i < options->key_size; i++) {
++		for(i = 0; read_horizon == 0 || i < read_horizon; i++) {
+ 			if(i >= buflen - 1) {
+ 				buflen += 128;
+ 				pass = safe_realloc(pass, buflen);
