@@ -12,6 +12,8 @@ cryptsetup (2:1.0.3-1) unstable; urgency=low
   * add 03_stdin_input.dpatch from David Härdeman <david@2gen.com>,
     fixes input from stdin, accepts input with more than 32 characters
     (closes: #364529, #365333)
+  * add 04_status_exit_codes.dpatch from David Härdeman <david@2gen.com>,
+    fixes the exit codes of 'cryptsetup status'
   * provide a cryptsetup-udeb package (closes: #358422)
   * remove debian/luksformat.8 in clean target (closes: #358386)
   * fix update-rc.d arguments to start cryptdisks in rc0 and rc6.
@@ -41,7 +43,7 @@ cryptsetup (2:1.0.3-1) unstable; urgency=low
   * run do_swap and do_tmp. Thanks to Riku Voipio <riku.voipio@iki.fi>
     (closes: #365633)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 10 May 2006 22:56:31 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 12 May 2006 01:03:47 +0200
 
 cryptsetup (2:1.0.2+1.0.3-rc3-1) unstable; urgency=low
 

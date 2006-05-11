@@ -1,0 +1,69 @@
+#! /bin/sh -e
+# 03_status_exit_codes.dpatch by David Häeman <david@2gen.com>
+#
+## DP: fix exit codes of cryptsetup status
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+        exit 1;;
+esac
+
+exit 0
+
+@DPATCH@
+--- cryptsetup-1.0.3.orig/src/cryptsetup.c	2006-04-02 10:18:42.000000000 +0200
++++ cryptsetup-1.0.3/src/cryptsetup.c	2006-05-12 01:01:55.000000000 +0200
+@@ -165,27 +165,29 @@
+ 	int r;
+ 
+ 	r = crypt_query_device(&options);
++	
+ 	if (r < 0) {
++		/* error */
+ 		show_status(-r);
+-		return r;
+-	}
+-	if (r == 0) {
++	} else if (r == 0) {
++		/* inactive */
+ 		printf("%s/%s is inactive.\n", crypt_get_dir(), options.name);
+-		return r;
++		r = 1;
++	} else {
++		/* active */
++		printf("%s/%s is active:\n", crypt_get_dir(), options.name);
++		printf("  cipher:  %s\n", options.cipher);
++		printf("  keysize: %d bits\n", options.key_size * 8);
++		printf("  device:  %s\n", options.device);
++		printf("  offset:  %" PRIu64 " sectors\n", options.offset);
++		printf("  size:    %" PRIu64 " sectors\n", options.size);
++		if (options.skip)
++			printf("  skipped: %" PRIu64 " sectors\n", options.skip);
++		printf("  mode:    %s\n", (options.flags & CRYPT_FLAG_READONLY)
++		                           ? "readonly" : "read/write");
++		crypt_put_options(&options);
++		r = 0;
+ 	}
+-
+-	printf("%s/%s is active:\n", crypt_get_dir(), options.name);
+-	printf("  cipher:  %s\n", options.cipher);
+-	printf("  keysize: %d bits\n", options.key_size * 8);
+-	printf("  device:  %s\n", options.device);
+-	printf("  offset:  %" PRIu64 " sectors\n", options.offset);
+-	printf("  size:    %" PRIu64 " sectors\n", options.size);
+-	if (options.skip)
+-		printf("  skipped: %" PRIu64 " sectors\n", options.skip);
+-	printf("  mode:    %s\n", (options.flags & CRYPT_FLAG_READONLY)
+-	                           ? "readonly" : "read/write");
+-
+-	crypt_put_options(&options);
+ 	return r;
+ }
+ 
