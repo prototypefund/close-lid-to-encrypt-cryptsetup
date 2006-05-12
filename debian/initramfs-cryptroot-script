@@ -1,5 +1,8 @@
 #!/bin/sh
 
+#
+# Standard initramfs preamble
+#
 PREREQ=""
 
 prereqs()
@@ -8,69 +11,122 @@ prereqs()
 }
 
 case $1 in
-# get pre-requisites
 prereqs)
 	prereqs
 	exit 0
 	;;
 esac
 
-# Sanity checks
-# NOTE: $cryptopts has been set by the init file
-eval $(fstype < ${ROOT})
-if [ "$FSTYPE" != "luks" -a -z "$cryptopts" ]; then
-	# Apparently the root partition isn't encrypted
-	echo "No cryptoroot configured or detected"
-	exit 0
-fi
 
-# There are two possible scenarios here:
 #
-# 1) The fstype of the root device has been identified as "luks"
-# 2) The fstype is not "luks" but cryptopts has been set
+# Helper functions
 #
-# The former means that we use the luks functionality of cryptsetup, the
-# latter means that we do it the old-fashioned way.
+get_options()
+{
+	local isluks
+	if [ $1 = "luks" ]; then
+		isluks="yes"
+	else
+		isluks="no"
+	fi
 
-# Start by parsing some options, all options are relevant to regular cryptsetup
-# but only cryptnode is relevant to luks which picks up the rest of the 
-# parameters by reading the partition header
-cryptcipher=aes-cbc-essiv:sha256
-cryptsize=256
-crypthash=sha256
-cryptnode=cryptroot
-if [ -n "$cryptopts" ]; then
-	IFS=" ,"
-	for x in $cryptopts; do
+	# Do we have any settings from the /conf/conf.d/cryptroot file?
+	[ -r /conf/conf.d/cryptroot ] && . /conf/conf.d/cryptroot
+	cryptopts="${CRYPTOPTS}"
+
+	# Does the kernel boot command line override them?
+	for x in $(cat /proc/cmdline); do
 		case $x in
-		hash=*)
-			crypthash=${x#hash=}
-			;;
-		size=*)
-			cryptsize=${x#size=}
-			;;
-		cipher=*)
-			cryptcipher=${x#cipher=}
-			;;
-		node=*)
-			cryptnode=${x#node=}
+		cryptopts=*)
+			cryptopts=${x#cryptopts=}
 			;;
 		esac
 	done
-	unset IFS
-fi
-NEWROOT="/dev/mapper/$cryptnode"
 
-# Check which cryptosolution we want
-if [ "$FSTYPE" = "luks" ]; then
+	# Sanity check
+	if [ -z "$cryptopts" -a $isluks = "no" ]; then
+		# Apparently the root partition isn't encrypted
+		echo "No cryptoroot configured or detected"
+		exit 0
+	fi
+
+	# There are two possible scenarios here:
+	#
 	# 1) The fstype of the root device has been identified as "luks"
+	# 2) The fstype is not "luks" but cryptopts has been set
+	#
+	# The former means that we use the luks functionality of cryptsetup, the
+	# latter means that we do it the old-fashioned way.
+	#
+	# Start by parsing some options, all options are relevant to regular cryptsetup
+	# but only cryptnode is relevant to luks which picks up the rest of the
+	# parameters by reading the partition header
+	cryptcipher=aes-cbc-essiv:sha256
+	cryptsize=256
+	crypthash=sha256
+	cryptnode=cryptroot
+	cryptlvm=""
+
+	if [ -n "$cryptopts" ]; then
+		local IFS=" ,"
+		for x in $cryptopts; do
+			case $x in
+			hash=*)
+				crypthash=${x#hash=}
+				;;
+			size=*)
+				cryptsize=${x#size=}
+				;;
+			cipher=*)
+				cryptcipher=${x#cipher=}
+				;;
+			node=*)
+				cryptnode=${x#node=}
+				;;
+			lvm=*)
+				cryptlvm=${x#lvm=}
+				;;
+			esac
+		done
+	fi
+}
+
+setup_lvm()
+{
+	local cryptlvm
+	cryptlvm=$1
+
+	if [ -z "$cryptlvm" ]; then
+		panic "found lvm pv on encrypted device but no lvm option set"
+	fi
+	NEWROOT="/dev/mapper/${cryptlvm}"
+	# Split volume group from logical volume.
+	cryptlvm=$(echo ${cryptlvm} | sed -e 's#\(.*\)\([^-]\)-[^-].*#\1\2#')
+	# Reduce padded --'s to -'s
+	cryptlvm=$(echo ${cryptlvm} | sed -e 's#--#-#g')
+	vgchange -ay ${cryptlvm}
+	if ! fstype < "$NEWROOT" > /conf/param.conf; then
+		panic "failed to setup lvm device, fs not recognised"
+	fi
+	. /conf/param.conf
+}
+
+
+#
+# Begin real processing
+#
+
+# define crypto variables
+if /sbin/cryptsetup isLuks $ROOT > /dev/null 2>&1; then
+	get_options "luks"
 	cryptcreate="/sbin/cryptsetup luksOpen $ROOT $cryptnode"
 	cryptremove=""
 else
-	# 2) The fstype is not "luks" but cryptopts have been set
+	get_options "notluks"
 	cryptcreate="/sbin/cryptsetup -c $cryptcipher -s $cryptsize -h $crypthash create $cryptnode $ROOT"
 	cryptremove="/sbin/cryptsetup remove $cryptnode"
 fi
+NEWROOT="/dev/mapper/$cryptnode"
 
 # Loop until we have a satisfactory password
 while [ 1 ]; do
@@ -80,14 +136,10 @@ while [ 1 ]; do
 		$cryptcreate < /dev/console
 	fi
 
-	if [ $? -eq 0 ]; then
-		fstype < "$NEWROOT" > /conf/param.conf
-		if [ $? -eq 0 ]; then
-			. /conf/param.conf
-			if [ "$FSTYPE" != "unknown" ]; then
-				break
-			fi
-		fi
+	if [ $? -eq 0 ] && fstype < "$NEWROOT" > /conf/param.conf; then
+		. /conf/param.conf
+		[ "$FSTYPE" = "lvm" ] && setup_lvm "$cryptlvm"
+		[ "$FSTYPE" != "unknown" ] && break
 	fi
 
 	echo "$0: cryptsetup failed or fstype not recognized, bad password or options?"

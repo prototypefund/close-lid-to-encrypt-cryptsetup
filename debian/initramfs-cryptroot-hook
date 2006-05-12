@@ -28,54 +28,44 @@ find_root_device() {
 	done )
 }
 
-get_root_opts() {
-	local node rootopts
+node_in_crypttab() {
+	local node
 	node=$1
+
+	grep -q ^$node /etc/crypttab
+	return $?
+}
+
+get_lvm_device() {
+	local node majorminor
+	node=$1
+
+	[ -z $node ] && return
+
+	majorminor=$( dmsetup deps $node | \
+		      sed 's/[^:]*: *(\([0-9]*\), *\([0-9]\).*/\1 \2/') || return
+	major=$( echo $majorminor | cut -d " " -f1 )
+	minor=$( echo $majorminor | cut -d " " -f2 )
+	depnode=$( dmsetup info -c --noheadings -j $major -m $minor | cut -d ":" -f 1 )
+	echo "$depnode"
+}
+
+get_root_opts() {
+	local node extraopts rootopts opt
+	node=$1
+	extraopts=$2
 
 	[ -z $node ] && return
 	[ -r /etc/crypttab ] || return
 
 	rootopts=$( grep ^$node /etc/crypttab | \
-		    head -1 | sed 's/[[:space:]]+*/ /g' | cut -d " " -f 4-)
-	echo "$rootopts"
-	[ ! -z $rootopts ] || return 1
-	return 0
-}
+		    head -1 | sed 's/[ \t][ \t]+/ /g' | cut -d " " -f 4-)
 
-get_root_modules() {
-	local rootopts
-	rootopts=$1
+	[ -z "$rootopts" ] && return 1
+	[ ! -z "$extraopts" ] && rootopts="${extraopts},${rootopts}"
 
-	[ ! -z $rootopts ] || return
-
-	echo "dm_mod"
-	echo "dm_crypt"
-	local IFS=", "
-	for opt in $rootopts; do
-		# Does option start with cipher=?
-		value=${opt#cipher=}
-		[ $value != $opt ] || continue
-
-		# Add the cipher to the list of modules
-		cipher=${value%%-*}
-		echo $cipher
-
-		# Possibly add a hash as well
-		hash=${value##*:}
-		[ ! -z $hash -o $hash != $value ] || continue
-		echo $hash
-	done
-}
-
-get_root_initramfsopts() {
-	local rootnode rootopts
-	rootnode=$1
-	rootopts=$2
-
-	[ ! -z $rootnode ] || return
-	[ ! -z $rootopts ] || return
-
-	echo -n "node=$rootnode"
+	# We have all the basic options, let's go trough them
+	echo -n "node=$node"
 	local IFS=", "
 	for opt in $rootopts; do
 		case $opt in
@@ -93,33 +83,71 @@ get_root_initramfsopts() {
 				;;
 		esac
 	done
-	echo ""
+}
+
+get_root_modules() {
+	local rootnode value cipher ivhash
+	rootnode=$1
+
+	# Check the ciphers used by the active root mapping
+	value=$( dmsetup table $rootnode | cut -d " " -f4 )
+
+	cipher=$( echo $value | cut -d ":" -f1 | cut -d "-" -f1 )
+	[ -z "$cipher" ] && return
+	echo $cipher
+
+	ivhash=$( echo $value | cut -d ":" -s -f2 )
+	[ ! -z "$ivhash" ] && echo "$ivhash"
 }
 
 # Find out which device root is on
 rootdev=$(find_root_device)
-[ ! -z $rootdev ] || exit 0
+[ -z "$rootdev" ] && exit 0
 
 # Check that it is a node under /dev/mapper/
 node=${rootdev#/dev/mapper/}
 [ "$node" != $rootdev ] || exit 0
 
+# Can we find this node in crypttab
+opts=""
+if ! node_in_crypttab $node; then
+	# It is a /dev/mapper node but not in crypttab, is it lvm?
+	lvmtest=$(get_lvm_device $node)
+
+	if [ -z "$lvmtest" ]; then
+		# Neither in crypttab, nor a lvm device, our work is done
+		exit 0
+	else
+		# It is a lvm device!
+		opts="lvm=$node"
+		node="$lvmtest"
+	fi
+fi
+
 # Get crypttab root options
 rootopts=$(get_root_opts $node $opts)
-[ ! -z $rootopts ] || exit 0
+if [ -z "$rootopts" ]; then
+	echo "$0: failed to determine cipher options to use"
+	exit 1
+fi
 
 # Calculate needed modules
-modules=$(get_root_modules $rootopts | sort | uniq)
-for x in $modules; do
-	force_load ${x}
+force_load dm_mod
+force_load dm_crypt
+modules=$(get_root_modules $node | sort | uniq)
+if [ -z "$modules" ]; then
+	echo "$0: failed to determine cipher modules to load"
+	exit 1
+fi
+for mod in $modules; do
+	manual_add_modules $mod
 done
 
-# Check the root options to write to the initramfs
-initramfsopts=$(get_root_initramfsopts $node $rootopts)
-echo "CRYPTOPTS=\"$initramfsopts\"" > ${DESTDIR}/conf/conf.d/cryptroot
-
+# Prepare the initramfs
+echo "CRYPTOPTS=\"$rootopts\"" > ${DESTDIR}/conf/conf.d/cryptroot
 copy_exec /sbin/cryptsetup /sbin
 copy_exec /sbin/dmsetup /sbin
 [ -x "/sbin/cryptgetpw" ] && copy_exec /sbin/cryptgetpw /sbin
 
+# Done
 exit 0

@@ -2,3 +2,4 @@ TODO-list for cryptsetup in Debian
 ----------------------------------
 * improve the checks, see CheckSystem.Doc for more information
 * add support for gnupg encrypted keys to cryptdisks
+* improve documentation for encrypted root
