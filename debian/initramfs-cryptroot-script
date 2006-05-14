@@ -3,11 +3,13 @@
 #
 # Standard initramfs preamble
 #
-PREREQ=""
-
 prereqs()
 {
-	echo "$PREREQ"
+	# Make sure that cryptroot is run last in local-top
+	for req in /scripts/local-top/*; do
+		script=$(basename $req)
+		[ $script != cryptroot ] && echo $script
+	done
 }
 
 case $1 in
@@ -23,13 +25,6 @@ esac
 #
 get_options()
 {
-	local isluks
-	if [ $1 = "luks" ]; then
-		isluks="yes"
-	else
-		isluks="no"
-	fi
-
 	# Do we have any settings from the /conf/conf.d/cryptroot file?
 	[ -r /conf/conf.d/cryptroot ] && . /conf/conf.d/cryptroot
 	cryptopts="${CRYPTOPTS}"
@@ -44,9 +39,9 @@ get_options()
 	done
 
 	# Sanity check
-	if [ -z "$cryptopts" -a $isluks = "no" ]; then
+	if [ -z "$cryptopts" ]; then
 		# Apparently the root partition isn't encrypted
-		echo "No cryptoroot configured or detected"
+		echo "No cryptroot configured, skipping"
 		exit 0
 	fi
 
@@ -59,12 +54,13 @@ get_options()
 	# latter means that we do it the old-fashioned way.
 	#
 	# Start by parsing some options, all options are relevant to regular cryptsetup
-	# but only cryptnode is relevant to luks which picks up the rest of the
-	# parameters by reading the partition header
+	# but only crypttarget and cryptsource is relevant to luks which picks up the 
+	# rest of the parameters by reading the partition header
 	cryptcipher=aes-cbc-essiv:sha256
 	cryptsize=256
 	crypthash=sha256
-	cryptnode=cryptroot
+	crypttarget=cryptroot
+	cryptsource=$ROOT
 	cryptlvm=""
 
 	if [ -n "$cryptopts" ]; then
@@ -80,8 +76,11 @@ get_options()
 			cipher=*)
 				cryptcipher=${x#cipher=}
 				;;
-			node=*)
-				cryptnode=${x#node=}
+			target=*)
+				crypttarget=${x#target=}
+				;;
+			source=*)
+				cryptsource=${x#source=}
 				;;
 			lvm=*)
 				cryptlvm=${x#lvm=}
@@ -117,16 +116,15 @@ setup_lvm()
 #
 
 # define crypto variables
-if /sbin/cryptsetup isLuks $ROOT > /dev/null 2>&1; then
-	get_options "luks"
-	cryptcreate="/sbin/cryptsetup luksOpen $ROOT $cryptnode"
+get_options
+if /sbin/cryptsetup isLuks $cryptsource > /dev/null 2>&1; then
+	cryptcreate="/sbin/cryptsetup luksOpen $cryptsource $crypttarget"
 	cryptremove=""
 else
-	get_options "notluks"
-	cryptcreate="/sbin/cryptsetup -c $cryptcipher -s $cryptsize -h $crypthash create $cryptnode $ROOT"
-	cryptremove="/sbin/cryptsetup remove $cryptnode"
+	cryptcreate="/sbin/cryptsetup -c $cryptcipher -s $cryptsize -h $crypthash create $crypttarget $cryptsource"
+	cryptremove="/sbin/cryptsetup remove $crypttarget"
 fi
-NEWROOT="/dev/mapper/$cryptnode"
+NEWROOT="/dev/mapper/$crypttarget"
 
 # Loop until we have a satisfactory password
 while [ 1 ]; do

@@ -16,7 +16,7 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
-find_root_device() {
+get_root_device() {
 	[ -r /etc/fstab ] || return
 
 	grep '^[^#]' /etc/fstab | ( \
@@ -28,10 +28,10 @@ find_root_device() {
 	done )
 }
 
-node_in_crypttab() {
+node_is_in_crypttab() {
 	local node
 	node=$1
-
+	
 	grep -q ^$node /etc/crypttab
 	return $?
 }
@@ -51,21 +51,22 @@ get_lvm_device() {
 }
 
 get_root_opts() {
-	local node extraopts rootopts opt
-	node=$1
+	local target source extraopts rootopts opt
+	target=$1
 	extraopts=$2
 
-	[ -z $node ] && return
+	[ ! -z $target ] || return
 	[ -r /etc/crypttab ] || return
 
-	rootopts=$( grep ^$node /etc/crypttab | \
-		    head -1 | sed 's/[ \t][ \t]+/ /g' | cut -d " " -f 4-)
+	opt=$( grep ^$target /etc/crypttab | head -1 | sed 's/[[:space:]]\+/ /g' )
+	source=$( echo $opt | cut -d " " -f2 )
+	rootopts=$( echo $opt | cut -d " " -f4- )
 
-	[ -z "$rootopts" ] && return 1
+	[ ! -z "$opt" -a ! -z "$source" -a ! -z "$rootopts" ] || return 1
 	[ ! -z "$extraopts" ] && rootopts="${extraopts},${rootopts}"
 
 	# We have all the basic options, let's go trough them
-	echo -n "node=$node"
+	echo -n "target=$target,source=$source"
 	local IFS=", "
 	for opt in $rootopts; do
 		case $opt in
@@ -101,7 +102,7 @@ get_root_modules() {
 }
 
 # Find out which device root is on
-rootdev=$(find_root_device)
+rootdev=$(get_root_device)
 [ -z "$rootdev" ] && exit 0
 
 # Check that it is a node under /dev/mapper/
@@ -110,7 +111,7 @@ node=${rootdev#/dev/mapper/}
 
 # Can we find this node in crypttab
 opts=""
-if ! node_in_crypttab $node; then
+if ! node_is_in_crypttab $node; then
 	# It is a /dev/mapper node but not in crypttab, is it lvm?
 	lvmtest=$(get_lvm_device $node)
 

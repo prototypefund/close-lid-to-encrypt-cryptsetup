@@ -6,4 +6,4 @@
 /usr/share/man/man8
 /usr/share/lintian/overrides
 /usr/share/initramfs-tools/hooks
-/usr/share/initramfs-tools/scripts/local-premount
+/usr/share/initramfs-tools/scripts/local-top
