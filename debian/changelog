@@ -46,6 +46,8 @@ cryptsetup (2:1.0.3-1) unstable; urgency=low
 
   [ David Härdeman ]
   * add lvm capabilities to initramfs scripts (closes: #362564)
+  * add cryptsetup.postinst which executes update-initramfs when 
+    cryptsetup is first installed (not on upgrades)
 
  -- Jonas Meurer <mejo@debian.org>  Sat, 13 May 2006 19:45:08 +0200
 
