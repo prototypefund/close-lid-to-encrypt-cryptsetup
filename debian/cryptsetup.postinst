@@ -13,7 +13,7 @@ set -e
 
 case "$1" in
     configure)
-	if [ -z "$2" -a -x /usr/sbin/update-initramfs ]; then
+	if [ -z "$2" && -x /usr/sbin/update-initramfs ]; then
 		# First install => update initramfs
 		update-initramfs -u
 	fi
