@@ -1,3 +1,10 @@
+cryptsetup (2:1.0.3-2) UNRELEASED; urgency=low
+
+  [ Jonas Meurer ]
+  * NOT RELEASED YET
+
+ -- Jonas Meurer <mejo@debian.org>  Mon, 15 May 2006 17:34:22 +0200
+
 cryptsetup (2:1.0.3-1) unstable; urgency=low
 
   [ Jonas Meurer ]
