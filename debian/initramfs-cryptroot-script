@@ -136,8 +136,14 @@ while [ 1 ]; do
 
 	if [ $? -eq 0 ] && fstype < "$NEWROOT" > /conf/param.conf; then
 		. /conf/param.conf
-		[ "$FSTYPE" = "lvm" ] && setup_lvm "$cryptlvm"
-		[ "$FSTYPE" != "unknown" ] && break
+
+		if [ "$FSTYPE" = "lvm" ] || [ "$FSTYPE" = "lvm2" ]; then
+			setup_lvm "$cryptlvm"
+		fi
+
+		if [ "$FSTYPE" != "unknown" ]; then
+			break
+		fi
 	fi
 
 	echo "$0: cryptsetup failed or fstype not recognized, bad password or options?"

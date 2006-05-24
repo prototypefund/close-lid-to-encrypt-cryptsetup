@@ -79,6 +79,9 @@ get_root_opts() {
 			size=*)
 				echo -n ",$opt"
 				;;
+			lvm=*)
+				echo -n ",$opt"
+				;;
 			*)
 				# Presumably a non-supported option
 				;;
