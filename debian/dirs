@@ -1,9 +1,10 @@
-/sbin
-/etc/init.d
 /etc/default
+/etc/init.d
 /lib/cryptsetup/checks
-/usr/share/man/man5
-/usr/share/man/man8
-/usr/share/lintian/overrides
+/sbin
+/usr/sbin
 /usr/share/initramfs-tools/hooks
 /usr/share/initramfs-tools/scripts/local-top
+/usr/share/lintian/overrides
+/usr/share/man/man5
+/usr/share/man/man8

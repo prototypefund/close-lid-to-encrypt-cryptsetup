@@ -101,7 +101,7 @@ install: build
 
 	install -m 0644 debian/cryptdisks.functions $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
 	install -m 0755 debian/checks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/checks/
-	install -m 0755 debian/luksformat $(CURDIR)/debian/cryptsetup/sbin/
+	install -m 0755 debian/luksformat $(CURDIR)/debian/cryptsetup/usr/sbin/
 	install -m 0644 debian/cryptsetup.lintian-override \
 			$(CURDIR)/debian/cryptsetup/usr/share/lintian/overrides/cryptsetup
 	install -m 0755 debian/initramfs-cryptroot-hook \
