@@ -3,6 +3,8 @@ cryptsetup (2:1.0.3-2) unstable; urgency=low
   [ David Härdeman ]
   * Add patch by Arjan Oosting <arjanoosting@home.nl) for lvm-on-cryptroot
     in initramfs scripts (closes: #362564)
+  * Allow initramfs to be created even if no options are set in
+    cryptsetup. Closes: #370180.
 
   [ Jonas Meurer ]
   * install luksformat to /usr/sbin, as it depends on perl (closes: #369923)
@@ -11,7 +13,7 @@ cryptsetup (2:1.0.3-2) unstable; urgency=low
   * fix cryptsetup output, patch by David Härdeman <david@2gen.com>
     (closes: #369575)
 
- -- Jonas Meurer <mejo@debian.org>  Fri,  2 Jun 2006 14:33:47 +0200
+ -- David Härdeman <david@2gen.com>  Sun,  4 Jun 2006 15:41:57 +0200
 
 cryptsetup (2:1.0.3-1) unstable; urgency=low
 
