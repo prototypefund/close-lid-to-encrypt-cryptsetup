@@ -16,9 +16,9 @@ cryptsetup (2:1.0.3-2) unstable; urgency=low
     Markus Nass and Darvid Härdeman for the suggestion.
   * always check for a swap partition before running mkswap
   * drop usage of strings from swap check, as it is in /usr/bin. thanks to
-    Markus Nass.
+    Markus Nass. 
 
- -- Jonas Meurer <mejo@debian.org>  Mon,  5 Jun 2006 18:18:43 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon,  5 Jun 2006 18:22:08 +0200
 
 cryptsetup (2:1.0.3-1) unstable; urgency=low
 
