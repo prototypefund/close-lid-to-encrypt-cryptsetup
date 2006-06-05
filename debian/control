@@ -9,6 +9,7 @@ Standards-Version: 3.7.2.0
 Package: cryptsetup
 Architecture: any
 Depends: ${shlibs:Depends}, dmsetup
+Suggests: udev
 Conflicts: cryptsetup-luks (<= 1.0.1-8), hashalot (<= 0.3-1)
 Replaces: cryptsetup-luks (<= 1.0.1-8)
 Description: configures encrypted block devices
