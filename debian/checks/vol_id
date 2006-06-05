@@ -1,6 +1,11 @@
 #!/bin/sh
 # this script depends on /lib/udev/vol_id from the udev package
 
+if test ! -x "/lib/udev/vol_id"; then
+  echo "WARNING: vol_id from udev is not available, impossible to run checks."
+  exit 0
+fi
+
 vol_id=`/lib/udev/vol_id -t $1 2>&1`
 
 if test -z "$2"; then
