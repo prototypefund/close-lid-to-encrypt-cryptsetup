@@ -18,9 +18,10 @@ esac
 exit 0
 
 @DPATCH@
---- cryptsetup-1.0.3.orig/lib/setup.c	2006-05-10 22:48:20.000000000 +0200
-+++ cryptsetup-1.0.3/lib/setup.c	2006-05-10 22:52:19.000000000 +0200
-@@ -130,13 +130,13 @@
+diff -urNad cryptsetup-1.0.3~/lib/setup.c cryptsetup-1.0.3/lib/setup.c
+--- cryptsetup-1.0.3~/lib/setup.c	2006-06-05 16:14:24.000000000 +0200
++++ cryptsetup-1.0.3/lib/setup.c	2006-06-05 16:14:24.000000000 +0200
+@@ -139,13 +139,13 @@
  /*
   * Password reading behaviour matrix of get_key
   * 
@@ -40,7 +41,7 @@ exit 0
   * 
   * Returns true when more keys are available (that is when password
   * reading can be retried as for interactive terminals).
-@@ -149,6 +149,7 @@
+@@ -158,6 +158,7 @@
  	const int verify_if_possible = options->flags & CRYPT_FLAG_VERIFY_IF_POSSIBLE;
  	char *pass = NULL;
  	int newline_stop;
@@ -48,7 +49,7 @@ exit 0
  	
  	if(options->key_file) {
  		fd = open(options->key_file, O_RDONLY);
-@@ -159,9 +160,14 @@
+@@ -168,9 +169,14 @@
  			goto out_err;
  		}	
  		newline_stop = 0;
@@ -63,7 +64,7 @@ exit 0
  	}	
  
  	/* Interactive case */
-@@ -202,7 +208,7 @@
+@@ -211,7 +217,7 @@
  		 * such as /dev/random, because in this case, the loop
  		 * will read forever.
  		 */ 
@@ -72,7 +73,7 @@ exit 0
  			struct stat st;
  			if(stat(options->key_file, &st) < 0) {
  		 		set_error("Can't stat key file");
-@@ -215,7 +221,7 @@
+@@ -224,7 +230,7 @@
  			}
  		}
  		buflen = 0;
