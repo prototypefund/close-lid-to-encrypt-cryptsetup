@@ -15,10 +15,11 @@ cryptsetup (2:1.0.3-2) unstable; urgency=low
     cryptdisks for that. suggest udev. closes one half of #370302. thanks to
     Markus Nass and Darvid Härdeman for the suggestion.
   * always check for a swap partition before running mkswap
+  * updated README.Debian, Checksystem.Doc and crypttab.5.txt accordingly.
   * drop usage of strings from swap check, as it is in /usr/bin. thanks to
-    Markus Nass. 
+    Markus Nass.
 
- -- Jonas Meurer <mejo@debian.org>  Mon,  5 Jun 2006 18:22:08 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon,  5 Jun 2006 18:27:07 +0200
 
 cryptsetup (2:1.0.3-1) unstable; urgency=low
 

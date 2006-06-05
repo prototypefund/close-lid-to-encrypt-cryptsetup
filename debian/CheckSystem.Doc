@@ -19,8 +19,9 @@ Currently, three different branches exist:
 ### swap ###
  - luks and a /dev/*random key are not compatible. disable this combination
  * precheck:
-   - is the device a swap partition? [default]
- * postcheck: useless
+   - is the source device a swap partition? [not implemented yet]
+ * postcheck:
+   - contains the target device a swap filesystem [default]
 
 note to swap: It's the users fault to mark a partition with type swap.
               Every live-cd will format partitions with type swap.
