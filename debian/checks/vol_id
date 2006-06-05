@@ -2,7 +2,7 @@
 # this script depends on /lib/udev/vol_id from the udev package
 
 if test ! -x "/lib/udev/vol_id"; then
-  echo "WARNING: vol_id from udev is not available, impossible to run checks."
+  echo -e "\n - WARNING: vol_id from udev is not available, impossible to run checks."
   exit 0
 fi
 
@@ -10,10 +10,10 @@ vol_id=`/lib/udev/vol_id -t $1 2>&1`
 
 if test -z "$2"; then
   if test "$vol_id" = "$1: unknown volume type"; then
-    echo "The device $1 does not contain a known filesystem."
+    echo -e "\n - The device $1 does not contain a known filesystem."
     exit 1
   fi
 elif test "$vol_id" != "$2"; then
-  echo "The device $1 does not contain a filesystem type $2."
+  echo -e "\n - The device $1 does not contain a filesystem type $2."
   exit 1
 fi

@@ -12,10 +12,13 @@ cryptsetup (2:1.0.3-2) unstable; urgency=low
     (closes: #369575)
   * add new check 'vol_id', which uses /lib/udev/vol_id from udev and supports
     checks for any known filesystem type. implement a new option checkargs in
-    cryptdisks for that. suggest udev. closes one half of #370302.
+    cryptdisks for that. suggest udev. closes one half of #370302. thanks to
+    Markus Nass and Darvid Härdeman for the suggestion.
   * always check for a swap partition before running mkswap
+  * drop usage of strings from swap check, as it is in /usr/bin. thanks to
+    Markus Nass.
 
- -- Jonas Meurer <mejo@debian.org>  Mon,  5 Jun 2006 16:59:22 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon,  5 Jun 2006 18:18:43 +0200
 
 cryptsetup (2:1.0.3-1) unstable; urgency=low
 
