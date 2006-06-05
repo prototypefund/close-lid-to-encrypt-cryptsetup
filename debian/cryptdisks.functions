@@ -88,6 +88,7 @@ parse_opts () {
 		  	if test "x$VALUE" != "x"; then
 				CHECKARGS="$VALUE"
 			fi
+			;;
 		  precheck)
 		  	if test "x$VALUE" = "x" ; then
 				PRECHECK="${CRYPTDISKS_PRECHECK}"
