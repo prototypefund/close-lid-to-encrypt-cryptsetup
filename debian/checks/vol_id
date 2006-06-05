@@ -1,0 +1,14 @@
+#!/bin/sh
+# this script depends on /lib/udev/vol_id from the udev package
+
+vol_id=`/lib/udev/vol_id -t $1 2>&1`
+
+if test -z "$2"; then
+  if test "$vol_id" = "$1: unknown volume type"; then
+    echo "The device $1 does not contain a known filesystem."
+    exit 1
+  fi
+elif test "$vol_id" != "$2"; then
+  echo "The device $1 does not contain a filesystem type $2."
+  exit 1
+fi

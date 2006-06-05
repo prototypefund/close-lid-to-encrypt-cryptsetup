@@ -33,7 +33,7 @@ It can also be a device name (eg. */dev/random*, which is useful for encrypted s
 Warning: luks does not support random data keys (like */dev/random*), it requires a persistent key.
 
 If the 'key file' is empty or the string *none*, the key data (ie. a password) will be read interactively from the console.
-In this case, the options precheck, check and tries may be useful.
+In this case, the options precheck, check, checkfor and tries may be useful.
 
 The fourth field 'options' describes the cryptsetup options associated with the encryption process.
 Options are in the format: 'key'='value'[,'key'='value' ...] The following options are supported:
@@ -73,8 +73,12 @@ device is given as argument to the script.
 *check*=<check>::
 Check the content of the device by a suitable program; if the check fails the
 device is removed. If a program is provided as argument, it is run, giving the
-decrypted volume (target device) as argument. Cryptdisks searches for the
-given program in /lib/cryptsetup/checks. Default is ext2.
+decrypted volume (target device) as first, and the value of the checkargs
+option as second argument. Cryptdisks searches for the given program in
+/lib/cryptsetup/checks. Default is vol_id.
+
+*checkargs*=<arguments>::
+Give arguments as second argument to the check script.
 
 *tries*=<num>::
 The input of the passphrase is tried <num> times in case that it fails. If you
@@ -104,16 +108,19 @@ EXAMPLES
 cswap /dev/sda6 /dev/random swap
 
 *Encrypted luks disk with interactive password*::
-cdisk1 /dev/hda1 none luks
+cdisk0 /dev/hda1 none luks
 
 *Encrypted ext2 disk with interactive password, retry 5 times if the check fails*::
-cdisk0 /dev/sda2 none check=ext2,tries=5
+cdisk1 /dev/sda2 none checkargs=ext2,tries=5
 
-*Encrypted disk with twofish as cipher*::
-cdisk2 /dev/sda3 none cipher=twofish
+*Encrypted disk with interactive password, use a nondefault check script, no retries*::
+cdisk2 /dev/hdc1 none check=customscript,tries=1
+
+*Encrypted disk with interactive password and twofish as cipher*::
+cdisk3 /dev/sda3 none cipher=twofish
 
 *Encrypted luks disk with a openssl-encrypted keyfile*::
-cdisk3 /dev/hda2 /etc/keys/keyfile luks,ssl
+cdisk4 /dev/hda2 /etc/keys/keyfile luks,ssl
 
 ENVIRONMENT
 -----------

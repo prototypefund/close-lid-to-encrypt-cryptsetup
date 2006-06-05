@@ -1,5 +1,5 @@
-This is the documentation for implementing a robust
-check system into /etc/init.d/cryptdisks
+This is the documentation for implementing a robust check system into
+/etc/init.d/cryptdisks
 
 checks marked with [default] should always be enabled.
 
@@ -10,19 +10,16 @@ basic ideas:
  - it should be possible to deactivate all default checks with options
    in crypttab.
 
-The only default check which applies to all situations is:
+The only default checks which apply to all situations are:
  * precheck: does the source device exist? [default]
+ * check: does the target device contain a known filesystem [default]
 
 Currently, three different branches exist:
 
 ### swap ###
  - luks and a /dev/*random key are not compatible. disable this combination
  * precheck:
-   - is the device a physical partition with type 'swap' (id 82)? [default]
-     + false: check for all known filesystems on the device
-       + true: abort
-   - maybe a check for suspend/resume (there are reported problems
-     with some of this on grml, but are not restricted to grml) [?default?]
+   - is the device a swap partition? [default]
  * postcheck: useless
 
 note to swap: It's the users fault to mark a partition with type swap.
@@ -30,7 +27,7 @@ note to swap: It's the users fault to mark a partition with type swap.
 
 ### plain dm-crypt ###
  * precheck:
-   - check for all known filesystems on the device
+   - check for all known filesystems on the device [not implemented yet]
      + true: abort
  * postcheck:
    - check what the user requested us to check [filesystem, lvm, ...]
@@ -45,4 +42,4 @@ note to plain dm-crypt: The postcheck (for filesystem or whatever) is the only
      + false: abort
  * postcheck:
    - check what the user requested us to check [filesystem, lvm, ...]
-     + false: just print a warning, the right password has been supplied.
+     + false: just print a warning, the right password has been supplied

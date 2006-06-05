@@ -10,8 +10,12 @@ cryptsetup (2:1.0.3-2) unstable; urgency=low
     compiled in (closes: #369878)
   * fix cryptsetup output, patch by David Härdeman <david@2gen.com>
     (closes: #369575)
+  * add new check 'vol_id', which uses /lib/udev/vol_id from udev and supports
+    checks for any known filesystem type. implement a new option checkargs in
+    cryptdisks for that. closes one half of #370302.
+  * always check for a swap partition before running mkswap
 
- -- Jonas Meurer <mejo@debian.org>  Fri,  2 Jun 2006 14:33:47 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon,  5 Jun 2006 16:50:43 +0200
 
 cryptsetup (2:1.0.3-1) unstable; urgency=low
 

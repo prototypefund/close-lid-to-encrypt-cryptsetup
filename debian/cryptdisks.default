@@ -7,7 +7,7 @@ CRYPTDISKS_MOUNT=""
 
 # Default check script, see /lib/cryptsetup/checks/
 # Takes effect, if the 'check' option is set in crypttab without a value
-CRYPTDISKS_CHECK=ext2
+CRYPTDISKS_CHECK=vol_id
 
 # Default precheck script, see 
 # Takes effect, if the 'precheck' option is set in crypttab without a value
