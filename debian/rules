@@ -65,7 +65,7 @@ build-stamp: config.status patch-stamp
 	sed -i 's/<emphasis role="strong">/<emphasis role="bold">/g' debian/crypttab.5.xml
 	xsltproc -o debian/crypttab.5 /usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl \
 		debian/crypttab.5.xml
-	pod2man --section=8 --center="Administrative commands" --release="" debian/luksformat \
+	pod2man --section=8 --center="Administrative commands" --release="" debian/scripts/luksformat \
 		debian/luksformat.8
 	$(MAKE)
 	# cannot depend on libraries in /usr !
@@ -101,7 +101,8 @@ install: build
 
 	install -m 0644 debian/cryptdisks.functions $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
 	install -m 0755 debian/checks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/checks/
-	install -m 0755 debian/luksformat $(CURDIR)/debian/cryptsetup/usr/sbin/
+	install -m 0755 debian/scripts/luksformat $(CURDIR)/debian/cryptsetup/usr/sbin/
+	install -m 0755 debian/scripts/decrypt_* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
 	install -m 0644 debian/cryptsetup.lintian-override \
 			$(CURDIR)/debian/cryptsetup/usr/share/lintian/overrides/cryptsetup
 	install -m 0755 debian/initramfs-cryptroot-hook \
@@ -118,7 +119,7 @@ binary-arch: build install
 	dh_testroot
 	dh_installchangelogs ChangeLog
 	dh_installdocs
-	dh_installexamples debian/gen-ssl-key
+	dh_installexamples debian/scripts/gen-ssl-key
 	dh_installinit -a --no-start --name=cryptdisks-early --update-rcd-params="start 26 S . start 59 0 6 ."
 	dh_installinit -a --no-start --name=cryptdisks --update-rcd-params="start 28 S . start 48 0 6 ."
 	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/

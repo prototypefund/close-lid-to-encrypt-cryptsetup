@@ -1,6 +1,7 @@
 /etc/default
 /etc/init.d
 /lib/cryptsetup/checks
+/lib/cryptsetup/scripts
 /sbin
 /usr/sbin
 /usr/share/initramfs-tools/hooks
