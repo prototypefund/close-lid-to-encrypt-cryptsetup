@@ -133,8 +133,6 @@ parse_opts () {
 		  	;;
 		  swap)
 		  	MAKESWAP=yes
-			CHECK="/lib/cryptsetup/checks/vol_id"
-			CHECKARGS=swap
 		  	;;
 		  tmp)
 		  	MAKETMP=yes
