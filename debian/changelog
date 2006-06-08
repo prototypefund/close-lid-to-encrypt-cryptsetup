@@ -5,8 +5,10 @@ cryptsetup (2:1.0.3-3) unstable; urgency=low
     default. if the swap partition is encrypted with a random key, the check
     will always fail. thanks to Mika Bostrom <bostik@bostik.iki.fi>
     (closes: #371135, #371160)
+  * update and simplify the gen-ssl-key script, thanks to Markus Nass
+    <generalstone@gmx.net>
 
- -- Jonas Meurer <mejo@debian.org>  Thu,  8 Jun 2006 14:27:11 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu,  8 Jun 2006 14:36:10 +0200
 
 cryptsetup (2:1.0.3-2) unstable; urgency=low
 

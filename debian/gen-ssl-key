@@ -1,12 +1,13 @@
 #!/bin/sh
 #
-# script to generate a keyfile that is encrypted twice with openssl
+# script to generate a keyfile that is encrypted with openssl
 #
 # Written 2005 by Markus Nass <generalstone@gmx.net>
 # Improved 2006 by Jonas Meurer <jonas@freesources.org>
+# Further improved 2006 by Markus Nass <generalstone@gmx.net>
 
 usage() {
-  echo "Usage: $0 <key> [<dsaparam>]"
+  echo "Usage: $0 <key>"
   exit 1
 }
 
@@ -14,31 +15,11 @@ if [ "$1" = "" -o "$1" = "-h" -o "$1" = "--help" ]; then
   usage
 fi
 
-[ -x /usr/bin/openssl ] || exit 1
-
-if [ "$2" = "" ]; then
-  dsaparam=`tempfile`
-  tmp1=`tempfile`
-  tmp2=`tempfile`
-  dd if=/dev/urandom of=$tmp1 bs=1M count=4
-  dd if=/dev/urandom of=$tmp2 bs=1M count=4
-  /usr/bin/openssl dsaparam -out $dsaparam -rand $tmp1:$tmp2 4096
-  rm -f $tmp1 $tmp2
+if [ -x /usr/bin/openssl ]; then
+	key=`tempfile`
+	dd if=/dev/random of=$key bs=1c count=256
+	openssl enc -aes-256-cbc -e -salt -in $key -out $1
+	rm -f $key; key=""
 else
-  dsaparam=$2
-  deldsaparam="no"
+	echo "/usr/bin/openssl is not available" && exit 1
 fi
-
-dsakey=`tempfile`
-
-if ( ! /usr/bin/openssl gendsa -aes256 -out $dsakey -rand \
-     /boot/vmlinuz:/boot/System.map $dsaparam ); then
-  rm -f $dsakey
-  [ "$deldsaparam" = "no" ] || rm -f $dsaparam
-  exit 1
-fi
-
-openssl enc -aes256 -e -salt -in $dsakey -out $1
-
-rm -f $dsakey
-[ "$deldsaparam" = "no" ] || rm -f $dsaparam

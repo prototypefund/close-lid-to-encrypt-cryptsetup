@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# Script to decrypt the key which is encrypted with openssl.
+# See /usr/share/doc/cryptsetup/examples/gen-ssl-key to create such a key.
+#
+
+decrypt_ssl () {
+	origumask=`umask`
+	umask 077
+	tmpkey=`tempfile`
+
+	while ( ! /usr/bin/openssl enc -aes-256-cbc -d -salt -in $1 -out $tmpkey \
+	          -k $password > /dev/null 2>&1 ); do
+		echo -en "\nPassword for key $1: "
+		read -s password <${CONSOLE:-/dev/tty}
+		echo
+		[ "$password" = "" ] && return 0
+	done
+
+	password=""
+	rm -f $tmpkey && tmpkey=""
+	umask $origumask
+}
+
+decrypt_ssl $1
