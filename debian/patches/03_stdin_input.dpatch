@@ -18,7 +18,6 @@ esac
 exit 0
 
 @DPATCH@
-diff -urNad cryptsetup-1.0.3~/lib/setup.c cryptsetup-1.0.3/lib/setup.c
 --- cryptsetup-1.0.3~/lib/setup.c	2006-06-05 16:14:24.000000000 +0200
 +++ cryptsetup-1.0.3/lib/setup.c	2006-06-05 16:14:24.000000000 +0200
 @@ -139,13 +139,13 @@

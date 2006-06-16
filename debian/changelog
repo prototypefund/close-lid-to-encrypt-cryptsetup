@@ -11,8 +11,10 @@ cryptsetup (2:1.0.3-3) unstable; urgency=low
     source.
   * add new directory /lib/cryptsetup/scripts/ for key decryption scripts like
     decrypt_ssl and decrypt_gpg.
+  * add 05_fix_pointer_and_int_comparison.dpatch, fixes compiler warnings on
+    64bit architectures. Thanks to David Härdeman for the patch.
 
- -- Jonas Meurer <mejo@debian.org>  Thu,  8 Jun 2006 14:44:23 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 16 Jun 2006 14:10:27 +0200
 
 cryptsetup (2:1.0.3-2) unstable; urgency=low
 
