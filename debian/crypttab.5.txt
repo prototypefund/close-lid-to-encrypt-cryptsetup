@@ -80,6 +80,10 @@ option as second argument. Cryptdisks searches for the given program in
 *checkargs*=<arguments>::
 Give arguments as second argument to the check script.
 
+For check=vol_id this may be:
+none - succeeds if no valid filesystem is found on the device.
+{ext2,ext3,crypto_LUKS} - succeeds if the given filesystem type is found on the device.
+
 *tries*=<num>::
 The input of the passphrase is tried <num> times in case that it fails. If you
 want to disable retries, give tries=1 as argument. Default is 3.
