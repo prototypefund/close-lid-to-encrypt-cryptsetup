@@ -110,6 +110,11 @@ activate_vg()
 		return 1
 	fi
 
+	# Make sure that the device contains at least one dash
+	if [ "$(echo -n "$vg" | tr -d -)" = "$vg" ]; then
+		return 1
+	fi
+
 	# Split volume group from logical volume.
 	vg=$(echo ${vg} | sed -e 's#\(.*\)\([^-]\)-[^-].*#\1\2#')
 	# Reduce padded --'s to -'s
