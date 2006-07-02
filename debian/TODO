@@ -3,3 +3,4 @@ TODO-list for cryptsetup in Debian
 * improve the checks, see CheckSystem.Doc for more information
 * add support for gnupg encrypted keys to cryptdisks
 * improve documentation for encrypted root
+* add BUSYBOX=Y to the relevant initramfs-tools config file once 0.67 is out
