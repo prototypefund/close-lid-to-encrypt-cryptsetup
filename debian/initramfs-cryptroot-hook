@@ -153,5 +153,11 @@ copy_exec /sbin/cryptsetup /sbin
 copy_exec /sbin/dmsetup /sbin
 [ -x "/sbin/cryptgetpw" ] && copy_exec /sbin/cryptgetpw /sbin
 
+# Allow the correct keymap to be loaded if possible
+if [ -e /bin/loadkeys -a -r /etc/console/boottime.kmap.gz ]; then
+	copy_exec /bin/loadkeys /bin/
+	cp /etc/console/boottime.kmap.gz $DESTDIR/etc/
+fi
+
 # Done
 exit 0

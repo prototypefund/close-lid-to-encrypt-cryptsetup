@@ -124,6 +124,12 @@ activate_vg()
 	return $?
 }
 
+load_keymap()
+{
+	if [ -x /bin/loadkeys -a -r /etc/boottime.kmap.gz ]; then
+		loadkeys -q /etc/boottime.kmap.gz
+	fi
+}
 
 #
 # Begin real processing
@@ -139,6 +145,9 @@ fi
 if [ ! -e $cryptsource ]; then
 	panic "$0: source device $cryptsource not found"
 fi
+
+# If possible, load the keymap so that the user can input non-en characters
+load_keymap
 
 # prepare commands
 if /sbin/cryptsetup isLuks $cryptsource > /dev/null 2>&1; then
