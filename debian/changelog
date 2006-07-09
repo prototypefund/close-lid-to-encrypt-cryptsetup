@@ -15,7 +15,7 @@ cryptsetup (2:1.0.3-3) unstable; urgency=low
     64bit architectures. Thanks to David Härdeman for the patch.
 
   [ David Härdeman ]
-  * Support roon-on-crypto-on-lvm in the initramfs scripts without
+  * Support root-on-crypto-on-lvm in the initramfs scripts without
     having to change the root variable (closes: #371846)
   * If possible, load correct keymap in the initramfs image before any
     password prompts (closes: #376393)
