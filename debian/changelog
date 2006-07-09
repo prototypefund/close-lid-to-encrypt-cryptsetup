@@ -4,7 +4,7 @@ cryptsetup (2:1.0.3-3) unstable; urgency=low
   * revert the change that for swap devices the vol_id check is run by
     default. if the swap partition is encrypted with a random key, the check
     will always fail. thanks to Mika Bostrom <bostik@bostik.iki.fi>
-    (closes: #371135, #371160)
+    (closes: #371135, #371160, #377434)
   * update and simplify the gen-ssl-key script, thanks to Markus Nass
     <generalstone@gmx.net>
   * move gen-ssl-key, decrypt_ssl and luksformat to debian/scripts in the
@@ -20,7 +20,7 @@ cryptsetup (2:1.0.3-3) unstable; urgency=low
   * If possible, load correct keymap in the initramfs image before any
     password prompts (closes: #376393)
 
- -- David Härdeman <david@2gen.com>  Sun,  2 Jul 2006 19:49:24 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun,  9 Jul 2006 14:13:02 +0200
 
 cryptsetup (2:1.0.3-2) unstable; urgency=low
 
