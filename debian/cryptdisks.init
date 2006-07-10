@@ -34,8 +34,8 @@ case "$1" in
 	do_stop
 	;;
   restart|reload|force-reload)
-	do_start
 	do_stop
+	do_start
 	;;
   *)
 	echo "Usage: cryptdisks {start|stop|restart|reload|force-reload}"
