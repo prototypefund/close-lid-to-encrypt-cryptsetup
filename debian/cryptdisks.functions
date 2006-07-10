@@ -125,7 +125,7 @@ parse_opts () {
 			  [0-9]*)
 			  	;;
 			  *)
-			  	echo - "\n - option TIMEOUT is wrongly set to $TIMEOUT - forced to '0' " >&2
+			  	echo -e "\n - option TIMEOUT is wrongly set to $TIMEOUT - forced to '0' " >&2
 				TIMEOUT="0"
 				;;
 			esac
