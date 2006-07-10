@@ -301,7 +301,11 @@ do_luks () {
 }
 
 do_noluks () {
-	if [ "$PRECHECK" = "" ] || $PRECHECK $src; then
+	if [ "$PRECHECK" = "" ]; then
+	  PRECHECK="/lib/cryptsetup/checks/vol_id"
+	  PRECHECKARGS="none"
+	fi
+	if $PRECHECK $src $PRECHECKARGS; then
 		if test "x$INTERACTIVE" != "xyes" ; then
 			PARAMS="$PARAMS --key-file=$key"
 		fi

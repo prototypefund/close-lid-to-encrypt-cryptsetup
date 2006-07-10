@@ -19,16 +19,23 @@ Currently, three different branches exist:
 ### swap ###
  - luks and a /dev/*random key are not compatible. disable this combination
  * precheck:
-   - is the source device a swap partition? [not implemented yet]
+   - is the source device a swap partition? [not default, corner cases may
+     exist]. use options "precheck=swap" for enabling this.
  * postcheck:
-   - contains the target device a swap filesystem [default]
+   - does the target device contain a swap filesystem [not default, corner
+     cases may exist]. use options "check=vol_id, checkargs=swap" for enabling
+     this.
+   - we may implement a postcheck which fails if any valid filesystem other than
+     swap is found. [not implemented yet]
 
-note to swap: It's the users fault to mark a partition with type swap.
-              Every live-cd will format partitions with type swap.
+note to swap: You may destroy data whenever setting the 'swap' flag. The
+              source partition, logical volume, whatever may contain data which
+	      is lost after mkswap is run over it. Keep that in mind and double-
+	      check whether the given source device is really the one you meant.
 
 ### plain dm-crypt ###
  * precheck:
-   - check for all known filesystems on the device [not implemented yet]
+   - check for all known filesystems on the device [default]
      + true: abort
  * postcheck:
    - check what the user requested us to check [filesystem, lvm, ...]
