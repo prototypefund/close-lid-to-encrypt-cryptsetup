@@ -19,14 +19,15 @@ Currently, three different branches exist:
 ### swap ###
  - luks and a /dev/*random key are not compatible. disable this combination
  * precheck:
-   - is the source device a swap partition? [not default, corner cases may
-     exist]. use options "precheck=swap" for enabling this.
+   - is the source device a swap partition? [not default, corner cases exist.
+     i.e. this doesn't work with logical volumes]
+     use options "precheck=swap" for enabling this.
  * postcheck:
+   - does the target device conatin any filesystem type other than 'swap'?
+     fail in case. [default]
    - does the target device contain a swap filesystem [not default, corner
-     cases may exist]. use options "check=vol_id, checkargs=swap" for enabling
-     this.
-   - we may implement a postcheck which fails if any valid filesystem other than
-     swap is found. [not implemented yet]
+     cases exist. i.e. when a random key is used].
+     use options "check=vol_id, checkargs=swap" for enabling this.
 
 note to swap: You may destroy data whenever setting the 'swap' flag. The
               source partition, logical volume, whatever may contain data which
