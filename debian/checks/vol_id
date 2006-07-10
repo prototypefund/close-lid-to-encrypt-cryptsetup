@@ -1,6 +1,13 @@
 #!/bin/sh
 # this script depends on /lib/udev/vol_id from the udev package
 
+# usage: vol_id <device> <fs_type>
+# <device> may be any device that should be checked.
+# if no <fs_type> is given, the check fails if no valid filesystem is found.
+# if <fs_type> is given, the check fails when no filesystem type <fs_type>
+# is found on the device. if <fs_type> is 'none', the check fails if any
+# know filesystem is found.
+
 if test ! -x "/lib/udev/vol_id"; then
   echo -e "\n - WARNING: vol_id from udev is not available, impossible to run checks."
   exit 0
@@ -11,14 +18,12 @@ fs=$2
 
 vol_id=`/lib/udev/vol_id -t $dev 2>&1`
 
-if test "$vol_id" = "$dev: unknown volume type"; then
-  if test -z "$fs"; then
-    echo -e "\n - The device $dev does not contain a known filesystem."
-    exit 1
-  elif test "$fs" = "none"; then
-    echo -e "\n - The device $dev contains the valid filesystem type $vol_id."
-    exit 1
-  fi
+if test "$vol_id" = "$dev: unknown volume type" -a -z "$fs"; then
+  echo -e "\n - The device $dev does not contain a known filesystem."
+  exit 1
+elif test "$vol_id" != "$dev: unknown volume type" -a "$fs" = "none"; then
+  echo -e "\n - The device $dev contains a valid filesystem type $vol_id."
+  exit 1
 elif test -n "$fs" -a "$vol_id" != "$fs"; then
   echo -e "\n - The device $dev does not contain a filesystem type $fs."
   exit 1

@@ -133,6 +133,8 @@ parse_opts () {
 		  	;;
 		  swap)
 		  	MAKESWAP=yes
+			SWCHECK="/lib/cryptsetup/checks/un_vol_id"
+			SWCHECKARGS="swap"
 		  	;;
 		  tmp)
 		  	MAKETMP=yes
@@ -342,7 +344,13 @@ umount_fs () {
 
 do_swap () {
 	if test "x$MAKESWAP" = "xyes" && test -b $MAPPER/$dst; then
-		mkswap $MAPPER/$dst 2>/dev/null >/dev/null
+		if $SWCHECK $MAPPER/$dst $SWCHECKARGS; then
+			mkswap $MAPPER/$dst 2>/dev/null >/dev/null
+		else
+			echo -e "\n - the check for '$MAPPER/$dst' failed. $MAPPER/$dst contains data." >&2
+			echo " - removing the crypto device $dst" >&2
+			do_close
+		fi
 	fi
 }
 
@@ -358,6 +366,14 @@ do_tmp () {
 clean_keys () {
 	if [ "$deckey" -a -f "$deckey" ]; then
 		rm -f $deckey && deckey=""
+	fi
+}
+
+do_close () {
+	if grep -q luks $opt; then
+		$CRYPTCMD luksClose $dst
+	else
+		$CRYPTCMD remove $dst
 	fi
 }
 
@@ -402,7 +418,7 @@ do_start () {
 do_stop () {
 	$DEVMAPCMD mknodes
 	log_action_begin_msg "Stopping $INITSTATE crypto disks"
-	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key; do
+	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opt; do
 		if test -b $MAPPER/$dst; then
 			if $DEVMAPCMD info $dst | grep -q '^Open count: *0$'; then
 				dev=`$DEVMAPCMD table $dst | sed 's/^.* \([0-9]*:[0-9]*\) .*/\1/'`
@@ -410,7 +426,7 @@ do_stop () {
 				minor=`echo $dev | sed 's/.*://'`
 
 				log_progress_msg "$dst(stopping)"
-				$CRYPTCMD remove $dst
+				do_close
 
 				# Detach loopback device, if attached
 				if test -f $src -a $major -eq 7; then

@@ -5,7 +5,12 @@ cryptsetup (2:1.0.3-3) unstable; urgency=low
     default. if the swap partition is encrypted with a random key, the check
     will always fail. thanks to Mika Bostrom <bostik@bostik.iki.fi>
     (closes: #371135, #371160, #377434)
-  * fix the vol_id check to do what it's expected to do.
+  * fix the vol_id checkscript to do what it's expected to do.
+  * add the un_vol_id checkscript, which does the reverse of vol_id.
+  * use 'check=un_vol_id, checkargs=swap' for swap devices per default.
+  * added do_close function to cryptdisks.functions, as do_swap needs to use
+    it. up to now, 'cryptsetup remove' was invoked regardless whether the
+    device contains a LUKS partition or not. this is fixed now too.
   * allow custom check scripts. check only if $CHECK exists in
     /lib/cryptsetup/checks/ and use the given value as full path otherwise.
   * make precheck for no_luks mandatory, fail if any known filesystem is
@@ -30,7 +35,7 @@ cryptsetup (2:1.0.3-3) unstable; urgency=low
   * If possible, load correct keymap in the initramfs image before any
     password prompts (closes: #376393)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 10 Jul 2006 19:29:26 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 10 Jul 2006 20:01:02 +0200
 
 cryptsetup (2:1.0.3-2) unstable; urgency=low
 
