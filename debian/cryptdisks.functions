@@ -80,8 +80,8 @@ parse_opts () {
 		  	fi
 		  	if [ "$CHECK" -a -x /lib/cryptsetup/checks/"$CHECK" ]; then
 		   		CHECK="/lib/cryptsetup/checks/$CHECK"
-		  	else
-		  		CHECK=""
+		  	#else
+		  	#	CHECK=""
 		  	fi
 		  	;;
 		  checkargs)

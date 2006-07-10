@@ -6,15 +6,20 @@ if test ! -x "/lib/udev/vol_id"; then
   exit 0
 fi
 
-vol_id=`/lib/udev/vol_id -t $1 2>&1`
+dev=$1
+fs=$2
 
-if test -z "$2" -a "$vol_id" = "$1: unknown volume type"; then
-  echo -e "\n - The device $1 does not contain a known filesystem."
-  exit 1
-elif test "$2" = "none" -a "$vol_id" != "$1: unknown volume type"; then
-  echo -e "\n - The device $1 contains the valid filesystem type $2."
-  exit 1
-elif test "$vol_id" != "$2"; then
-  echo -e "\n - The device $1 does not contain a filesystem type $2."
+vol_id=`/lib/udev/vol_id -t $dev 2>&1`
+
+if test "$vol_id" = "$dev: unknown volume type"; then
+  if test -z "$fs"; then
+    echo -e "\n - The device $dev does not contain a known filesystem."
+    exit 1
+  elif test "$fs" = "none"; then
+    echo -e "\n - The device $dev contains the valid filesystem type $vol_id."
+    exit 1
+  fi
+elif test -n "$fs" -a "$vol_id" != "$fs"; then
+  echo -e "\n - The device $dev does not contain a filesystem type $fs."
   exit 1
 fi
