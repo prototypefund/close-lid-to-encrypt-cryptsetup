@@ -75,14 +75,11 @@ Check the content of the device by a suitable program; if the check fails the
 device is removed. If a program is provided as argument, it is run, giving the
 decrypted volume (target device) as first, and the value of the checkargs
 option as second argument. Cryptdisks searches for the given program in
-/lib/cryptsetup/checks. Default is vol_id.
+/lib/cryptsetup/checks/. Default is vol_id.
 
 *checkargs*=<arguments>::
-Give arguments as second argument to the check script.
-
-For check=vol_id this may be:
-none - succeeds if no valid filesystem is found on the device.
-{ext2,ext3,crypto_LUKS} - succeeds if the given filesystem type is found on the device.
+Give <arguments> as second argument to the check script. See description for CHECKSCRIPTS
+for more information.
 
 *tries*=<num>::
 The input of the passphrase is tried <num> times in case that it fails. If you
@@ -105,6 +102,25 @@ root filesystems or if /usr is a seperate filesystem.
 Decrypt the keyfile with gnupg before actually using it for cryptsetup. This
 requires /usr/bin/gnupg to be available. Thus it doesn't work for encrypted
 root filesystems or if /usr is a seperate filesystem.
+
+CHECKSCRIPTS
+------------
+*vol_id*::
+Checks for any known filesystem. Supports a filesystem type as argument via
+<checkargs>:
+no checkargs - succeeds if any valid filesystem is found on the device.
+"none" - succeeds if no valid filesystem is found on the device.
+"ext3" [or any other filesystem type like xfs, swap, crypto_LUKS, whatever] - succeeds
+if an ext3 [or another given] filesystem type is found on the device.
+
+*ext3*::
+Checks for a valid ext2/ext3 filesystem.
+
+*xfs*::
+Checks for a valid xfs filesystem.
+
+*swap*::
+Checks for partition type 'swap'. Only useful as <precheck>.
 
 EXAMPLES
 --------

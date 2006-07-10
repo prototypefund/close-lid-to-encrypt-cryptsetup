@@ -8,6 +8,8 @@ cryptsetup (2:1.0.3-3) unstable; urgency=low
   * fix the vol_id check to do what it's expected to do.
   * allow custom check scripts. check only if $CHECK exists in
     /lib/cryptsetup/checks/ and use the given value as full path otherwise.
+  * update crypttab manpage to reflect the checksystem changes. added an own
+    section for check scripts.
   * update and simplify the gen-ssl-key script, thanks to Markus Nass
     <generalstone@gmx.net>
   * move gen-ssl-key, decrypt_ssl and luksformat to debian/scripts in the
@@ -26,7 +28,7 @@ cryptsetup (2:1.0.3-3) unstable; urgency=low
   * If possible, load correct keymap in the initramfs image before any
     password prompts (closes: #376393)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 10 Jul 2006 16:51:59 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 10 Jul 2006 18:47:46 +0200
 
 cryptsetup (2:1.0.3-2) unstable; urgency=low
 
