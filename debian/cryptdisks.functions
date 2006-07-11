@@ -304,10 +304,9 @@ do_luks () {
 
 do_noluks () {
 	if [ "$PRECHECK" = "" ]; then
-	  PRECHECK="/lib/cryptsetup/checks/vol_id"
-	  PRECHECKARGS="none"
+	  PRECHECK="/lib/cryptsetup/checks/un_vol_id"
 	fi
-	if $PRECHECK $src $PRECHECKARGS; then
+	if $PRECHECK $src; then
 		if test "x$INTERACTIVE" != "xyes" ; then
 			PARAMS="$PARAMS --key-file=$key"
 		fi
@@ -370,7 +369,7 @@ clean_keys () {
 }
 
 do_close () {
-	if grep -q luks $opt; then
+	if echo $opt | grep -q "luks"; then
 		$CRYPTCMD luksClose $dst
 	else
 		$CRYPTCMD remove $dst
