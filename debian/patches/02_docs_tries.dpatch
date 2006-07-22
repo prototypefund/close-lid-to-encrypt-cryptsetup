@@ -18,8 +18,8 @@ esac
 exit 0
 
 @DPATCH@
---- cryptsetup.8.orig	2006-07-22 15:02:53.000000000 +0200
-+++ cryptsetup.8	2006-07-22 15:04:27.000000000 +0200
+--- cryptsetup-1.0.3/man/cryptsetup.8	2006-07-22 15:02:53.000000000 +0200
++++ cryptsetup-1.0.3/man/cryptsetup.8	2006-07-22 15:04:27.000000000 +0200
 @@ -58,7 +58,7 @@
  .IP
  add a new key file/passphrase. An existing passphrase or key file (via \-\-key-file) must be supplied. The key file with the new material is supplied as after \fIluksAddKey\fR as positional argument. <options> can be [\-\-key-file].
