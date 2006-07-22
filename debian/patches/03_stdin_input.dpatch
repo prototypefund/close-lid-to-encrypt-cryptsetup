@@ -1,4 +1,4 @@
-#! /bin/sh -e
+#!/bin/sh -e
 # 03_stdin_input.dpatch by David Härdeman <david@2gen.com>
 #
 ## DP: fix stdin input, allow more than 32 characters

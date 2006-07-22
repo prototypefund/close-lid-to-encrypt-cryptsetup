@@ -1,4 +1,4 @@
-#! /bin/sh -e
+#!/bin/sh -e
 # 03_status_exit_codes.dpatch by David Häeman <david@2gen.com>
 #
 ## DP: fix exit codes of cryptsetup status
