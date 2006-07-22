@@ -6,7 +6,7 @@ cryptsetup (2:1.0.3-4) unstable; urgency=low
     Bihlmeyer <robbe@orcus.priv.at> (closes: #378422)
   * Add some more german translations to de.po.
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 22 Jul 2006 15:15:59 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 22 Jul 2006 15:41:18 +0200
 
 cryptsetup (2:1.0.3-3) unstable; urgency=low
 

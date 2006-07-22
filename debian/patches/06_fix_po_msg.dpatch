@@ -1,6 +1,25 @@
-diff -rNu cryptsetup-1.0.3.orig/po/cryptsetup-luks.pot cryptsetup-1.0.3/po/cryptsetup-luks.pot
---- cryptsetup-1.0.3.orig/po/cryptsetup-luks.pot	2006-07-22 15:10:40.000000000 +0200
-+++ cryptsetup-1.0.3/po/cryptsetup-luks.pot	2006-07-22 15:11:55.000000000 +0200
+#!/bin/sh -e
+# 06_fix_po_msg.dpatch by Jonas Meurer <jonas@freesources.org>
+#
+## DP: fix messages and po translation files
+
+if [ $# -ne 1 ]; then
+    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+    exit 1
+fi
+case "$1" in
+    -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
+    -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
+    *)
+        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
+        exit 1;;
+esac
+
+exit 0
+
+@DPATCH@
+--- cryptsetup-1.0.3.orig/po/cryptsetup-luks.pot	2006-04-02 10:37:39.000000000 +0200
++++ cryptsetup-1.0.3/po/cryptsetup-luks.pot	2006-07-22 15:36:58.000000000 +0200
 @@ -153,7 +153,7 @@
  
  #: src/cryptsetup.c:90
@@ -10,9 +29,8 @@ diff -rNu cryptsetup-1.0.3.orig/po/cryptsetup-luks.pot cryptsetup-1.0.3/po/crypt
  msgstr ""
  
  #: src/cryptsetup.c:224
-diff -rNu cryptsetup-1.0.3.orig/po/de.po cryptsetup-1.0.3/po/de.po
 --- cryptsetup-1.0.3.orig/po/de.po	2006-04-02 10:37:40.000000000 +0200
-+++ cryptsetup-1.0.3/po/de.po	2006-07-22 15:13:25.000000000 +0200
++++ cryptsetup-1.0.3/po/de.po	2006-07-22 15:39:02.000000000 +0200
 @@ -37,7 +37,7 @@
  #: luks/keymanage.c:75
  #, c-format
@@ -27,7 +45,7 @@ diff -rNu cryptsetup-1.0.3.orig/po/de.po cryptsetup-1.0.3/po/de.po
  #, c-format
  msgid "unknown version %d\n"
 -msgstr ""
-+msgstr "Unbekannte Version %d\n"
++msgstr "Unbekannte version %d\n"
  
  #: luks/keymanage.c:210
  #, c-format
@@ -47,9 +65,8 @@ diff -rNu cryptsetup-1.0.3.orig/po/de.po cryptsetup-1.0.3/po/de.po
  
  #: src/cryptsetup.c:224
  #, c-format
-diff -rNu cryptsetup-1.0.3.orig/src/cryptsetup.c cryptsetup-1.0.3/src/cryptsetup.c
---- cryptsetup-1.0.3.orig/src/cryptsetup.c	2006-04-02 10:18:42.000000000 +0200
-+++ cryptsetup-1.0.3/src/cryptsetup.c	2006-07-22 15:11:44.000000000 +0200
+--- cryptsetup-1.0.3.orig/src/cryptsetup.c	2006-07-22 15:36:17.000000000 +0200
++++ cryptsetup-1.0.3/src/cryptsetup.c	2006-07-22 15:37:10.000000000 +0200
 @@ -87,7 +87,7 @@
  		}
  	}
