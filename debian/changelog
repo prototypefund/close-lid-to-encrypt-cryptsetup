@@ -1,8 +1,12 @@
 cryptsetup (2:1.0.3-4) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * Fix luksDelKey documentation in the manpage, thanks to Magnus Therning
+    <magnus@therning.org> (closes: #379084)
+  * Add missing newline to "Command failed" message, thanks to Robert
+    Bihlmeyer <robbe@orcus.priv.at> (closes: #378422)
+  * Add some more german translations to de.po.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 11 Jul 2006 19:01:05 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 22 Jul 2006 15:15:59 +0200
 
 cryptsetup (2:1.0.3-3) unstable; urgency=low
 
