@@ -5,3 +5,4 @@
 04_status_exit_codes
 05_fix_pointer_and_int_comparison
 06_fix_po_msg
+07_luksAddKey.dpatch
