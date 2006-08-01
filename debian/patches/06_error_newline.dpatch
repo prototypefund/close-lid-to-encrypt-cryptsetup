@@ -1,7 +1,7 @@
 #!/bin/sh -e
 # 06_fix_po_msg.dpatch by Jonas Meurer <jonas@freesources.org>
 #
-## DP: add missing newline to "Command failed"
+## DP: add missing newline to "Command failed."
 
 if [ $# -ne 1 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"

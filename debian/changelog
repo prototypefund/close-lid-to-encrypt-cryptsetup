@@ -1,16 +1,17 @@
 cryptsetup (2:1.0.3-4) unstable; urgency=low
 
-  * Fix luksDelKey documentation in the manpage, thanks to Magnus Therning
-    <magnus@therning.org> (closes: #379084)
-  * Add missing newline to "Command failed" message, thanks to Robert
-    Bihlmeyer <robbe@orcus.priv.at> (closes: #378422)
+  * Fix luksDelKey documentation in the manpage, thanks to Magnus Therning.
+    (closes: #379084)
   * Add some more german translations to de.po.
-  * Add a note to NEWS.Debian where the fix for #376393 is explained.
-    (closes: #379719)
+  * Add a note to NEWS.Debian where the fix for #376393 is explained. thanks
+    to Robert Bihlmeyer for the report. (closes: #379719)
+  * [06_error_newline.dpatch] Add missing newline to "Command failed" message.
+    thanks to Robert Bihlmeyer for the report. (closes: #378422)
   * [07_luksAddKey.dpatch] luksAddKey now asks only once for the passphrase of
-    an existing key. (closes: #379726)
+    an existing key. thanks to Robert Bihlmeyer for the report.
+    (closes: #379726)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 30 Jul 2006 22:36:15 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue,  1 Aug 2006 22:16:36 +0200
 
 cryptsetup (2:1.0.3-3) unstable; urgency=low
 
