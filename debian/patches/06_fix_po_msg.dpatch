@@ -1,7 +1,7 @@
 #!/bin/sh -e
 # 06_fix_po_msg.dpatch by Jonas Meurer <jonas@freesources.org>
 #
-## DP: fix messages and po translation files
+## DP: add missing newline to "Command failed"
 
 if [ $# -ne 1 ]; then
     echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
@@ -18,61 +18,14 @@ esac
 exit 0
 
 @DPATCH@
---- cryptsetup-1.0.3.orig/po/cryptsetup-luks.pot	2006-04-02 10:37:39.000000000 +0200
-+++ cryptsetup-1.0.3/po/cryptsetup-luks.pot	2006-07-22 15:36:58.000000000 +0200
-@@ -153,7 +153,7 @@
- 
- #: src/cryptsetup.c:90
- #, c-format
--msgid "Command failed"
-+msgid "Command failed.\n"
- msgstr ""
- 
- #: src/cryptsetup.c:224
---- cryptsetup-1.0.3.orig/po/de.po	2006-04-02 10:37:40.000000000 +0200
-+++ cryptsetup-1.0.3/po/de.po	2006-07-22 15:39:02.000000000 +0200
-@@ -37,7 +37,7 @@
- #: luks/keymanage.c:75
- #, c-format
- msgid "%s is not a LUKS partition\n"
--msgstr ""
-+msgstr "%s ist keine LUKS Partition\n"
- 
- #: luks/keymanage.c:78
- #, fuzzy
-@@ -47,7 +47,7 @@
- #: luks/keymanage.c:81
- #, c-format
- msgid "unknown version %d\n"
--msgstr ""
-+msgstr "Unbekannte version %d\n"
- 
- #: luks/keymanage.c:210
- #, c-format
-@@ -152,12 +152,12 @@
- #: src/cryptsetup.c:77
- #, c-format
- msgid "Command successful.\n"
--msgstr ""
-+msgstr "Aufruf erfolgreich.\n"
- 
- #: src/cryptsetup.c:90
- #, c-format
--msgid "Command failed"
--msgstr "Aufruf fehlgeschlagen"
-+msgid "Command failed.\n"
-+msgstr "Aufruf fehlgeschlagen.\n"
- 
- #: src/cryptsetup.c:224
- #, c-format
---- cryptsetup-1.0.3.orig/src/cryptsetup.c	2006-07-22 15:36:17.000000000 +0200
-+++ cryptsetup-1.0.3/src/cryptsetup.c	2006-07-22 15:37:10.000000000 +0200
-@@ -87,7 +87,7 @@
- 		}
- 	}
- 
--	fprintf(stderr, _("Command failed"));
-+	fprintf(stderr, _("Command failed.\n"));
+--- cryptsetup-1.0.3.orig/src/cryptsetup.c
++++ cryptsetup-1.0.3/src/cryptsetup.c
+@@ -91,7 +91,7 @@
  	if (*error)
  		fprintf(stderr, ": %s\n", error);
  	else
+-		fputs(".", stderr);
++		fputs(".\n", stderr);
+ 	return;
+ }
+ 
