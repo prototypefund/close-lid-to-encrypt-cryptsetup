@@ -1,6 +1,7 @@
-#!/bin/sh -e
-# 03_stdin_input.dpatch by David Härdeman <david@2gen.com>
-#
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 03_stdin_input.dpatch by David Härdeman <david@2gen.com>
+##
+## All lines beginning with `## DP:' are a description of the patch.
 ## DP: fix stdin input, allow more than 32 characters
 
 if [ $# -ne 1 ]; then
