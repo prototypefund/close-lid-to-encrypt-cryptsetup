@@ -1,5 +1,5 @@
 #! /bin/sh /usr/share/dpatch/dpatch-run
-## 03_status_exit_codes.dpatch by David Häeman <david@2gen.com>
+## 03_status_exit_codes.dpatch by David Härdeman <david@2gen.com>
 ##
 ## All lines beginning with `## DP:' are a description of the patch.
 ## DP: fix exit codes of cryptsetup status
