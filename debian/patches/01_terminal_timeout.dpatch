@@ -7,8 +7,8 @@
 
 @DPATCH@
 
---- cryptsetup-1.0.3~/lib/setup.c	2006-06-04 14:34:17.000000000 +0200
-+++ cryptsetup-1.0.3/lib/setup.c	2006-06-04 14:46:45.000000000 +0200
+--- cryptsetup-1.0.3/lib/setup.c
++++ cryptsetup-1.0.3/lib/setup.c
 @@ -7,6 +7,7 @@
  #include <sys/mman.h>
  #include <fcntl.h>

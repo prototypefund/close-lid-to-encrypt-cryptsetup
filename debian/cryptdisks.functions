@@ -306,10 +306,22 @@ do_noluks () {
 	if [ "$PRECHECK" = "" ]; then
 	  PRECHECK="/lib/cryptsetup/checks/un_vol_id"
 	fi
-	if $PRECHECK $src; then
-		if test "x$INTERACTIVE" != "xyes" ; then
-			PARAMS="$PARAMS --key-file=$key"
-		fi
+
+	if ($PRECHECK $src); then
+		run=1
+	elif ($PRECHECK $src swap) && test "$MAKESWAP" = "xyes"; then
+		run=1
+	else
+		run=0
+		echo -e "\n - the precheck for '$src' failed, skipping" >&2
+		continue
+	fi
+	
+	if test "x$INTERACTIVE" != "xyes" ; then
+		PARAMS="$PARAMS --key-file=$key"
+	fi
+
+	if test "$run" -gt 0; then
 		$CRYPTCMD $PARAMS create $dst $src <&1
 		RESULT=$?
 		if [ $RESULT = 0 ] ; then
@@ -320,9 +332,6 @@ do_noluks () {
 				sleep 1
 			fi
 		fi
-	else
-		echo -e "\n - the precheck for '$src' failed, skipping" >&2
-		continue
 	fi
 }
 

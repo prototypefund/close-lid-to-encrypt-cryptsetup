@@ -4,23 +4,10 @@
 ## All lines beginning with `## DP:' are a description of the patch.
 ## DP: fix stdin input, allow more than 32 characters
 
-if [ $# -ne 1 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
-    -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
-    *)
-        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-        exit 1;;
-esac
-
-exit 0
-
 @DPATCH@
---- cryptsetup-1.0.3~/lib/setup.c	2006-06-05 16:14:24.000000000 +0200
-+++ cryptsetup-1.0.3/lib/setup.c	2006-06-05 16:14:24.000000000 +0200
+
+--- cryptsetup-1.0.3/lib/setup.c
++++ cryptsetup-1.0.3/lib/setup.c
 @@ -139,13 +139,13 @@
  /*
   * Password reading behaviour matrix of get_key

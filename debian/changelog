@@ -1,17 +1,22 @@
 cryptsetup (2:1.0.3-4) unstable; urgency=low
 
+  [ Jonas Meurer ]
   * Fix luksDelKey documentation in the manpage, thanks to Magnus Therning.
     (closes: #379084)
   * Add some more german translations to de.po.
   * Add a note to NEWS.Debian where the fix for #376393 is explained. thanks
     to Robert Bihlmeyer for the report. (closes: #379719)
+  * Allow swap filesystems to be overwritten when the swap flag is set. thanks
+    to Raphaël Quinet for the report. (closes: #379771)
   * [06_error_newline.dpatch] Add missing newline to "Command failed" message.
     thanks to Robert Bihlmeyer for the report. (closes: #378422)
   * [07_luksAddKey.dpatch] luksAddKey now asks only once for the passphrase of
     an existing key. thanks to Robert Bihlmeyer for the report.
     (closes: #379726)
+  * [08_protect_delkey.dpatch] luksDelKey requests a remaining passphrase/key
+    before actually cleaning/disabling the slot. (closes: #379723)
 
- -- Jonas Meurer <mejo@debian.org>  Tue,  1 Aug 2006 22:16:36 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri,  4 Aug 2006 03:08:20 +0200
 
 cryptsetup (2:1.0.3-3) unstable; urgency=low
 

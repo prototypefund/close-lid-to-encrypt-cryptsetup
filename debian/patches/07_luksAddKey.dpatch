@@ -1,32 +1,19 @@
-#!/bin/sh -e
-# 07_luksAddKey.dpatch by Jonas Meurer <jonas@freesources.org>
-#
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 07_luksAddKey.dpatch by Jonas Meurer <jonas@freesources.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
 ## DP: do only ask once for passphrase of the existing key in luksAddKey
 
-if [ $# -ne 1 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
-    -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
-    *)
-        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-        exit 1;;
-esac
-
-exit 0
-
 @DPATCH@
---- cryptsetup-1.0.3.orig/lib/setup.c	2006-07-30 22:23:46.000000000 +0200
-+++ cryptsetup-1.0.3/lib/setup.c	2006-07-30 22:23:31.000000000 +0200
-@@ -680,7 +680,8 @@
+
+--- cryptsetup-1.0.3/lib/setup.c
++++ cryptsetup-1.0.3/lib/setup.c
+@@ -680,7 +680,7 @@
  	const char *device = options->device;
  	struct crypt_options optionsCheck = { 
  		.key_file = options->key_file,
 -		.flags = options->flags & ~CRYPT_FLAG_VERIFY,
-+		// .flags = options->flags & ~CRYPT_FLAG_VERIFY,
-+		.flags = 0,
++		.flags = options->flags & ~CRYPT_FLAG_VERIFY_IF_POSSIBLE,
  	};
  	struct crypt_options optionsSet = { 
  		.key_file = options->new_key_file,

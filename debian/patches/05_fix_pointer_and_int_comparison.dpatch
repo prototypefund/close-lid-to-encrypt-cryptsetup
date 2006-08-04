@@ -1,25 +1,13 @@
-#!/bin/sh -e
-# 05_fix_pointer_and_int_comparison.dpatch by David Härdeman <david@2gen.com>
-#
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 05_fix_pointer_and_int_comparison.dpatch by David Härdeman <david@2gen.com>
+##
+## All lines beginning with `## DP:' are a description of the patch.
 ## DP: fix pointer and int comparison
 
-if [ $# -ne 1 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
-    -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
-    *)
-        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-        exit 1;;
-esac
-
-exit 0
-
 @DPATCH@
---- cryptsetup-1.0.3-orig/lib/gcrypt.c	2005-06-20 11:06:23.000000000 +0200
-+++ cryptsetup-1.0.3/lib/gcrypt.c	2006-06-13 00:46:57.000000000 +0200
+
+--- cryptsetup-1.0.3/lib/gcrypt.c
++++ cryptsetup-1.0.3/lib/gcrypt.c
 @@ -12,7 +12,7 @@
  static int gcrypt_hash(void *data, int size, char *key, const char *passphrase)
  {

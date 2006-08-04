@@ -6,3 +6,4 @@
 05_fix_pointer_and_int_comparison
 06_error_newline
 07_luksAddKey
+08_protect_delkey

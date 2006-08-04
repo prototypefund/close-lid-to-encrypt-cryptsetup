@@ -1,24 +1,12 @@
-#!/bin/sh -e
-# 06_fix_po_msg.dpatch by Jonas Meurer <jonas@freesources.org>
-#
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 06_error_newline.dpatch by Jonas Meurer <jonas@freesources.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
 ## DP: add missing newline to "Command failed."
 
-if [ $# -ne 1 ]; then
-    echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-    exit 1
-fi
-case "$1" in
-    -patch) patch -f --no-backup-if-mismatch -p1 < $0;;
-    -unpatch) patch -f --no-backup-if-mismatch -R -p1 < $0;;
-    *)
-        echo >&2 "`basename $0`: script expects -patch|-unpatch as argument"
-        exit 1;;
-esac
-
-exit 0
-
 @DPATCH@
---- cryptsetup-1.0.3.orig/src/cryptsetup.c
+
+--- cryptsetup-1.0.3/src/cryptsetup.c
 +++ cryptsetup-1.0.3/src/cryptsetup.c
 @@ -91,7 +91,7 @@
  	if (*error)
