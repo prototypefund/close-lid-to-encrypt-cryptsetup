@@ -6,8 +6,8 @@
 
 @DPATCH@
 
---- cryptsetup-1.0.3.orig/lib/setup.c	2006-08-02 15:54:03.000000000 +0200
-+++ cryptsetup-1.0.3/lib/setup.c	2006-08-04 03:01:18.000000000 +0200
+--- cryptsetup-1.0.3/lib/setup.c
++++ cryptsetup-1.0.3/lib/setup.c
 @@ -729,6 +729,37 @@
  	return r;
  }
@@ -55,8 +55,8 @@
  }
  
  int crypt_luksAddKey(struct crypt_options *options)
---- cryptsetup-1.0.3.orig/luks/keymanage.c	2006-04-02 10:36:11.000000000 +0200
-+++ cryptsetup-1.0.3/luks/keymanage.c	2006-08-04 03:02:15.000000000 +0200
+--- cryptsetup-1.0.3/luks/keymanage.c
++++ cryptsetup-1.0.3/luks/keymanage.c
 @@ -341,6 +341,30 @@
  	return i==LUKS_NUMKEYS?-EPERM:0;
  }
@@ -88,8 +88,8 @@
  /*
   * Wipe patterns according to Gutmann's Paper
   */
---- cryptsetup-1.0.3.orig/luks/luks.h	2006-03-30 14:06:43.000000000 +0200
-+++ cryptsetup-1.0.3/luks/luks.h	2006-08-02 20:34:59.000000000 +0200
+--- cryptsetup-1.0.3/luks/luks.h
++++ cryptsetup-1.0.3/luks/luks.h
 @@ -113,6 +113,14 @@
  					struct luks_masterkey *mk,
  					struct setup_backend *backend);
@@ -105,8 +105,8 @@
  int LUKS_del_key(const char *device, unsigned int keyIndex);
  int LUKS_is_last_keyslot(const char *device, unsigned int keyIndex);
  int LUKS_benchmarkt_iterations();
---- cryptsetup-1.0.3.orig/man/cryptsetup.8	2006-08-02 15:54:03.000000000 +0200
-+++ cryptsetup-1.0.3/man/cryptsetup.8	2006-08-02 15:54:40.000000000 +0200
+--- cryptsetup-1.0.3/man/cryptsetup.8
++++ cryptsetup-1.0.3/man/cryptsetup.8
 @@ -60,7 +60,7 @@
  .PP
  \fIluksDelKey\fR <device> <key slot number>
@@ -116,8 +116,8 @@
  .PP
  \fIluksUUID\fR <device>
  .IP
---- cryptsetup-1.0.3.orig/src/cryptsetup.c	2006-08-02 15:54:03.000000000 +0200
-+++ cryptsetup-1.0.3/src/cryptsetup.c	2006-08-02 15:54:40.000000000 +0200
+--- cryptsetup-1.0.3/src/cryptsetup.c
++++ cryptsetup-1.0.3/src/cryptsetup.c
 @@ -258,6 +258,8 @@
  	struct crypt_options options = {
  		.device = action_argv[0],
