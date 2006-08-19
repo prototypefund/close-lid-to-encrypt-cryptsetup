@@ -1,6 +1,7 @@
 #!/bin/sh
 
 PREREQ=""
+KEYSCRIPT="/sbin/cryptgetpw"
 
 prereqs()
 {
@@ -60,6 +61,7 @@ get_root_opts() {
 
 	opt=$( grep ^$target /etc/crypttab | head -1 | sed 's/[[:space:]]\+/ /g' )
 	source=$( echo $opt | cut -d " " -f2 )
+	key=$( echo $opt | cut -d " " -f3 )
 	rootopts=$( echo $opt | cut -d " " -f4- )
 
 	[ ! -z "$opt" -a ! -z "$source" -a ! -z "$rootopts" ] || return 1
@@ -81,6 +83,10 @@ get_root_opts() {
 				;;
 			lvm=*)
 				echo -n ",$opt"
+				;;
+			keyscript=*)
+				echo -n ",key=$key"
+				KEYSCRIPT=${opt#keyscript=}
 				;;
 			*)
 				# Presumably a non-supported option
@@ -151,7 +157,17 @@ done
 echo "CRYPTOPTS=\"$rootopts\"" > ${DESTDIR}/conf/conf.d/cryptroot
 copy_exec /sbin/cryptsetup /sbin
 copy_exec /sbin/dmsetup /sbin
-[ -x "/sbin/cryptgetpw" ] && copy_exec /sbin/cryptgetpw /sbin
+
+# If we have a keyscript, make sure it is included
+if [ -x "$KEYSCRIPT" ]; then
+	copy_exec "$KEYSCRIPT" /sbin
+
+	# Make sure that the script is called cryptgetpw
+	BNAME=$(basename "$KEYSCRIPT")
+	if [ "$BNAME" != "cryptgetpw" ]; then
+		mv $DESTDIR/sbin/$BNAME $DESTDIR/sbin/cryptgetpw
+	fi
+fi
 
 # Allow the correct keymap to be loaded if possible
 if [ -x /bin/loadkeys -a -r /etc/console/boottime.kmap.gz ]; then

@@ -62,6 +62,8 @@ get_options()
 	crypttarget=cryptroot
 	cryptsource=$ROOT
 	cryptlvm=""
+	# This is only used as an argument to an eventual keyscript
+	cryptkey=""
 
 	if [ -n "$cryptopts" ]; then
 		local IFS=" ,"
@@ -84,6 +86,9 @@ get_options()
 				;;
 			lvm=*)
 				cryptlvm=${x#lvm=}
+				;;
+			key=*)
+				cryptkey=${x#key=}
 				;;
 			esac
 		done
@@ -171,7 +176,7 @@ NEWROOT="/dev/mapper/$crypttarget"
 # Loop until we have a satisfactory password
 while [ 1 ]; do
 	if [ -x "/sbin/cryptgetpw" ]; then
-		/sbin/cryptgetpw < /dev/console | $cryptcreate
+		/sbin/cryptgetpw $cryptkey < /dev/console | $cryptcreate
 	else
 		$cryptcreate < /dev/console
 	fi

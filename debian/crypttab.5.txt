@@ -105,6 +105,12 @@ Decrypt the keyfile with gnupg before actually using it for cryptsetup. This
 requires /usr/bin/gnupg to be available. Thus it doesn't work for encrypted
 root filesystems or if /usr is a seperate filesystem.
 
+*keyscript*=<path>::
+The executable at the inidicated path is executed with the 'key file' from the third 
+field of the crypttab as its only argument and the output is used as the key. This
+also works with encrypted root filesystems via initramfs if the executable is 
+self-contained (i.e. not a shell script which relies on external programs).
+
 CHECKSCRIPTS
 ------------
 *vol_id*::

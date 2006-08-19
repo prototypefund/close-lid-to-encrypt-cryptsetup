@@ -24,6 +24,7 @@ parse_opts () {
 	TIMEOUT=""
 	SSL=""
 	GPG=""
+	KEYSCRIPT=""
 
 	# Parse the options field, convert to cryptsetup parameters
 	# and construct the command line
@@ -151,6 +152,13 @@ parse_opts () {
 		  gpg)
 		  	GPG=yes
 			;;
+		  keyscript)
+		  	if test "x$VALUE" = "x" ; then
+		  		echo -e "\n - no value for keyscript option, skipping" >&2
+		  		SKIP="yes"
+		  	fi
+			KEYSCRIPT="$VALUE"
+		  	;;
 		esac
 	done
 
@@ -264,7 +272,7 @@ check_key () {
 			if [ -x /usr/bin/openssl ]; then
 				decrypt_ssl && key=$deckey
 			else
-				echo -e "\n - Openssl isnot available, skipping" >&2
+				echo -e "\n - Openssl is not available, skipping" >&2
 				continue
 			fi
 		elif [ "x$GPG" = "xyes" ]; then
@@ -282,29 +290,39 @@ check_key () {
 }
 
 do_luks () {
-	if $CRYPTCMD isLuks $src >/dev/null 2>&1; then
+	if ! $CRYPTCMD isLuks $src >/dev/null 2>&1; then
+		echo -e "\n - Device '$src' is not a LUKS partition, skipping" >&2
+		return 1
+	fi
+
+	if test "x$KEYSCRIPT" != "x" ; then
+		# FIXME: Add this once we're using cryptsetup 1.0.4
+		# PARAMS="$PARAMS --key-file=-"
+		$KEYSCRIPT $key <&1 | $CRYPTCMD $PARAMS luksOpen $src $dst
+	else
 		if test "x$INTERACTIVE" != "xyes" ; then
 			PARAMS="$PARAMS --key-file=$key"
 		fi
 		$CRYPTCMD $PARAMS luksOpen $src $dst <&1
-		RESULT=$?
-		if [ $RESULT = 0 ] ; then
-			if [ "$CHECK" != ""  ] && ! $CHECK $MAPPER/$dst $CHECKARGS; then
-				echo -e "\n - the check for '$MAPPER/$dst' failed" >&2
-				#echo " - removing the crypto device $dst" >&2
-				#$CRYPTCMD luksClose $dst
-				sleep 1
-			fi
-		fi
-	else
-		echo -e "\n - Device '$src' is not a LUKS partition, skipping" >&2
-		continue
 	fi
+
+	if [ $? != 0 ]; then
+		return 1
+	fi
+
+	if [ "$CHECK" != ""  ] && ! $CHECK $MAPPER/$dst $CHECKARGS; then
+		echo -e "\n - the check for '$MAPPER/$dst' failed" >&2
+		echo " - removing the crypto device $dst" >&2
+		$CRYPTCMD luksClose $dst
+		return 1
+	fi
+
+	return 0
 }
 
 do_noluks () {
 	if [ "$PRECHECK" = "" ]; then
-	  PRECHECK="/lib/cryptsetup/checks/un_vol_id"
+		PRECHECK="/lib/cryptsetup/checks/un_vol_id"
 	fi
 
 	if ($PRECHECK $src); then
@@ -314,25 +332,33 @@ do_noluks () {
 	else
 		run=0
 		echo -e "\n - the precheck for '$src' failed, skipping" >&2
-		continue
+		return 1
 	fi
 	
-	if test "x$INTERACTIVE" != "xyes" ; then
-		PARAMS="$PARAMS --key-file=$key"
+	if test "x$KEYSCRIPT" != "x" ; then
+		# FIXME: Add this once we're using cryptsetup 1.0.4
+		# PARAMS="$PARAMS --key-file=-"
+		$KEYSCRIPT $key <&1 | $CRYPTCMD $PARAMS create $dst $src
+	else
+		if test "x$INTERACTIVE" != "xyes" ; then
+			PARAMS="$PARAMS --key-file=$key"
+		fi
+		$CRYPTCMD $PARAMS create $dst $src <&1
 	fi
 
-	if test "$run" -gt 0; then
-		$CRYPTCMD $PARAMS create $dst $src <&1
-		RESULT=$?
-		if [ $RESULT = 0 ] ; then
-			if [ "$CHECK" != ""  ] && ! $CHECK $MAPPER/$dst $CHECKARGS; then
-				echo -e "\n - the check for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
-				echo " - removing the crypto device $dst" >&2
-				$CRYPTCMD remove $dst
-				sleep 1
-			fi
-		fi
+	if [ $? != 0 ] ; then
+		return 1
 	fi
+
+
+	if [ "$CHECK" != ""  ] && ! $CHECK $MAPPER/$dst $CHECKARGS; then
+		echo -e "\n - the check for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
+		echo " - removing the crypto device $dst" >&2
+		$CRYPTCMD remove $dst
+		return 1
+	fi
+
+	return 0
 }
 
 mount_fs () {
@@ -425,15 +451,19 @@ do_start () {
 		else
 			do_noluks
 		fi
-		do_swap
-		do_tmp
-		
+
+		if [ $? -ne 0 ]; then
+			log_progress_msg "$dst(failed)"
+		else
+			do_swap
+			do_tmp
+		fi
+
 		clean_keys
 	done
 	
 	umount_fs
-	echo -n " "
-	log_action_end_msg $?
+	log_action_end_msg 0
 }
 
 do_stop () {
@@ -461,7 +491,6 @@ do_stop () {
 		fi
 	done
 
-	echo -n " "
-	log_action_end_msg $?
+	log_action_end_msg 0
 }
 
