@@ -15,8 +15,9 @@ cryptsetup (2:1.0.3-4) unstable; urgency=low
     (closes: #379726)
   * [08_protect_delkey.dpatch] luksDelKey requests a remaining passphrase/key
     before actually cleaning/disabling the slot. (closes: #379723)
+  * [02_docs_tries.dpatch] updated to give more information about the keysize.
 
- -- Jonas Meurer <mejo@debian.org>  Fri,  4 Aug 2006 03:08:20 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 19 Aug 2006 02:16:13 +0200
 
 cryptsetup (2:1.0.3-3) unstable; urgency=low
 

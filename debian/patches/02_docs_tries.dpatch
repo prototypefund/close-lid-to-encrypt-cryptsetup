@@ -31,7 +31,7 @@
  .TP
  .B "\-\-key-size, \-s"
 -set key size in bits. Usually, this is 128, 192 or 256. Can be used for \fIcreate\fR or \fIluksFormat\fR, all other LUKS actions will ignore this flag, as the key-size is specified by the partition header.
-+set key size in bits. Usually, this is 128, 192 or 256. Can be used for \fIcreate\fR or \fIluksFormat\fR, all other LUKS actions will ignore this flag, as the key-size is specified by the partition header. Default is 0.
++set key size in bits. Has to be a multiple of 8 bits. The key size is limited by the used cipher. See output of /proc/crypto for more information. Can be used for \fIcreate\fR or \fIluksFormat\fR, all other LUKS actions will ignore this flag, as the key-size is specified by the partition header. Default is 128.
  .TP
  .B "\-\-size, \-b"
  force the size of the underlaying device in sectors.
