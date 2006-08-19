@@ -1,10 +1,13 @@
 cryptsetup (1.0.3-4) unstable; urgency=low
 
    Up to now, the us keymap was loaded at the passphrase prompt in the boot
-   process. With this upload this is fixed, and the correct keymap is loaded
-   before the passphrase prompt. This may result in your password not working
-   any more in the boot process. You should add a new key with cryptsetup
-   luksAddKey in this case, with your correct keymap loaded.
+   process and ascii characters were always used. With this upload this is 
+   fixed, meaning that the correct keymap is loaded and the keyboard is
+   (optionally) set to UTF8 mode before the passphrase prompt.
+
+   This may result in your password not working any more in the boot process. 
+   In this case, you should add a new key with cryptsetup luksAddKey with your
+   correct keymap loaded.
 
    Additionally, all four fields are now mandatory in crypttab. An entry which
    does not contain all fields will be ignored. See man crypttab(5) for more
