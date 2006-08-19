@@ -390,32 +390,45 @@ do_start () {
 	log_action_begin_msg "Starting $INITSTATE crypto disks"
 	mount_fs
 	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opt; do
-		if ! test -r "$src" ; then
+
+		# Make sure that all fields are present
+		if [ "x$dst" = "x" ]; then
+			continue
+		elif [ "x$src" = "x" -o "x$key" = "x" -o "x$opt" = "x" ]; then
+			log_progress_msg "$dst(skipped, missing parameters)"
+			continue
+		fi
+
+		# Make sure source device exists
+		if [ ! -r "$src" ]; then
 			if [ "x$LOUD" = "xyes" ]; then
-				echo -e "\n - Device '$src' does not exist, skipping" >&2
+				log_progress_msg "$dst(skipped, device $src does not exist)"
 			fi
 			continue
 		fi
 
-		if test -b $MAPPER/$dst; then
+		# Make sure that target device doesn't exist
+		if [ -b $MAPPER/$dst]; then
 			log_progress_msg "$dst(running)"
-		else
-			log_progress_msg "$dst(starting)"
-
-			parse_opts
-			check_key
-			lo_setup
-
-			if test "x$USELUKS" = "xyes" ; then
-				do_luks
-			else
-				do_noluks
-			fi
-			do_swap
-			do_tmp
-			
-			clean_keys
+			continue
 		fi
+
+		# All checks passed, do the real setup
+		log_progress_msg "$dst(starting)"
+
+		parse_opts
+		check_key
+		lo_setup
+
+		if test "x$USELUKS" = "xyes" ; then
+			do_luks
+		else
+			do_noluks
+		fi
+		do_swap
+		do_tmp
+		
+		clean_keys
 	done
 	
 	umount_fs

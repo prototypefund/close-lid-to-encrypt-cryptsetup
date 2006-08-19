@@ -23,8 +23,10 @@ cryptsetup (2:1.0.3-4) unstable; urgency=low
   * Replace panic calls in cryptsetup script with exit 1 to match the
     behaviour of other scripts. The regular initramfs script will panic
     later when root isn't detected anyway
+  * Make all four fields in crypttab mandatory (closes: #370180,
+    #376941)
 
- -- David Härdeman <david@2gen.com>  Sat, 19 Aug 2006 17:49:22 +0200
+ -- David Härdeman <david@2gen.com>  Sat, 19 Aug 2006 18:11:07 +0200
 
 cryptsetup (2:1.0.3-3) unstable; urgency=low
 

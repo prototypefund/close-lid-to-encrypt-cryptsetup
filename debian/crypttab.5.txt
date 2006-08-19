@@ -20,6 +20,7 @@ The file *crypttab* (usually located at */etc/crypttab*) contains descriptive in
 *crypttab* is only read by programs, and not written; it is the duty of the system administrator to properly create and maintain this file.
 Each file system is described on a separate line; fields on each line are separated by tabs or spaces. Lines starting with "'#'" are comments, empty lines are ignored.
 The order of records in *crypttab* is important because the */etc/init.d/cryptdisks* script sequentially iterates through *crypttab* doing its thing.
+Note that all four fields are mandatory and that a missing field will lead to unspecified behaviour.
 
 The first field 'target device' describes the mapped 'device name'.
 It must be a plain filename without any directories.
@@ -32,10 +33,11 @@ The third field 'key file' describes the file to use for decrypting the encrypte
 It can also be a device name (eg. */dev/random*, which is useful for encrypted swap devices).
 Warning: luks does not support random data keys (like */dev/random*), it requires a persistent key.
 
-If the 'key file' is empty or the string *none*, the key data (ie. a password) will be read interactively from the console.
+If the 'key file' is the string *none*, the key data (ie. a password) will be read interactively from the console.
 In this case, the options precheck, check, checkfor and tries may be useful.
 
-The fourth field 'options' describes the cryptsetup options associated with the encryption process.
+The fourth field 'options' describes the cryptsetup options associated with the encryption process. At minimum, the field should contain the string *luks* or the 'cipher', 'hash' and 'size' options.
+
 Options are in the format: 'key'='value'[,'key'='value' ...] The following options are supported:
 
 
