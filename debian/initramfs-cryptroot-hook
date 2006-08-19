@@ -175,8 +175,18 @@ if [ -x /bin/loadkeys -a -r /etc/console/boottime.kmap.gz ]; then
 	cp /etc/console/boottime.kmap.gz $DESTDIR/etc/
 
 	# Check for UTF8 console
-	if [ -x /usr/bin/vt-is-UTF8 -a -x /usr/bin/kbd_mode ]; then
-		if /usr/bin/vt-is-UTF8 -q; then
+	ENV_FILE="none"
+	[ -r /etc/environment ] && ENV_FILE="/etc/environment"
+	[ -r /etc/default/locale ] && ENV_FILE="/etc/default/locale" 
+
+	if [ $ENV_FILE != none ]; then
+		for var in LANG LC_ALL LC_CTYPE; do
+			value=$(egrep "^[^#]*${var}=" $ENV_FILE | tail -n1 | cut -d= -f2)
+			eval $var=$value
+		done
+
+		CHARMAP=`LANG=$LANG LC_ALL=$LC_ALL LC_CTYPE=$LC_CTYPE locale charmap`
+		if [ "$CHARMAP" = "UTF-8" -a -x /usr/bin/kbd_mode ]; then
 			copy_exec /usr/bin/kbd_mode /bin/
 		fi
 	fi
