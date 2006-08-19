@@ -154,9 +154,16 @@ copy_exec /sbin/dmsetup /sbin
 [ -x "/sbin/cryptgetpw" ] && copy_exec /sbin/cryptgetpw /sbin
 
 # Allow the correct keymap to be loaded if possible
-if [ -e /bin/loadkeys -a -r /etc/console/boottime.kmap.gz ]; then
+if [ -x /bin/loadkeys -a -r /etc/console/boottime.kmap.gz ]; then
 	copy_exec /bin/loadkeys /bin/
 	cp /etc/console/boottime.kmap.gz $DESTDIR/etc/
+
+	# Check for UTF8 console
+	if [ -x /usr/bin/vt-is-UTF8 -a -x /usr/bin/kbd_mode ]; then
+		if /usr/bin/vt-is-UTF8 -q; then
+			copy_exec /usr/bin/kbd_mode /bin/
+		fi
+	fi
 fi
 
 # Done

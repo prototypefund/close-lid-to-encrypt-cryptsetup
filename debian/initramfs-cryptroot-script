@@ -126,8 +126,17 @@ activate_vg()
 
 load_keymap()
 {
+	OPTS="-q"
+
+	# Should terminal be in UTF8 mode?
+	if [ -x /bin/kbd_mode ]; then
+		/bin/kbd_mode -u
+		OPTS="$OPTS -u"
+	fi
+
+	# Load custom keymap
 	if [ -x /bin/loadkeys -a -r /etc/boottime.kmap.gz ]; then
-		loadkeys -q /etc/boottime.kmap.gz
+		loadkeys $OPTS /etc/boottime.kmap.gz
 	fi
 }
 
