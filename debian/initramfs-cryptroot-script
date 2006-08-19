@@ -143,7 +143,8 @@ if [ ! -e $cryptsource ]; then
 	activate_vg $cryptsource
 fi
 if [ ! -e $cryptsource ]; then
-	panic "$0: source device $cryptsource not found"
+	echo "$0: source device $cryptsource not found"
+	exit 1
 fi
 
 # If possible, load the keymap so that the user can input non-en characters
@@ -177,9 +178,13 @@ while [ 1 ]; do
 		# See if we need to setup lvm on the crypto device
 		if [ "$FSTYPE" = "lvm" ] || [ "$FSTYPE" = "lvm2" ]; then
 			NEWROOT="/dev/mapper/$cryptlvm"
-			activate_vg "$NEWROOT" || panic "failed to setup lvm device"
+			if ! activate_vg "$NEWROOT"; then
+				echo "$0: failed to setup lvm device"
+				exit 1
+			fi
 			if ! fstype < "$NEWROOT" > /conf/param.conf; then
-				panic "failed to setup lvm device, fs not recognised"
+				echo "$0: failed to setup lvm device, fs not recognised"
+				exit 1
 			fi
 			. /conf/param.conf
 		fi
