@@ -434,7 +434,7 @@ do_start () {
 		fi
 
 		# Make sure that target device doesn't exist
-		if [ -b $MAPPER/$dst]; then
+		if [ -b $MAPPER/$dst ]; then
 			log_progress_msg "$dst(running)"
 			continue
 		fi
