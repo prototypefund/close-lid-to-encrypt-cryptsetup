@@ -1,9 +1,3 @@
 # no patches
 01_terminal_timeout
 02_docs_tries
-03_stdin_input
-04_status_exit_codes
-05_fix_pointer_and_int_comparison
-06_error_newline
-07_luksAddKey
-08_protect_delkey

@@ -7,73 +7,18 @@
 
 @DPATCH@
 
---- cryptsetup-1.0.3/lib/setup.c
-+++ cryptsetup-1.0.3/lib/setup.c
-@@ -7,6 +7,7 @@
- #include <sys/mman.h>
- #include <fcntl.h>
- #include <unistd.h>
-+#include <termios.h>
- #include <errno.h>
- #include <signal.h>
- #include <assert.h>
-@@ -24,12 +25,6 @@
- static int memory_unsafe = 0;
- static char *default_backend = NULL;
- 
--static void catch_alarm(int sig_num)
--{
--       fprintf(stderr, "Operation timed out. Exiting.\n");
--       exit(0);
--}
--
- static int setup_enter(struct setup_backend *backend)
+--- cryptsetup-1.0.4~rc2/lib/setup.c
++++ cryptsetup-1.0.4~rc2/lib/setup.c
+@@ -102,28 +102,37 @@
  {
- 	int r;
-@@ -72,6 +67,75 @@
- 	return 0;
- }
- 
-+static int untimed_read(int fd, char *pass, size_t maxlen)
-+{
-+	ssize_t i;
-+
-+	i = read(fd, pass, maxlen);
-+	if (i > 0) {
-+		pass[i-1] = '\0';
-+		i = 0;
-+	}
-+	return i;
-+}
-+
-+static int timed_read(int fd, char *pass, size_t maxlen, long timeout)
-+{
-+	struct timeval t;
-+	fd_set fds;
-+	int failed = -1;
-+
-+	FD_ZERO(&fds);
-+	FD_SET(fd, &fds);
-+	t.tv_sec = timeout;
-+	t.tv_usec = 0;
-+
-+	if (select(fd+1, &fds, NULL, NULL, &t) > 0)
-+		failed = untimed_read(fd, pass, maxlen);
-+	else
-+		fprintf(stderr, "Operation timed out.\n");
-+	return failed;
-+}
-+
-+static int interactive_pass(const char *prompt, char *pass, size_t maxlen,
-+		long timeout)
-+{
-+	struct termios orig, tmp;
-+	int failed = -1;
+ 	struct termios orig, tmp;
+ 	int failed = -1;
 +	int infd, outfd;
-+
-+	if (maxlen < 1)
-+		goto out_err;
-+
+ 
+ 	if (maxlen < 1)
+ 		goto out_err;
+ 
+-	if (tcgetattr(STDIN_FILENO, &orig)) {
 +	/* Read and write to /dev/tty if available */
 +	if ((infd = outfd = open("/dev/tty", O_RDWR)) == -1) {
 +		infd = STDIN_FILENO;
@@ -81,77 +26,31 @@
 +	}
 +
 +	if (tcgetattr(infd, &orig)) {
-+		set_error("Unable to get terminal");
-+		goto out_err;
-+	}
-+	memcpy(&tmp, &orig, sizeof(tmp));
-+	tmp.c_lflag &= ~ECHO;
-+
+ 		set_error("Unable to get terminal");
+ 		goto out_err;
+ 	}
+ 	memcpy(&tmp, &orig, sizeof(tmp));
+ 	tmp.c_lflag &= ~ECHO;
+ 
+-	write(STDOUT_FILENO, prompt, strlen(prompt));
+-	tcsetattr(STDIN_FILENO, TCSAFLUSH, &tmp);
 +	write(outfd, prompt, strlen(prompt));
 +	tcsetattr(infd, TCSAFLUSH, &tmp);
-+	if (timeout)
+ 	if (timeout)
+-		failed = timed_read(STDIN_FILENO, pass, maxlen, timeout);
 +		failed = timed_read(infd, pass, maxlen, timeout);
-+	else
+ 	else
+-		failed = untimed_read(STDIN_FILENO, pass, maxlen);
+-	tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig);
 +		failed = untimed_read(infd, pass, maxlen);
 +	tcsetattr(infd, TCSAFLUSH, &orig);
-+
-+out_err:
-+	if (!failed)
+ 
+ out_err:
+ 	if (!failed)
+-		write(STDOUT_FILENO, "\n", 1);
 +		write(outfd, "\n", 1);
 +	if (infd != STDIN_FILENO)
 +		close(infd);
-+	return failed;
-+}
-+
- /*
-  * Password reading behaviour matrix of get_key
-  * 
-@@ -109,32 +173,23 @@
- 		newline_stop = 1;
- 	}	
+ 	return failed;
+ }
  
--	signal(SIGALRM, catch_alarm);
--	if(options->timeout) {
--		alarm(options->timeout);
--	} else {
--		alarm(0);
--	}
--	
- 	/* Interactive case */
- 	if(isatty(fd)) {
--		char *pass2;
--		
--		pass2 = getpass(prompt);
--		if (!pass2) {
-+		int i;
-+
-+		pass = safe_alloc(512);
-+		if (!pass || (i = interactive_pass(prompt, pass, 512, options->timeout))) {
- 			set_error("Error reading passphrase");
- 			goto out_err;
- 		}
--		pass = safe_strdup(pass2);
--		memset(pass2, 0, strlen(pass2));
--		
- 		if (verify || verify_if_possible) {
--			char *pass_verify = getpass("Verify passphrase: ");
--			if (!pass_verify || strcmp(pass, pass_verify) != 0) {
-+			char pass_verify[512];
-+			i = interactive_pass("Verify passphrase: ", pass_verify, sizeof(pass_verify), options->timeout);
-+			if (i || strcmp(pass, pass_verify) != 0) {
- 				set_error("Passphrases do not match");
- 				goto out_err;
- 			}
--			memset(pass_verify, 0, strlen(pass_verify));
-+			memset(pass_verify, 0, sizeof(pass_verify));
- 		}
- 		*passLen = strlen(pass);
- 		*key = pass;
-@@ -187,7 +242,6 @@
- 		pass[i] = 0;
- 		*key = pass;
- 		*passLen = i;
--		alarm(0);
- 	}
- 
- 	return isatty(fd); /* Return true, when password reading can be tried on interactive fds */

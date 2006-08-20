@@ -1,22 +1,17 @@
 cryptsetup (2:1.0.4~rc2-1) unstable; urgency=low
 
   [ Jonas Meurer ]
-  * Fix luksDelKey documentation in the manpage, thanks to Magnus Therning.
-    (closes: #379084)
   * Add some more german translations to de.po.
   * Add a note to NEWS.Debian where the fix for #376393 is explained. thanks
     to Robert Bihlmeyer for the report. (closes: #379719)
   * Allow swap filesystems to be overwritten when the swap flag is set. thanks
     to Raphaël Quinet for the report. (closes: #379771)
-  * Update to upstream 1.0.4-rc2.
-  * [06_error_newline.dpatch] Add missing newline to "Command failed" message.
-    thanks to Robert Bihlmeyer for the report. (closes: #378422)
-  * [07_luksAddKey.dpatch] luksAddKey now asks only once for the passphrase of
-    an existing key. thanks to Robert Bihlmeyer for the report.
-    (closes: #379726)
-  * [08_protect_delkey.dpatch] luksDelKey requests a remaining passphrase/key
-    before actually cleaning/disabling the slot. (closes: #379723)
-  * [02_docs_tries.dpatch] updated to give more information about the keysize.
+  * Update to upstream 1.0.4-rc2. (closes: #378422, #379726, closes: #379723)
+  * removed patches 03-05, merged upstream.
+  * [01_terminal_output.dpatch] updated for new upstream.
+  * [02_docs_tries.dpatch] updated for new upstream, to fix luksDelKey
+    documentation and to give more information about the keysize.
+    (closes: #379084)
 
   [ David Härdeman ]
   * Make sure that README.initramfs is included in the package (closes
@@ -29,7 +24,7 @@ cryptsetup (2:1.0.4~rc2-1) unstable; urgency=low
   * Add UTF8 keyboard input support to initramfs image (closes: #379737)
   * Add a keyscript option (closes: #370302, #375913)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 20 Aug 2006 23:04:57 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 20 Aug 2006 23:48:54 +0200
 
 cryptsetup (2:1.0.3-3) unstable; urgency=low
 
