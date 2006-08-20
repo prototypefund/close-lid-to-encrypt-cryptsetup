@@ -1,6 +1,6 @@
 cryptsetup (1.0.3-4) unstable; urgency=low
 
-   Up to now, the us keymap was loaded at the passphrase prompt in the boot
+ * Up to now, the us keymap was loaded at the passphrase prompt in the boot
    process and ascii characters were always used. With this upload this is 
    fixed, meaning that the correct keymap is loaded and the keyboard is
    (optionally) set to UTF8 mode before the passphrase prompt.
@@ -9,9 +9,13 @@ cryptsetup (1.0.3-4) unstable; urgency=low
    In this case, you should add a new key with cryptsetup luksAddKey with your
    correct keymap loaded.
 
-   Additionally, all four fields are now mandatory in crypttab. An entry which
-   does not contain all fields will be ignored. See man crypttab(5) for more
-   details.
+ * Additionally, all four fields are now mandatory in /etc/crypttab. An entry
+   which does not contain all fields will be ignored. It is recommented to
+   set cipher, size and hash anyway, as defaults may change in the future.
+
+   If you didn't set any of these settings yet, add
+      cipher=sha1,size=128,hash=ripemd160
+   to the the options in /etc/crypttab. See man crypttab(5) for more details.
 
  -- David Härdeman <david@2gen.com>  Sat, 19 Aug 2006 18:08:40 +0200
 
