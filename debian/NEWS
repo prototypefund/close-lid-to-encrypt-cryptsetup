@@ -13,8 +13,8 @@ cryptsetup (1.0.3-4) unstable; urgency=low
    which does not contain all fields will be ignored. It is recommented to
    set cipher, size and hash anyway, as defaults may change in the future.
 
-   If you didn't set any of these settings yet, add
-      cipher=aes-cbc-plain,size=128,hash=ripemd160
+   If you didn't set any of these settings yet, then you should add
+       cipher=aes-cbc-plain,size=128,hash=ripemd160
    to the the options in /etc/crypttab. See man crypttab(5) for more details.
 
  -- David Härdeman <david@2gen.com>  Sat, 19 Aug 2006 18:08:40 +0200
