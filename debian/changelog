@@ -1,4 +1,4 @@
-cryptsetup (2:1.0.3-4) unstable; urgency=low
+cryptsetup (2:1.0.4~rc2-1) unstable; urgency=low
 
   [ Jonas Meurer ]
   * Fix luksDelKey documentation in the manpage, thanks to Magnus Therning.
@@ -8,6 +8,7 @@ cryptsetup (2:1.0.3-4) unstable; urgency=low
     to Robert Bihlmeyer for the report. (closes: #379719)
   * Allow swap filesystems to be overwritten when the swap flag is set. thanks
     to Raphaël Quinet for the report. (closes: #379771)
+  * Update to upstream 1.0.4-rc2.
   * [06_error_newline.dpatch] Add missing newline to "Command failed" message.
     thanks to Robert Bihlmeyer for the report. (closes: #378422)
   * [07_luksAddKey.dpatch] luksAddKey now asks only once for the passphrase of
@@ -28,7 +29,7 @@ cryptsetup (2:1.0.3-4) unstable; urgency=low
   * Add UTF8 keyboard input support to initramfs image (closes: #379737)
   * Add a keyscript option (closes: #370302, #375913)
 
- -- David Härdeman <david@2gen.com>  Sat, 19 Aug 2006 19:41:01 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 20 Aug 2006 23:04:57 +0200
 
 cryptsetup (2:1.0.3-3) unstable; urgency=low
 
