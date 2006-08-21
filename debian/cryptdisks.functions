@@ -296,8 +296,7 @@ do_luks () {
 	fi
 
 	if test "x$KEYSCRIPT" != "x" ; then
-		# FIXME: Add this once we're using cryptsetup 1.0.4
-		# PARAMS="$PARAMS --key-file=-"
+		PARAMS="$PARAMS --key-file=-"
 		$KEYSCRIPT $key <&1 | $CRYPTCMD $PARAMS luksOpen $src $dst
 	else
 		if test "x$INTERACTIVE" != "xyes" ; then
@@ -336,8 +335,7 @@ do_noluks () {
 	fi
 	
 	if test "x$KEYSCRIPT" != "x" ; then
-		# FIXME: Add this once we're using cryptsetup 1.0.4
-		# PARAMS="$PARAMS --key-file=-"
+		PARAMS="$PARAMS --key-file=-"
 		$KEYSCRIPT $key <&1 | $CRYPTCMD $PARAMS create $dst $src
 	else
 		if test "x$INTERACTIVE" != "xyes" ; then
