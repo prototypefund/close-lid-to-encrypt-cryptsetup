@@ -23,8 +23,11 @@ cryptsetup (2:1.0.4~rc2-1) unstable; urgency=low
     #376941)
   * Add UTF8 keyboard input support to initramfs image (closes: #379737)
   * Add a keyscript option (closes: #370302, #375913)
+  * [03_fix_build_error.dpatch] patch po/Makefile with more recent
+    gettext implementation.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 20 Aug 2006 23:48:54 +0200
+
+ -- Jonas Meurer <mejo@debian.org>  Mon,  4 Sep 2006 03:55:35 +0200
 
 cryptsetup (2:1.0.3-3) unstable; urgency=low
 

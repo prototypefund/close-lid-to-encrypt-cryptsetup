@@ -2,7 +2,7 @@
 ## 03_fix_build_error.dpatch by David Härdeman <david@2gen.com>
 ##
 ## All lines beginning with `## DP:' are a description of the patch.
-## DP: patch documentation about the --tries option
+## DP: fix po/Makefile
 
 @DPATCH@
 --- cryptsetup-1.0.4~rc2/po/Makefile	2006-09-01 16:03:04.000000000 +0200
