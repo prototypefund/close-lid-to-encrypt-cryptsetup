@@ -1,3 +1,9 @@
+cryptsetup (2:1.0.4~rc2-2) unstable; urgency=low
+
+  * NOT RELEASED YET
+
+ -- Jonas Meurer <mejo@debian.org>  Mon,  4 Sep 2006 04:03:44 +0200
+
 cryptsetup (2:1.0.4~rc2-1) unstable; urgency=low
 
   [ Jonas Meurer ]
