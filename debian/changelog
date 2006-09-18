@@ -1,11 +1,13 @@
 cryptsetup (2:1.0.4~rc2-2) unstable; urgency=low
 
-  * NOT RELEASED YET
-
   [ David Härdeman ]
   * Always update the current initramfs when a new version is installed
 
- -- David Härdeman <david@2gen.com>  Thu, 14 Sep 2006 01:28:53 +0200
+  [ Jonas Meurer ]
+  * Fix SYNOPSIS in crypttab(5) manpage to show all arguments as mandatory.
+    Thanks to Michael Steinfurth (closes: #388087)
+
+ -- Jonas Meurer <mejo@debian.org>  Mon, 18 Sep 2006 17:11:46 +0200
 
 cryptsetup (2:1.0.4~rc2-1) unstable; urgency=low
 
