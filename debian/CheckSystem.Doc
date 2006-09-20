@@ -1,14 +1,14 @@
 This is the documentation for implementing a robust check system into
 /etc/init.d/cryptdisks
 
-checks marked with [default] should always be enabled.
+checks marked with [default] are enabled per default.
 
 basic ideas:
  - default checks are only necessary where one of OUR actions causes
    dataloss.
  - our checks must not cause any modifications to the underlying device.
  - it should be possible to deactivate all default checks with options
-   in crypttab.
+   in crypttab. (not sure whether the current situation reflects this)
 
 The only default checks which apply to all situations are:
  * precheck: does the source device exist? [default]
@@ -17,11 +17,10 @@ The only default checks which apply to all situations are:
 Currently, three different branches exist:
 
 ### swap ###
- - luks and a /dev/*random key are not compatible. disable this combination
  * precheck:
-   - is the source device a swap partition? [not default, corner cases exist.
-     i.e. this doesn't work with logical volumes]
-     use options "precheck=swap" for enabling this.
+   - check for all known filesystems on the device, skip if any is found [default]
+   - if none is found, check whether the source device is a swap partition.
+     skip if any other fs is found. [default]
  * postcheck:
    - does the target device conatin any filesystem type other than 'swap'?
      fail in case. [default]
@@ -36,8 +35,7 @@ note to swap: You may destroy data whenever setting the 'swap' flag. The
 
 ### plain dm-crypt ###
  * precheck:
-   - check for all known filesystems on the device [default]
-     + true: abort
+   - check for all known filesystems on the device, skip if one is found [default]
  * postcheck:
    - check what the user requested us to check [filesystem, lvm, ...]
      + false: remove the dm-crypt device, retry as often as configured
@@ -46,9 +44,9 @@ note to plain dm-crypt: The postcheck (for filesystem or whatever) is the only
                         way to verify that the given password/key is correct.
 
 ### luks ###
+ - luks and a /dev/*random key are not compatible. disable this combination.
  * precheck:
-   - check whether the device is a LUKS partition [default]
-     + false: abort
+   - check whether the device is a LUKS partition, skip if untrue [default]
  * postcheck:
    - check what the user requested us to check [filesystem, lvm, ...]
      + false: just print a warning, the right password has been supplied

@@ -17,8 +17,8 @@ with the new device name /dev/mapper/cswap:
 
 After that add an entry in /etc/crypttab (replace /dev/hda9 with
 your own swap partition):
-# <target device> <source device> <key file> <options>
-cswap /dev/hda9 /dev/random swap
+# <target name> <source device>	<key file>	<options>
+cswap		/dev/hda9	/dev/random	swap,cipher=aes-cbc-plain,size=128,hash=ripemd160
 
 Now start your crypted device:  /etc/init.d/cryptdisks start
 And reaktivate your swap:       swapon -a

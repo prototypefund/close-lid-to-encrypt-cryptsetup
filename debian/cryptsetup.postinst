@@ -16,6 +16,18 @@ case "$1" in
 	if [ -x /usr/sbin/update-initramfs ]; then
 		update-initramfs -u
 	fi
+
+	# check for entries with missing fields in crypttab
+	egrep -v "^[[:space:]]*(#|$)" /etc/crypttab | while read dst src key opt; do
+		# Make sure that all fields are present
+		if [ "x$dst" = "x" ]; then
+			continue
+		elif [ "x$src" = "x" -o "x$key" = "x" -o "x$opt" = "x" ]; then
+			echo -e "\nWARNING: $dst from /etc/crypttab missed some arguments. see man cryptab(5)."
+			continue
+		fi
+
+	done
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

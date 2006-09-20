@@ -324,12 +324,13 @@ do_noluks () {
 		PRECHECK="/lib/cryptsetup/checks/un_vol_id"
 	fi
 
-	if ($PRECHECK $src); then
+	if pre_out=$($PRECHECK $src); then
 		run=1
-	elif ($PRECHECK $src swap) && test "$MAKESWAP" = "xyes"; then
+	elif test "x$MAKESWAP" = "xyes" && /lib/cryptsetup/checks/vol_id $src swap>/dev/null; then
 		run=1
 	else
 		run=0
+		echo -e "$pre_out" >&2
 		echo -e "\n - the precheck for '$src' failed, skipping" >&2
 		return 1
 	fi
@@ -376,10 +377,12 @@ umount_fs () {
 
 do_swap () {
 	if test "x$MAKESWAP" = "xyes" && test -b $MAPPER/$dst; then
-		if $SWCHECK $MAPPER/$dst $SWCHECKARGS; then
+		if swap_out=$(/lib/cryptsetup/checks/un_vol_id $MAPPER/$dst) || \
+				/lib/cryptsetup/checks/vol_id $MAPPER/$dst swap>/dev/null; then
 			mkswap $MAPPER/$dst 2>/dev/null >/dev/null
 		else
-			echo -e "\n - the check for '$MAPPER/$dst' failed. $MAPPER/$dst contains data." >&2
+			echo -e "\n$swap_out" >&2
+			echo -e " - the check for '$MAPPER/$dst' failed. $MAPPER/$dst contains data." >&2
 			echo " - removing the crypto device $dst" >&2
 			do_close
 		fi
