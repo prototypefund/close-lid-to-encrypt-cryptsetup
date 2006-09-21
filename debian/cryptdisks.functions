@@ -176,58 +176,67 @@ parse_opts () {
 }
 
 lo_setup () {
+	local LOOP_ID=""
+
 	# Set up loopback devices
-	if test -f "$src" ; then
-		test -d /sys/block/loop0 || modprobe loop || continue
-		LOOP_ID=
-		for i in 0 1 2 3 4 5 6 7 ; do
-			if test "x`cat /sys/block/loop$i/size`" = "x0" ; then
-				LOOP_ID=$i
-				break
-			fi
-		done
-		if test "x$LOOP_ID" = "x" ; then
-			continue
-		else
-			$LOSETUP /dev/loop$LOOP_ID $src || continue
-			src=/dev/loop$LOOP_ID
-		fi
+	if [ ! -f "$src" ]; then
+		return 0
 	fi
+
+	if [ ! -d "/sys/block/loop0" ]; then
+		modprobe loop || return 1
+	fi
+
+	for i in 0 1 2 3 4 5 6 7 ; do
+		if [ "$(cat /sys/block/loop$i/size)" -eq 0 ]; then
+			LOOP_ID=$i
+			break
+		fi
+	done
+
+	if [ -z "$LOOP_ID" ]; then
+		return 1
+	fi
+
+	$LOSETUP /dev/loop$LOOP_ID $src || return 1
+	src=/dev/loop$LOOP_ID
+	return 0
 }
 
 check_key () {
-	if [ "x$key" != "x" ] && [ "x$key" != "xnone" ]; then
-		INTERACTIVE="no"
-		if test -e "$key" ; then
-			MODE=`ls -l $key | sed 's/^....\(......\).*/\1/'`
-			OWNER=`ls -l $key | sed 's/^[^ ]* *[^ ]* *\([^ ]*\).*/\1/'`
-
-			# luks requires a persistent key, /dev/*random is not supported
-			if test "x$USELUKS" = "xyes"; then
-				if test "$key" = "/dev/urandom" || \
-				   test "$key" = "/dev/hwrandom" || \
-				   test "$key" = "/dev/random"; then
-					echo -e "\n - LUKS does not work with random data as key, skipping" >&2
-					continue
-				fi
-			fi
-			if test "$MODE" != "------" && \
-			   test "$key" != "/dev/urandom"  && \
-			   test "$key" != "/dev/hwrandom" && \
-			   test "$key" != "/dev/random"; then
-				echo -e "\n - INSECURE MODE FOR $key" >&2
-			fi
-			if test $OWNER != root; then
-				echo -e "\n - INSECURE OWNER FOR $key" >&2
-			fi
-		else
-			echo -e "\n - Keyfile for '$dst' not found, skipping" >&2
-			continue
-		fi
-	else
+	if [ -z "$key" ] || [ "$key" = "none"]; then
 		INTERACTIVE="yes"
 		echo ""
+		return 0
 	fi
+
+	if [ ! -e "$key" ]; then
+		echo -e "\n - Keyfile for '$dst' not found, skipping" >&2
+		return 1
+	fi
+
+	# FIXME: Use stat here instead
+	MODE=`ls -l $key | sed 's/^....\(......\).*/\1/'`
+	OWNER=`ls -l $key | sed 's/^[^ ]* *[^ ]* *\([^ ]*\).*/\1/'`
+
+	# LUKS requires a persistent key, /dev/*random is not supported
+	if [ "$USELUKS" = "yes" ] && [ "$key" != "${key%random}" ]; then
+		echo -e "\n - LUKS does not work with random data as key, skipping" >&2
+		return 1
+	fi
+
+	if [ "$key" = "${key%random}" ] && [ "$MODE" != "------" ]; then
+		echo -e "\n - INSECURE MODE FOR $key" >&2
+		return 1
+	fi
+
+	if [ "$OWNER" != "root" ]; then
+		echo -e "\n - INSECURE OWNER FOR $key" >&2
+		return 1
+	fi
+
+	INTERACTIVE="no"
+	return 0
 }
 
 do_luks () {
@@ -339,12 +348,6 @@ do_tmp () {
 	fi
 }
 
-clean_keys () {
-	if [ "$deckey" -a -f "$deckey" ]; then
-		rm -f $deckey && deckey=""
-	fi
-}
-
 do_close () {
 	if echo $opt | grep -q "luks"; then
 		$CRYPTCMD luksClose $dst
@@ -385,8 +388,8 @@ do_start () {
 		log_progress_msg "$dst(starting)"
 
 		parse_opts "$opt" || continue
-		check_key
-		lo_setup
+		check_key || continue
+		lo_setup || continue
 
 		if test "x$USELUKS" = "xyes" ; then
 			do_luks
@@ -400,8 +403,6 @@ do_start () {
 			do_swap
 			do_tmp
 		fi
-
-		clean_keys
 	done
 	
 	umount_fs

@@ -6,6 +6,7 @@ cryptsetup (2:1.0.4~rc2-2) unstable; urgency=low
     option to use that script instead
   * Move the gpg key decryption into a keyscript and change the gpg
     option to use that script instead
+  * Clean up cryptdisks.functions
 
   [ Jonas Meurer ]
   * Fix SYNOPSIS in crypttab(5) manpage to show all arguments as mandatory.
