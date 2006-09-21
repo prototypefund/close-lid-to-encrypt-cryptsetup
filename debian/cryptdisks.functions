@@ -12,6 +12,8 @@ test -f $TABFILE   || exit 0
 
 
 parse_opts () {
+	local opt="$1"
+
 	PARAMS=""
 	CHECK=""
 	CHECKARGS=""
@@ -20,7 +22,6 @@ parse_opts () {
 	MAKETMP=""
 	MAKESWAP=""
 	USELUKS=""
-	SKIP=""
 	TIMEOUT=""
 	KEYSCRIPT=""
 
@@ -51,21 +52,21 @@ parse_opts () {
 		  	PARAMS="$PARAMS -c $VALUE"
 		  	if test "x$VALUE" = "x" ; then
 		  		echo -e "\n - no value for cipher option, skipping" >&2
-		  		SKIP="yes"
+		  		return 1
 		  	fi
 		  	;;
 		  size)
 		  	PARAMS="$PARAMS -s $VALUE"
 		  	if test "x$VALUE" = "x" ; then
 		  		echo -e "\n - no value for size option, skipping" >&2
-		  		SKIP="yes"
+		  		return 1
 		  	fi
 		  	;;
 		  hash)
 		  	PARAMS="$PARAMS -h $VALUE"
 		  	if test "x$VALUE" = "x" ; then
 		  		echo -e "\n - no value for hash option, skipping" >&2
-		  		SKIP=yes
+		  		return 1
 		  	fi
 		  	;;
 		  verify)
@@ -147,33 +148,31 @@ parse_opts () {
 		  ssl)
 			if [ -n "$KEYSCRIPT" ]; then
 				echo -n "\n - multiple key decryption options are not allowed together, skipping" > &2
-				SKIP="yes"
+				return 1
 			fi
 			KEYSCRIPT="/lib/cryptsetup/scripts/decrypt_old_ssl"
 			;;
 		  gpg)
 			if [ -n "$KEYSCRIPT" ]; then
 				echo -n "\n - multiple key decryption options are not allowed together, skipping" > &2
-				SKIP="yes"
+				return 1
 			fi
 			KEYSCRIPT="/lib/cryptsetup/scripts/decrypt_gpg"
 			;;
 		  keyscript)
 			if [ -n "$KEYSCRIPT" ]; then
 				echo -n "\n - multiple key decryption options are not allowed together, skipping" > &2
-				SKIP="yes"
+				return 1
 			elif test "x$VALUE" = "x" ; then
 		  		echo -e "\n - no value for keyscript option, skipping" >&2
-		  		SKIP="yes"
+		  		return 1
 		  	fi
 			KEYSCRIPT="$VALUE"
 		  	;;
 		esac
 	done
 
-	if test "x$SKIP" = "xyes" ; then
-		continue
-	fi
+	return 0
 }
 
 lo_setup () {
@@ -385,7 +384,7 @@ do_start () {
 		# All checks passed, do the real setup
 		log_progress_msg "$dst(starting)"
 
-		parse_opts
+		parse_opts "$opt" || continue
 		check_key
 		lo_setup
 
@@ -437,3 +436,12 @@ do_stop () {
 	log_action_end_msg 0
 }
 
+device_msg () {
+	local dst msg
+	dst="$1"
+	msg="$2"
+
+	if [ "$VERBOSE" != "no" ]; then
+		log_action_cont_msg "$dst ($msg)"
+	fi
+}
