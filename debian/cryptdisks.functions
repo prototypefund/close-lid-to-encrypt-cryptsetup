@@ -148,12 +148,20 @@ parse_opts () {
 			;;
 		  ssl)
 		  	SSL=yes
+			if [ -n "$KEYSCRIPT" ]; then
+				echo -n "\n - multiple key decryption options are not allowed together, skipping" > &2
+				SKIP="yes"
+			fi
+			KEYSCRIPT="/lib/cryptsetup/scripts/decrypt_old_ssl"
 			;;
 		  gpg)
 		  	GPG=yes
 			;;
 		  keyscript)
-		  	if test "x$VALUE" = "x" ; then
+			if [ -n "$KEYSCRIPT" ]; then
+				echo -n "\n - multiple key decryption options are not allowed together, skipping" > &2
+				SKIP="yes"
+			elif test "x$VALUE" = "x" ; then
 		  		echo -e "\n - no value for keyscript option, skipping" >&2
 		  		SKIP="yes"
 		  	fi
@@ -170,33 +178,6 @@ parse_opts () {
 	if test "x$SKIP" = "xyes" ; then
 		continue
 	fi
-}
-
-decrypt_ssl () {
-	origumask=`umask`
-	umask 077
-	tmpkey=`tempfile`
-
-	while ( ! /usr/bin/openssl enc -aes256 -d -salt -in $key -out $tmpkey \
-	          -k $password > /dev/null 2>&1 ); do
-		echo -en "\nSecond password for key $key: "
-		read -s password <${CONSOLE:-/dev/tty}
-		echo
-		[ "$password" = "" ] && return 0
-	done
-
-	deckey=`tempfile`
-	while ( ! /usr/bin/openssl dsa -in $tmpkey -out $deckey -passin \
-	          pass:$password > /dev/null 2>&1 ); do
-		echo -en "\nFirst password for key $key: "
-		read -s password <${CONSOLE:-/dev/tty}
-		echo
-		[ "$password" = "" ] && return 0
-	done
-
-	password=""
-	rm -f $tmpkey && tmpkey=""
-	umask $origumask
 }
 
 decrypt_gpg () {
@@ -268,14 +249,7 @@ check_key () {
 			echo -e "\n - Keyfile for '$dst' not found, skipping" >&2
 			continue
 		fi
-		if [ "x$SSL" = "xyes" ]; then
-			if [ -x /usr/bin/openssl ]; then
-				decrypt_ssl && key=$deckey
-			else
-				echo -e "\n - Openssl is not available, skipping" >&2
-				continue
-			fi
-		elif [ "x$GPG" = "xyes" ]; then
+		if [ "x$GPG" = "xyes" ]; then
 			if [ -x /usr/bin/gnupg ]; then
 				decrypt_gpg && key=$deckey
 			else

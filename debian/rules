@@ -104,11 +104,13 @@ install: build
 	install -m 0755 debian/scripts/luksformat $(CURDIR)/debian/cryptsetup/usr/sbin/
 	install -m 0755 debian/scripts/decrypt_* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
 	install -m 0644 debian/cryptsetup.lintian-override \
-			$(CURDIR)/debian/cryptsetup/usr/share/lintian/overrides/cryptsetup
+		$(CURDIR)/debian/cryptsetup/usr/share/lintian/overrides/cryptsetup
 	install -m 0755 debian/initramfs-cryptroot-hook \
-			$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptroot
+		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptroot
 	install -m 0755 debian/initramfs-cryptroot-script \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-top/cryptroot
+	install -m 0755 debian/initramfs-cryptroot-conf \
+		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/conf.d/cryptroot
 	rmdir $(CURDIR)/debian/cryptsetup/usr/lib/cryptsetup
 
 binary-indep: build install
@@ -120,6 +122,7 @@ binary-arch: build install
 	dh_installchangelogs ChangeLog
 	dh_installdocs
 	dh_installexamples debian/scripts/gen-ssl-key
+	dh_installexamples debian/scripts/gen-old-ssl-key
 	dh_installinit -a --no-start --name=cryptdisks-early --update-rcd-params="start 26 S . start 59 0 6 ."
 	dh_installinit -a --no-start --name=cryptdisks --update-rcd-params="start 28 S . start 48 0 6 ."
 	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/

@@ -1,0 +1,30 @@
+#!/bin/sh
+
+decrypt_ssl () {
+	local key tmpkey rc
+	key="$1"
+	rc=0
+	tmpkey=$(tempfile)
+
+	echo "Performing (deprecated) two-pass-ssl decryption" >&2
+	while [ 1 ]; do
+		if /usr/bin/openssl enc -aes256 -d -salt -in $key -out $tmpkey > /dev/null 2>&1; then
+			break
+		fi
+	done
+
+	while [ 1 ]; do
+		if /usr/bin/openssl dsa -in $tmpkey 2> /dev/null; then
+			break
+		fi
+	done
+
+	rm -f "$tmpkey"
+	return $rc
+}
+
+if [ -z "$1" ]; then
+	exit 1
+fi
+decrypt_ssl "$1"
+exit $?

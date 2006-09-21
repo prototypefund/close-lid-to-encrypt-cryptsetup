@@ -2,6 +2,8 @@ cryptsetup (2:1.0.4~rc2-2) unstable; urgency=low
 
   [ David Härdeman ]
   * Always update the current initramfs when a new version is installed
+  * Move the double-ssl encryption into a keyscript and change the ssl
+    option to use that script instead
 
   [ Jonas Meurer ]
   * Fix SYNOPSIS in crypttab(5) manpage to show all arguments as mandatory.
@@ -13,7 +15,7 @@ cryptsetup (2:1.0.4~rc2-2) unstable; urgency=low
   * Fix posttest for encrypted swap. Don't skip if a swap filesystem is found
     on the target device. Thanks to Sam Couter. (closes: #385317)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 20 Sep 2006 16:53:07 +0200
+ -- David Härdeman <david@2gen.com>  Fri, 22 Sep 2006 00:54:28 +0200
 
 cryptsetup (2:1.0.4~rc2-1) unstable; urgency=low
 
