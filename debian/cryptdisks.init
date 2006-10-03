@@ -11,14 +11,22 @@
 # Description:
 ### END INIT INFO
 
+set -e 
+
 . /lib/lsb/init-functions
 
 INITSTATE="remaining"
 LOUD="yes"
 
-[ -r /etc/default/cryptdisks ] && . /etc/default/cryptdisks
+if [ -r /etc/default/cryptdisks ]; then
+  . /etc/default/cryptdisks
+fi
 
-[ -r /lib/cryptsetup/cryptdisks.functions ] && . /lib/cryptsetup/cryptdisks.functions
+if [ -r /lib/cryptsetup/cryptdisks.functions ]; then
+  . /lib/cryptsetup/cryptdisks.functions
+else
+  exit 0
+fi
 
 case "$CRYPTDISKS_ENABLE" in
   [Nn]*)
@@ -33,12 +41,12 @@ case "$1" in
   stop)
 	do_stop
 	;;
-  restart|reload|force-reload)
+  restart)
 	do_stop
 	do_start
 	;;
   *)
-	echo "Usage: cryptdisks {start|stop|restart|reload|force-reload}"
+	echo "Usage: cryptdisks {start|stop|restart}"
 	exit 1
 	;;
 esac
