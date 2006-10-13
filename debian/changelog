@@ -10,7 +10,9 @@ cryptsetup (2:1.0.4-1) unstable; urgency=low
 
   [ Jonas Meurer ]
   * New upstream release.
-  * all current patches removed, all went upstream ;-)
+    - [01_terminal_output.dpatch] removed, finally went upstream
+    - [02_docs_tries.dpatch] removed, went upstream
+    - [03_fix_build_error.dpatch] renamed to 01_fix_build_error.dpatch
   * Fix SYNOPSIS in crypttab(5) manpage to show all arguments as mandatory.
     Thanks to Michael Steinfurth.
   * Check in postinst for entries with missing arguments in /etc/crypttab.
@@ -23,9 +25,8 @@ cryptsetup (2:1.0.4-1) unstable; urgency=low
     provide any way to 'reload'.
   * Use 'set -e' and 'if [ -r <file> ]; then ...; fi' in init script. Thanks
     to Goswin Brederlow. (closes: #390354)
-  * 
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 13 Oct 2006 13:54:04 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 13 Oct 2006 14:55:47 +0200
 
 cryptsetup (2:1.0.4~rc2-1) unstable; urgency=low
 
