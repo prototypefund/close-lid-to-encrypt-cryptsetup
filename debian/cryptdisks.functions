@@ -147,21 +147,21 @@ parse_opts () {
 			;;
 		  ssl)
 			if [ -n "$KEYSCRIPT" ]; then
-				echo -n "\n - multiple key decryption options are not allowed together, skipping" > &2
+				echo -n "\n - multiple key decryption options are not allowed together, skipping" >&2
 				return 1
 			fi
 			KEYSCRIPT="/lib/cryptsetup/scripts/decrypt_old_ssl"
 			;;
 		  gpg)
 			if [ -n "$KEYSCRIPT" ]; then
-				echo -n "\n - multiple key decryption options are not allowed together, skipping" > &2
+				echo -n "\n - multiple key decryption options are not allowed together, skipping" >&2
 				return 1
 			fi
 			KEYSCRIPT="/lib/cryptsetup/scripts/decrypt_gpg"
 			;;
 		  keyscript)
 			if [ -n "$KEYSCRIPT" ]; then
-				echo -n "\n - multiple key decryption options are not allowed together, skipping" > &2
+				echo -n "\n - multiple key decryption options are not allowed together, skipping" >&2
 				return 1
 			elif test "x$VALUE" = "x" ; then
 		  		echo -e "\n - no value for keyscript option, skipping" >&2
