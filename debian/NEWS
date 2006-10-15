@@ -3,7 +3,7 @@ cryptsetup (2:1.0.4-1) unstable; urgency=low
    The ssl and gpg options in /etc/crypttab have been deprecated in
    favour of the keyscripts option. The options will still work, but
    generate warnings. You should change any lines containing these
-   options to use keyscript=/lib/cryptsetup/scripts/decrypt_ssl or
+   options to use keyscript=/lib/cryptsetup/scripts/decrypt_old_ssl or
    keyscript=/lib/cryptsetup/scripts/decrypt_gpg instead as support
    will be completely removed in the future.
 
