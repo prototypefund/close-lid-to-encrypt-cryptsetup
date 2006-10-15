@@ -11,6 +11,8 @@ cryptsetup (2:1.0.4-1) unstable; urgency=low
   * Fix bogus error message from initramfs hook, based on patch by
     Loïc Minier <lool@dooz.org>. (closes: #388871)
   * Remove the undocumented kernel boot argument "cryptopts"
+  * Always add some crypto modules/tools to the initramfs image unless
+    MODULES=dep. (closes: #389835)
 
   [ Jonas Meurer ]
   * New upstream release.
@@ -31,7 +33,7 @@ cryptsetup (2:1.0.4-1) unstable; urgency=low
     to Goswin Brederlow. (closes: #390354)
   * change '... > &2' to ... >&2' in cryptdisks.functions
 
- -- David Härdeman <david@hardeman.nu>  Sun, 15 Oct 2006 17:48:52 +0200
+ -- David Härdeman <david@hardeman.nu>  Sun, 15 Oct 2006 18:08:07 +0200
 
 cryptsetup (2:1.0.4~rc2-1) unstable; urgency=low
 

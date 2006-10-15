@@ -121,19 +121,32 @@ get_root_modules() {
 	[ ! -z "$ivhash" ] && echo "$ivhash"
 }
 
+# Unless MODULES = "dep", we always add a basic subset of modules/tools
+if [ "$MODULES" != "dep" ]; then
+	for mod in dm_mod dm_crypt aes sha256; do
+		manual_add_modules $mod
+	done
+	copy_exec /sbin/cryptsetup /sbin
+	copy_exec /sbin/dmsetup /sbin
+fi
+
 # Find out which device root is on
 rootdev=$(get_root_device)
-[ -z "$rootdev" ] && exit 0
+if [ -z "$rootdev" ]; then
+	exit 0
+fi
 
 # Check that it is a node under /dev/mapper/
-node=${rootdev#/dev/mapper/}
-[ "$node" != $rootdev ] || exit 0
+node="${rootdev#/dev/mapper/}"
+if [ "$node" != "$rootdev" ]; then
+	exit 0
+fi
 
 # Can we find this node in crypttab
 opts=""
-if ! node_is_in_crypttab $node; then
+if ! node_is_in_crypttab "$node"; then
 	# It is a /dev/mapper node but not in crypttab, is it lvm?
-	lvmtest=$(get_lvm_device $node)
+	lvmtest=$(get_lvm_device "$node")
 
 	if [ -z "$lvmtest" ]; then
 		# Neither in crypttab, nor a lvm device, our work is done
