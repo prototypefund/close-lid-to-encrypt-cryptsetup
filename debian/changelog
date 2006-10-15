@@ -7,6 +7,7 @@ cryptsetup (2:1.0.4-1) unstable; urgency=low
   * Move the gpg key decryption into a keyscript and change the gpg
     option to use that script instead
   * Clean up cryptdisks.functions
+  * Let initramfs-tools know that we need busybox in the initramfs image
 
   [ Jonas Meurer ]
   * New upstream release.
@@ -27,7 +28,7 @@ cryptsetup (2:1.0.4-1) unstable; urgency=low
     to Goswin Brederlow. (closes: #390354)
   * change '... > &2' to ... >&2' in cryptdisks.functions
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 14 Oct 2006 13:35:05 +0200
+ -- David Härdeman <david@hardeman.nu>  Sun, 15 Oct 2006 16:56:54 +0200
 
 cryptsetup (2:1.0.4~rc2-1) unstable; urgency=low
 
