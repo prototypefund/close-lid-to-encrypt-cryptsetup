@@ -33,8 +33,9 @@ case "$1" in
 		else
 			# Some options are deprecated
 			while [ -n "$opts" ]; do
-				opt=${opts%%,*}
-				opts=${opts#*,}
+				opt=$(echo $opts | sed "s/,.*//")
+				opts=${opts##$opt}
+				opts=${opts##,}
 
 				if [ "$opt" = "ssl" ]; then
 					echo -e "\nWARNING: $dst in /etc/crypttab uses the deprecated ssl option, see man crypttab(5)."
