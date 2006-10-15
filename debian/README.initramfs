@@ -99,3 +99,4 @@ as part of the initramfs bootup, you have to make sure that you do not use
 any tools which are not available or your script, and therefore boot, will
 fail.
 
+-- David Härdeman <david@hardeman.nu>
