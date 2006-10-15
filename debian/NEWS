@@ -1,15 +1,26 @@
-cryptsetup (1.0.3-4) unstable; urgency=low
+cryptsetup (2:1.0.4-1) unstable; urgency=low
 
- * Up to now, the us keymap was loaded at the passphrase prompt in the boot
-   process and ascii characters were always used. With this upload this is 
+   The ssl and gpg options in /etc/crypttab have been deprecated in
+   favour of the keyscripts option. The options will still work, but
+   generate warnings. You should change any lines containing these
+   options to use keyscript=/lib/cryptsetup/scripts/decrypt_ssl or
+   keyscript=/lib/cryptsetup/scripts/decrypt_gpg instead as support
+   will be completely removed in the future.
+
+ -- David Härdeman <david@hardeman.nu>  Mon, 16 Oct 2006 00:00:12 +0200
+
+cryptsetup (2:1.0.3-4) unstable; urgency=low
+
+   Up to now, the us keymap was loaded at the passphrase prompt in the boot
+   process and ascii characters were always used. With this upload this is
    fixed, meaning that the correct keymap is loaded and the keyboard is
    (optionally) set to UTF8 mode before the passphrase prompt.
 
-   This may result in your password not working any more in the boot process. 
+   This may result in your password not working any more in the boot process.
    In this case, you should add a new key with cryptsetup luksAddKey with your
    correct keymap loaded.
 
- * Additionally, all four fields are now mandatory in /etc/crypttab. An entry
+   Additionally, all four fields are now mandatory in /etc/crypttab. An entry
    which does not contain all fields will be ignored. It is recommented to
    set cipher, size and hash anyway, as defaults may change in the future.
 

@@ -98,12 +98,16 @@ Be loud. Print warnings if a device does not exist.
 *ssl*::
 Decrypt the keyfile with openssl before actually using it for cryptsetup. This
 requires /usr/bin/openssl to be available. Thus it doesn't work for encrypted
-root filesystems or if /usr is a seperate filesystem.
+root filesystems or if /usr is a seperate filesystem. *Note:* this option is 
+deprecated and will be removed in the future, you should use 
+"'keyscript=/lib/cryptsetup/scripts/decrypt_ssl'" instead.
 
 *gpg*::
 Decrypt the keyfile with gnupg before actually using it for cryptsetup. This
 requires /usr/bin/gnupg to be available. Thus it doesn't work for encrypted
-root filesystems or if /usr is a seperate filesystem.
+root filesystems or if /usr is a seperate filesystem. *Note*: this option is 
+deprecated and will be removed in the future, you should use 
+"'keyscript=/lib/cryptsetup/scripts/decrypt_gpg'" instead.
 
 *keyscript*=<path>::
 The executable at the inidicated path is executed with the 'key file' from the third 
@@ -146,9 +150,6 @@ cdisk2 /dev/hdc1 none check=customscript,tries=1
 
 *Encrypted disk with interactive password and twofish as cipher*::
 cdisk3 /dev/sda3 none cipher=twofish
-
-*Encrypted luks disk with a openssl-encrypted keyfile*::
-cdisk4 /dev/hda2 /etc/keys/keyfile luks,ssl
 
 ENVIRONMENT
 -----------

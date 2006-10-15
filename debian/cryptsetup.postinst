@@ -22,14 +22,26 @@ case "$1" in
 		update-initramfs -u
 	fi
 
-	# check for entries with missing fields in crypttab
-	egrep -v "^[[:space:]]*(#|$)" /etc/crypttab | while read dst src key opt; do
-		# Make sure that all fields are present
-		if [ "x$dst" = "x" ]; then
+	# Do a number of checks on the currently installed crypttab
+	egrep -v "^[[:space:]]*(#|$)" /etc/crypttab | while read dst src key opts; do
+		if [ -z "$dst" ]; then
 			continue
-		elif [ "x$src" = "x" -o "x$key" = "x" -o "x$opt" = "x" ]; then
-			echo -e "\nWARNING: $dst from /etc/crypttab missed some arguments. see man cryptab(5)."
+		elif [ -z "$src" -o -z "$key" -o -z "$opts" ]; then
+			# All fields must be present
+			echo -e "\nWARNING: $dst in /etc/crypttab is missing some arguments, see man cryptab(5)."
 			continue
+		else
+			# Some options are deprecated
+			while [ -n "$opts" ]; do
+				opt=${opts%%,*}
+				opts=${opts#*,}
+
+				if [ "$opt" = "ssl" ]; then
+					echo -e "\nWARNING: $dst in /etc/crypttab uses the deprecated ssl option, see man crypttab(5)."
+				elif [ "$opt" = "gpg" ]; then
+					echo -e "\nWARNING: $dst in /etc/crypttab uses the deprecated gpg option, see man crypttab(5)."
+				fi
+			done
 		fi
 
 	done
