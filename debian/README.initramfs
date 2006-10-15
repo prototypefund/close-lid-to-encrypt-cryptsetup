@@ -10,8 +10,8 @@ use with an initramfs-image.
 -----------------------
 If you plan to perform a completely new installation of Debian onto a 
 machine and to do so using an encrypted root partition, you might want 
-to consider using a version of Debian Installer with the (experimental) 
-partman-crypto included (see http://wiki.debian.org/DebianInstaller/PartmanCrypto).
+to consider using a version of Debian Installer with partman-crypto
+(see http://wiki.debian.org/DebianInstaller/PartmanCrypto).
 
 The installation will then take care of all the details and perform the
 necessary configuration for you, meaning that you should not have to 
@@ -35,65 +35,67 @@ To do so, you need two partitions:
 
 In addition, you need to have initramfs-tools installed.
 
+NOTE: You should make sure that your swap partition is either encrypted, or
+that you are using a swap file on an encrypted partition, as crypto keys and
+other sensitive information might otherwise be written out to the swap
+partition in unencrypted form.
 
-4. Setup
---------
+
+4. Setup (regular dm-crypt)
+---------------------------
 First of all, you must edit /etc/crypttab and add a line describing your
 root device, for example:
 
-cryptroot	/dev/hda2    none    cipher=aes-cbc-essiv:sha256,size=256,hash=sha256
+  cryptroot /dev/hda2 none cipher=aes-cbc-essiv:sha256,size=256,hash=sha256
 
 This will allow cryptsetup to create /dev/mapper/cryptroot from the 
 encrypted partition /dev/hda2 during boot.
 
 In addition, you must also make sure that the root device is listed in 
-/etc/fstab, for example by a line like this:
+/etc/fstab, for example:
 
-/dev/mapper/cryptroot	/	ext3	defaults	0 1
+  /dev/mapper/cryptroot / ext3 defaults 0 1
 
 This will allow the initramfs support scripts to know which of the devices
 in the crypttab that is the root device.
 
 After doing these changes, you should regenerate the initramfs by running
 "initramfs-update -u", then make sure that your boot loader is configured
-to feed the iniramfs to the kernel when booting and that the kernel root 
-argument has been set to /dev/hda2 (the underlying root device in the
-above example).
+to feed the initramfs to the kernel when booting. The kernel root argument
+should also be changed to /dev/mapper/cryptroot.
 
 Now, reboot the machine, and if everything is correctly configured, you
 should be given a prompt to type in the passphrase for the encrypted
 root partition before the boot can continue.
 
 
-5. LUKS support
----------------
-If you are using the LUKS feature of cryptsetup, the above recipe should still
-work without any changes. However, you can then remove the cipher, size and hash
-arguments in /etc/crypttab as they will be automatically derived from the
-information stored in the luks header on-disk.
+5. Setup (using LUKS)
+---------------------
+If you are using the LUKS feature of cryptsetup, the above setup recipe should
+still apply, but since most options can be derived from the information stored
+in the LUKS header on-disk, the line to add to /etc/crypttab should look
+something like this:
+
+  cryptroot /dev/sda2 none luks
 
 
-6. Kernel command line
-----------------------
-The options set in the crypttab can also be overridden at boot time by passing
-the cryptopts argument to the kernel, with a colon-separated list of
-crypttab-like options as the value.
-
-In addition to the options supported by crypttab, the variable "node" can also 
-be set to control the name that should be used for the encrypted device 
-mapping (e.g. /dev/mapper/croot).
-
-Example:
-cryptopts=cipher=twofish-cbc-essiv:sha256,size=256,hash=plain,node=croot
-
-
-7. Exotic key types
+6. Exotic key types
 -------------------
 The above examples assume that you use a regular passphrase as the key to the
 encrypted filesystem. However, if you wish to make use of more complex setups
-(such as root-key-on-usb-memory), you can place a script or executable
-named "cryptgetpw" in /sbin and regenerate your initramfs image which will
-copy /sbin/cryptgetpw into the initramfs image.
+(such as root-key-on-usb-memory), you can create a script which does all the
+steps necessary to retrieve the key and then prints it to stdout.
 
-During boot, /sbin/cryptgetpw will be executed and its output to stdout used
-as the key to cryptsetup.
+Then add a keyscript=/path/to/your/script.sh to the options (fourth column) in
+the above mentioned /etc/crypttab line, so that it looks something like this:
+
+  cryptroot /dev/sda2 none luks,keyscript=/usr/local/sbin/cryptkey
+
+Next, regenerate your initramfs image. This will copy the script into the
+initramfs image as /sbin/cryptgetpw.
+
+NOTE: there is a limited set of tools available when the script is executing
+as part of the initramfs bootup, you have to make sure that you do not use
+any tools which are not available or your script, and therefore boot, will
+fail.
+

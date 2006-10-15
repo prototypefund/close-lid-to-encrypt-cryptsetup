@@ -13,6 +13,7 @@ cryptsetup (2:1.0.4-1) unstable; urgency=low
   * Remove the undocumented kernel boot argument "cryptopts"
   * Always add some crypto modules/tools to the initramfs image unless
     MODULES=dep. (closes: #389835)
+  * Update README.initramfs.
 
   [ Jonas Meurer ]
   * New upstream release.
