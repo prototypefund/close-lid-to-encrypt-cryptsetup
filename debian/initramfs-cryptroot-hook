@@ -38,17 +38,28 @@ node_is_in_crypttab() {
 }
 
 get_lvm_device() {
-	local node majorminor
-	node=$1
+	local node deps maj min
+	node="$1"
 
 	[ -z $node ] && return
 
-	majorminor=$( dmsetup deps $node | \
-		      sed 's/[^:]*: *(\([0-9]*\), *\([0-9]\).*/\1 \2/') || return
-	major=$( echo $majorminor | cut -d " " -f1 )
-	minor=$( echo $majorminor | cut -d " " -f2 )
-	depnode=$( dmsetup info -c --noheadings -j $major -m $minor | cut -d ":" -f 1 )
-	echo "$depnode"
+	deps=$(dmsetup deps "$node" 2> /dev/null | \
+		sed -e 's/.*://;s/[ (]//g;s/)/ /g')
+	# Deps can only contain one major/minor pair since dm-crypt is a
+	# one-to-one mapping, but let's make sure
+	if [ $(echo "$deps" | wc -w) -ne 1 ]; then
+		echo "$0: failed to parse device-mapper dependencies" >&2
+		exit 1
+	fi
+	maj=$(echo "$deps" | cut -d',' -f1)
+	min=$(echo "$deps" | cut -d̈́',' -f2)
+
+	# dmsetup info will error out if the underlying device is not a
+	# device-mapper device (e.g. /dev/hda1). This is not an error, it
+	# just means we are not using crypto on top of LVM
+	depnode=$(dmsetup info -c --noheadings -j$maj -m$min 2> /dev/null | \
+		cut -d':' -f 1) && echo "$depnode"
+	return 0
 }
 
 get_root_opts() {
@@ -146,7 +157,7 @@ force_load dm_mod
 force_load dm_crypt
 modules=$(get_root_modules $node | sort | uniq)
 if [ -z "$modules" ]; then
-	echo "$0: failed to determine cipher modules to load"
+	echo "$0: failed to determine cipher modules to load" >&2
 	exit 1
 fi
 for mod in $modules; do

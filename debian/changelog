@@ -8,6 +8,8 @@ cryptsetup (2:1.0.4-1) unstable; urgency=low
     option to use that script instead
   * Clean up cryptdisks.functions
   * Let initramfs-tools know that we need busybox in the initramfs image
+  * Fix bogus error message from initramfs hook, based on patch by
+    Loïc Minier <lool@dooz.org>. (closes: #388871)
 
   [ Jonas Meurer ]
   * New upstream release.
@@ -28,7 +30,7 @@ cryptsetup (2:1.0.4-1) unstable; urgency=low
     to Goswin Brederlow. (closes: #390354)
   * change '... > &2' to ... >&2' in cryptdisks.functions
 
- -- David Härdeman <david@hardeman.nu>  Sun, 15 Oct 2006 16:56:54 +0200
+ -- David Härdeman <david@hardeman.nu>  Sun, 15 Oct 2006 17:27:35 +0200
 
 cryptsetup (2:1.0.4~rc2-1) unstable; urgency=low
 
