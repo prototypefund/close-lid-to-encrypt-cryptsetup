@@ -5,21 +5,23 @@
 #
 
 decrypt_ssl () {
-	origumask=`umask`
-	umask 077
-	tmpkey=`tempfile`
+	local tries maxtries
+	maxtries=3
+	tries=0
 
-	while ( ! /usr/bin/openssl enc -aes-256-cbc -d -salt -in $1 -out $tmpkey \
-	          -k $password > /dev/null 2>&1 ); do
-		echo -en "\nPassword for key $1: "
-		read -s password <${CONSOLE:-/dev/tty}
-		echo
-		[ "$password" = "" ] && return 0
+	echo -e "\nDecrypting ssl key $1..." >&2
+	while [ $tries -lt $maxtries ]; do
+		if /usr/bin/openssl enc -aes-256-cbc -d -salt -in $1 2> /dev/null 2>&1; then
+			break
+		fi
+		tries=$(( $tries + 1))
 	done
+	rm -f $tmpkey
 
-	password=""
-	rm -f $tmpkey && tmpkey=""
-	umask $origumask
+	if [ $tries -eq $maxtries ]; then
+		echo -e "\nMaximum number of attempts exceeded" >&2
+		exit 1
+	fi
 }
 
 decrypt_ssl $1
