@@ -8,7 +8,9 @@ prereqs()
 	# Make sure that cryptroot is run last in local-top
 	for req in /scripts/local-top/*; do
 		script=$(basename $req)
-		[ $script != cryptroot ] && echo $script
+		if [ $script != cryptroot ]; then
+			echo $script
+		fi
 	done
 }
 
@@ -25,21 +27,15 @@ esac
 #
 get_options()
 {
-	# Do we have any settings from the /conf/conf.d/cryptroot file?
-	[ -r /conf/conf.d/cryptroot ] && . /conf/conf.d/cryptroot
-	cryptopts="${CRYPTOPTS}"
+	local CRYPTOPTS
 
-	# Does the kernel boot command line override them?
-	for x in $(cat /proc/cmdline); do
-		case $x in
-		cryptopts=*)
-			cryptopts=${x#cryptopts=}
-			;;
-		esac
-	done
+	# Do we have any settings from the /conf/conf.d/cryptroot file?
+	if [ -r /conf/conf.d/cryptroot ]; then
+		. /conf/conf.d/cryptroot
+	fi
 
 	# Sanity check
-	if [ -z "$cryptopts" ]; then
+	if [ -z "$CRYPTOPTS" ]; then
 		# Apparently the root partition isn't encrypted
 		echo "No cryptroot configured, skipping"
 		exit 0
@@ -65,34 +61,32 @@ get_options()
 	# This is only used as an argument to an eventual keyscript
 	cryptkey=""
 
-	if [ -n "$cryptopts" ]; then
-		local IFS=" ,"
-		for x in $cryptopts; do
-			case $x in
-			hash=*)
-				crypthash=${x#hash=}
-				;;
-			size=*)
-				cryptsize=${x#size=}
-				;;
-			cipher=*)
-				cryptcipher=${x#cipher=}
-				;;
-			target=*)
-				crypttarget=${x#target=}
-				;;
-			source=*)
-				cryptsource=${x#source=}
-				;;
-			lvm=*)
-				cryptlvm=${x#lvm=}
-				;;
-			key=*)
-				cryptkey=${x#key=}
-				;;
-			esac
-		done
-	fi
+	local IFS=" ,"
+	for x in $CRYPTOPTS; do
+		case $x in
+		hash=*)
+			crypthash=${x#hash=}
+			;;
+		size=*)
+			cryptsize=${x#size=}
+			;;
+		cipher=*)
+			cryptcipher=${x#cipher=}
+			;;
+		target=*)
+			crypttarget=${x#target=}
+			;;
+		source=*)
+			cryptsource=${x#source=}
+			;;
+		lvm=*)
+			cryptlvm=${x#lvm=}
+			;;
+		key=*)
+			cryptkey=${x#key=}
+			;;
+		esac
+	done
 }
 
 activate_vg()
@@ -156,6 +150,7 @@ get_options
 if [ ! -e $cryptsource ]; then
 	activate_vg $cryptsource
 fi
+
 if [ ! -e $cryptsource ]; then
 	echo "$0: source device $cryptsource not found"
 	exit 1
