@@ -31,13 +31,11 @@ cryptsetup (2:1.0.4-1) unstable; urgency=low
     device. Thanks to Dennis Furey. (closes: #387158)
   * Fix posttest for encrypted swap. Don't skip if a swap filesystem is found
     on the target device. Thanks to Sam Couter. (closes: #385317)
-  * Remove reload and force-reload from init script. Cryptsetup simply doesn't
-    provide any way to 'reload'.
   * Use 'set -e' and 'if [ -r <file> ]; then ...; fi' in init script. Thanks
     to Goswin Brederlow. (closes: #390354)
   * change '... > &2' to ... >&2' in cryptdisks.functions
 
- -- David Härdeman <david@hardeman.nu>  Mon, 16 Oct 2006 00:47:58 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 16 Oct 2006 19:22:41 +0200
 
 cryptsetup (2:1.0.4~rc2-1) unstable; urgency=low
 

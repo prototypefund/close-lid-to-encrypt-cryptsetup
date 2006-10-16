@@ -41,12 +41,12 @@ case "$1" in
   stop)
 	do_stop
 	;;
-  restart)
+  restart|reload|force-reload)
 	do_stop
 	do_start
 	;;
   *)
-	echo "Usage: cryptdisks {start|stop|restart}"
+	echo "Usage: cryptdisks {start|stop|restart|reload|force-reload}"
 	exit 1
 	;;
 esac
