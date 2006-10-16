@@ -138,7 +138,7 @@ fi
 
 # Check that it is a node under /dev/mapper/
 node="${rootdev#/dev/mapper/}"
-if [ "$node" != "$rootdev" ]; then
+if [ "$node" = "$rootdev" ]; then
 	exit 0
 fi
 
