@@ -12,7 +12,7 @@ test -f $TABFILE   || exit 0
 
 
 parse_opts () {
-	local opt="$1"
+	local opts="$1"
 
 	PARAMS=""
 	CHECK=""
@@ -27,10 +27,10 @@ parse_opts () {
 
 	# Parse the options field, convert to cryptsetup parameters
 	# and construct the command line
-	while test "x$opt" != "x" ; do
-		ARG=`echo $opt | sed "s/,.*//"`
-		opt=${opt##$ARG}
-		opt=${opt##,}
+	while test "x$opts" != "x" ; do
+		ARG=`echo $opts | sed "s/,.*//"`
+		opts=${opts##$ARG}
+		opts=${opts##,}
 		PARAM=`echo $ARG | sed "s/=.*//"`
 		
 		case "$ARG" in
@@ -204,7 +204,7 @@ lo_setup () {
 }
 
 check_key () {
-	if [ -z "$key" ] || [ "$key" = "none"]; then
+	if [ -z "$key" ] || [ "$key" = "none" ]; then
 		INTERACTIVE="yes"
 		echo ""
 		return 0
@@ -349,7 +349,7 @@ do_tmp () {
 }
 
 do_close () {
-	if echo $opt | grep -q "luks"; then
+	if echo $opts | grep -q "luks"; then
 		$CRYPTCMD luksClose $dst
 	else
 		$CRYPTCMD remove $dst
@@ -360,12 +360,12 @@ do_start () {
 	$DEVMAPCMD mknodes
 	log_action_begin_msg "Starting $INITSTATE crypto disks"
 	mount_fs
-	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opt; do
+	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opts; do
 
 		# Make sure that all fields are present
 		if [ "x$dst" = "x" ]; then
 			continue
-		elif [ "x$src" = "x" -o "x$key" = "x" -o "x$opt" = "x" ]; then
+		elif [ -z "$src" ] || [ -z "$key" ] || [ -z "$opts" ]; then
 			log_progress_msg "$dst(skipped, missing parameters)"
 			continue
 		fi
@@ -387,7 +387,7 @@ do_start () {
 		# All checks passed, do the real setup
 		log_progress_msg "$dst(starting)"
 
-		parse_opts "$opt" || continue
+		parse_opts "$opts" || continue
 		check_key || continue
 		lo_setup || continue
 
@@ -412,7 +412,7 @@ do_start () {
 do_stop () {
 	$DEVMAPCMD mknodes
 	log_action_begin_msg "Stopping $INITSTATE crypto disks"
-	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opt; do
+	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opts; do
 		if test -b $MAPPER/$dst; then
 			if $DEVMAPCMD info $dst | grep -q '^Open count: *0$'; then
 				dev=`$DEVMAPCMD table $dst | sed 's/^.* \([0-9]*:[0-9]*\) .*/\1/'`
