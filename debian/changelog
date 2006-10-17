@@ -1,3 +1,11 @@
+cryptsetup (2:1.0.4-3) unstable; urgency=low
+
+  [ Jonas Meurer ]
+  * Suggest dosfstools. Needed for the default settings in luksformat. Thanks
+    to Loïc Minier <lool@dooz.org>. (closes: #393473)
+
+ -- Jonas Meurer <mejo@debian.org>  Tue, 17 Oct 2006 18:27:48 +0200
+
 cryptsetup (2:1.0.4-2) unstable; urgency=medium
 
   [ Jonas Meurer ]
