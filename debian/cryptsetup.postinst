@@ -26,7 +26,7 @@ case "$1" in
 	egrep -v "^[[:space:]]*(#|$)" /etc/crypttab | while read dst src key opts; do
 		if [ -z "$dst" ]; then
 			continue
-		elif [ -z "$src" || -z "$key" || -z "$opts" ]; then
+		elif [ -z "$src" ] || [ -z "$key" ] || [ -z "$opts" ]; then
 			# All fields must be present
 			echo -e "\nWARNING: $dst in /etc/crypttab is missing some arguments, see man cryptab(5)."
 			continue
