@@ -4,8 +4,10 @@ cryptsetup (2:1.0.4-2) unstable; urgency=low
   * Fix postinst, use 'elif [ -z $foo] || [ -z $bar ]; then ...'
   * Fix a typo in cryptdisks.functions, change $opt to $opts for more
     consistency with the postinst script.
+  * Fix mount_fs() in cryptdisks.functions to actually do what we want it to
+    do. Up to now, the initscript stopped if a mountpoint failed to mount.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 17 Oct 2006 14:15:55 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 17 Oct 2006 14:47:37 +0200
 
 cryptsetup (2:1.0.4-1) unstable; urgency=low
 
