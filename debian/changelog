@@ -4,13 +4,14 @@ cryptsetup (2:1.0.4-3) unstable; urgency=medium
   * Suggest dosfstools. Needed for the default settings in luksformat. Thanks
     to Loïc Minier <lool@dooz.org>. (closes: #393473)
   * Suggest initramfs-tools (>= 0.60) | linux-initramfs-tool as well.
+  * Still urgency=medium for the same reasons
 
   [ David Härdeman ]
   * Change the previous fix for #388871 to use the original patch from
     Loïc Minier <lool@dooz.org>. This also removes the bogus UTF8 char.
     (closes: #393895)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 18 Oct 2006 22:52:38 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 18 Oct 2006 23:03:47 +0200
 
 cryptsetup (2:1.0.4-2) unstable; urgency=medium
 
