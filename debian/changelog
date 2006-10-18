@@ -1,4 +1,4 @@
-cryptsetup (2:1.0.4-3) unstable; urgency=low
+cryptsetup (2:1.0.4-3) unstable; urgency=medium
 
   [ Jonas Meurer ]
   * Suggest dosfstools. Needed for the default settings in luksformat. Thanks
