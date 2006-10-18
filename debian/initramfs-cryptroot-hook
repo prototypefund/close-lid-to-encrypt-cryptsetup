@@ -38,27 +38,15 @@ node_is_in_crypttab() {
 }
 
 get_lvm_device() {
-	local node deps maj min
+	local node majorminor depnode
 	node="$1"
 
 	[ -z $node ] && return
 
-	deps=$(dmsetup deps "$node" 2> /dev/null | \
-		sed -e 's/.*://;s/[ (]//g;s/)/ /g')
-	# Deps can only contain one major/minor pair since dm-crypt is a
-	# one-to-one mapping, but let's make sure
-	if [ $(echo "$deps" | wc -w) -ne 1 ]; then
-		echo "$0: failed to parse device-mapper dependencies" >&2
-		exit 1
-	fi
-	maj=$(echo "$deps" | cut -d',' -f1)
-	min=$(echo "$deps" | cut -d̈́',' -f2)
-
-	# dmsetup info will error out if the underlying device is not a
-	# device-mapper device (e.g. /dev/hda1). This is not an error, it
-	# just means we are not using crypto on top of LVM
-	depnode=$(dmsetup info -c --noheadings -j$maj -m$min 2> /dev/null | \
-		cut -d':' -f 1) && echo "$depnode"
+	majorminor=$(dmsetup deps $node | \
+		     sed 's/[^:]*: *\(([0-9]*, *[0-9]*)\).*/\1/') || return 1
+	depnode=$(dmsetup ls | sed -n "s/\\([^ ]*\\) *$majorminor$/\\1/p")
+ 	echo "$depnode"
 	return 0
 }
 

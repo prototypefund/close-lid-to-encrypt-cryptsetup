@@ -4,7 +4,12 @@ cryptsetup (2:1.0.4-3) unstable; urgency=low
   * Suggest dosfstools. Needed for the default settings in luksformat. Thanks
     to Loïc Minier <lool@dooz.org>. (closes: #393473)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 17 Oct 2006 18:27:48 +0200
+  [ David Härdeman ]
+  * Change the previous fix for #388871 to use the original patch from
+    Loïc Minier <lool@dooz.org>. This also removes the bogus UTF8 char.
+    (closes: #393895)
+
+ -- David Härdeman <david@hardeman.nu>  Wed, 18 Oct 2006 19:08:02 +0200
 
 cryptsetup (2:1.0.4-2) unstable; urgency=medium
 
