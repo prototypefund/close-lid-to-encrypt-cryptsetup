@@ -27,15 +27,24 @@ esac
 #
 get_options()
 {
-	local CRYPTOPTS
-
 	# Do we have any settings from the /conf/conf.d/cryptroot file?
+	cryptopts=""
 	if [ -r /conf/conf.d/cryptroot ]; then
 		. /conf/conf.d/cryptroot
+		cryptopts="$CRYPTOPTS"
 	fi
 
+	# Does the kernel boot command line override them?
+	for x in $(cat /proc/cmdline); do
+		case $x in
+		cryptopts=*)
+			cryptopts=${x#cryptopts=}
+			;;
+		esac
+	done
+
 	# Sanity check
-	if [ -z "$CRYPTOPTS" ]; then
+	if [ -z "$cryptopts" ]; then
 		# Apparently the root partition isn't encrypted
 		echo "No cryptroot configured, skipping"
 		exit 0
@@ -62,7 +71,7 @@ get_options()
 	cryptkey=""
 
 	local IFS=" ,"
-	for x in $CRYPTOPTS; do
+	for x in $cryptopts; do
 		case $x in
 		hash=*)
 			crypthash=${x#hash=}
@@ -150,7 +159,6 @@ get_options
 if [ ! -e $cryptsource ]; then
 	activate_vg $cryptsource
 fi
-
 if [ ! -e $cryptsource ]; then
 	echo "$0: source device $cryptsource not found"
 	exit 1
