@@ -1,7 +1,6 @@
 #!/bin/sh
 
 PREREQ=""
-KEYSCRIPT="/sbin/cryptgetpw"
 
 prereqs()
 {
@@ -18,74 +17,124 @@ esac
 . /usr/share/initramfs-tools/hook-functions
 
 get_root_device() {
-	[ -r /etc/fstab ] || return
+	if [ ! -r /etc/fstab ]; then
+		return 1
+	fi
 
-	grep '^[^#]' /etc/fstab | ( \
+	grep '^[^#]' /etc/fstab | \
 	while read device mount type options dump pass; do
 		if [ "$mount" = "/" ]; then
 			echo "$device"
 			return
 		fi
-	done )
+	done
+}
+
+get_resume_devices() {
+	local device opt
+
+	# uswsusp
+	if [ -e /etc/uswsusp.conf ]; then
+		device=$(sed -rn 's/^resume device[[:space:]]+[:=][[:space:]]+// p' /etc/uswsusp.conf)
+		if [ -n "$device" ]; then
+			echo "$device"
+		fi
+	fi
+
+	# regular swsusp
+	for opt in $(cat /proc/cmdline); do
+		case $opt in
+		resume=*)
+			echo "${opt#resume=}"
+			;;
+		esac
+	done
 }
 
 node_is_in_crypttab() {
 	local node
-	node=$1
-	
+	node="$1"
+
 	grep -q ^$node /etc/crypttab
 	return $?
 }
 
-get_lvm_device() {
-	local node majorminor depnode
+get_lvm_deps() {
+	local node rc deps maj min depnode
 	node="$1"
+	rc=1
 
-	[ -z $node ] && return
+	if [ -z $node ]; then
+		return $rc
+	fi
 
-	majorminor=$(dmsetup deps $node | \
-		     sed 's/[^:]*: *\(([0-9]*, *[0-9]*)\).*/\1/') || return 1
-	depnode=$(dmsetup ls | sed -n "s/\\([^ ]*\\) *$majorminor$/\\1/p")
- 	echo "$depnode"
-	return 0
+	deps=$(dmsetup deps "$node" | sed 's/[^:]*: *//;s/[ (]//g;s/)/ /g') || return 1
+
+	for dep in $deps; do
+		maj=${dep%,*}
+		min=${dep#*,}
+		depnode=$(dmsetup ls | sed -n "s/\\([^ ]*\\) *($maj, $min)/\\1/p")
+		if [ -n "$depnode" ]; then
+			echo "$depnode"
+			rc=0
+		fi
+	done
+
+	return $rc
 }
 
-get_root_opts() {
+get_device_opts() {
 	local target source extraopts rootopts opt
-	target=$1
-	extraopts=$2
+	target="$1"
+	extraopts="$2"
+	KEYSCRIPT=""
+	OPTIONS=""
 
-	[ ! -z $target ] || return
-	[ -r /etc/crypttab ] || return
+	if [ -z "$target" ]; then
+		return 1
+	fi
+
+	if [ ! -r /etc/crypttab ]; then
+		return 1
+	fi
 
 	opt=$( grep ^$target /etc/crypttab | head -1 | sed 's/[[:space:]]\+/ /g' )
 	source=$( echo $opt | cut -d " " -f2 )
 	key=$( echo $opt | cut -d " " -f3 )
 	rootopts=$( echo $opt | cut -d " " -f4- )
 
-	[ ! -z "$opt" -a ! -z "$source" -a ! -z "$rootopts" ] || return 1
-	[ ! -z "$extraopts" ] && rootopts="${extraopts},${rootopts}"
+	if [ -z "$opt" ] || [ -z "$source" ] || [ -z "$key" ] || [ -z "$rootopts" ]; then
+		return 1
+	fi
+
+	if [ -n "$extraopts" ]; then
+		rootopts="$extraopts,$rootopts"
+	fi
 
 	# We have all the basic options, let's go trough them
-	echo -n "target=$target,source=$source"
+	OPTIONS="target=$target,source=$source,key=$key"
 	local IFS=", "
 	for opt in $rootopts; do
 		case $opt in
 			cipher=*)
-				echo -n ",$opt"
+				OPTIONS="$OPTIONS,$opt"
 				;;
 			hash=*)
-				echo -n ",$opt"
+				OPTIONS="$OPTIONS,$opt"
 				;;
 			size=*)
-				echo -n ",$opt"
+				OPTIONS="$OPTIONS,$opt"
 				;;
 			lvm=*)
-				echo -n ",$opt"
+				OPTIONS="$OPTIONS,$opt"
 				;;
 			keyscript=*)
-				echo -n ",key=$key"
-				KEYSCRIPT=${opt#keyscript=}
+				opt=${opt#keyscript=}
+				if [ -x "$opt" ]; then
+					KEYSCRIPT="$opt"
+					opt=$(basename "$opt")
+					OPTIONS="$OPTIONS,keyscript=/keyscripts/$opt"
+				fi
 				;;
 			*)
 				# Presumably a non-supported option
@@ -94,20 +143,122 @@ get_root_opts() {
 	done
 }
 
-get_root_modules() {
-	local rootnode value cipher ivhash
-	rootnode=$1
+get_device_modules() {
+	local node value cipher ivhash
+	node="$1"
 
 	# Check the ciphers used by the active root mapping
-	value=$( dmsetup table $rootnode | cut -d " " -f4 )
+	value=$(dmsetup table "$node" | cut -d " " -f4)
+	cipher=$(echo "$value" | cut -d ":" -f1 | cut -d "-" -f1)
+	ivhash=$(echo "$value" | cut -d ":" -s -f2)
 
-	cipher=$( echo $value | cut -d ":" -f1 | cut -d "-" -f1 )
-	[ -z "$cipher" ] && return
-	echo $cipher
+	if [ -z "$cipher" ]; then
+		return 1
+	fi
 
-	ivhash=$( echo $value | cut -d ":" -s -f2 )
-	[ ! -z "$ivhash" ] && echo "$ivhash"
+	echo "$cipher"
+
+	if [ -n "$ivhash" ]; then
+		echo "$ivhash"
+	fi
+	return 0
 }
+
+prepare_keymap() {
+	local env charmap
+
+	# Allow the correct keymap to be loaded if possible
+	if [ ! -x /bin/loadkeys ] || [ ! -r /etc/console/boottime.kmap.gz ]; then
+		return 1
+	fi
+
+	copy_exec /bin/loadkeys /bin/
+	cp /etc/console/boottime.kmap.gz $DESTDIR/etc/
+
+	# Check for UTF8 console
+	if [ ! -x /usr/bin/kbd_mode ]; then
+		return 0
+	fi
+
+	if [ -r /etc/environment ]; then
+		env="/etc/environment"
+	elif [ -r /etc/default/locale ]; then
+		env="/etc/default/locale"
+	else
+		return 0
+	fi
+
+	for var in LANG LC_ALL LC_CTYPE; do
+		value=$(egrep "^[^#]*${var}=" $env | tail -n1 | cut -d= -f2)
+		eval $var=$value
+	done
+
+	charmap=$(LANG=$LANG LC_ALL=$LC_ALL LC_CTYPE=$LC_CTYPE locale charmap)
+	if [ "$charmap" = "UTF-8" ]; then
+		copy_exec /usr/bin/kbd_mode /bin/
+	fi
+	return 0
+}
+
+add_device() {
+	local node
+	nodes="$1"
+
+	if [ -z "$nodes" ]; then
+		return 0
+	fi
+
+	# Check that it is a node under /dev/mapper/
+	nodes="${nodes#/dev/mapper/}"
+	if [ "$nodes" = "$1" ]; then
+		return 0
+	fi
+
+	# Can we find this node in crypttab
+	opts=""
+	if ! node_is_in_crypttab "$nodes"; then
+		# It is a /dev/mapper node but not in crypttab, is it lvm?
+		lvmnodes=$(get_lvm_deps "$nodes") || return 1
+
+		# It is a lvm device!
+		opts="lvm=$nodes"
+		nodes="$lvmnodes"
+	fi
+
+	for node in $nodes; do
+		# Get crypttab root options
+		if ! get_device_opts $node $opts; then
+			echo "cryptsetup: failed to determine cipher options to use for $node" >&2
+			continue
+		fi
+		echo "$OPTIONS" >> "$DESTDIR/conf/conf.d/cryptroot"
+
+		# If we have a keyscript, make sure it is included
+		if [ -n "$KEYSCRIPT" ]; then
+			if [ ! -d "$DESTDIR/keyscripts" ]; then
+				mkdir "$DESTDIR/keyscripts"
+			fi
+			copy_exec "$KEYSCRIPT" /keyscripts
+		fi
+
+		# Calculate needed modules
+		modules=$(get_device_modules $node | sort | uniq)
+		if [ -z "$modules" ]; then
+			echo "$0: failed to determine cipher modules to load for $node" >&2
+			continue
+		fi
+		echo dm_mod
+		echo dm_crypt
+		echo "$modules"
+	done
+
+	return 0
+}
+
+
+#
+# Begin real processing
+#
 
 # Unless MODULES = "dep", we always add a basic subset of modules/tools
 if [ "$MODULES" != "dep" ]; then
@@ -116,93 +267,34 @@ if [ "$MODULES" != "dep" ]; then
 	done
 	copy_exec /sbin/cryptsetup /sbin
 	copy_exec /sbin/dmsetup /sbin
+	prepare_keymap
 fi
 
-# Find out which device root is on
+# Find out which devices to add to the config file
 rootdev=$(get_root_device)
-if [ -z "$rootdev" ]; then
+resumedevs=$(get_resume_devices)
+if [ -z "$rootdev" ] && [ -z "$resumedevs" ]; then
 	exit 0
 fi
 
-# Check that it is a node under /dev/mapper/
-node="${rootdev#/dev/mapper/}"
-if [ "$node" = "$rootdev" ]; then
-	exit 0
-fi
+# Load the config opts and modules for each device
+for dev in $rootdev $resumedevs; do
+	modules=$(add_device "$dev")
 
-# Can we find this node in crypttab
-opts=""
-if ! node_is_in_crypttab "$node"; then
-	# It is a /dev/mapper node but not in crypttab, is it lvm?
-	lvmtest=$(get_lvm_device "$node")
-
-	if [ -z "$lvmtest" ]; then
-		# Neither in crypttab, nor a lvm device, our work is done
-		exit 0
-	else
-		# It is a lvm device!
-		opts="lvm=$node"
-		node="$lvmtest"
+	if [ -z "$modules" ]; then
+		echo "cryptsetup: failed to determine cipher modules to load for $dev" >&2
+		exit 1
 	fi
-fi
 
-# Get crypttab root options
-rootopts=$(get_root_opts $node $opts)
-if [ -z "$rootopts" ]; then
-	echo "$0: failed to determine cipher options to use"
-	exit 1
-fi
-
-# Calculate needed modules
-force_load dm_mod
-force_load dm_crypt
-modules=$(get_root_modules $node | sort | uniq)
-if [ -z "$modules" ]; then
-	echo "$0: failed to determine cipher modules to load" >&2
-	exit 1
-fi
-for mod in $modules; do
-	manual_add_modules $mod
+	for mod in $modules; do
+		manual_add_modules $mod
+	done
 done
 
 # Prepare the initramfs
-echo "CRYPTOPTS=\"$rootopts\"" > ${DESTDIR}/conf/conf.d/cryptroot
 copy_exec /sbin/cryptsetup /sbin
 copy_exec /sbin/dmsetup /sbin
-
-# If we have a keyscript, make sure it is included
-if [ -x "$KEYSCRIPT" ]; then
-	copy_exec "$KEYSCRIPT" /sbin
-
-	# Make sure that the script is called cryptgetpw
-	BNAME=$(basename "$KEYSCRIPT")
-	if [ "$BNAME" != "cryptgetpw" ]; then
-		mv $DESTDIR/sbin/$BNAME $DESTDIR/sbin/cryptgetpw
-	fi
-fi
-
-# Allow the correct keymap to be loaded if possible
-if [ -x /bin/loadkeys -a -r /etc/console/boottime.kmap.gz ]; then
-	copy_exec /bin/loadkeys /bin/
-	cp /etc/console/boottime.kmap.gz $DESTDIR/etc/
-
-	# Check for UTF8 console
-	ENV_FILE="none"
-	[ -r /etc/environment ] && ENV_FILE="/etc/environment"
-	[ -r /etc/default/locale ] && ENV_FILE="/etc/default/locale" 
-
-	if [ $ENV_FILE != none ]; then
-		for var in LANG LC_ALL LC_CTYPE; do
-			value=$(egrep "^[^#]*${var}=" $ENV_FILE | tail -n1 | cut -d= -f2)
-			eval $var=$value
-		done
-
-		CHARMAP=`LANG=$LANG LC_ALL=$LC_ALL LC_CTYPE=$LC_CTYPE locale charmap`
-		if [ "$CHARMAP" = "UTF-8" -a -x /usr/bin/kbd_mode ]; then
-			copy_exec /usr/bin/kbd_mode /bin/
-		fi
-	fi
-fi
+prepare_keymap
 
 # Done
 exit 0

@@ -25,50 +25,24 @@ esac
 #
 # Helper functions
 #
-get_options()
+parse_options()
 {
-	# Do we have any settings from the /conf/conf.d/cryptroot file?
-	cryptopts=""
-	if [ -r /conf/conf.d/cryptroot ]; then
-		. /conf/conf.d/cryptroot
-		cryptopts="$CRYPTOPTS"
-	fi
+	local cryptopts
+	cryptopts="$1"
 
-	# Does the kernel boot command line override them?
-	for x in $(cat /proc/cmdline); do
-		case $x in
-		cryptopts=*)
-			cryptopts=${x#cryptopts=}
-			;;
-		esac
-	done
-
-	# Sanity check
 	if [ -z "$cryptopts" ]; then
-		# Apparently the root partition isn't encrypted
-		echo "No cryptroot configured, skipping"
-		exit 0
+		return 1
 	fi
 
-	# There are two possible scenarios here:
-	#
-	# 1) The fstype of the root device has been identified as "luks"
-	# 2) The fstype is not "luks" but cryptopts has been set
-	#
-	# The former means that we use the luks functionality of cryptsetup, the
-	# latter means that we do it the old-fashioned way.
-	#
-	# Start by parsing some options, all options are relevant to regular cryptsetup
-	# but only crypttarget and cryptsource is relevant to luks which picks up the 
-	# rest of the parameters by reading the partition header
+	# Defaults
 	cryptcipher=aes-cbc-essiv:sha256
 	cryptsize=256
 	crypthash=sha256
 	crypttarget=cryptroot
-	cryptsource=$ROOT
+	cryptsource=""
 	cryptlvm=""
-	# This is only used as an argument to an eventual keyscript
-	cryptkey=""
+	cryptkeyscript=""
+	cryptkey="" # This is only used as an argument to an eventual keyscript
 
 	local IFS=" ,"
 	for x in $cryptopts; do
@@ -91,24 +65,31 @@ get_options()
 		lvm=*)
 			cryptlvm=${x#lvm=}
 			;;
+		keyscript=*)
+			cryptkeyscript=${x#keyscript=}
+			;;
 		key=*)
-			cryptkey=${x#key=}
+			if [ "${x#key=}" != "none" ]; then
+				cryptkey=${x#key=}
+			fi
 			;;
 		esac
 	done
+
+	if [ -z "$cryptsource" ]; then
+		echo "cryptsetup: source parameter missing"
+		return 1
+	fi
+	return 0
 }
 
 activate_vg()
 {
 	local vg
-	vg=$1
+	vg="$1"
 
 	# Sanity checks
-	if [ ! -x /sbin/vgchange ]; then
-		return 1
-	fi
-
-	if [ -z "$vg" ]; then
+	if [ ! -x /sbin/vgchange ] || [ -z "$vg" ]; then
 		return 1
 	fi
 
@@ -119,12 +100,13 @@ activate_vg()
 	fi
 
 	# Make sure that the device contains at least one dash
-	if [ "$(echo -n "$vg" | tr -d -)" = "$vg" ]; then
+	if [ "${vg%%-*}" = "$vg" ]; then
 		return 1
 	fi
 
 	# Split volume group from logical volume.
 	vg=$(echo ${vg} | sed -e 's#\(.*\)\([^-]\)-[^-].*#\1\2#')
+
 	# Reduce padded --'s to -'s
 	vg=$(echo ${vg} | sed -e 's#--#-#g')
 
@@ -134,89 +116,130 @@ activate_vg()
 
 load_keymap()
 {
-	OPTS="-q"
+	local opts
+	opts="-q"
 
 	# Should terminal be in UTF8 mode?
 	if [ -x /bin/kbd_mode ]; then
 		/bin/kbd_mode -u
-		OPTS="$OPTS -u"
+		opts="$opts -u"
 	fi
 
 	# Load custom keymap
 	if [ -x /bin/loadkeys -a -r /etc/boottime.kmap.gz ]; then
-		loadkeys $OPTS /etc/boottime.kmap.gz
+		loadkeys $opts /etc/boottime.kmap.gz
 	fi
+}
+
+setup_mapping()
+{
+	local opts
+	opts="$1"
+
+	if [ -z "$opts" ]; then
+		return 0
+	fi
+
+	parse_options "$opts" || return 1
+	modprobe -q dm_crypt
+	echo "Setting up cryptographic volume $crypttarget (based on $cryptsource)"
+
+	# Make sure the cryptsource device is available
+	if [ ! -e $cryptsource ]; then
+		activate_vg $cryptsource
+	fi
+
+	if [ ! -e $cryptsource ]; then
+		echo "cryptsetup: Source device $cryptsource not found"
+		return 1
+	fi
+
+	# Prepare commands
+	if /sbin/cryptsetup isLuks $cryptsource > /dev/null 2>&1; then
+		cryptcreate="/sbin/cryptsetup luksOpen $cryptsource $crypttarget"
+	else
+		cryptcreate="/sbin/cryptsetup -c $cryptcipher -s $cryptsize -h $crypthash create $crypttarget $cryptsource"
+	fi
+	cryptremove="/sbin/cryptsetup remove $crypttarget"
+	NEWROOT="/dev/mapper/$crypttarget"
+
+	# Loop until we have a satisfactory password
+	while [ 1 ]; do
+		if [ -n "$cryptkeyscript" ]; then
+			if [ ! -x "$cryptkeyscript" ]; then
+				echo "cryptsetup: error - $cryptkeyscript missing"
+				return 1
+			fi
+			$cryptkeyscript $cryptkey < /dev/console | $cryptcreate
+		else
+			$cryptcreate < /dev/console
+		fi
+
+		if [ $? -ne 0 ]; then
+			echo "cryptsetup: cryptsetup failed, bad password or options?"
+			sleep 3
+			continue
+		elif [ ! -e "$NEWROOT" ]; then
+			echo "cryptsetup: unknown error setting up device mapping"
+			return 1
+		fi
+
+		FSTYPE=''
+		eval $(fstype < "$NEWROOT")
+
+		# See if we need to setup lvm on the crypto device
+		if [ "$FSTYPE" = "lvm" ] || [ "$FSTYPE" = "lvm2" ]; then
+			if [ -z "$cryptlvm" ]; then
+				echo "cryptsetup: lvm fs found but no lvm configured"
+				return 1
+			elif ! activate_vg "/dev/mapper/$cryptlvm"; then
+				echo "cryptsetup: failed to setup lvm device"
+				return 1
+			fi
+
+			NEWROOT="/dev/mapper/$cryptlvm"
+			eval $(fstype < "$NEWROOT")
+		fi
+
+		if [ -z "$FSTYPE" ] || [ "$FSTYPE" = "unknown" ]; then
+			echo "cryptsetup: unknown fstype, bad password or options?"
+			$cryptremove
+			sleep 3
+			continue
+		fi
+
+		break
+	done
+	return 0
 }
 
 #
 # Begin real processing
 #
 
-# define crypto variables
-get_options
-
-# make sure the cryptsource device is available
-if [ ! -e $cryptsource ]; then
-	activate_vg $cryptsource
-fi
-if [ ! -e $cryptsource ]; then
-	echo "$0: source device $cryptsource not found"
-	exit 1
-fi
-
 # If possible, load the keymap so that the user can input non-en characters
 load_keymap
 
-# prepare commands
-if /sbin/cryptsetup isLuks $cryptsource > /dev/null 2>&1; then
-	cryptcreate="/sbin/cryptsetup luksOpen $cryptsource $crypttarget"
-else
-	cryptcreate="/sbin/cryptsetup -c $cryptcipher -s $cryptsize -h $crypthash create $crypttarget $cryptsource"
-fi
-cryptremove="/sbin/cryptsetup remove $crypttarget"
-NEWROOT="/dev/mapper/$crypttarget"
-
-# Loop until we have a satisfactory password
-while [ 1 ]; do
-	if [ -x "/sbin/cryptgetpw" ]; then
-		/sbin/cryptgetpw $cryptkey < /dev/console | $cryptcreate
-	else
-		$cryptcreate < /dev/console
-	fi
-
-	FSTYPE=''
-	if [ $? -ne 0 ]; then
-		echo "$0: cryptsetup failed, bad password or options?"
-	elif ! fstype < "$NEWROOT" > /conf/param.conf; then
-		echo "$0: fstype not recognized, bad password or options?"
-	else
-		. /conf/param.conf
-
-		# See if we need to setup lvm on the crypto device
-		if [ "$FSTYPE" = "lvm" ] || [ "$FSTYPE" = "lvm2" ]; then
-			NEWROOT="/dev/mapper/$cryptlvm"
-			if ! activate_vg "$NEWROOT"; then
-				echo "$0: failed to setup lvm device"
-				exit 1
-			fi
-			if ! fstype < "$NEWROOT" > /conf/param.conf; then
-				echo "$0: failed to setup lvm device, fs not recognised"
-				exit 1
-			fi
-			. /conf/param.conf
-		fi
-	fi
-
-	if [ -n "$FSTYPE" ] && [ "$FSTYPE" != "unknown" ]; then
-		break
-	fi
-
-	if [ -e "$NEWROOT" ]; then
-		$cryptremove
-	fi
-	sleep 3
+# Do we have any kernel boot arguments?
+found=''
+for opt in $(cat /proc/cmdline); do
+	case $opt in
+	cryptopts=*)
+		found=yes
+		setup_mapping "${opt#cryptopts=}"
+		;;
+	esac
 done
 
-# init can now pick up new FSTYPE, FSSIZE and ROOT
-echo "ROOT=\"$NEWROOT\"" >> /conf/param.conf
+if [ -n "$found" ]; then
+	exit 0
+fi
+
+# Do we have any settings from the /conf/conf.d/cryptroot file?
+if [ -r /conf/conf.d/cryptroot ]; then
+	while read mapping; do
+		setup_mapping "$mapping"
+	done < /conf/conf.d/cryptroot
+fi
+
 exit 0

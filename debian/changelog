@@ -2,6 +2,8 @@ cryptsetup (2:1.0.4-4) unstable; urgency=low
 
   * Readd and document the kernel boot argument "cryptopts" due to user
     demand
+  * Implement support for multiple device setup in initramfs.
+    (closes: #394136, #382280)
 
  -- David Härdeman <david@hardeman.nu>  Thu, 19 Oct 2006 23:39:28 +0200
 

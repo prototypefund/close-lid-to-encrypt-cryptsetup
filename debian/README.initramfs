@@ -117,6 +117,9 @@ same options in the fourth field of /etc/crypttab, the options "target",
 and third field of /etc/crypttab, respectively. See the crypttab man page
 for further details.
 
+Several "cryptopts" boot arguments can also be specified in case more than
+one mapping needs to be setup in the initramfs stage of the boot.
+
 Example boot arguments:
 root=/dev/mapper/crypt0 cryptopts=target=crypt0,source=/dev/hda1,cipher=twofish
 
