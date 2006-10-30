@@ -51,21 +51,21 @@ parse_opts () {
 		  cipher)
 		  	PARAMS="$PARAMS -c $VALUE"
 		  	if test "x$VALUE" = "x" ; then
-		  		echo -e "\n - no value for cipher option, skipping" >&2
+		  		echo "no value for cipher option, skipping" >&2
 		  		return 1
 		  	fi
 		  	;;
 		  size)
 		  	PARAMS="$PARAMS -s $VALUE"
 		  	if test "x$VALUE" = "x" ; then
-		  		echo -e "\n - no value for size option, skipping" >&2
+		  		echo "no value for size option, skipping" >&2
 		  		return 1
 		  	fi
 		  	;;
 		  hash)
 		  	PARAMS="$PARAMS -h $VALUE"
 		  	if test "x$VALUE" = "x" ; then
-		  		echo -e "\n - no value for hash option, skipping" >&2
+		  		echo "no value for hash option, skipping" >&2
 		  		return 1
 		  	fi
 		  	;;
@@ -109,7 +109,7 @@ parse_opts () {
 		  	  [0-9]*)
 		  	  	;;
 		  	  *)
-			  	echo -e "\n - option TRIES is wrongly set to $TRIES - forced to '3' " >&2
+			  	echo "option TRIES is wrongly set to $TRIES - forced to '3' " >&2
 			  	TRIES="3"
 			  	;;
 			esac
@@ -125,7 +125,7 @@ parse_opts () {
 			  [0-9]*)
 			  	;;
 			  *)
-			  	echo -e "\n - option TIMEOUT is wrongly set to $TIMEOUT - forced to '0' " >&2
+			  	echo "option TIMEOUT is wrongly set to $TIMEOUT - forced to '0' " >&2
 				TIMEOUT="0"
 				;;
 			esac
@@ -147,24 +147,24 @@ parse_opts () {
 			;;
 		  ssl)
 			if [ -n "$KEYSCRIPT" ]; then
-				echo -n "\n - multiple key decryption options are not allowed together, skipping" >&2
+				echo "multiple key decryption options are not allowed together, skipping" >&2
 				return 1
 			fi
 			KEYSCRIPT="/lib/cryptsetup/scripts/decrypt_old_ssl"
 			;;
 		  gpg)
 			if [ -n "$KEYSCRIPT" ]; then
-				echo -n "\n - multiple key decryption options are not allowed together, skipping" >&2
+				echo "multiple key decryption options are not allowed together, skipping" >&2
 				return 1
 			fi
 			KEYSCRIPT="/lib/cryptsetup/scripts/decrypt_gpg"
 			;;
 		  keyscript)
 			if [ -n "$KEYSCRIPT" ]; then
-				echo -n "\n - multiple key decryption options are not allowed together, skipping" >&2
+				echo "multiple key decryption options are not allowed together, skipping" >&2
 				return 1
 			elif test "x$VALUE" = "x" ; then
-		  		echo -e "\n - no value for keyscript option, skipping" >&2
+		  		echo "no value for keyscript option, skipping" >&2
 		  		return 1
 		  	fi
 			KEYSCRIPT="$VALUE"
@@ -211,7 +211,7 @@ check_key () {
 	fi
 
 	if [ ! -e "$key" ]; then
-		echo -e "\n - Keyfile for '$dst' not found, skipping" >&2
+		echo "Keyfile for '$dst' not found, skipping" >&2
 		return 1
 	fi
 
@@ -221,17 +221,17 @@ check_key () {
 
 	# LUKS requires a persistent key, /dev/*random is not supported
 	if [ "$USELUKS" = "yes" ] && [ "$key" != "${key%random}" ]; then
-		echo -e "\n - LUKS does not work with random data as key, skipping" >&2
+		echo "LUKS does not work with random data as key, skipping" >&2
 		return 1
 	fi
 
 	if [ "$key" = "${key%random}" ] && [ "$MODE" != "------" ]; then
-		echo -e "\n - INSECURE MODE FOR $key" >&2
+		echo "INSECURE MODE FOR $key" >&2
 		return 1
 	fi
 
 	if [ "$OWNER" != "root" ]; then
-		echo -e "\n - INSECURE OWNER FOR $key" >&2
+		echo "INSECURE OWNER FOR $key" >&2
 		return 1
 	fi
 
@@ -241,7 +241,7 @@ check_key () {
 
 do_luks () {
 	if ! $CRYPTCMD isLuks $src >/dev/null 2>&1; then
-		echo -e "\n - Device '$src' is not a LUKS partition, skipping" >&2
+		echo "Device '$src' is not a LUKS partition, skipping" >&2
 		return 1
 	fi
 
@@ -260,8 +260,8 @@ do_luks () {
 	fi
 
 	if [ "$CHECK" != ""  ] && ! $CHECK $MAPPER/$dst $CHECKARGS; then
-		echo -e "\n - the check for '$MAPPER/$dst' failed" >&2
-		echo " - removing the crypto device $dst" >&2
+		echo "the check for '$MAPPER/$dst' failed" >&2
+		echo "removing the crypto device $dst" >&2
 		$CRYPTCMD luksClose $dst
 		return 1
 	fi
@@ -280,8 +280,8 @@ do_noluks () {
 		run=1
 	else
 		run=0
-		echo -e "$pre_out" >&2
-		echo -e "\n - the precheck for '$src' failed, skipping" >&2
+		echo "$pre_out" >&2
+		echo "the precheck for '$src' failed, skipping" >&2
 		return 1
 	fi
 	
@@ -301,8 +301,8 @@ do_noluks () {
 
 
 	if [ "$CHECK" != ""  ] && ! $CHECK $MAPPER/$dst $CHECKARGS; then
-		echo -e "\n - the check for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
-		echo " - removing the crypto device $dst" >&2
+		echo "the check for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
+		echo "removing the crypto device $dst" >&2
 		$CRYPTCMD remove $dst
 		return 1
 	fi
@@ -331,9 +331,9 @@ do_swap () {
 				/lib/cryptsetup/checks/vol_id $MAPPER/$dst swap>/dev/null; then
 			mkswap $MAPPER/$dst 2>/dev/null >/dev/null
 		else
-			echo -e "\n$swap_out" >&2
-			echo -e " - the check for '$MAPPER/$dst' failed. $MAPPER/$dst contains data." >&2
-			echo " - removing the crypto device $dst" >&2
+			echo "$swap_out" >&2
+			echo "the check for '$MAPPER/$dst' failed. $MAPPER/$dst contains data." >&2
+			echo "removing the crypto device $dst" >&2
 			do_close
 		fi
 	fi

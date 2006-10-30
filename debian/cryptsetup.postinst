@@ -15,7 +15,7 @@ case "$1" in
     configure)
 	# check for the obsolete cryptopts kernel boot arg
 	if [ -r /proc/cmdline ] && grep -q "cryptopts=" /proc/cmdline; then
-		echo -e "\nWARNING: the cryptopts kernel boot argument is no longer supported."
+		echo "WARNING: the cryptopts kernel boot argument is no longer supported." >&2
 	fi
 
 	if [ -x /usr/sbin/update-initramfs ]; then
@@ -28,7 +28,7 @@ case "$1" in
 			continue
 		elif [ -z "$src" ] || [ -z "$key" ] || [ -z "$opts" ]; then
 			# All fields must be present
-			echo -e "\nWARNING: $dst in /etc/crypttab is missing some arguments, see man cryptab(5)."
+			echo "WARNING: $dst in /etc/crypttab is missing some arguments, see man cryptab(5)." >&2
 			continue
 		else
 			# Some options are deprecated
@@ -38,9 +38,9 @@ case "$1" in
 				opts=${opts##,}
 
 				if [ "$opt" = "ssl" ]; then
-					echo -e "\nWARNING: $dst in /etc/crypttab uses the deprecated ssl option, see man crypttab(5)."
+					echo "WARNING: $dst in /etc/crypttab uses the deprecated ssl option, see man crypttab(5)." >&2
 				elif [ "$opt" = "gpg" ]; then
-					echo -e "\nWARNING: $dst in /etc/crypttab uses the deprecated gpg option, see man crypttab(5)."
+					echo "WARNING: $dst in /etc/crypttab uses the deprecated gpg option, see man crypttab(5)." >&2
 				fi
 			done
 		fi
