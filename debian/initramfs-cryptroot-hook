@@ -201,8 +201,10 @@ prepare_keymap() {
 }
 
 add_device() {
-	local node
+	local node nodes opts lastopts
 	nodes="$1"
+	opts=""     # Applied to all nodes
+	lastopts="" # Applied to last node
 
 	if [ -z "$nodes" ]; then
 		return 0
@@ -215,17 +217,28 @@ add_device() {
 	fi
 
 	# Can we find this node in crypttab
-	opts=""
 	if ! node_is_in_crypttab "$nodes"; then
 		# It is a /dev/mapper node but not in crypttab, is it lvm?
 		lvmnodes=$(get_lvm_deps "$nodes") || return 1
 
 		# It is a lvm device!
-		opts="lvm=$nodes"
+		lastopts="lvm=$nodes"
 		nodes="$lvmnodes"
 	fi
 
+	# Prepare to setup each node
+	count=$(echo "$nodes" | wc -w)
+	i=1
 	for node in $nodes; do
+		# Prepare the additional options
+		if [ $i -eq $count ]; then
+			if [ -z "$opts" ]; then
+				opts="$lastopts"
+			else
+				opts="$opts,$lastopts"
+			fi
+		fi
+
 		# Get crypttab root options
 		if ! get_device_opts $node $opts; then
 			echo "cryptsetup: failed to determine cipher options to use for $node" >&2
@@ -250,6 +263,8 @@ add_device() {
 		echo dm_mod
 		echo dm_crypt
 		echo "$modules"
+
+		i=$(( $i + 1 ))
 	done
 
 	return 0
