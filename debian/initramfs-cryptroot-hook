@@ -201,7 +201,7 @@ prepare_keymap() {
 }
 
 add_device() {
-	local node nodes opts lastopts
+	local node nodes opts lastopts i count
 	nodes="$1"
 	opts=""     # Applied to all nodes
 	lastopts="" # Applied to last node
