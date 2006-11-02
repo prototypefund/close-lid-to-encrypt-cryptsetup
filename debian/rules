@@ -33,7 +33,7 @@ UDEBNAME=$(CRYPTSETUP_UDEB)_$(DEBVERSION)_$(shell dpkg --print-architecture).ude
 # Include dpatch stuff.
 include /usr/share/dpatch/dpatch.make
 
-config.status: configure.in
+config.status: configure.in patch
 	dh_testdir
 	find -xtype f ! -name manifest > manifest
 
@@ -59,7 +59,7 @@ config.status: configure.in
 
 build: build-stamp
 
-build-stamp: config.status patch-stamp
+build-stamp: config.status
 	dh_testdir
 	asciidoc -d manpage -b docbook debian/crypttab.5.txt
 	sed -i 's/<emphasis role="strong">/<emphasis role="bold">/g' debian/crypttab.5.xml
@@ -74,7 +74,9 @@ build-stamp: config.status patch-stamp
 		/usr/lib/libgpg-error.a
 	touch build-stamp
 
-clean: unpatch
+clean: clean-patched unpatch
+
+clean-patched:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp 
@@ -140,4 +142,5 @@ binary-arch: build install
 	dh_builddeb -a
 
 binary: binary-indep binary-arch
-.PHONY: binary clean binary-indep binary-arch build install patch unpatch
+
+.PHONY: build clean clean-patched install binary-indep binary-arch binary patch unpatch
