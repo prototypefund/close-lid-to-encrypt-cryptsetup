@@ -1,4 +1,4 @@
-cryptsetup (2:1.0.4-4) unstable; urgency=low
+cryptsetup (2:1.0.4-4) unstable; urgency=high
 
   [ David Härdeman ]
   * Readd and document the kernel boot argument "cryptopts" due to user
