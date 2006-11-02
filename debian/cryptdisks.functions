@@ -14,6 +14,7 @@ test -f $TABFILE   || exit 0
 parse_opts () {
 	local opts="$1"
 
+	LOUD=""
 	PARAMS=""
 	CHECK=""
 	CHECKARGS=""
@@ -226,13 +227,15 @@ check_key () {
 	fi
 
 	if [ "$key" = "${key%random}" ] && [ "$MODE" != "------" ]; then
-		echo "INSECURE MODE FOR $key" >&2
-		return 1
+		echo "INSECURE MODE FOR $key, see /usr/share/doc/cryptsetup/README.Debian." >&2
+		# don't break here for now
+		# return 1
 	fi
 
 	if [ "$OWNER" != "root" ]; then
-		echo "INSECURE OWNER FOR $key" >&2
-		return 1
+		echo "INSECURE OWNER FOR $key, see /usr/share/doc/cryptsetup/README.Debian." >&2
+		# don't break here for now
+		# return 1
 	fi
 
 	INTERACTIVE="no"

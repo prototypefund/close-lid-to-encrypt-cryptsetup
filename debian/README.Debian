@@ -18,6 +18,27 @@ For instructions about how to encrypt your root filesystem, see
 	/usr/share/doc/cryptsetup/CryptoRoot.HowTo
 
 
+Insecure mode/owner for keys
+----------------------------
+
+ Any key that is stored somewhere to be used with cryptsetup should havethe
+mode 400 (-r--------) and owner root.root. This way only root has permissions
+to read the file. 'chown root.root keyfile' and 'chmod 400 keyfile' will do
+the trick for you.
+
+ If a key is stored on a vfat filesystem (very common for removable media),
+chmod and chown will not work. The vfat filesytem (and several others too)
+does not support file permissions and owners.
+You will have to use the uid, gid and umask options in /etc/fstab to verify
+a secure mode for the key.
+
+ As an example, /dev/sdg2 is the removable media with keyfiles on a vfat
+filesystem, and it shall be mounted to the mountpoint /media/flash0. The
+configuration in /etc/fstab should look like the following:
+
+# <file system>	<mount point>	<type>	<options>		<dump>	<pass>
+/dev/sdg2	/media/flash0	vfat	uid=0,gid=0,umask=277	0	0
+
 The 'check' option
 ------------------
 

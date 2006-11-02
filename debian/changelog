@@ -1,12 +1,17 @@
 cryptsetup (2:1.0.4-4) unstable; urgency=low
 
+  [ David Härdeman ]
   * Readd and document the kernel boot argument "cryptopts" due to user
     demand
   * Implement support for multiple device setup in initramfs.
     (closes: #394136, #382280)
   * Remove bashisms. (closes: #396092)
 
- -- David Härdeman <david@hardeman.nu>  Mon, 30 Oct 2006 02:48:43 +0100
+  [ Jonas Meurer ]
+  * Only warn for insecure keyfile mode/owner. Add some information about
+    insecure keys in README.Debian. (closes: #395357, #394134)
+
+ -- Jonas Meurer <mejo@debian.org>  Thu,  2 Nov 2006 17:22:58 +0100
 
 cryptsetup (2:1.0.4-3) unstable; urgency=medium
 

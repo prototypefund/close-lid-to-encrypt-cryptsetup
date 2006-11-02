@@ -80,8 +80,8 @@ option as second argument. Cryptdisks searches for the given program in
 /lib/cryptsetup/checks/. Default is vol_id.
 
 *checkargs*=<arguments>::
-Give <arguments> as second argument to the check script. See description for CHECKSCRIPTS
-for more information.
+Give <arguments> as second argument to the check script. See description for
+CHECKSCRIPTS for more information.
 
 *tries*=<num>::
 The input of the passphrase is tried <num> times in case that it fails. If you
