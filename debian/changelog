@@ -13,7 +13,7 @@ cryptsetup (2:1.0.4-4) unstable; urgency=high
   * Only warn for insecure keyfile mode/owner. Add some information about
     insecure keys in README.Debian. (closes: #395357, #394134)
 
- -- David Härdeman <david@hardeman.nu>  Thu,  2 Nov 2006 22:23:22 +0100
+ -- Jonas Meurer <mejo@debian.org>  Fri,  3 Nov 2006 02:22:49 +0100
 
 cryptsetup (2:1.0.4-3) unstable; urgency=medium
 

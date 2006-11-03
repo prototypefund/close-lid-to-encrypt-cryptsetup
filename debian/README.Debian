@@ -40,7 +40,7 @@ like this:
 # <file system>	<mount point>	<type>	<options>		<dump>	<pass>
 /dev/sdg2	/media/flash0	vfat	uid=0,gid=0,umask=277	0	0
 
-If you are using udev, it might be a good idea to use the /dev/disk/by-label
+ If you are using udev, it might be a good idea to use the /dev/disk/by-label
 links instead of /dev/sdg2 as the link will work no matter in which order the
 media is inserted and detected.
 
