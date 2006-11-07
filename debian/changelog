@@ -2,8 +2,10 @@ cryptsetup (2:1.0.4-5) unstable; urgency=high
 
   * Make sure that duplicate entries in initramfs do not block the boot
     (closes: #397454)
+  * Do not check for the presence of a key if the keyscript option is
+    set (closes: #397450)
 
- -- David Härdeman <david@hardeman.nu>  Tue,  7 Nov 2006 17:57:13 +0100
+ -- David Härdeman <david@hardeman.nu>  Tue,  7 Nov 2006 18:03:41 +0100
 
 cryptsetup (2:1.0.4-4) unstable; urgency=high
 

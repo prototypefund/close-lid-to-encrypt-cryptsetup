@@ -205,6 +205,12 @@ lo_setup () {
 }
 
 check_key () {
+	# If the keyscript option is set, the "key" is just an argument to
+	# the keyscript and not necessarily a file
+	if [ -n "$KEYSCRIPT" ]; then
+		return 0
+	fi
+
 	if [ -z "$key" ] || [ "$key" = "none" ]; then
 		INTERACTIVE="yes"
 		echo ""
