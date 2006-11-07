@@ -68,7 +68,7 @@ get_lvm_deps() {
 		return $rc
 	fi
 
-	deps=$(dmsetup deps "$node" | sed 's/[^:]*: *//;s/[ (]//g;s/)/ /g') || return 1
+	deps=$(dmsetup deps "$node" 2> /dev/null | sed 's/[^:]*: *//;s/[ (]//g;s/)/ /g') || return 1
 
 	for dep in $deps; do
 		maj=${dep%,*}
