@@ -141,6 +141,13 @@ setup_mapping()
 	fi
 
 	parse_options "$opts" || return 1
+
+	# The same target can be specified multiple times
+	# e.g. root and resume lvs-on-lvm-on-crypto
+	if [ -e "/dev/mapper/$crypttarget" ]; then
+		return 0
+	fi
+
 	modprobe -q dm_crypt
 	echo "Setting up cryptographic volume $crypttarget (based on $cryptsource)"
 
