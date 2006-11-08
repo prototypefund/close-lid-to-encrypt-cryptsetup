@@ -60,12 +60,11 @@ node_is_in_crypttab() {
 }
 
 get_lvm_deps() {
-	local node rc deps maj min depnode
+	local node deps maj min depnode
 	node="$1"
-	rc=1
 
 	if [ -z $node ]; then
-		return $rc
+		return 1
 	fi
 
 	deps=$(dmsetup deps "$node" 2> /dev/null | sed 's/[^:]*: *//;s/[ (]//g;s/)/ /g') || return 1
@@ -74,13 +73,16 @@ get_lvm_deps() {
 		maj=${dep%,*}
 		min=${dep#*,}
 		depnode=$(dmsetup ls | sed -n "s/\\([^ ]*\\) *($maj, $min)/\\1/p")
-		if [ -n "$depnode" ]; then
-			echo "$depnode"
-			rc=0
+		if [ -z "$depnode" ]; then
+			continue
 		fi
+		if [ "$(dmsetup table "$depnode" 2> /dev/null | cut -d' ' -f3)" != "crypt" ]; then
+			continue
+		fi
+		echo "$depnode"
 	done
 
-	return $rc
+	return 0
 }
 
 get_device_opts() {
@@ -218,8 +220,13 @@ add_device() {
 
 	# Can we find this node in crypttab
 	if ! node_is_in_crypttab "$nodes"; then
-		# It is a /dev/mapper node but not in crypttab, is it lvm?
+		# dm node but not in crypttab, is it a lvm device backed by dm-crypt nodes?
 		lvmnodes=$(get_lvm_deps "$nodes") || return 1
+
+		# not backed by any dm-crypt nodes; stop here
+		if [ -z "$lvmnodes" ]; then
+		    return 0
+		fi
 
 		# It is a lvm device!
 		lastopts="lvm=$nodes"
@@ -257,7 +264,7 @@ add_device() {
 		# Calculate needed modules
 		modules=$(get_device_modules $node | sort | uniq)
 		if [ -z "$modules" ]; then
-			echo "$0: failed to determine cipher modules to load for $node" >&2
+			echo "cryptsetup: failed to determine cipher modules to load for $node" >&2
 			continue
 		fi
 		echo dm_mod
@@ -294,10 +301,8 @@ fi
 
 # Load the config opts and modules for each device
 for dev in $rootdev $resumedevs; do
-	modules=$(add_device "$dev")
-
-	if [ -z "$modules" ]; then
-		echo "cryptsetup: failed to determine cipher modules to load for $dev" >&2
+	if ! modules=$(add_device "$dev"); then
+		echo "cryptsetup: failed to determine configuration for $dev" >&2
 		exit 1
 	fi
 
