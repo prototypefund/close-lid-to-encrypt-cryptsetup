@@ -17,6 +17,8 @@ esac
 . /usr/share/initramfs-tools/hook-functions
 
 get_root_device() {
+	local device mount type options dump pass
+
 	if [ ! -r /etc/fstab ]; then
 		return 1
 	fi
@@ -31,13 +33,24 @@ get_root_device() {
 }
 
 get_resume_devices() {
-	local device opt
+	local device opt count dupe candidates devices
+	candidates=""
+
+	# First, get a list of potential resume devices
 
 	# uswsusp
 	if [ -e /etc/uswsusp.conf ]; then
 		device=$(sed -rn 's/^resume device[[:space:]]+[:=][[:space:]]+// p' /etc/uswsusp.conf)
 		if [ -n "$device" ]; then
-			echo "$device"
+			candidates="$candidates $device"
+		fi
+	fi
+
+	# uswsusp - again...
+	if [ -e /etc/suspend.conf ]; then
+		device=$(sed -rn 's/^resume device[[:space:]]+[:=][[:space:]]+// p' /etc/suspend.conf)
+		if [ -n "$device" ]; then
+			candidates="$candidates $device"
 		fi
 	fi
 
@@ -45,10 +58,57 @@ get_resume_devices() {
 	for opt in $(cat /proc/cmdline); do
 		case $opt in
 		resume=*)
-			echo "${opt#resume=}"
+			device="${opt#resume=}"
+			candidates="$candidates $device"
 			;;
 		esac
 	done
+
+	# initramfs-tools
+	if [ -e /etc/initramfs-tools/conf.d/resume ]; then
+		device=$(sed -rn 's/^RESUME[[:space:]]+=[[:space:]]+// p' /etc/initramfs-tools/conf.d/resume)
+		if [ -n "$device" ]; then
+			candidates="$candidates $device"
+		fi
+	fi
+
+	# Now check the sanity of all candidates
+	devices=""
+	count=0
+	for device in $candidates; do
+		# Weed out clever defaults
+		if [ "$device" = "<path_to_resume_device_file>" ]; then
+			continue
+		fi
+
+		# Weed out duplicates
+		dupe=0
+		for opt in $devices; do
+			if [ "$device" = "$opt" ]; then
+				dupe=1
+			fi
+		done
+		if [ $dupe -eq 1 ]; then
+			continue
+		fi
+
+		# This device seems ok
+		devices="$devices $device"
+		count=$(( $count + 1 ))
+	done
+
+	if [ $count -gt 1 ]; then
+		echo "cryptsetup: WARNING: found more than one resume device candidate:" >&2
+		for device in $devices; do
+			echo "                     $device" >&2
+		done
+	fi
+
+	if [ $count -gt 0 ]; then
+		echo $devices
+	fi
+
+	return 0
 }
 
 node_is_in_crypttab() {
@@ -64,11 +124,16 @@ get_lvm_deps() {
 	node="$1"
 
 	if [ -z $node ]; then
+		echo "cryptsetup: WARNING: get_lvm_deps - invalid arguments" >&2
 		return 1
 	fi
 
-	deps=$(dmsetup deps "$node" 2> /dev/null | sed 's/[^:]*: *//;s/[ (]//g;s/)/ /g') || return 1
+	if ! deps=$(dmsetup deps "$node" 2> /dev/null | sed 's/[^:]*: *//;s/[ (]//g;s/)/ /g'); then
+		echo "cryptsetup: WARNING: failed to find deps for $node" >&2
+		return 1
+	fi
 
+	# We should now have a list of major,minor pairs, e.g. "3,2 3,3"
 	for dep in $deps; do
 		maj=${dep%,*}
 		min=${dep#*,}
@@ -93,10 +158,7 @@ get_device_opts() {
 	OPTIONS=""
 
 	if [ -z "$target" ]; then
-		return 1
-	fi
-
-	if [ ! -r /etc/crypttab ]; then
+		echo "cryptsetup: WARNING: get_device_opts - invalid arguments" >&2
 		return 1
 	fi
 
@@ -106,6 +168,12 @@ get_device_opts() {
 	rootopts=$( echo $opt | cut -d " " -f4- )
 
 	if [ -z "$opt" ] || [ -z "$source" ] || [ -z "$key" ] || [ -z "$rootopts" ]; then
+		echo "cryptsetup: WARNING: invalid line in /etc/crypttab - $opt" >&2
+		return 1
+	fi
+
+	if [ "$key" = "/dev/random" ] || [ "$key" = "/dev/urandom" ]; then
+		echo "cryptsetup: WARNING: target $target has a random key, skipped" >&2
 		return 1
 	fi
 
@@ -143,6 +211,12 @@ get_device_opts() {
 				;;
 		esac
 	done
+
+	# If keyscript is set, the "key" is just an argument to the script
+	if [ "$key" != "none" ] && [ -z "$KEYSCRIPT" ]; then
+		echo "cryptsetup: WARNING: target $target uses a key file, skipped" >&2
+		return 1
+	fi
 }
 
 get_device_modules() {
@@ -248,7 +322,6 @@ add_device() {
 
 		# Get crypttab root options
 		if ! get_device_opts $node $opts; then
-			echo "cryptsetup: failed to determine cipher options to use for $node" >&2
 			continue
 		fi
 		echo "$OPTIONS" >> "$DESTDIR/conf/conf.d/cryptroot"
@@ -264,7 +337,7 @@ add_device() {
 		# Calculate needed modules
 		modules=$(get_device_modules $node | sort | uniq)
 		if [ -z "$modules" ]; then
-			echo "cryptsetup: failed to determine cipher modules to load for $node" >&2
+			echo "cryptsetup: WARNING: failed to determine cipher modules to load for $node" >&2
 			continue
 		fi
 		echo dm_mod
@@ -292,8 +365,16 @@ if [ "$MODULES" != "dep" ]; then
 	prepare_keymap
 fi
 
+# We can't do anything without a config file
+if [ ! -r /etc/crypttab ]; then
+	exit 0
+fi
+
 # Find out which devices to add to the config file
 rootdev=$(get_root_device)
+if [ -z "$rootdev" ]; then
+	echo "cryptsetup: WARNING: could not determine root device from /etc/fstab" >&2
+fi
 resumedevs=$(get_resume_devices)
 if [ -z "$rootdev" ] && [ -z "$resumedevs" ]; then
 	exit 0
@@ -302,8 +383,8 @@ fi
 # Load the config opts and modules for each device
 for dev in $rootdev $resumedevs; do
 	if ! modules=$(add_device "$dev"); then
-		echo "cryptsetup: failed to determine configuration for $dev" >&2
-		exit 1
+		echo "cryptsetup: FAILURE: could not determine configuration for $dev" >&2
+		continue
 	fi
 
 	for mod in $modules; do
