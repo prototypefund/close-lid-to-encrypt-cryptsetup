@@ -3,8 +3,9 @@ cryptsetup (2:1.0.4-7) unstable; urgency=low
   * Do not try to configure resume devices which we cant get the key for
     and also try harder to find resume devices.
     (closes: #397887, #397888)
+  * Kill some more bashisms.
 
- -- David Härdeman <david@hardeman.nu>  Sat, 11 Nov 2006 02:15:50 +0100
+ -- David Härdeman <david@hardeman.nu>  Sun, 12 Nov 2006 22:45:55 +0100
 
 cryptsetup (2:1.0.4-6) unstable; urgency=high
 

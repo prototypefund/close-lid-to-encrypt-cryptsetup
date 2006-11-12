@@ -3,6 +3,6 @@
 if /sbin/e2label $1 2>/dev/null 1>&2; then
   exit 0
 else
-  echo -e "\n - The device $1 does not contain a valid EXT2 or EXT3 filesystem."
+  echo " - The device $1 does not contain a valid EXT2 or EXT3 filesystem."
   exit 1
 fi
