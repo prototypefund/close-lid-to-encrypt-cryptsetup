@@ -200,11 +200,13 @@ get_device_opts() {
 				;;
 			keyscript=*)
 				opt=${opt#keyscript=}
-				if [ -x "$opt" ]; then
-					KEYSCRIPT="$opt"
-					opt=$(basename "$opt")
-					OPTIONS="$OPTIONS,keyscript=/keyscripts/$opt"
+				if [ ! -x "$opt" ]; then
+					echo "cryptsetup: WARNING: target $target has an invalid keyscript, skipped" >&2
+					return 1
 				fi
+				KEYSCRIPT="$opt"
+				opt=$(basename "$opt")
+				OPTIONS="$OPTIONS,keyscript=/keyscripts/$opt"
 				;;
 			*)
 				# Presumably a non-supported option
