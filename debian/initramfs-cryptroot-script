@@ -133,7 +133,7 @@ load_keymap()
 
 setup_mapping()
 {
-	local opts
+	local opts count cryptcreate cryptremove NEWROOT
 	opts="$1"
 
 	if [ -z "$opts" ]; then
@@ -170,8 +170,11 @@ setup_mapping()
 	cryptremove="/sbin/cryptsetup remove $crypttarget"
 	NEWROOT="/dev/mapper/$crypttarget"
 
-	# Loop until we have a satisfactory password
-	while [ 1 ]; do
+	# Try to get a satisfactory password three times
+	count=0
+	while [ $count -lt 3 ]; do
+		count=$(( $count + 1 ))
+
 		if [ -n "$cryptkeyscript" ]; then
 			if [ ! -x "$cryptkeyscript" ]; then
 				echo "cryptsetup: error - $cryptkeyscript missing"
@@ -217,7 +220,13 @@ setup_mapping()
 
 		break
 	done
-	return 0
+
+	if [ $count -lt 3 ]; then
+		return 0
+	else
+		echo "cryptsetup: maximum number of tries exceeded"
+		return 1
+	fi
 }
 
 #
