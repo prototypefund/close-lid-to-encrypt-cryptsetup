@@ -6,8 +6,10 @@ cryptsetup (2:1.0.4-7) unstable; urgency=low
   * Kill some more bashisms.
   * Only try three times per crypto device in initramfs scripts to avoid
     unbootable systems if a swap partition can't be setup.
+  * Added decrypt_derived keyscript and improved documentation of latest
+    changes, see README.initramfs for details.
 
- -- David Härdeman <david@hardeman.nu>  Mon, 13 Nov 2006 19:06:52 +0100
+ -- David Härdeman <david@hardeman.nu>  Mon, 13 Nov 2006 20:27:05 +0100
 
 cryptsetup (2:1.0.4-6) unstable; urgency=high
 
