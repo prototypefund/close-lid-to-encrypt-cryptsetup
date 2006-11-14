@@ -1,5 +1,6 @@
 cryptsetup (2:1.0.4-7) unstable; urgency=low
 
+  [ David Härdeman ]
   * Do not try to configure resume devices which we cant get the key for
     and also try harder to find resume devices.
     (closes: #397887, #397888)
@@ -9,7 +10,7 @@ cryptsetup (2:1.0.4-7) unstable; urgency=low
   * Added decrypt_derived keyscript and improved documentation of latest
     changes, see README.initramfs for details.
 
- -- David Härdeman <david@hardeman.nu>  Mon, 13 Nov 2006 20:27:05 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 14 Nov 2006 16:27:51 +0100
 
 cryptsetup (2:1.0.4-6) unstable; urgency=high
 
