@@ -1,3 +1,9 @@
+cryptsetup (2:1.0.4-8) unstable; urgency=high
+
+  * Add 'set -e' and 'if ...; then ... fi' to cryptdisks-early as well.
+
+ -- Jonas Meurer <mejo@debian.org>  Wed, 15 Nov 2006 16:39:53 +0100
+
 cryptsetup (2:1.0.4-7) unstable; urgency=low
 
   [ David Härdeman ]
