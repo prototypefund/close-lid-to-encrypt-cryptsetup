@@ -366,7 +366,7 @@ do_close () {
 }
 
 do_start () {
-	modprobe -q dm-crypt
+	modprobe -q dm-crypt || true
 	$DEVMAPCMD mknodes
 	log_action_begin_msg "Starting $INITSTATE crypto disks"
 	mount_fs

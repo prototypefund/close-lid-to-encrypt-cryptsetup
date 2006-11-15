@@ -1,6 +1,11 @@
 cryptsetup (2:1.0.4-8) unstable; urgency=high
 
+  [ Jonas Meurer ]
   * Add 'set -e' and 'if ...; then ... fi' to cryptdisks-early as well.
+
+  [ David Härdeman ]
+  * Make sure that a failed modprobe does not break with 'set -e'.
+    (closes: #398799)
 
  -- Jonas Meurer <mejo@debian.org>  Wed, 15 Nov 2006 16:39:53 +0100
 
