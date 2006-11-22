@@ -228,6 +228,7 @@ get_device_modules() {
 	# Check the ciphers used by the active root mapping
 	value=$(dmsetup table "$node" | cut -d " " -f4)
 	cipher=$(echo "$value" | cut -d ":" -f1 | cut -d "-" -f1)
+	blockcipher=$(echo "$value" | cut -d ":" -f1 | cut -d "-" -f2)
 	ivhash=$(echo "$value" | cut -d ":" -s -f2)
 
 	if [ -z "$cipher" ]; then
@@ -235,6 +236,10 @@ get_device_modules() {
 	fi
 
 	echo "$cipher"
+
+	if [ -n "$ciphermode" ]; then
+		echo "$ciphermode"
+	fi
 
 	if [ -n "$ivhash" ]; then
 		echo "$ivhash"
