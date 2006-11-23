@@ -1,3 +1,13 @@
+cryptsetup (2:1.0.4-9) unstable; urgency=high
+
+  The --key-file=- argument has changed. If a --hash parameter is passed, it
+  will now be honored. This means that the decrypt_derived keyscript will in
+  some situations create a different key than previously meaning that any swap
+  partitions that rely on the script will have to be recreated. To emulate the
+  old behaviour, make sure that you pass "--hash=plain" to cryptsetup.
+
+ -- David Härdeman <david@hardeman.nu>  Tue, 21 Nov 2006 21:29:50 +0100
+
 cryptsetup (2:1.0.4-7) unstable; urgency=low
 
   The cryptsetup initramfs scripts now also tries to detect swap

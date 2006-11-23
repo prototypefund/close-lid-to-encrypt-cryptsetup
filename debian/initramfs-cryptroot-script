@@ -180,7 +180,7 @@ setup_mapping()
 				echo "cryptsetup: error - $cryptkeyscript missing"
 				return 1
 			fi
-			$cryptkeyscript $cryptkey < /dev/console | $cryptcreate
+			$cryptkeyscript $cryptkey < /dev/console | $cryptcreate --key-file=-
 		else
 			$cryptcreate < /dev/console
 		fi

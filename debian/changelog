@@ -1,8 +1,10 @@
-cryptsetup (2:1.0.4-9) unstable; urgency=medium
+cryptsetup (2:1.0.4-9) unstable; urgency=high
 
   [ David Härdeman ]
   * Support adding separate blockcipher modules to initramfs image
     (necessary for kernels >= 2.6.19)
+  * Hashing was previously not done correctly when decrypt_derived
+    was used
 
  -- David Härdeman <david@hardeman.nu>  Wed, 22 Nov 2006 23:30:19 +0100
 
