@@ -1,0 +1,206 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 02_luks_var_keysize.dpatch by Clemens Fruhwirth <clemens@endorphin.org>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: cryptsetup don't segfaults with unsupported keysize any longer
+
+@DPATCH@
+
+diff -rNu cryptsetup-1.0.4.orig/lib/setup.c cryptsetup-1.0.4/lib/setup.c
+--- cryptsetup-1.0.4/lib/setup.c
++++ cryptsetup-1.0.4/lib/setup.c
+@@ -542,17 +542,15 @@
+ 	int r;
+ 	
+ 	struct luks_phdr header;
+-	struct luks_masterkey mk;
++	struct luks_masterkey *mk=NULL;
+ 	char *password; 
+ 	char cipherName[LUKS_CIPHERNAME_L];
+ 	char cipherMode[LUKS_CIPHERMODE_L];
+ 	int passwordLen;
+ 	int PBKDF2perSecond;
+ 	
+-	mk.keyLength = options->key_size;
+-
+-	r = LUKS_generate_masterkey(&mk);
+-	if(r < 0) return r; 
++	mk = LUKS_generate_masterkey(options->key_size);
++	if(NULL == mk) return -ENOMEM; 
+ 
+ #ifdef LUKS_DEBUG
+ #define printoffset(entry) printf("offset of " #entry " = %d\n", (char *)(&header.entry)-(char *)(&header))
+@@ -574,7 +572,7 @@
+ 	r = parse_into_name_and_mode(options->cipher, cipherName, cipherMode);
+ 	if(r < 0) return r;
+ 
+-	r = LUKS_generate_phdr(&header,&mk,cipherName, cipherMode,LUKS_STRIPES, options->align_payload);
++	r = LUKS_generate_phdr(&header,mk,cipherName, cipherMode,LUKS_STRIPES, options->align_payload);
+ 	if(r < 0) { 
+ 		set_error("Can't write phdr");
+ 		return r; 
+@@ -592,19 +590,19 @@
+ 	if(!password) {
+ 		r = -EINVAL; goto out;
+ 	}
+-	r = LUKS_set_key(options->device, 0, password, passwordLen, &header, &mk, backend);
++	r = LUKS_set_key(options->device, 0, password, passwordLen, &header, mk, backend);
+ 	if(r < 0) goto out; 
+ 
+ 	r = 0;
+ out:
+-	memset(&mk,0,sizeof(mk));
++	LUKS_dealloc_masterkey(mk);
+ 	safe_free(password);
+ 	return r;
+ }
+ 
+ static int __crypt_luks_open(int arg, struct setup_backend *backend, struct crypt_options *options)
+ {
+-	struct luks_masterkey mk;
++	struct luks_masterkey *mk=NULL;
+ 	struct luks_phdr hdr;
+ 	char *password; int passwordLen;
+ 	struct device_infos infos;
+@@ -650,7 +648,7 @@
+ 		goto out2;
+ 	}
+ 	options->cipher = dmCipherSpec;
+-	options->key_size = mk.keyLength;
++	options->key_size = mk->keyLength;
+ 	options->skip = 0;
+ 
+ 	options->size = infos.size;
+@@ -663,15 +661,14 @@
+ 		r = -EINVAL; goto out2;
+ 	}
+ 	options->size -= options->offset;
+-	r = backend->create(0, options, mk.key);
++	r = backend->create(0, options, mk->key);
+ 
+  out2:
+ 	free(dmCipherSpec);
+  out1:
+ 	safe_free(password);
+  out:
+-	memset(&mk,0,sizeof(mk));
+-
++	LUKS_dealloc_masterkey(mk);
+ 	if (r != 0 && tries > 0)
+ 		goto start;
+ 
+@@ -680,7 +677,7 @@
+ 
+ static int __crypt_luks_add_key(int arg, struct setup_backend *backend, struct crypt_options *options)
+ {
+-	struct luks_masterkey mk;
++	struct luks_masterkey *mk=NULL;
+ 	struct luks_phdr hdr;
+ 	char *password; unsigned int passwordLen;
+ 	unsigned int i; unsigned int keyIndex;
+@@ -727,18 +724,19 @@
+ 
+ 	hdr.keyblock[keyIndex].passwordIterations = LUKS_benchmarkt_iterations() * ((float)options->iteration_time / 1000);
+ 
+-    	r = LUKS_set_key(device, keyIndex, password, passwordLen, &hdr, &mk, backend);
++    	r = LUKS_set_key(device, keyIndex, password, passwordLen, &hdr, mk, backend);
+ 	if(r < 0) goto out;
+ 
+ 	r = 0;
+ out:
+ 	safe_free(password);
++	LUKS_dealloc_masterkey(mk);
+ 	return r;
+ }
+ 
+ static int __crypt_luks_del_key(int arg, struct setup_backend *backend, struct crypt_options *options)
+ {
+-	struct luks_masterkey mk;
++	struct luks_masterkey *mk;
+ 	struct luks_phdr hdr;
+ 	char *password=NULL; 
+ 	unsigned int passwordLen;
+diff -rNu cryptsetup-1.0.4.orig/luks/keymanage.c cryptsetup-1.0.4/luks/keymanage.c
+--- cryptsetup-1.0.4/luks/keymanage.c
++++ cryptsetup-1.0.4/luks/keymanage.c
+@@ -43,9 +43,28 @@
+ 	(__a - 1) / __b + 1;        \
+ })
+ 
+-int LUKS_generate_masterkey(struct luks_masterkey *mk)
++
++struct luks_masterkey *LUKS_alloc_masterkey(int keylength)
++{ 
++	struct luks_masterkey *mk=malloc(sizeof(*mk) + keylength);
++	mk->keyLength=keylength;
++	return mk;
++}
++
++void LUKS_dealloc_masterkey(struct luks_masterkey *mk)
++{
++	if(NULL != mk) {
++		memset(mk->key,0,mk->keyLength);
++		mk->keyLength=0;
++		free(mk);
++	}
++}
++
++struct luks_masterkey *LUKS_generate_masterkey(int keylength)
+ {
+-	return getRandom(mk->key,mk->keyLength);
++	struct luks_masterkey *mk=LUKS_alloc_masterkey(keylength);
++	getRandom(mk->key,keylength);
++	return mk;
+ }
+ 
+ static inline void convert_V99toV991(char const *device, struct luks_phdr *hdr) {
+@@ -322,7 +341,7 @@
+ 		      const char *password, 
+ 		      size_t passwordLen,
+ 		      struct luks_phdr *hdr, 
+-		      struct luks_masterkey *mk,
++		      struct luks_masterkey **mk,
+ 		      struct setup_backend *backend)
+ {
+ 	unsigned int i;
+@@ -332,9 +351,9 @@
+ 	if(r < 0) 
+       		return r;
+ 
+-	mk->keyLength = hdr->keyBytes;
++	*mk=LUKS_alloc_masterkey(hdr->keyBytes);
+ 	for(i=0; i<LUKS_NUMKEYS; i++) {
+-		if(LUKS_open_key(device, i, password, passwordLen, hdr, mk, backend) == 0)
++		if(LUKS_open_key(device, i, password, passwordLen, hdr, *mk, backend) == 0)
+ 			break;
+ 	}
+ 	if(i!=LUKS_NUMKEYS) printf("key slot %d unlocked.\n",i);
+diff -rNu cryptsetup-1.0.4.orig/luks/luks.h cryptsetup-1.0.4/luks/luks.h
+--- cryptsetup-1.0.4/luks/luks.h
++++ cryptsetup-1.0.4/luks/luks.h
+@@ -76,10 +76,14 @@
+ 
+ struct luks_masterkey {
+ 	size_t keyLength;
+-	char key[32];
++	char key[];
+ };
+ 
+-int LUKS_generate_masterkey(struct luks_masterkey *mk);
++struct luks_masterkey *LUKS_alloc_masterkey(int keylength);
++
++void LUKS_dealloc_masterkey(struct luks_masterkey *mk);
++
++struct luks_masterkey *LUKS_generate_masterkey(int keylength);
+ 
+ int LUKS_generate_phdr(struct luks_phdr *header,
+ 		       const struct luks_masterkey *mk, const char *cipherName,
+@@ -110,7 +114,7 @@
+ 					const char *password, 
+ 					size_t passwordLen, 
+ 					struct luks_phdr *hdr, 
+-					struct luks_masterkey *mk,
++					struct luks_masterkey **mk,
+ 					struct setup_backend *backend);
+ 
+ int LUKS_del_key(const char *device, unsigned int keyIndex);

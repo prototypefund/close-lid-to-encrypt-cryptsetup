@@ -3,8 +3,13 @@ cryptsetup (2:1.0.4-9) unstable; urgency=high
   [ David Härdeman ]
   * Support adding separate blockcipher modules to initramfs image
     (necessary for kernels >= 2.6.19)
-  * Hashing was previously not done correctly when decrypt_derived
-    was used
+  * Hashing was previously not done correctly when decrypt_derived was used
+
+  [ Jonas Meurer ]
+  * Add new upstream patch 02_luks_var_keysize.dpatch. Cryptsetup no longer
+    segfaults with unsupported keysize. (closes: #381973)
+  * Urgency still high due to several bugs fixed in earlier uploads
+    but still not in etch yet. We really want this in etch.
 
  -- David Härdeman <david@hardeman.nu>  Wed, 22 Nov 2006 23:30:19 +0100
 
