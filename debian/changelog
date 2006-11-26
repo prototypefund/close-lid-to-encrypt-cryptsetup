@@ -1,4 +1,4 @@
-cryptsetup (2:1.0.4-9) unstable; urgency=high
+cryptsetup (2:1.0.4.svn16-1) unstable; urgency=high
 
   [ David Härdeman ]
   * Support adding separate blockcipher modules to initramfs image
@@ -11,7 +11,7 @@ cryptsetup (2:1.0.4-9) unstable; urgency=high
   * Urgency still high due to several bugs fixed in earlier uploads
     but still not in etch yet. We really want this in etch.
 
- -- David Härdeman <david@hardeman.nu>  Wed, 22 Nov 2006 23:30:19 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 26 Nov 2006 21:35:19 +0100
 
 cryptsetup (2:1.0.4-8) unstable; urgency=high
 
