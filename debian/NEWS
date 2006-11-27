@@ -1,4 +1,4 @@
-cryptsetup (2:1.0.4.svn16-1) unstable; urgency=high
+cryptsetup (2:1.0.4+svn16-1) unstable; urgency=high
 
   The --key-file=- argument has changed. If a --hash parameter is passed, it
   will now be honored. This means that the decrypt_derived keyscript will in
