@@ -1,4 +1,4 @@
-cryptsetup (2:1.0.4+svn16-1) unstable; urgency=high
+cryptsetup (2:1.0.4+svn16-1) unstable; urgency=medium
 
   [ David Härdeman ]
   * Support adding separate blockcipher modules to initramfs image
@@ -8,10 +8,9 @@ cryptsetup (2:1.0.4+svn16-1) unstable; urgency=high
   [ Jonas Meurer ]
   * Add new upstream patch 02_luks_var_keysize.dpatch. Cryptsetup no longer
     segfaults with unsupported keysize. (closes: #381973)
-  * Urgency still high due to several bugs fixed in earlier uploads
-    but still not in etch yet. We really want this in etch.
+  * Urgency medium as we really want these fixes in etch.
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 27 Nov 2006 00:04:04 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 28 Nov 2006 18:17:12 +0100
 
 cryptsetup (2:1.0.4-8) unstable; urgency=high
 
