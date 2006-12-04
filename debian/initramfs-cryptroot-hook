@@ -222,7 +222,7 @@ get_device_opts() {
 }
 
 get_device_modules() {
-	local node value cipher ivhash
+	local node value cipher blockcipher ivhash
 	node="$1"
 
 	# Check the ciphers used by the active root mapping
@@ -231,14 +231,14 @@ get_device_modules() {
 	blockcipher=$(echo "$value" | cut -d ":" -f1 | cut -d "-" -f2)
 	ivhash=$(echo "$value" | cut -d ":" -s -f2)
 
-	if [ -z "$cipher" ]; then
+	if [ -n "$cipher" ]; then
+		echo "$cipher"
+	else
 		return 1
 	fi
 
-	echo "$cipher"
-
-	if [ -n "$ciphermode" ]; then
-		echo "$ciphermode"
+	if [ -n "$blockcipher" ]; then
+		echo "$blockcipher"
 	fi
 
 	if [ -n "$ivhash" ]; then
