@@ -364,7 +364,7 @@ add_device() {
 
 # Unless MODULES = "dep", we always add a basic subset of modules/tools
 if [ "$MODULES" != "dep" ]; then
-	for mod in dm_mod dm_crypt aes sha256; do
+	for mod in dm_mod dm_crypt aes sha256 cbc; do
 		manual_add_modules $mod
 	done
 	copy_exec /sbin/cryptsetup /sbin
