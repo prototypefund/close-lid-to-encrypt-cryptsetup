@@ -2,8 +2,10 @@ cryptsetup (2:1.0.4+svn16-2) unstable; urgency=low
 
   * Add cbc to standard list of modules. Thanks to Michael Olbrich
     <michael.olbrich@gmx.net>. (closes: #401370)
+  * Fix support for crypto-on-evms. Thanks to Enrico Gatto
+    <cat@legnago.linux.it>. (closes: #402417)
 
- -- David Härdeman <david@hardeman.nu>  Mon,  4 Dec 2006 22:05:24 +0100
+ -- David Härdeman <david@hardeman.nu>  Tue, 12 Dec 2006 23:45:01 +0100
 
 cryptsetup (2:1.0.4+svn16-1) unstable; urgency=medium
 

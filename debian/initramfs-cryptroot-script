@@ -86,16 +86,10 @@ parse_options()
 activate_vg()
 {
 	local vg
-	vg="$1"
+	vg="${1#/dev/mapper/}"
 
 	# Sanity checks
-	if [ ! -x /sbin/vgchange ] || [ -z "$vg" ]; then
-		return 1
-	fi
-
-	# Make sure we're dealing with a lvm device
-	vg=${vg#/dev/mapper/}
-	if [ "$vg" = "$1" ]; then
+	if [ ! -x /sbin/vgchange ] || [ "$vg" = "$1" ]; then
 		return 1
 	fi
 
@@ -111,6 +105,26 @@ activate_vg()
 	vg=$(echo ${vg} | sed -e 's#--#-#g')
 
 	vgchange -ay ${vg}
+	return $?
+}
+
+activate_evms()
+{
+	local dev module
+	dev="${1#/dev/evms/}"
+
+	# Sanity checks
+	if [ ! -x /sbin/evms_activate ] || [ "$dev" = "$1" ]; then
+		return 1
+	fi
+
+	# Load modules used by evms
+	for module in dm-mod linear raid0 raid1 raid10 raid5 raid6; do
+		modprobe -q $module
+	done
+
+	# Activate it
+	/sbin/evms_activate
 	return $?
 }
 
@@ -154,6 +168,7 @@ setup_mapping()
 	# Make sure the cryptsource device is available
 	if [ ! -e $cryptsource ]; then
 		activate_vg $cryptsource
+		activate_evms $cryptsource
 	fi
 
 	if [ ! -e $cryptsource ]; then
