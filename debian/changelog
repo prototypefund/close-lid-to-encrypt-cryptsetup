@@ -1,3 +1,12 @@
+cryptsetup (2:1.0.4+svn16-3) unstable; urgency=low
+
+  [ Jonas Meurer ]
+  * Add patch by Rob Walker <rob@tenfoot.org.uk> to fix a sectot size
+    error. (closes: #403075)
+  * urgency=high to get this into etch.
+
+ -- Jonas Meurer <mejo@debian.org>  Tue, 26 Dec 2006 18:19:44 +0100
+
 cryptsetup (2:1.0.4+svn16-2) unstable; urgency=high
 
   [ David Härdeman ]

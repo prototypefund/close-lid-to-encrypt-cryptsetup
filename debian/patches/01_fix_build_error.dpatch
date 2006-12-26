@@ -5,9 +5,8 @@
 ## DP: No description.
 
 @DPATCH@
-diff -urNad cryptsetup-1.0.4~/po/Makefile.in.in cryptsetup-1.0.4/po/Makefile.in.in
---- cryptsetup-1.0.4~/po/Makefile.in.in	2006-10-04 15:47:01.000000000 +0200
-+++ cryptsetup-1.0.4/po/Makefile.in.in	2006-11-02 22:19:25.000000000 +0100
+--- cryptsetup-1.0.4+svn16/po/Makefile.in.in
++++ cryptsetup-1.0.4+svn16/po/Makefile.in.in
 @@ -29,8 +29,8 @@
  
  INSTALL = @INSTALL@
