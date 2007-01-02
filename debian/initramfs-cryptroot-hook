@@ -237,11 +237,11 @@ get_device_modules() {
 		return 1
 	fi
 
-	if [ -n "$blockcipher" ]; then
+	if [ -n "$blockcipher" ] && [ "$blockcipher" != "plain" ]; then
 		echo "$blockcipher"
 	fi
 
-	if [ -n "$ivhash" ]; then
+	if [ -n "$ivhash" ] && [ "$ivhash" != "plain" ]; then
 		echo "$ivhash"
 	fi
 	return 0

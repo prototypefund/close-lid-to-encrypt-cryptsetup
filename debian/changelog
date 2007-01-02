@@ -7,9 +7,11 @@ cryptsetup (2:1.0.4+svn25-1) unstable; urgency=high
     - fixes a LUKS header corruption on arm, which downgrades bug
       #403426 from critical to important.
     - prevents password retrying with I/O errors.
+  * handle chainmode/essiv "plain" correctly in initramfs hook.
+    Thanks to Leonard Norrgard (closes: #402417)
   * urgency=high to get this into etch.
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 30 Dec 2006 22:05:36 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue,  2 Jan 2007 23:34:45 +0100
 
 cryptsetup (2:1.0.4+svn16-2) unstable; urgency=high
 
