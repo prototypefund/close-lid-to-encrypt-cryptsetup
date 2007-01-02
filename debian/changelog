@@ -1,7 +1,7 @@
-cryptsetup (2:1.0.4+svn25-1) unstable; urgency=high
+cryptsetup (2:1.0.4+svn26-1) unstable; urgency=high
 
   [ Jonas Meurer ]
-  * New upstream svn snapshot 1.0.4+svn22
+  * New upstream svn snapshot 1.0.4+svn26
     - contains a slightly modified patch by Rob Walker
       <rob@tenfoot.org.uk> to fix a sector size error. (closes: #403075)
     - fixes a LUKS header corruption on arm, which downgrades bug
@@ -11,7 +11,7 @@ cryptsetup (2:1.0.4+svn25-1) unstable; urgency=high
     Thanks to Leonard Norrgard (closes: #402417)
   * urgency=high to get this into etch.
 
- -- Jonas Meurer <mejo@debian.org>  Tue,  2 Jan 2007 23:34:45 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed,  3 Jan 2007 00:22:12 +0100
 
 cryptsetup (2:1.0.4+svn16-2) unstable; urgency=high
 
