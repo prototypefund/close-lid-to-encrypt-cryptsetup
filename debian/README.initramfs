@@ -68,6 +68,13 @@ Now, reboot the machine, and if everything is correctly configured, you
 should be given a prompt to type in the passphrase for the encrypted
 root partition before the boot can continue.
 
+NOTE: the initramfs scripts default to using the sha256 hash function while
+the plain cryptsetup binary defaults to using the ripemd160 hash function.
+In order to ensure that the crypto setup works in a consistant manner, you
+should make sure that the hash function is specified in the /etc/crypttab file
+if you are using regular dm-crypt (with LUKS the hash function to use is stored
+in the LUKS header).
+
 
 5. Setup (using LUKS)
 ---------------------
