@@ -17,7 +17,7 @@ cryptsetup (2:1.0.4+svn26-1) unstable; urgency=high
   * Verify symlinks for source devices when initramfs is generated and
     correct if necessary. (closes: #405301)
 
- -- David Härdeman <david@hardeman.nu>  Tue,  9 Jan 2007 18:41:12 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue,  9 Jan 2007 21:25:23 +0100
 
 cryptsetup (2:1.0.4+svn16-2) unstable; urgency=high
 
