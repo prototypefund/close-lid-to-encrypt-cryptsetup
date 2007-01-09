@@ -9,6 +9,7 @@ cryptsetup (2:1.0.4+svn26-1) unstable; urgency=high
     - prevents password retrying with I/O errors.
   * handle chainmode/essiv "plain" correctly in initramfs hook.
     Thanks to Leonard Norrgard. (closes: #402417)
+  * remove 'rm -rf m4' from a clean target in debian/rules.
   * urgency=high to get this into etch.
 
   [ David Härdeman ]
@@ -17,7 +18,7 @@ cryptsetup (2:1.0.4+svn26-1) unstable; urgency=high
   * Verify symlinks for source devices when initramfs is generated and
     correct if necessary. (closes: #405301)
 
- -- Jonas Meurer <mejo@debian.org>  Tue,  9 Jan 2007 21:25:23 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue,  9 Jan 2007 21:53:06 +0100
 
 cryptsetup (2:1.0.4+svn16-2) unstable; urgency=high
 
