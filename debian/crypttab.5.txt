@@ -125,7 +125,7 @@ no checkargs - succeeds if any valid filesystem is found on the device.
 "ext3" [or any other filesystem type like xfs, swap, crypto_LUKS, whatever] - succeeds
 if an ext3 [or another given] filesystem type is found on the device.
 
-*ext3*::
+*ext2*::
 Checks for a valid ext2/ext3 filesystem.
 
 *xfs*::
