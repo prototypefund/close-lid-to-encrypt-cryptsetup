@@ -1,9 +1,14 @@
 cryptsetup (2:1.0.4+svn26-2) unstable; urgency=low
 
+  [ David Härdeman ]
   * Fix typo in crypttab(5), the ext checkscript is called ext2, not
     ext3. (closes: #410390)
 
- -- David Härdeman <david@hardeman.nu>  Sat, 10 Feb 2007 17:24:47 +0100
+  [ Jonas Meurer ]
+  * Add 01_tries_fix.dpatch, makes the --tries commandline option work
+    again. (closes: #414326, #412064)
+
+ -- Jonas Meurer <mejo@debian.org>  Mon, 19 Mar 2007 15:17:02 +0100
 
 cryptsetup (2:1.0.4+svn26-1) unstable; urgency=high
 
