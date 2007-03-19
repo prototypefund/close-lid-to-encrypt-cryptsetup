@@ -125,14 +125,18 @@ no checkargs - succeeds if any valid filesystem is found on the device.
 "ext3" [or any other filesystem type like xfs, swap, crypto_LUKS, whatever] - succeeds
 if an ext3 [or another given] filesystem type is found on the device.
 
+*un_vol_id*::
+Checks for no known filesystem. Supports a filesystem type as argument via
+<checkargs>:
+no checkargs - succeeds if no valid filesystem is found on the device.
+"ext3" [or any other filesystem type like xfs, swap, crypto_LUKS, whatever] - succeeds
+if no ext3 [or another given] filesystem type is found on the device.
+
 *ext2*::
 Checks for a valid ext2/ext3 filesystem.
 
 *xfs*::
 Checks for a valid xfs filesystem.
-
-*swap*::
-Checks for partition type 'swap'. Only useful as <precheck>.
 
 EXAMPLES
 --------
