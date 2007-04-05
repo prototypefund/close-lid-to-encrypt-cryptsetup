@@ -1,0 +1,93 @@
+#!/bin/sh
+
+# Why not use "openct-tool rwait" instead of polling opensc-tool exit status?
+# Well openct daemon has to be running which interferes with pcscd since both
+# implement reader drivers, my particular CCID reader (SCM SCR331-LC1) doesn't
+# work with the CCID driver in openct, however it does work with pcscd.
+
+# Why not use "opensc-tool --wait" instead of polling opensc-tool exit status?
+# Although opensc-tool --help reports that there is a --wait option, it doesn't
+# seem to be implemented.
+
+check_middleware() {
+    # Probe reader drivers to ensure opensc installation works (should output
+    # errors if opensc is not capable of reading cards)
+    opensc-tool -R >/dev/null
+    # Unfortunately "opensc-tool -R" tests for the presence of a reader rather
+    # than simply listing the reader drivers available, so don't abort
+    #if [ $? != 0 ] ; then
+    #    echo Smart Card Middleware broken! >&2
+    #    exit 1
+    #fi
+}
+
+check_reader() {
+    readerfound=0
+
+    if [ ! -e "$readertmp" ] ; then
+        readertmp=$(mktemp /tmp/decrypt_opensc.XXXXXXXX)
+    fi
+
+    opensc-tool -l > $readertmp 2>&1
+    if [ $? == 0 ] ; then
+        readerfound=1
+    fi
+}
+
+wait_reader() {
+    check_reader
+    if [ $readerfound == 0 ] ; then
+        echo Waiting for Smart Card reader... >&2
+        tries=0
+        while [ $readerfound == 0 -a $tries -lt 60 ] ; do
+            sleep 1
+            check_reader
+            tries=$(($tries + 1))
+        done
+        cat $readertmp >&2
+        if [ $readerfound == 0 ] ; then
+            echo Failed to find Smart Card reader!
+            exit 1
+        fi
+    fi
+    rm $readertmp
+}
+
+check_card() {
+    cardfound=0
+
+    if [ ! -e "$cardtmp" ] ; then
+        cardtmp=$(mktemp /tmp/decrypt_opensc.XXXXXXXX)
+    fi
+
+    opensc-tool -n > $cardtmp 2>&1
+    if [ $? == 0 ] ; then
+        cardfound=1
+    fi
+}
+
+wait_card() {
+    check_card
+    if [ $cardfound == 0 ] ; then
+        echo Waiting for Smart Card... >&2
+        tries=0
+        while [ $cardfound == 0 -a $tries -lt 60 ] ; do
+            sleep 1
+            check_card
+            #tries=$(($tries + 1))
+        done
+        cat $cardtmp >&2
+        if [ $cardfound == 0 ] ; then
+            echo Failed to find Smart Card card!
+            exit 1
+        fi
+    fi
+    rm $cardtmp
+}
+
+echo >&2
+check_middleware
+wait_reader
+wait_card
+pkcs15-crypt --decipher --input $1 --pkcs1 --raw
+exit $?

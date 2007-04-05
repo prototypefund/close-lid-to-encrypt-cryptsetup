@@ -11,8 +11,12 @@ cryptsetup (2:1.0.4+svn26-2) unstable; urgency=low
     documentation. The swap check indeed is rather useless, thanks to Frank
     Engler <bts.to.FrankEngler@spamgourmet.com>. The script itself is kept
     for compability issues. (closes: #406837)
+  * Add smartcard keyscript and initramfs-tools hooks/scripts. This adds
+    support for disk encryption with smartcards, even for root disks.
+    Thanks a lot to Gerald Turner <gturner@unzane.com> for the patch and a
+    smartcard reader for testing this. (closes: #416528)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 19 Mar 2007 17:21:04 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 05 Apr 2007 16:10:28 +0200
 
 cryptsetup (2:1.0.4+svn26-1) unstable; urgency=high
 
