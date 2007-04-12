@@ -262,42 +262,6 @@ get_device_modules() {
 	return 0
 }
 
-prepare_keymap() {
-	local env charmap
-
-	# Allow the correct keymap to be loaded if possible
-	if [ ! -x /bin/loadkeys ] || [ ! -r /etc/console/boottime.kmap.gz ]; then
-		return 1
-	fi
-
-	copy_exec /bin/loadkeys /bin/
-	cp /etc/console/boottime.kmap.gz $DESTDIR/etc/
-
-	# Check for UTF8 console
-	if [ ! -x /usr/bin/kbd_mode ]; then
-		return 0
-	fi
-
-	if [ -r /etc/environment ]; then
-		env="/etc/environment"
-	elif [ -r /etc/default/locale ]; then
-		env="/etc/default/locale"
-	else
-		return 0
-	fi
-
-	for var in LANG LC_ALL LC_CTYPE; do
-		value=$(egrep "^[^#]*${var}=" $env | tail -n1 | cut -d= -f2)
-		eval $var=$value
-	done
-
-	charmap=$(LANG=$LANG LC_ALL=$LC_ALL LC_CTYPE=$LC_CTYPE locale charmap)
-	if [ "$charmap" = "UTF-8" ]; then
-		copy_exec /usr/bin/kbd_mode /bin/
-	fi
-	return 0
-}
-
 add_device() {
 	local node nodes opts lastopts i count
 	nodes="$1"
@@ -384,7 +348,6 @@ if [ "$MODULES" != "dep" ]; then
 	done
 	copy_exec /sbin/cryptsetup /sbin
 	copy_exec /sbin/dmsetup /sbin
-	prepare_keymap
 fi
 
 # We can't do anything without a config file
@@ -417,7 +380,6 @@ done
 # Prepare the initramfs
 copy_exec /sbin/cryptsetup /sbin
 copy_exec /sbin/dmsetup /sbin
-prepare_keymap
 
 # Done
 exit 0

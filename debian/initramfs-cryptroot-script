@@ -128,23 +128,6 @@ activate_evms()
 	return $?
 }
 
-load_keymap()
-{
-	local opts
-	opts="-q"
-
-	# Should terminal be in UTF8 mode?
-	if [ -x /bin/kbd_mode ]; then
-		/bin/kbd_mode -u
-		opts="$opts -u"
-	fi
-
-	# Load custom keymap
-	if [ -x /bin/loadkeys -a -r /etc/boottime.kmap.gz ]; then
-		loadkeys $opts /etc/boottime.kmap.gz
-	fi
-}
-
 setup_mapping()
 {
 	local opts count cryptcreate cryptremove NEWROOT
@@ -247,9 +230,6 @@ setup_mapping()
 #
 # Begin real processing
 #
-
-# If possible, load the keymap so that the user can input non-en characters
-load_keymap
 
 # Do we have any kernel boot arguments?
 found=''

@@ -1,3 +1,10 @@
+cryptsetup (2:1.0.4+svn26-3) unstable; urgency=low
+
+  * Use the initramfs-tools keymap support instead of our own (requires
+    initramfs-tools >= 0.87)
+
+ -- David Härdeman <david@hardeman.nu>  Thu, 12 Apr 2007 23:55:03 +0200
+
 cryptsetup (2:1.0.4+svn26-2) unstable; urgency=low
 
   [ David Härdeman ]

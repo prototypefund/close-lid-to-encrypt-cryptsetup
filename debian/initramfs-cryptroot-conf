@@ -1,0 +1,3 @@
+# This will setup non-us keyboards in early userspace,
+# necessary for punching in passphrases.
+KEYMAP=y

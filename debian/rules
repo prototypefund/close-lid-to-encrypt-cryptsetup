@@ -111,6 +111,8 @@ install: build
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptroot
 	install -m 0755 debian/initramfs-cryptroot-script \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-top/cryptroot
+	install -m 0644 debian/initramfs-cryptroot-conf \
+		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/conf.d/cryptroot
 	install -m 0755 debian/initramfs-cryptopensc-hook \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptopensc
 	install -m 0755 debian/initramfs-cryptopensc-script-local-top \
