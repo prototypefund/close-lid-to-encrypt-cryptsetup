@@ -1,15 +1,10 @@
-cryptsetup (2:1.0.4+svn26-3) unstable; urgency=low
-
-  * Use the initramfs-tools keymap support instead of our own (requires
-    initramfs-tools >= 0.87)
-
- -- David Härdeman <david@hardeman.nu>  Thu, 12 Apr 2007 23:55:03 +0200
-
 cryptsetup (2:1.0.4+svn26-2) unstable; urgency=low
 
   [ David Härdeman ]
   * Fix typo in crypttab(5), the ext checkscript is called ext2, not
     ext3. (closes: #410390)
+  * Use the initramfs-tools keymap support instead of our own (requires
+    initramfs-tools >= 0.87)
 
   [ Jonas Meurer ]
   * Add 01_tries_fix.dpatch, makes the --tries commandline option work
@@ -25,7 +20,7 @@ cryptsetup (2:1.0.4+svn26-2) unstable; urgency=low
   * update copyright file: change "program" to "package", and mention GPL
     version 2. add a full disclaimer.
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 06 Apr 2007 13:13:50 +0200
+ -- David Härdeman <david@hardeman.nu>  Fri, 13 Apr 2007 21:31:37 +0200
 
 cryptsetup (2:1.0.4+svn26-1) unstable; urgency=high
 
