@@ -107,17 +107,17 @@ install: build
 	install -m 0755 debian/scripts/decrypt_* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
 	install -m 0644 debian/cryptsetup.lintian-override \
 		$(CURDIR)/debian/cryptsetup/usr/share/lintian/overrides/cryptsetup
-	install -m 0755 debian/initramfs-cryptroot-hook \
+	install -m 0755 debian/initramfs/cryptroot-hook \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptroot
-	install -m 0755 debian/initramfs-cryptroot-script \
+	install -m 0755 debian/initramfs/cryptroot-script \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-top/cryptroot
-	install -m 0644 debian/initramfs-cryptroot-conf \
+	install -m 0644 debian/initramfs/cryptroot-conf \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/conf.d/cryptsetup
-	install -m 0755 debian/initramfs-cryptopensc-hook \
+	install -m 0755 debian/initramfs/cryptopensc-hook \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptopensc
-	install -m 0755 debian/initramfs-cryptopensc-script-local-top \
+	install -m 0755 debian/initramfs/cryptopensc-script-local-top \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-top/cryptopensc
-	install -m 0755 debian/initramfs-cryptopensc-script-local-bottom \
+	install -m 0755 debian/initramfs/cryptopensc-script-local-bottom \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-bottom/cryptopensc
 	rmdir $(CURDIR)/debian/cryptsetup/usr/lib/cryptsetup
 
