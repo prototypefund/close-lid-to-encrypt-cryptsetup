@@ -146,20 +146,6 @@ parse_opts () {
 		  loud)
 		  	LOUD=yes
 			;;
-		  ssl)
-			if [ -n "$KEYSCRIPT" ]; then
-				echo "multiple key decryption options are not allowed together, skipping" >&2
-				return 1
-			fi
-			KEYSCRIPT="/lib/cryptsetup/scripts/decrypt_old_ssl"
-			;;
-		  gpg)
-			if [ -n "$KEYSCRIPT" ]; then
-				echo "multiple key decryption options are not allowed together, skipping" >&2
-				return 1
-			fi
-			KEYSCRIPT="/lib/cryptsetup/scripts/decrypt_gpg"
-			;;
 		  keyscript)
 			if [ -n "$KEYSCRIPT" ]; then
 				echo "multiple key decryption options are not allowed together, skipping" >&2

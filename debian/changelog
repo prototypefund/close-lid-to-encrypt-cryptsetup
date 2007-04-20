@@ -6,6 +6,8 @@ cryptsetup (2:1.0.4+svn26-2) unstable; urgency=low
   * Use the initramfs-tools keymap support instead of our own (requires
     initramfs-tools >= 0.87)
   * Add support for usplash password prompt (closes: #397981)
+  * Remove the "ssl" and "gpg" options which are supported by keyscripts
+    since October 2006 (see NEWS for details).
 
   [ Jonas Meurer ]
   * Add 01_tries_fix.dpatch, makes the --tries commandline option work
