@@ -1,19 +1,34 @@
-CRYPTCMD=/sbin/cryptsetup
-DEVMAPCMD=/sbin/dmsetup
-LOSETUP=/sbin/losetup
+#!/bin/bash
+
+PATH="/sbin:/bin"
 TABFILE=/etc/crypttab
-MAPPER=/dev/mapper
+MOUNT="$CRYPTDISKS_MOUNT"
+CRYPTDISKS_ENABLE="Yes"
 
-MOUNT="${CRYPTDISKS_MOUNT}"
+#set -x
 
-test -x $CRYPTCMD  || exit 0
-test -x $DEVMAPCMD || exit 0
-test -f $TABFILE   || exit 0
+# Sanity checks
+[ -x /sbin/cryptsetup ] || exit 0
+[ -f "$TABFILE"       ] || exit 0
+
+. /lib/lsb/init-functions
+
+if [ -r /etc/default/cryptdisks ]; then
+	. /etc/default/cryptdisks
+fi
+
+case "$CRYPTDISKS_ENABLE" in
+[Nn]*)
+	exit 0
+	;;
+esac
 
 
+# Parses the option field from the crypttab file
 parse_opts () {
-	local opts="$1"
+	local opts opt IFS PARAM VALUE
 
+	opts="$1"
 	LOUD=""
 	PARAMS=""
 	CHECK=""
@@ -28,169 +43,137 @@ parse_opts () {
 
 	# Parse the options field, convert to cryptsetup parameters
 	# and construct the command line
-	while test "x$opts" != "x" ; do
-		ARG=`echo $opts | sed "s/,.*//"`
-		opts=${opts##$ARG}
-		opts=${opts##,}
-		PARAM=`echo $ARG | sed "s/=.*//"`
-		
-		case "$ARG" in
-		  *=*)
-		  	PARAM=`echo $ARG | sed "s/=.*//"`
-		  	VALUE=${ARG##$PARAM=}
-		  	;;
-		  *)
-		  	PARAM=$ARG
-		  	VALUE=""
-			;;
-		esac
+	IFS=','
+	for opt in $opts; do
+		PARAM=$(echo "$opt" | sed 's/=.*//')
+		VALUE=$(echo "$opt" | sed '/=/!d;s/^.*=//')
 		
 		case "$PARAM" in 
-		  readonly)
-		  	PARAMS="$PARAMS -r"
-		  	;;
-		  cipher)
-		  	PARAMS="$PARAMS -c $VALUE"
-		  	if test "x$VALUE" = "x" ; then
-		  		echo "no value for cipher option, skipping" >&2
-		  		return 1
-		  	fi
-		  	;;
-		  size)
-		  	PARAMS="$PARAMS -s $VALUE"
-		  	if test "x$VALUE" = "x" ; then
-		  		echo "no value for size option, skipping" >&2
-		  		return 1
-		  	fi
-		  	;;
-		  hash)
-		  	PARAMS="$PARAMS -h $VALUE"
-		  	if test "x$VALUE" = "x" ; then
-		  		echo "no value for hash option, skipping" >&2
-		  		return 1
-		  	fi
-		  	;;
-		  verify)
-		  	PARAMS="$PARAMS -y"
-		  	;;
-		  check)
-		  	if test "x$VALUE" = "x" ; then
-				CHECK="${CRYPTDISKS_CHECK}"
+		readonly)
+			PARAMS="$PARAMS -r"
+			;;
+		cipher)
+			if [ -z "$VALUE" ]; then
+				log_warning_msg "$dst: no value for cipher option, skipping"
+				return 1
+			fi
+			PARAMS="$PARAMS -c $VALUE"
+			;;
+		size)
+			if [ -z "$VALUE" ]; then
+				log_warning_msg "$dst: no value for size option, skipping"
+				return 1
+			fi
+			PARAMS="$PARAMS -s $VALUE"
+			;;
+		hash)
+			if [ -z "$VALUE" ]; then
+				log_warning_msg "$dst: no value for hash option, skipping"
+				return 1
+			fi
+			PARAMS="$PARAMS -h $VALUE"
+			;;
+		verify)
+			PARAMS="$PARAMS -y"
+			;;
+		check)
+			if [ -z "$VALUE" ]; then
+				CHECK="$CRYPTDISKS_CHECK"
+			elif [ -x "/lib/cryptsetup/checks/$VALUE" ]; then
+				CHECK="/lib/cryptsetup/checks/$CHECK"
 			else
-		  		CHECK="$VALUE"
-		  	fi
-		  	if [ "$CHECK" -a -x /lib/cryptsetup/checks/"$CHECK" ]; then
-		   		CHECK="/lib/cryptsetup/checks/$CHECK"
-		  	#else
-		  	#	CHECK=""
-		  	fi
-		  	;;
-		  checkargs)
-		  	if test "x$VALUE" != "x"; then
+				CHECK="$VALUE"
+			fi
+			;;
+		checkargs)
+			if [ -z "$VALUE" ]; then
 				CHECKARGS="$VALUE"
 			fi
 			;;
-		  precheck)
-		  	if test "x$VALUE" = "x" ; then
-				PRECHECK="${CRYPTDISKS_PRECHECK}"
+		precheck)
+			if [ -z "$VALUE" ]; then
+				PRECHECK="$CRYPTDISKS_PRECHECK"
+			elif [ -x "/lib/cryptsetup/checks/$PRECHECK" ]; then
+				PRECHECK="/lib/cryptsetup/checks/$PRECHECK"
 			else
-		  		PRECHECK="$VALUE"
-		  	fi
-		   	if [ "$PRECHECK" -a -x /lib/cryptsetup/checks/"$PRECHECK" ]; then
-		  		PRECHECK="/lib/cryptsetup/checks/$PRECHECK"
-		  	else
-		  		PRECHECK=""
-		  	fi
-		  	;;
-		  tries)
-		  	if test "x$VALUE" != "x" ; then
-		  		TRIES="$VALUE"
-		  	fi
-		  	case "$TRIES" in
-		  	  [0-9]*)
-		  	  	;;
-		  	  *)
-			  	echo "option TRIES is wrongly set to $TRIES - forced to '3' " >&2
-			  	TRIES="3"
-			  	;;
-			esac
-		  	PARAMS="$PARAMS --tries=$TRIES"
-		  	;;
-		  timeout)
-		  	if test "x$VALUE" = "x" ; then
-				TIMEOUT="${CRYPTDISKS_TIMEOUT}"
+				PRECHECK=""
+			fi
+			;;
+		tries)
+			if echo "$VALUE" | grep -q "^[[:digit:]]\+$" && [ "$VALUE" -gt 0 ]; then
+				TRIES="$VALUE"
 			else
-		  		TIMEOUT="$VALUE"
-		  	fi
-			case "$TIMEOUT" in
-			  [0-9]*)
-			  	;;
-			  *)
-			  	echo "option TIMEOUT is wrongly set to $TIMEOUT - forced to '0' " >&2
-				TIMEOUT="0"
-				;;
-			esac
-		  	PARAMS="$PARAMS --timeout=$TIMEOUT"
-		  	;;
-		  swap)
-		  	MAKESWAP=yes
+				log_warning_msg "$dst: option tries used with an incorrect argument - forced to $TRIES"
+			fi
+			PARAMS="$PARAMS --tries=$TRIES"
+			;;
+		timeout)
+			if [ -z "$VALUE" ]; then
+				TIMEOUT="$CRYPTDISKS_TIMEOUT"
+			elif echo "$VALUE" | grep -q "^[[:digit:]]\+$"; then
+				TIMEOUT="$VALUE"
+			else
+				log_warning_msg "$dst: option timeout used with an incorrect argument - forced to '$TIMEOUT'"
+			fi
+			PARAMS="$PARAMS --timeout=$TIMEOUT"
+			;;
+		swap)
+			MAKESWAP=yes
 			SWCHECK="/lib/cryptsetup/checks/un_vol_id"
 			SWCHECKARGS="swap"
-		  	;;
-		  tmp)
-		  	MAKETMP=yes
-		  	;;
-		  luks)
-		  	USELUKS=yes
 			;;
-		  loud)
-		  	LOUD=yes
+		tmp)
+			MAKETMP=yes
 			;;
-		  keyscript)
+		luks)
+			USELUKS=yes
+			;;
+		loud)
+			LOUD=yes
+			;;
+		keyscript)
 			if [ -n "$KEYSCRIPT" ]; then
-				echo "multiple key decryption options are not allowed together, skipping" >&2
+				log_warning_msg "$dst: multiple key decryption options are not allowed together, skipping"
 				return 1
-			elif test "x$VALUE" = "x" ; then
-		  		echo "no value for keyscript option, skipping" >&2
-		  		return 1
-		  	fi
+			elif [ -z "$VALUE" ]; then
+				log_warning_msg "$dst: no value for keyscript option, skipping"
+				return 1
+			fi
 			KEYSCRIPT="$VALUE"
-		  	;;
+			;;
 		esac
 	done
 
 	return 0
 }
 
+# Set up loopback devices
 lo_setup () {
-	local LOOP_ID=""
+	local loopdev
 
-	# Set up loopback devices
 	if [ ! -f "$src" ]; then
 		return 0
 	fi
 
-	if [ ! -d "/sys/block/loop0" ]; then
-		modprobe loop || return 1
-	fi
-
-	for i in 0 1 2 3 4 5 6 7 ; do
-		if [ "$(cat /sys/block/loop$i/size)" -eq 0 ]; then
-			LOOP_ID=$i
-			break
-		fi
-	done
-
-	if [ -z "$LOOP_ID" ]; then
+	if [ ! -x /sbin/losetup ]; then
 		return 1
 	fi
 
-	$LOSETUP /dev/loop$LOOP_ID $src || return 1
-	src=/dev/loop$LOOP_ID
+	if ! grep -q "[[:space:]]loop$" /proc/devices; then
+		modprobe -qb loop > /dev/null 2>&1 || return 1
+	fi
+
+	loopdev=$(losetup -f 2> /dev/null) || return 1
+
+	losetup "$loopdev" "$src" || return 1
+	src="$loopdev"
 	return 0
 }
 
+# Sanity check for keys
 check_key () {
+	local GMODE OMODE OWNER GROUP
+
 	# If the keyscript option is set, the "key" is just an argument to
 	# the keyscript and not necessarily a file
 	if [ -n "$KEYSCRIPT" ]; then
@@ -199,64 +182,81 @@ check_key () {
 
 	if [ -z "$key" ] || [ "$key" = "none" ]; then
 		INTERACTIVE="yes"
-		echo ""
 		return 0
 	fi
+	INTERACTIVE="no"
 
 	if [ ! -e "$key" ]; then
-		echo "Keyfile for '$dst' not found, skipping" >&2
+		log_warning_msg "$dst: keyfile not found"
 		return 1
 	fi
 
-	# FIXME: Use stat here instead
-	MODE=`ls -l $key | sed 's/^....\(......\).*/\1/'`
-	OWNER=`ls -l $key | sed 's/^[^ ]* *[^ ]* *\([^ ]*\).*/\1/'`
+	# stat is unfortunately in /usr/bin...
+	OMODE=$(ls -l "$key" | sed 's/[[:space:]].*//;s/^.\{7\}//')
+	GMODE=$(ls -l "$key" | sed 's/[[:space:]].*//;s/^.\{4\}\(.\{3\}\).*/\1/')
+	GROUP=$(ls -l "$key" | sed 's/^.\{11\}[^[:space:]]* [^[:space:]]* \([^[:space:]]*\).*/\1/')
+	OWNER=$( ls -l "$key" | sed 's/^.\{11\}[^[:space:]]* \([^[:space:]]*\).*/\1/')
 
 	# LUKS requires a persistent key, /dev/*random is not supported
 	if [ "$USELUKS" = "yes" ] && [ "$key" != "${key%random}" ]; then
-		echo "LUKS does not work with random data as key, skipping" >&2
+		log_warning_msg "$dst: LUKS does not work with random data as key"
 		return 1
 	fi
 
-	if [ "$key" = "${key%random}" ] && [ "$MODE" != "------" ]; then
-		echo "INSECURE MODE FOR $key, see /usr/share/doc/cryptsetup/README.Debian." >&2
-		# don't break here for now
-		# return 1
-	fi
-
+	# Check owner
 	if [ "$OWNER" != "root" ]; then
-		echo "INSECURE OWNER FOR $key, see /usr/share/doc/cryptsetup/README.Debian." >&2
-		# don't break here for now
-		# return 1
+		log_warning_msg "$dst: INSECURE OWNER FOR $key, see /usr/share/doc/cryptsetup/README.Debian."
 	fi
 
-	INTERACTIVE="no"
+	# If key is random, we're done
+	if [ "$key" != "${key%random}" ]; then
+		return 0
+	fi
+
+	# Check group and other permissions
+	if [ "$OMODE" != "---" ] || [ "$GROUP" != "root" ] && [ "$GMODE" != "---" ]; then
+		log_warning_msg "$dst: INSECURE MODE FOR $key, see /usr/share/doc/cryptsetup/README.Debian."
+	fi
+
 	return 0
 }
 
+# Setup a luks mapping
 do_luks () {
-	if ! $CRYPTCMD isLuks $src >/dev/null 2>&1; then
-		echo "Device '$src' is not a LUKS partition, skipping" >&2
+	local tried
+	tried=0
+
+	if ! cryptsetup isLuks "$src" >/dev/null 2>&1; then
+		log_warning_msg "$dst: device '$src' is not a LUKS partition, skipping"
 		return 1
 	fi
 
-	if test "x$KEYSCRIPT" != "x" ; then
+	if [ -n "$KEYSCRIPT" ]; then
 		PARAMS="$PARAMS --key-file=-"
-		$KEYSCRIPT $key <&1 | $CRYPTCMD $PARAMS luksOpen $src $dst
+		while [ "$tried" -lt "$TRIES" ]; do
+			if "$KEYSCRIPT" "$key" <&1 | cryptsetup $PARAMS luksOpen "$src" "$dst"; then
+				break
+			fi
+			tried=$(( $tried + 1 ))
+		done
+	elif [ "$INTERACTIVE" != "yes" ]; then
+		PARAMS="$PARAMS --key-file=$key"
+		while [ "$tried" -lt "$TRIES" ]; do
+			if cryptsetup $PARAMS luksOpen "$src" "$dst" <&1; then
+				break
+			fi
+			tried=$(( $tried + 1 ))
+		done
 	else
-		if test "x$INTERACTIVE" != "xyes" ; then
-			PARAMS="$PARAMS --key-file=$key"
-		fi
-		$CRYPTCMD $PARAMS luksOpen $src $dst <&1
+		cryptsetup $PARAMS luksOpen "$src" "$dst" <&1 || tried="$TRIES"
 	fi
 
-	if [ $? != 0 ]; then
+	if [ "$tried" -ge "$TRIES" ]; then
 		return 1
 	fi
 
-	if [ "$CHECK" != ""  ] && ! $CHECK $MAPPER/$dst $CHECKARGS; then
-		echo "the check for '$MAPPER/$dst' failed" >&2
-		echo "removing the crypto device $dst" >&2
+	if [ -n "$CHECK" ] && ! "$CHECK" "/dev/mapper/$dst" $CHECKARGS; then
+		log_warning_msg "$dst: the check for '/dev/mapper/$dst' failed"
 		$CRYPTCMD luksClose $dst
 		return 1
 	fi
@@ -264,175 +264,233 @@ do_luks () {
 	return 0
 }
 
+# Setup a regular mapping
 do_noluks () {
-	if [ "$PRECHECK" = "" ]; then
+	local pre_out tried
+	tried=0
+
+	if [ -z "$PRECHECK" ]; then
 		PRECHECK="/lib/cryptsetup/checks/un_vol_id"
 	fi
 
-	if pre_out=$($PRECHECK $src); then
-		run=1
-	elif test "x$MAKESWAP" = "xyes" && /lib/cryptsetup/checks/vol_id $src swap>/dev/null; then
-		run=1
-	else
-		run=0
-		echo "$pre_out" >&2
-		echo "the precheck for '$src' failed, skipping" >&2
+	if ! pre_out=$("$PRECHECK" "$src" 2> /dev/null) && \
+	   [ "$MAKESWAP" != "yes" ] && \
+	   ! /lib/cryptsetup/checks/vol_id "$src" swap >/dev/null; then
+		log_warning_msg "$dst: the precheck for '$src' failed: $pre_out"
 		return 1
 	fi
-	
-	if test "x$KEYSCRIPT" != "x" ; then
+
+	if [ -n "$KEYSCRIPT" ]; then
 		PARAMS="$PARAMS --key-file=-"
-		$KEYSCRIPT $key <&1 | $CRYPTCMD $PARAMS create $dst $src
-	else
-		if test "x$INTERACTIVE" != "xyes" ; then
-			PARAMS="$PARAMS --key-file=$key"
+	elif [ "$INTERACTIVE" != "yes" ]; then
+		PARAMS="$PARAMS --key-file=$key"
+	fi
+
+	while [ "$tried" -lt "$TRIES" ]; do
+		if [ -n "$KEYSCRIPT" ]; then
+			"$KEYSCRIPT" "$key" <&1 | cryptsetup $PARAMS create "$dst" "$src"
+		else
+			cryptsetup $PARAMS create "$dst" "$src" <&1
 		fi
-		$CRYPTCMD $PARAMS create $dst $src <&1
-	fi
 
-	if [ $? != 0 ] ; then
-		return 1
-	fi
+		if [ -z "$CHECK" ] || "$CHECK" "/dev/mapper/$dst" $CHECKARGS; then
+			break
+		else
+			log_warning_msg "$dst: the check for '/dev/mapper/$dst' failed - maybe the password is wrong"
+			cryptsetup remove "$dst"
+		fi
+		tried=$(( $tried + 1 ))
+	done
 
-
-	if [ "$CHECK" != ""  ] && ! $CHECK $MAPPER/$dst $CHECKARGS; then
-		echo "the check for '$MAPPER/$dst' failed - maybe the password is wrong" >&2
-		echo "removing the crypto device $dst" >&2
-		$CRYPTCMD remove $dst
+	if [ "$tried" -ge "$TRIES" ]; then
 		return 1
 	fi
 
 	return 0
 }
 
+# Premounts file systems
 mount_fs () {
+	local point
+	MOUNTED=""
+
 	for point in $MOUNT; do
-		MOUNT_YES="yes"
-		mount $point 2>/dev/null 1>&2 || MOUNT_YES="no"
+		mount "$point" > /dev/null 2>&1 && MOUNTED="$MOUNTED $point"
 	done
 }
 
+# Postunmounts file systems
 umount_fs () {
-	if [ "x$MOUNT_YES" = "xyes" ]; then
-		for point in $MOUNT; do
-			umount $point
-		done
-	fi
+	local point
+
+	for point in $MOUNTED; do
+		umount "$point" > /dev/null 2>&1
+	done
 }
 
+# Prepares swap partitions using random keys
 do_swap () {
-	if test "x$MAKESWAP" = "xyes" && test -b $MAPPER/$dst; then
-		if swap_out=$(/lib/cryptsetup/checks/un_vol_id $MAPPER/$dst) || \
-				/lib/cryptsetup/checks/vol_id $MAPPER/$dst swap>/dev/null; then
-			mkswap $MAPPER/$dst 2>/dev/null >/dev/null
-		else
-			echo "$swap_out" >&2
-			echo "the check for '$MAPPER/$dst' failed. $MAPPER/$dst contains data." >&2
-			echo "removing the crypto device $dst" >&2
-			do_close
-		fi
-	fi
-}
+	local swap_out
 
-do_tmp () {
-	if test "x$MAKETMP" = "xyes" && test -b $MAPPER/$dst; then
-		mke2fs $MAPPER/$dst >/dev/null
-		mount -t ext2 $MAPPER/$dst /tmp
-		chmod 1777 /tmp
-		umount /tmp
+	if [ "$MAKESWAP" != "yes" ] || [ ! -b "/dev/mapper/$dst" ]; then
+		return 0
 	fi
-}
 
-do_close () {
-	if echo $opts | grep -q "luks"; then
-		$CRYPTCMD luksClose $dst
+	if swap_out=$(/lib/cryptsetup/checks/un_vol_id "/dev/mapper/$dst" 2> /dev/null) || \
+	   /lib/cryptsetup/checks/vol_id "/dev/mapper/$dst" swap > /dev/null 2>&1; then
+		mkswap "/dev/mapper/$dst" > /dev/null 2>&1
 	else
-		$CRYPTCMD remove $dst
+		log_warning_msg "$dst: the check for '/dev/mapper/$dst' failed. /dev/mapper/$dst contains data: $swap_out"
+		do_close
+		return 1
 	fi
+
+	return 0
 }
 
+# Prepares tmp partitions using random keys
+do_tmp () {
+	if [ "$MAKETMP" != "yes" ] || [ ! -b "/dev/mapper/$dst" ]; then
+		return 0
+	fi
+
+	mke2fs "/dev/mapper/$dst" > /dev/null 2>&1 || return 1
+	mount -t ext2 "/dev/mapper/$dst" /tmp || return 1
+	chmod 1777 /tmp
+	umount /tmp
+	return 0
+}
+
+# Removes a mapping
+do_close () {
+	local found IFS opt
+
+	found="no"
+	IFS=','
+	for opt in $opts; do
+		if [ "$opt" = "luks" ]; then
+			found="yes"
+			break
+		fi
+	done
+
+	if [ "$found" = "yes" ]; then
+		cryptsetup luksClose "$dst"
+	else
+		cryptsetup remove "$dst"
+	fi
+	return $?
+}
+
+# Sets up all entries in crypttab
 do_start () {
-	modprobe -q dm-crypt || true
-	$DEVMAPCMD mknodes
+	local dst src key opts
+
+	modprobe -qb dm-crypt || true
+	dmsetup mknodes > /dev/null 2>&1 || true
 	log_action_begin_msg "Starting $INITSTATE crypto disks"
 	mount_fs
-	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opts; do
+
+	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
 
 		# Make sure that all fields are present
-		if [ "x$dst" = "x" ]; then
+		if [ -z "$dst" ]; then
 			continue
 		elif [ -z "$src" ] || [ -z "$key" ] || [ -z "$opts" ]; then
-			log_progress_msg "$dst(skipped, missing parameters)"
+			device_msg "$dst" "skipped, missing parameters"
 			continue
 		fi
 
 		# Make sure source device exists
 		if [ ! -r "$src" ]; then
-			if [ "x$LOUD" = "xyes" ]; then
-				log_progress_msg "$dst(skipped, device $src does not exist)"
+			if [ "$LOUD" = "yes" ]; then
+				device_msg "$dst" "skipped, device $src does not exist"
 			fi
 			continue
 		fi
 
 		# Make sure that target device doesn't exist
-		if [ -b $MAPPER/$dst ]; then
-			log_progress_msg "$dst(running)"
+		if [ -b "/dev/mapper/$dst" ]; then
+			device_msg "$dst" "running"
 			continue
 		fi
 
-		# All checks passed, do the real setup
-		log_progress_msg "$dst(starting)"
+		# All checks passed, do the preparatory steps
+		if ! parse_opts "$opts"; then
+			device_msg "$dst" "invalid opts"
+			continue
+		elif ! check_key; then
+			device_msg "$dst" "invalid key"
+			continue
+		elif ! lo_setup; then
+			device_msg "$dst" "loopback failed"
+		fi
 
-		parse_opts "$opts" || continue
-		check_key || continue
-		lo_setup || continue
-
-		if test "x$USELUKS" = "xyes" ; then
+		# Do the real setup
+		if [ "$USELUKS" = "xyes" ]; then
 			do_luks
 		else
 			do_noluks
 		fi
 
+		# Finish up
 		if [ $? -ne 0 ]; then
-			log_progress_msg "$dst(failed)"
+			log_progress_msg "$dst (failed)"
 		else
 			do_swap
 			do_tmp
+			log_progress_msg "$dst (started)"
 		fi
 	done
-	
+
 	umount_fs
 	log_action_end_msg 0
 }
 
+# Removes all mappings in crypttab
 do_stop () {
-	$DEVMAPCMD mknodes
+	local dst src key opts opencount major minor loopmajor
+
+	dmsetup mknodes
 	log_action_begin_msg "Stopping $INITSTATE crypto disks"
-	egrep -v "^[[:space:]]*(#|$)" $TABFILE | while read dst src key opts; do
-		if test -b $MAPPER/$dst; then
-			if $DEVMAPCMD info $dst | grep -q '^Open count: *0$'; then
-				dev=`$DEVMAPCMD table $dst | sed 's/^.* \([0-9]*:[0-9]*\) .*/\1/'`
-				major=`echo $dev | sed 's/:.*//'`
-				minor=`echo $dev | sed 's/.*://'`
+	loopmajor=$(grep "[[:space:]]*loop$" /proc/devices | sed 's/^[[:space:]]*//;s/[[:space:]].*//')
 
-				log_progress_msg "$dst(stopping)"
-				do_close
+	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
+		if [ ! -b "/dev/mapper/$dst" ]; then
+			device_msg "$dst" "stopped"
+			continue
+		fi
 
-				# Detach loopback device, if attached
-				if test -f $src -a $major -eq 7; then
-					$LOSETUP -d /dev/loop$minor
-				fi
-			else
-				log_progress_msg "$dst(busy)"
-			fi
-		else
-			log_progress_msg "$dst(stopped)"
+		opencount=$(dmsetup info -c --noheadings -o open "$dst" 2> /dev/null)
+		if [ -z "$opencount" ]; then
+			device_msg "$dst" "error"
+			continue
+		elif [ "$opencount" != "0" ]; then
+			device_msg "$dst" "busy"
+			continue
+		fi
+
+		major=$(dmsetup info -c --noheadings -o major "$dst" 2> /dev/null)
+		minor=$(dmsetup info -c --noheadings -o minor "$dst" 2> /dev/null)
+
+		if [ -z "$major" ] || [ -z "$minor" ]; then
+			device_msg "$dst" "error"
+			continue
+		fi
+
+		do_close
+		log_action_cont_msg "$dst (stopped)"
+
+		# Detach loopback device, if attached
+		if [ -f "$src" ] && [ -n "$loopmajor" ] && [ "$loopmajor" = "$major" ]; then 
+			losetup -d "/dev/loop$minor" > /dev/null 2>&1 || true
 		fi
 	done
 
 	log_action_end_msg 0
 }
 
+# Convenience function to handle $VERBOSE
 device_msg () {
 	local dst msg
 	dst="$1"

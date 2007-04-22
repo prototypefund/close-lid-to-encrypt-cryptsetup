@@ -13,39 +13,27 @@
 
 set -e
 
-. /lib/lsb/init-functions
-
 INITSTATE="early"
 LOUD=""
 
-if [ -r /etc/default/cryptdisks ]; then
-  . /etc/default/cryptdisks
-fi
-
 if [ -r /lib/cryptsetup/cryptdisks.functions ]; then
-  . /lib/cryptsetup/cryptdisks.functions
+	. /lib/cryptsetup/cryptdisks.functions
 else
-  exit 0
+	exit 0
 fi
-
-case "$CRYPTDISKS_ENABLE" in
-  [Nn]*)
-  	exit 0
-  	;;
-esac
 
 case "$1" in
-  start)
-  	do_start
+start)
+	do_start
 	;;
-  stop)
+stop)
 	do_stop
 	;;
-  restart|reload|force-reload)
+restart|reload|force-reload)
 	do_stop
 	do_start
 	;;
-  *)
+*)
 	echo "Usage: cryptdisks-early {start|stop|restart|reload|force-reload}"
 	exit 1
 	;;

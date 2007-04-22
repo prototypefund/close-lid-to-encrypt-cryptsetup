@@ -8,6 +8,8 @@ cryptsetup (2:1.0.4+svn26-2) unstable; urgency=low
   * Add support for usplash password prompt (closes: #397981)
   * Remove the "ssl" and "gpg" options which are supported by keyscripts
     since October 2006 (see NEWS for details).
+  * Spring cleaning of cryptdisks.functions, now supports multiple tries
+    for keyscripts and uses lsb logging. (closes: #420105, #383808)
 
   [ Jonas Meurer ]
   * Add 01_tries_fix.dpatch, makes the --tries commandline option work
