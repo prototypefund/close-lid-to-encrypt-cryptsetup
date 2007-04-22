@@ -22,8 +22,10 @@ cryptsetup (2:1.0.4+svn26-2) unstable; urgency=low
     smartcard reader for testing this. (closes: #416528)
   * update copyright file: change "program" to "package", and mention GPL
     version 2. add a full disclaimer.
+  * Add "--showkeys" to the dmsetup invocation in decrypt_derived script.
+    (closes: #420399)
 
- -- David Härdeman <david@hardeman.nu>  Sun, 15 Apr 2007 18:09:41 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 22 Apr 2007 07:15:34 +0200
 
 cryptsetup (2:1.0.4+svn26-1) unstable; urgency=high
 
