@@ -98,8 +98,7 @@ parse_opts () {
 		precheck)
 			if [ -z "$VALUE" ]; then
 				PRECHECK="$CRYPTDISKS_PRECHECK"
-			fi
-			if [ -x "$VALUE" ]; then
+			elif [ -x "$VALUE" ]; then
 				PRECHECK="$VALUE"
 			elif [ -x "/lib/cryptsetup/checks/$VALUE" ]; then
 				PRECHECK="/lib/cryptsetup/checks/$VALUE"
@@ -436,7 +435,7 @@ do_start () {
 		fi
 
 		# Do the real setup
-		if [ "$USELUKS" = "xyes" ]; then
+		if [ "$USELUKS" = "yes" ]; then
 			do_luks
 		else
 			do_noluks
