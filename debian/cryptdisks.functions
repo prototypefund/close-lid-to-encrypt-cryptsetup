@@ -2,7 +2,6 @@
 
 PATH="/sbin:/bin"
 TABFILE=/etc/crypttab
-MOUNT="$CRYPTDISKS_MOUNT"
 CRYPTDISKS_ENABLE="Yes"
 
 #set -x
@@ -16,6 +15,8 @@ CRYPTDISKS_ENABLE="Yes"
 if [ -r /etc/default/cryptdisks ]; then
 	. /etc/default/cryptdisks
 fi
+
+MOUNT="$CRYPTDISKS_MOUNT"
 
 case "$CRYPTDISKS_ENABLE" in
 [Nn]*)
@@ -79,10 +80,14 @@ parse_opts () {
 		check)
 			if [ -z "$VALUE" ]; then
 				CHECK="$CRYPTDISKS_CHECK"
-			elif [ -x "/lib/cryptsetup/checks/$VALUE" ]; then
-				CHECK="/lib/cryptsetup/checks/$CHECK"
-			else
+			fi
+			if [ -x "$VALUE" ]; then
 				CHECK="$VALUE"
+			elif [ -x "/lib/cryptsetup/checks/$VALUE" ]; then
+				CHECK="/lib/cryptsetup/checks/$VALUE"
+			else
+				log_warning_msg "check $VALUE is not an executable script, skipping"
+				return 1
 			fi
 			;;
 		checkargs)
@@ -93,10 +98,14 @@ parse_opts () {
 		precheck)
 			if [ -z "$VALUE" ]; then
 				PRECHECK="$CRYPTDISKS_PRECHECK"
-			elif [ -x "/lib/cryptsetup/checks/$PRECHECK" ]; then
-				PRECHECK="/lib/cryptsetup/checks/$PRECHECK"
+			fi
+			if [ -x "$VALUE" ]; then
+				PRECHECK="$VALUE"
+			elif [ -x "/lib/cryptsetup/checks/$VALUE" ]; then
+				PRECHECK="/lib/cryptsetup/checks/$VALUE"
 			else
-				PRECHECK=""
+				log_warning_msg "precheck $VALUE is not an executable script, skipping"
+				return 1
 			fi
 			;;
 		tries)
@@ -315,7 +324,7 @@ mount_fs () {
 	MOUNTED=""
 
 	for point in $MOUNT; do
-		mount "$point" > /dev/null 2>&1 && MOUNTED="$MOUNTED $point"
+		mount "$point" > /dev/null && MOUNTED="$MOUNTED $point"
 	done
 }
 
@@ -324,7 +333,7 @@ umount_fs () {
 	local point
 
 	for point in $MOUNTED; do
-		umount "$point" > /dev/null 2>&1
+		umount "$point" > /dev/null
 	done
 }
 

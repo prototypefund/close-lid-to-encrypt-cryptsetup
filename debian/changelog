@@ -26,8 +26,11 @@ cryptsetup (2:1.0.4+svn26-2) unstable; urgency=low
     version 2. add a full disclaimer.
   * Add "--showkeys" to the dmsetup invocation in decrypt_derived script.
     (closes: #420399)
+  * Fixes in cryptdisks.functions that David didn't introduce:
+    - Don't suppress error messages at mount and unmount.
+    - Fix handling of checks and prechecks, the vars somehow where mixed
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 24 Apr 2007 00:19:30 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 25 Apr 2007 10:59:20 +0200
 
 cryptsetup (2:1.0.4+svn26-1) unstable; urgency=high
 
