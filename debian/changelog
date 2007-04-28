@@ -1,3 +1,9 @@
+cryptsetup (2:1.0.4+svn26-3) unstable; urgency=low
+
+  * NOT RELEASED YET
+
+ -- Jonas Meurer <mejo@debian.org>  Sat, 28 Apr 2007 22:31:03 +0200
+
 cryptsetup (2:1.0.4+svn26-2) unstable; urgency=low
 
   [ David Härdeman ]
