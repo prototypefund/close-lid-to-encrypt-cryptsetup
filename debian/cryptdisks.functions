@@ -79,7 +79,7 @@ parse_opts () {
 			;;
 		check)
 			if [ -z "$VALUE" ]; then
-				CHECK="$CRYPTDISKS_CHECK"
+				VALUE="$CRYPTDISKS_CHECK"
 			fi
 			if [ -x "$VALUE" ]; then
 				CHECK="$VALUE"
@@ -91,14 +91,15 @@ parse_opts () {
 			fi
 			;;
 		checkargs)
-			if [ -z "$VALUE" ]; then
+			if [ -n "$VALUE" ]; then
 				CHECKARGS="$VALUE"
 			fi
 			;;
 		precheck)
 			if [ -z "$VALUE" ]; then
-				PRECHECK="$CRYPTDISKS_PRECHECK"
-			elif [ -x "$VALUE" ]; then
+				VALUE="$CRYPTDISKS_PRECHECK"
+			fi
+			if [ -x "$VALUE" ]; then
 				PRECHECK="$VALUE"
 			elif [ -x "/lib/cryptsetup/checks/$VALUE" ]; then
 				PRECHECK="/lib/cryptsetup/checks/$VALUE"
@@ -265,7 +266,7 @@ do_luks () {
 
 	if [ -n "$CHECK" ] && ! "$CHECK" "/dev/mapper/$dst" $CHECKARGS; then
 		log_warning_msg "$dst: the check for '/dev/mapper/$dst' failed"
-		$CRYPTCMD luksClose $dst
+		cryptsetup luksClose $dst
 		return 1
 	fi
 
@@ -323,7 +324,9 @@ mount_fs () {
 	MOUNTED=""
 
 	for point in $MOUNT; do
-		mount "$point" > /dev/null && MOUNTED="$MOUNTED $point"
+		if mount "$point" >/dev/null; then
+			MOUNTED="$MOUNTED $point"
+		fi
 	done
 }
 
@@ -332,7 +335,7 @@ umount_fs () {
 	local point
 
 	for point in $MOUNTED; do
-		umount "$point" > /dev/null
+		umount "$point" >/dev/null
 	done
 }
 
@@ -487,7 +490,7 @@ do_stop () {
 		fi
 
 		do_close
-		log_action_cont_msg "$dst (stopped)"
+		log_action_cont_msg "$dst (stopping)"
 
 		# Detach loopback device, if attached
 		if [ -f "$src" ] && [ -n "$loopmajor" ] && [ "$loopmajor" = "$major" ]; then 
