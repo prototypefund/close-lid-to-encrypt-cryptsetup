@@ -1,8 +1,9 @@
 cryptsetup (2:1.0.4+svn26-3) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * Add cryptdevice name to prompt before actually starting it. Thanks
+    to Joerg Jaspert. (closes: #421803)
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 28 Apr 2007 22:31:03 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 02 May 2007 01:05:22 +0200
 
 cryptsetup (2:1.0.4+svn26-2) unstable; urgency=low
 

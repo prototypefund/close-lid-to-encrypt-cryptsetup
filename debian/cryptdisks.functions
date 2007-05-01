@@ -438,6 +438,7 @@ do_start () {
 		fi
 
 		# Do the real setup
+		log_progress_msg "$dst (starting)"
 		if [ "$USELUKS" = "yes" ]; then
 			do_luks
 		else
