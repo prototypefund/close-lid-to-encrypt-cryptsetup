@@ -1,3 +1,10 @@
+cryptsetup (2:1.0.4+svn29-1) unstable; urgency=low
+
+  * New upstream svn snapshot with several bugfixes
+    - remove 01_tries_fix.dpatch, added upstream
+
+ -- Jonas Meurer <mejo@debian.org>  Wed, 02 May 2007 02:48:37 +0200
+
 cryptsetup (2:1.0.4+svn26-3) unstable; urgency=low
 
   * Add cryptdevice name to prompt before actually starting it. Thanks
