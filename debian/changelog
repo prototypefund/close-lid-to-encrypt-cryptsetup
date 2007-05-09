@@ -1,6 +1,11 @@
 cryptsetup (2:1.0.5-1) unstable; urgency=low
 
+  [ Jonas Meurer ]
   * New upstream release, nearly identical to svn snapshot svn29.
+
+  [ David Härdeman ]
+  * Allow other crypto devices to be setup even if one fails.
+    (closes: #423100)
 
  -- Jonas Meurer <mejo@debian.org>  Mon, 07 May 2007 13:19:43 +0200
 

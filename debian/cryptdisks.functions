@@ -395,7 +395,7 @@ do_close () {
 
 # Sets up all entries in crypttab
 do_start () {
-	local dst src key opts
+	local dst src key opts result
 
 	modprobe -qb dm-crypt || true
 	dmsetup mknodes > /dev/null 2>&1 || true
@@ -439,14 +439,15 @@ do_start () {
 
 		# Do the real setup
 		log_progress_msg "$dst (starting)"
+		result="ok"
 		if [ "$USELUKS" = "yes" ]; then
-			do_luks
+			do_luks || result="fail"
 		else
-			do_noluks
+			do_noluks || result="fail"
 		fi
 
 		# Finish up
-		if [ $? -ne 0 ]; then
+		if [ "$result" != "ok" ]; then
 			log_progress_msg "$dst (failed)"
 		else
 			do_swap
