@@ -1,2 +1,2 @@
 version=3
-http://luks.endorphin.org/source/cryptsetup-luks-(.*)\.tar\.bz2
+http://luks.endorphin.org/source/cryptsetup-(.*)\.tar\.bz2
