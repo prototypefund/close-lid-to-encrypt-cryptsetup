@@ -29,6 +29,11 @@ if ($> != 0) {
 
 $device = $ARGV[0];
 
+open(MOUNTS, "/proc/mounts");
+while (<MOUNTS>) {
+    die "Error: device mounted: $device\n" if (/\Q$device\E/)
+}
+
 $mkfs = "/sbin/mkfs.$fs";
 if (! -x $mkfs) {
     print STDERR "Error: invalid file system: $fs\n";

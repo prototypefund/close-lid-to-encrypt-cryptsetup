@@ -3,13 +3,17 @@ cryptsetup (2:1.0.5-1) unstable; urgency=low
   [ Jonas Meurer ]
   * New upstream release, nearly identical to svn snapshot svn29.
   * Fix watch file to use cryptsetup instead of cryptsetup-luks.
+  * Merge some ubuntu changes:
+    - make luksformat check if filesystem is already mounted to prevent a
+      strange error message.
+    - modprobe dm-mod in cryptsetup.functions.
 
   [ David Härdeman ]
   * Allow other crypto devices to be setup even if one fails.
     (closes: #423100)
   * Remove an incorrect warning in postinst.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 13 May 2007 17:15:58 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 31 May 2007 13:30:04 +0200
 
 cryptsetup (2:1.0.4+svn29-1) unstable; urgency=low
 

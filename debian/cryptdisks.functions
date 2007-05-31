@@ -397,6 +397,7 @@ do_close () {
 do_start () {
 	local dst src key opts result
 
+	modprobe -qb dm-mod || true
 	modprobe -qb dm-crypt || true
 	dmsetup mknodes > /dev/null 2>&1 || true
 	log_action_begin_msg "Starting $INITSTATE crypto disks"
