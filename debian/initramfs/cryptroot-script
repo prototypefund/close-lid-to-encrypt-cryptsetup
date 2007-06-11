@@ -153,6 +153,10 @@ setup_mapping()
 		activate_vg $cryptsource
 		activate_evms $cryptsource
 	fi
+	# Wait for udev to be ready, see https://launchpad.net/bugs/85640
+	if [ -x /sbin/udevsettle ]; then
+		/sbin/udevsettle --timeout=30
+	fi
 
 	if [ ! -e $cryptsource ]; then
 		echo "cryptsetup: Source device $cryptsource not found"
@@ -224,6 +228,10 @@ setup_mapping()
 	done
 
 	if [ $count -lt 3 ]; then
+		# Wait for udev to be ready, see https://launchpad.net/bugs/85640
+		if [ -x /sbin/udevsettle ]; then
+			/sbin/udevsettle --timeout=30
+		fi
 		return 0
 	else
 		echo "cryptsetup: maximum number of tries exceeded"
