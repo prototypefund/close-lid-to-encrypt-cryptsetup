@@ -1,0 +1,23 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+
+## 01_crypt_luksFormat_libcryptsetup.dpatch
+## by Till Maas <gmame-dmcrypt.20.boeh@spamgourmet.com>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: rename luksInit to luksFormat in libcryptsetup.h like in setup.c
+
+@DPATCH@
+
+--- cryptsetup-1.0.5/lib/libcryptsetup.h
++++ cryptsetup-1.0.5/lib/libcryptsetup.h
+@@ -39,7 +39,7 @@
+ int crypt_resize_device(struct crypt_options *options);
+ int crypt_query_device(struct crypt_options *options);
+ int crypt_remove_device(struct crypt_options *options);
+-int crypt_luksInit(struct crypt_options *options);
++int crypt_luksFormat(struct crypt_options *options);
+ int crypt_luksOpen(struct crypt_options *options);
+ int crypt_luksDelKey(struct crypt_options *options);
+ int crypt_luksAddKey(struct crypt_options *options);
+
+
