@@ -27,17 +27,20 @@ fi
 
 # Install cryptroot key files into initramfs
 keys=$(sed 's/^\(.*,\|\)key=//; s/,.*//' ${DESTDIR}/conf/conf.d/cryptroot)
-if [ -z "${keys}" ] ; then
-    echo $0: Missing key files in ${DESTDIR}/conf/conf.d/cryptroot >&2
-    cat ${DESTDIR}/conf/conf.d/cryptroot >&2
-    exit 1
-fi
-for key in ${keys} ; do
-    if [ ! -d ${DESTDIR}/$(dirname ${key}) ] ; then
-        mkdir -p ${DESTDIR}/$(dirname ${key})
+
+if [ "${keys}" != "none" ]; then
+    if [ -z "${keys}" ]; then
+        echo $0: Missing key files in ${DESTDIR}/conf/conf.d/cryptroot >&2
+        cat ${DESTDIR}/conf/conf.d/cryptroot >&2
+        exit 1
     fi
-    cp ${key} ${DESTDIR}/${key}
-done
+    for key in ${keys} ; do
+        if [ ! -d ${DESTDIR}/$(dirname ${key}) ] ; then
+            mkdir -p ${DESTDIR}/$(dirname ${key})
+        fi
+        cp ${key} ${DESTDIR}/${key}
+    done
+fi
 
 # Install directories needed by smartcard reading daemon, command, and
 # key-script
