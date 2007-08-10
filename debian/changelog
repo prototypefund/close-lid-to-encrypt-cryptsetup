@@ -4,8 +4,9 @@ cryptsetup (2:1.0.5-2) unstable; urgency=low
   * Add libselinux1-dev and libsepol1-dev to build-depends. Detected by
     the build daemon from hell by Steinar H. Gunderson. Thanks to Manoj
     Srivastava for advice.
+  * Fix the watchfile
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 31 Jul 2007 04:08:47 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 10 Aug 2007 15:25:42 +0200
 
 cryptsetup (2:1.0.5-1) unstable; urgency=low
 
