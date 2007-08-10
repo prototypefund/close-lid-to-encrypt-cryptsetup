@@ -1,8 +1,4 @@
 AUTHORS
-debian/README.html
 debian/CryptoRoot.HowTo
 debian/CryptoSwap.HowTo
-debian/usbcrypto.hotplug
-debian/usbcrypto.mkinitrd
-debian/usbcrypto.root
 debian/README.initramfs

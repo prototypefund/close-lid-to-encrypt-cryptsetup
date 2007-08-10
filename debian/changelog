@@ -7,8 +7,11 @@ cryptsetup (2:1.0.5-2) unstable; urgency=low
   * Fix the watchfile
   * Fix cryptopensc-hook to honor key=none. Thanks to Daniel Baumann
     (closes: #436434)
+  * Remove outdated README.html and example usbcrypto.* scripts from
+    documentation. Add example usbcrypto.udev script. Thanks to Volker Sauer
+    for the update. (closes: #409775)
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 10 Aug 2007 15:29:02 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 10 Aug 2007 16:27:21 +0200
 
 cryptsetup (2:1.0.5-1) unstable; urgency=low
 
