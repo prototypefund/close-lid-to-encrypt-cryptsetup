@@ -14,10 +14,10 @@
  
  int main(int argc, char **argv)
  {
-+	if (getuid() != 0) {
++	if (geteuid() != 0) {
 +		fprintf(stderr, _("You have to be root to use cryptsetup!\n"));
-+		return;
-+	};
++		return EXIT_FAILURE;
++	}
  	static char *popt_tmp;
  	static struct poptOption popt_help_options[] = {
  		{ NULL,    '\0', POPT_ARG_CALLBACK, help, 0, NULL,                         NULL },
