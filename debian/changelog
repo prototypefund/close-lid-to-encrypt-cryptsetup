@@ -10,8 +10,14 @@ cryptsetup (2:1.0.5-2) unstable; urgency=low
   * Remove outdated README.html and example usbcrypto.* scripts from
     documentation. Add example usbcrypto.udev script. Thanks to Volker Sauer
     for the update. (closes: #409775)
+  * Document that stdin is read different with '--key-file=-' than without.
+    Thanks to Marc Haber. (closes: #418450)
+  * Document that --timeout is useless in conjunction with --key-file. Thanks
+    Alexander Zangerl. (closes: #421693)
+  * [03_check_for_root.dpatch] Check for UID == 0 before actually doing
+    something. Thanks to Benjamin Seidenberg (closes: #401766)
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 10 Aug 2007 16:27:21 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 13 Aug 2007 05:14:44 +0200
 
 cryptsetup (2:1.0.5-1) unstable; urgency=low
 

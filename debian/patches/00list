@@ -1,2 +1,4 @@
 # no patches
 01_crypt_luksFormat_libcryptsetup
+02_manpage
+03_check_for_root
