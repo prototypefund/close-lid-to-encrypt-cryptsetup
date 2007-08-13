@@ -16,8 +16,13 @@ cryptsetup (2:1.0.5-2) unstable; urgency=low
     Alexander Zangerl. (closes: #421693)
   * [03_check_for_root.dpatch] Check for UID == 0 before actually doing
     something. Thanks to Benjamin Seidenberg (closes: #401766)
+  * [04_fix_unused_or_unitialized_variables.dpatch] Fix some gcc warnings
+    about unused or unitialized variables. Thanks to Ludwig Nussel for the
+    patch.
+  * [05_segfault_at_nonexisting_device.dpatch] Fix segfault when trying to
+    open a non existing device. Thanks to Ludwig Nussel for the patch.
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 13 Aug 2007 05:14:44 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 13 Aug 2007 17:30:45 +0200
 
 cryptsetup (2:1.0.5-1) unstable; urgency=low
 

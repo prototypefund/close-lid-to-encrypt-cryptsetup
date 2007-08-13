@@ -1,0 +1,86 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+
+## 04_fix_unused_or_unitialized_variables.dpatch
+## by Ludwig Nussel <ludwig.nussel@suse.de>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: fix some gcc warnings about unused or unitialized variables
+
+@DPATCH@
+
+--- cryptsetup-1.0.5/lib/libdevmapper.c
++++ cryptsetup-1.0.5/lib/libdevmapper.c
+@@ -258,7 +258,7 @@
+ 	options->skip = 0;
+ 	options->size = length;
+ 	if (details) {
+-		char *cipher, *key_, *device, *tmp;
++		char *cipher, *key_, *device;
+ 		uint64_t val64;
+ 
+ 		set_error("Invalid dm table");
+--- cryptsetup-1.0.5/lib/setup.c
++++ cryptsetup-1.0.5/lib/setup.c
+@@ -57,8 +57,6 @@
+ 
+ static int setup_leave(struct setup_backend *backend)
+ {
+-	const char *error;
+-
+ 	if (backend)
+ 		backend->exit();
+ 
+--- cryptsetup-1.0.5/lib/utils.c
++++ cryptsetup-1.0.5/lib/utils.c
+@@ -172,7 +172,7 @@
+ {
+ 	char *padbuf; char *padbuf_base;
+ 	char *buf = (char *)orig_buf;
+-	int r;
++	int r = 0;
+ 	int hangover; int solid; int bsize;
+ 
+ 	if ((bsize = sector_size(fd)) < 0)
+@@ -212,7 +212,7 @@
+ ssize_t read_blockwise(int fd, void *orig_buf, size_t count) {
+ 	char *padbuf; char *padbuf_base;
+ 	char *buf = (char *)orig_buf;
+-	int r;
++	int r = 0;
+ 	int step;
+ 	int bsize;
+ 
+--- cryptsetup-1.0.5/luks/keymanage.c
++++ cryptsetup-1.0.5/luks/keymanage.c
+@@ -417,7 +417,7 @@
+ int LUKS_del_key(const char *device, unsigned int keyIndex)
+ {
+ 	struct luks_phdr hdr;
+-	unsigned int i, startOffset, endOffset, stripesLen;
++	unsigned int startOffset, endOffset, stripesLen;
+ 	int r;
+ 	
+ 	r = LUKS_read_phdr(device, &hdr);
+--- cryptsetup-1.0.5/luks/random.c
++++ cryptsetup-1.0.5/luks/random.c
+@@ -13,7 +13,7 @@
+ 
+ int getRandom(char *buf, size_t len)
+ {
+-	int randomfd, r = 0, index = 0;
++	int randomfd, r = 0;
+ 
+ 	//FIXME Run a FIPS test for the random device or include
+ 	// PRNG if urandom not avail.
+--- cryptsetup-1.0.5/src/cryptsetup.c
++++ cryptsetup-1.0.5/src/cryptsetup.c
+@@ -199,7 +199,8 @@
+ 	        size_t size=0;
+ 		fprintf(stderr,"\nWARNING!\n========\n");
+ 		fprintf(stderr,"%s\n\nAre you sure? (Type uppercase yes): ",msg);
+-		getline(&answer,&size,stdin);
++		if(getline(&answer,&size,stdin) == -1)
++			return 0;
+ 		if(strcmp(answer,"YES\n") == 0)
+ 			r = 1;
+ 		free(answer);
