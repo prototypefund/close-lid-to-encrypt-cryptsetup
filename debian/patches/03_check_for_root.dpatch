@@ -10,7 +10,16 @@
 
 --- cryptsetup-1.0.5/src/cryptsetup.c
 +++ cryptsetup-1.0.5/src/cryptsetup.c
-@@ -365,6 +365,10 @@
+@@ -5,6 +5,8 @@
+ #include <inttypes.h>
+ #include <errno.h>
+ #include <assert.h>
++#include <unistd.h>
++#include <sys/types.h>
+ 
+ #include <libcryptsetup.h>
+ #include <popt.h>
+@@ -365,6 +367,10 @@
  
  int main(int argc, char **argv)
  {
