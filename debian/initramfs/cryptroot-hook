@@ -199,6 +199,8 @@ get_device_opts() {
 	# We have all the basic options, let's go trough them
 	OPTIONS="target=$target,source=$source,key=$key"
 	local IFS=", "
+	unset HASH_FOUND
+	unset LUKS_FOUND
 	for opt in $rootopts; do
 		case $opt in
 			cipher=*)
@@ -206,6 +208,7 @@ get_device_opts() {
 				;;
 			hash=*)
 				OPTIONS="$OPTIONS,$opt"
+				HASH_FOUND=1
 				;;
 			size=*)
 				OPTIONS="$OPTIONS,$opt"
@@ -223,11 +226,22 @@ get_device_opts() {
 				opt=$(basename "$opt")
 				OPTIONS="$OPTIONS,keyscript=/keyscripts/$opt"
 				;;
+			luks)
+				LUKS_FOUND=1
+				;;
 			*)
 				# Presumably a non-supported option
 				;;
 		esac
 	done
+
+	# Warn for missing hash option, unless we have a LUKS partition
+	if [ -z "$HASH_FOUND" ] && [ -z "$LUKS_FOUND" ]; then
+		echo "WARNING: Option hash missing in crypttab for target $target, assuming sha256." >&2
+		echo "         If this is wrong, this initramfs image will not boot." >&2
+		echo "         Please read /usr/share/doc/cryptsetup/README.initramfs.gz and add" >&2
+		echo "         the correct hash option to your /etc/crypttab."  >&2
+	fi
 
 	# If keyscript is set, the "key" is just an argument to the script
 	if [ "$key" != "none" ] && [ -z "$KEYSCRIPT" ]; then

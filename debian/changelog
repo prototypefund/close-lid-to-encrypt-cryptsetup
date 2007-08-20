@@ -24,8 +24,11 @@ cryptsetup (2:1.0.5-2) unstable; urgency=low
   * Add CFLAGS="$(CFLAGS)" before ./configure invocation in debian/rules.
     This way CFLAGS are passed to the configure script. Thanks to Gordon
     Farquharson for the patch. (closes: #438450)
+  * Add a warning about missing hash option in crypttab to initramfs
+    cryptoroot hook. Thanks to Sebastian Leske for the patch.
+    (closes: #438169)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 20 Aug 2007 17:13:00 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 20 Aug 2007 17:29:52 +0200
 
 cryptsetup (2:1.0.5-1) unstable; urgency=low
 
