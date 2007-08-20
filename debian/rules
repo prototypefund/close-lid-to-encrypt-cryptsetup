@@ -46,7 +46,7 @@ config.status: configure.in patch
 	automake-1.9 --add-missing --gnu
 	autoconf
 	
-	./configure $(confflags) \
+	CFLAGS="$(CFLAGS)" ./configure $(confflags) \
 		--host=$(DEB_HOST_GNU_TYPE) \
 		--build=$(DEB_BUILD_GNU_TYPE) \
 		--prefix=/usr \
