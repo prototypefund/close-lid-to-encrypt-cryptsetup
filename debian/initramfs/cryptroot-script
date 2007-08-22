@@ -182,7 +182,12 @@ setup_mapping()
 				echo "cryptsetup: error - $cryptkeyscript missing"
 				return 1
 			fi
-			$cryptkeyscript $cryptkey < /dev/console 2> /dev/console | $cryptcreate --key-file=- > /dev/console 2>&1
+			if [ -p /dev/.initramfs/usplash_outfifo ] && [ -x /sbin/usplash_write ]; then
+				/sbin/usplash_write "INPUTQUIET Enter pin for $crypttarget ($cryptsource): "
+				PASS="$(cat /dev/.initramfs/usplash_outfifo)" $cryptkeyscript $cryptkey < /dev/console 2> /dev/console | $cryptcreate --key-file=- > /dev/console 2>&1
+			else
+				$cryptkeyscript $cryptkey < /dev/console 2> /dev/console | $cryptcreate --key-file=- > /dev/console 2>&1
+			fi
 		elif [ -p /dev/.initramfs/usplash_outfifo ] && [ -x /sbin/usplash_write ]; then
 			usplash_write "INPUTQUIET Enter password for $crypttarget ($cryptsource): "
 			PASS="$(cat /dev/.initramfs/usplash_outfifo)"

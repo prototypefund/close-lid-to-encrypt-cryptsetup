@@ -2,3 +2,4 @@ AUTHORS
 debian/CryptoRoot.HowTo
 debian/CryptoSwap.HowTo
 debian/README.initramfs
+debian/README.openct
