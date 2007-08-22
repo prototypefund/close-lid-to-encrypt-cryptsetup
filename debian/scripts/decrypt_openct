@@ -47,15 +47,13 @@ wait_reader
 # all data objects have by default the label 'pkcs15-init', that's why we are
 # setting the label manually if none is configured by the user.
 
-if [ -z "$1" ]
-then
+if [ -z "$1" ] || [ "$1" = "none" ] ; then
 	LABEL="pkcs15-init"
 else
 	LABEL="$1"
 fi
 
-if [ -n "$PASS" ]
-then
+if [ -n "$PASS" ] ; then
 	# Non-interactive call, getting pin number from usplash
 	pkcs15-tool --read-data-object $LABEL --pin $PASS
 else
