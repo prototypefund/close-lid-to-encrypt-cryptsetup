@@ -105,6 +105,11 @@ the key parameter in /etc/crypttab like this:
 
 For the time beeing, 'pkcs15-init' is passed to openct when no key is specified.
 
+Don't forget to backup key.txt to a save place and remove the temporary files
+afterwards:
+
+	# shred -uz key.txt data.txt
+
 Caution: cryptsetup as of version 1.0.5-1 does not support fallback to passphrase
 if smartcard authentification fails (bee it three times wrong pin or not
 compatible/not detected smartcard reader). That means, that for testing
