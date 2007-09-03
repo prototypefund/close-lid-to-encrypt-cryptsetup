@@ -69,7 +69,7 @@ persons first and last name.
 As we want to use the smartcard with luks, we first need to get some random
 data:
 
-	# dd if=/dev/random of=data.txt bs=1 count=256
+	# dd if=/dev/random of=data.txt bs=1 count=32
 
 And we store that random data as a data object to the private section of the
 smartcard with:
@@ -84,7 +84,7 @@ want to use).
 
 Then, read the random data from the smartcard in order...
 
-	# pkcs15-tool --read-data-object pkcs15-init > key.txt
+	# pkcs15-tool --read-data-object pkcs15-init | sed -e 's/^.*< \([0-9A-Z ]*\) >$/\1/' | sed -e 's/\(..\) */0x\1, /g' | recode /x > key.txt
 
 ...to import that output to luks as a valid key (assumed that /dev/sda5 is your
 encrypted partition):
