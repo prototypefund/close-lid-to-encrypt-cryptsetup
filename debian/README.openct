@@ -84,7 +84,8 @@ want to use).
 
 Then, read the random data from the smartcard in order...
 
-	# pkcs15-tool --read-data-object pkcs15-init | sed -e 's/^.*< \([0-9A-Z ]*\) >$/\1/' | sed -e 's/\(..\) */0x\1, /g' | recode /x > key.txt
+	# pkcs15-tool --read-data-object pkcs15-init -o /proc/self/fd/3 3>&1 1>/dev/null 2>&1
+	# pkcs15-tool --read-data-object pkcs15-init -o key.txt 1>/dev/null 2>&1
 
 ...to import that output to luks as a valid key (assumed that /dev/sda5 is your
 encrypted partition):

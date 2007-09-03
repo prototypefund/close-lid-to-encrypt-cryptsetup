@@ -50,11 +50,11 @@ for dir in etc etc/init.d etc/udev/rules.d lib/udev usr/bin usr/sbin var/run/ope
 done
 
 # Install openct tools, drivers, conf file
-cp /etc/openct.conf ${DESTDIR}/etc
-cp /etc/udev/rules.d/z60_openct.rules ${DESTDIR}/etc/udev/rules.d
-cp /lib/udev/openct_pcmcia ${DESTDIR}/lib/udev
-cp /lib/udev/openct_serial ${DESTDIR}/lib/udev
-cp /lib/udev/openct_usb ${DESTDIR}/lib/udev
+cp /etc/openct.conf ${DESTDIR}/etc/
+cp /etc/udev/rules.d/z60_openct.rules ${DESTDIR}/etc/udev/rules.d/
+cp /lib/udev/openct_pcmcia ${DESTDIR}/lib/udev/
+cp /lib/udev/openct_serial ${DESTDIR}/lib/udev/
+cp /lib/udev/openct_usb ${DESTDIR}/lib/udev/
 copy_exec /usr/bin/openct-tool /usr/bin
 copy_exec /usr/bin/pkcs15-tool /usr/bin
 copy_exec /usr/sbin/ifdhandler /usr/sbin
