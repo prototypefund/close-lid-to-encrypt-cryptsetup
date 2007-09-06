@@ -24,11 +24,7 @@ check_middleware() {
 check_reader() {
     readerfound=0
 
-    if [ ! -e "$readertmp" ] ; then
-        readertmp=$(mktemp /tmp/decrypt_opensc.XXXXXXXX)
-    fi
-
-    opensc-tool -l > $readertmp 2>&1
+    readertmp=$(opensc-tool -l 2>&1)
     if [ $? == 0 ] ; then
         readerfound=1
     fi
@@ -44,23 +40,18 @@ wait_reader() {
             check_reader
             tries=$(($tries + 1))
         done
-        cat $readertmp >&2
+        echo "$readertmp" >&2
         if [ $readerfound == 0 ] ; then
             echo Failed to find Smart Card reader!
             exit 1
         fi
     fi
-    rm $readertmp
 }
 
 check_card() {
     cardfound=0
 
-    if [ ! -e "$cardtmp" ] ; then
-        cardtmp=$(mktemp /tmp/decrypt_opensc.XXXXXXXX)
-    fi
-
-    opensc-tool -n > $cardtmp 2>&1
+    cardtmp=$(opensc-tool -n 2>&1)
     if [ $? == 0 ] ; then
         cardfound=1
     fi
@@ -76,13 +67,12 @@ wait_card() {
             check_card
             #tries=$(($tries + 1))
         done
-        cat $cardtmp >&2
+        echo "$cardtmp" >&2
         if [ $cardfound == 0 ] ; then
             echo Failed to find Smart Card card!
             exit 1
         fi
     fi
-    rm $cardtmp
 }
 
 echo >&2

@@ -9,11 +9,7 @@ PATH="$PATH:/usr/bin:/usr/sbin"
 check_reader() {
     readerfound=0
 
-    if [ ! -e "$readertmp" ] ; then
-        readertmp=$(mktemp /tmp/decrypt_openct.XXXXXXXX)
-    fi
-
-    openct-tool list > $readertmp 2>&1
+    readertmp=$(openct-tool list 2>&1)
     if [ $? == 0 ] ; then
         readerfound=1
     fi
@@ -29,13 +25,12 @@ wait_reader() {
             check_reader
             tries=$(($tries + 1))
         done
-        cat $readertmp >&2
+        echo "$readertmp" >&2
         if [ $readerfound == 0 ] ; then
             echo Failed to find Smart Card reader!
             exit 1
         fi
     fi
-    rm $readertmp
 }
 
 echo >&2
