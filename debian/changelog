@@ -31,8 +31,9 @@ cryptsetup (2:1.0.5-2) unstable; urgency=low
   * Add support for openct using data objects on a smartcard as key. Thanks to
     Daniel Baumann <baumann@swiss-it.ch> for patch and documentation.
     (closes: #438473)
+  * Polish opensc_decrypt and openct_decrypt
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 22 Aug 2007 17:20:55 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 07 Sep 2007 04:41:32 +0200
 
 cryptsetup (2:1.0.5-1) unstable; urgency=low
 
