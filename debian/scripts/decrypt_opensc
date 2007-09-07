@@ -9,18 +9,6 @@
 # Although opensc-tool --help reports that there is a --wait option, it doesn't
 # seem to be implemented.
 
-check_middleware() {
-    # Probe reader drivers to ensure opensc installation works (should output
-    # errors if opensc is not capable of reading cards)
-    opensc-tool -R >/dev/null
-    # Unfortunately "opensc-tool -R" tests for the presence of a reader rather
-    # than simply listing the reader drivers available, so don't abort
-    #if [ $? != 0 ] ; then
-    #    echo Smart Card Middleware broken! >&2
-    #    exit 1
-    #fi
-}
-
 check_reader() {
     readerfound=0
 
@@ -73,8 +61,6 @@ wait_card() {
     fi
 }
 
-echo >&2
-check_middleware
 wait_reader
 wait_card
 if [ -n "$PASS" ] ; then
