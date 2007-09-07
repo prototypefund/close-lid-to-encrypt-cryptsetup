@@ -34,8 +34,8 @@ PATH="$PATH:/usr/bin:/usr/sbin"
 
 /usr/sbin/openct-control init
 #wait_reader
-/usr/sbin/openct-tool rwait
-/usr/sbin/openct-tool wait
+/usr/bin/openct-tool rwait
+/usr/bin/openct-tool wait
 
 # Due to a bug in openct, the --label does not work on data objects, means,
 # all data objects have by default the label 'pkcs15-init', that's why we are
