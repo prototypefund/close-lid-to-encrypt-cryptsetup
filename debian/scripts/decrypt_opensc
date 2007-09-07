@@ -40,7 +40,6 @@ wait_reader() {
             check_reader
             tries=$(($tries + 1))
         done
-        echo "$readertmp" >&2
         if [ $readerfound == 0 ] ; then
             echo Failed to find Smart Card reader!
             exit 1
@@ -67,7 +66,6 @@ wait_card() {
             check_card
             #tries=$(($tries + 1))
         done
-        echo "$cardtmp" >&2
         if [ $cardfound == 0 ] ; then
             echo Failed to find Smart Card card!
             exit 1

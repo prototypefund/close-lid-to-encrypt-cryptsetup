@@ -25,7 +25,6 @@ wait_reader() {
             check_reader
             tries=$(($tries + 1))
         done
-        echo "$readertmp" >&2
         if [ $readerfound == 0 ] ; then
             echo Failed to find Smart Card reader!
             exit 1
