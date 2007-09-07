@@ -10,32 +10,44 @@ PATH="$PATH:/usr/bin:/usr/sbin"
 #    readerfound=0
 #
 #    readertmp=$(openct-tool list 2>&1)
-#    if [ $? == 0 ] ; then
+#    if [ $? = 0 ] ; then
 #        readerfound=1
 #    fi
 #}
 
-#wait_reader() {
+wait_reader() {
 #    check_reader
-#    if [ $readerfound == 0 ] ; then
-#        echo Waiting for Smart Card reader... >&2
+    echo "Waiting for Smart Card reader..." >&2
+    /usr/bin/openct-tool rwait >/dev/null 2>&1
+    if [ $? != 0 ]; then
+        echo "Failed to find Smart Card reader!" >&2
+    fi
+#    if [ $readerfound = 0 ] ; then
 #        tries=0
 #        while [ $readerfound == 0 -a $tries -lt 60 ] ; do
+#            echo "Waiting for Smart Card reader..." >&2
 #            sleep 1
 #            check_reader
 #            tries=$(($tries + 1))
 #        done
-#        if [ $readerfound == 0 ] ; then
-#            echo Failed to find Smart Card reader!
+#        if [ $readerfound = 0 ] ; then
+#            echo "Failed to find Smart Card reader!" >&2
 #            exit 1
 #        fi
 #    fi
-#}
+}
+
+wait_card() {
+    echo "Waiting for Smart Card..." >&2
+    /usr/bin/openct-tool wait >/dev/null 2>&1
+    if [ $? != 0 ]; then
+        echo "Failed to find Smart Card!" >&2
+    fi
+}
 
 /usr/sbin/openct-control init
-#wait_reader
-/usr/bin/openct-tool rwait
-/usr/bin/openct-tool wait
+wait_reader
+wait_card
 
 # Due to a bug in openct, the --label does not work on data objects, means,
 # all data objects have by default the label 'pkcs15-init', that's why we are
