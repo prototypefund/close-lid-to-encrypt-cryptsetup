@@ -20,7 +20,7 @@ wait_reader() {
     echo "Waiting for Smart Card reader..." >&2
     /usr/bin/openct-tool rwait >/dev/null 2>&1
     if [ $? != 0 ]; then
-        echo "Failed to find Smart Card reader!" >&2
+        echo 'Failed to find Smart Card reader!' >&2
     fi
 #    if [ $readerfound = 0 ] ; then
 #        tries=0
@@ -31,7 +31,7 @@ wait_reader() {
 #            tries=$(($tries + 1))
 #        done
 #        if [ $readerfound = 0 ] ; then
-#            echo "Failed to find Smart Card reader!" >&2
+#            echo 'Failed to find Smart Card reader!' >&2
 #            exit 1
 #        fi
 #    fi
@@ -41,7 +41,7 @@ wait_card() {
     echo "Waiting for Smart Card..." >&2
     /usr/bin/openct-tool wait >/dev/null 2>&1
     if [ $? != 0 ]; then
-        echo "Failed to find Smart Card!" >&2
+        echo 'Failed to find Smart Card!' >&2
     fi
 }
 

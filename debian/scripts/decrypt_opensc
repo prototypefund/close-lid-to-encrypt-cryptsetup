@@ -21,7 +21,7 @@ check_card() {
 wait_card() {
     check_card
     if [ $cardfound == 0 ] ; then
-        echo Waiting for Smart Card... >&2
+        echo "Waiting for Smart Card..." >&2
         tries=0
         while [ $cardfound == 0 -a $tries -lt 60 ] ; do
             sleep 1
@@ -29,7 +29,7 @@ wait_card() {
             tries=$(($tries + 1))
         done
         if [ $cardfound == 0 ] ; then
-            echo Failed to find Smart Card card!
+            echo 'Failed to find Smart Card card!' >&2
             exit 1
         fi
     fi
