@@ -8,6 +8,9 @@
 # is found on the device. if <fs_type> is 'none', the check fails if any
 # know filesystem is found.
 
+# note that the 'minix' fs is filtered out if checking for any valid fs,
+# as it has been reported that this fs my be detected erroneously by vol_id.
+
 if test ! -x "/lib/udev/vol_id"; then
   echo " - WARNING: vol_id from udev is not available, impossible to run checks."
   exit 0
@@ -21,7 +24,7 @@ vol_id=`/lib/udev/vol_id -t $dev 2>&1`
 if test "$vol_id" = "$dev: unknown volume type" -a -z "$fs"; then
   echo " - The device $dev does not contain a known filesystem."
   exit 1
-elif test "$vol_id" != "$dev: unknown volume type" -a "$fs" = "none"; then
+elif test "$vol_id" != "$dev: unknown volume type" -a "$vol_id" != "minix" -a "$fs" = "none"; then
   echo " - The device $dev contains a valid filesystem type $vol_id."
   exit 1
 elif test -n "$fs" -a "$vol_id" != "$fs"; then

@@ -38,8 +38,12 @@ cryptsetup (2:1.0.5-2) unstable; urgency=low
     - remove #!/bin/sh from cryptsetup.functions as it is not executable.
     - remove unused-override configure-generated-file-in-source config.log.
     - add some hyphen fixes to patches/02_manpage.dpatch
+  * Filter out the detection of filesystem type 'minix' in checks vol_id and
+    un_vol_id if checking for any valid filesystem. The minix fs signature
+    seems short enough to be detected erroneously by /lib/udev/vol_id.
+    Thanks to Fredrik Olofsson and arno for the bugreport. (closes: #411784)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 10 Sep 2007 03:25:07 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 10 Sep 2007 14:27:58 +0200
 
 cryptsetup (2:1.0.5-1) unstable; urgency=low
 
