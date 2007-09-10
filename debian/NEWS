@@ -1,3 +1,13 @@
+cryptsetup (2:1.0.5-2) unstable; urgency=low
+
+  The vol_id and un_vol_id check scripts no longer check for a valid
+  filesystem type 'minix' in case that they check for any valid fs.
+  That's because the 'minix' filesystem seems to be detected erroneously
+  quite often due to a very short signature.
+  If you use minix filesystems, you should not rely on prechecks anymore.
+
+ -- Jonas Meurer <mejo@debian.org>  Mon, 10 Sep 2007 14:39:44 +0200
+
 cryptsetup (2:1.0.4+svn16-1) unstable; urgency=high
 
   The --key-file=- argument has changed. If a --hash parameter is passed, it
