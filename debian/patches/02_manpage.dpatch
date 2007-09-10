@@ -51,3 +51,16 @@
  LUKS will always use SHA1 in HMAC mode, and no other mode is supported at the moment. 
  Hence, \-h is ignored.
  
+@@ -149,9 +153,9 @@
+ .br
+ LUKS extensions, and man page by Clemens Fruhwirth <clemens@endorphin.org>
+ .SH "COMPATABILITY WITH OLD SUSE TWOFISH PARTITIONS"
+-To read images created with SuSE Linux 9.2's loop_fish2 use --cipher
+-twofish-cbc-null -s 256 -h sha512, for images created with even
+-older SuSE Linux use --cipher twofish-cbc-null -s 192 -h
++To read images created with SuSE Linux 9.2's loop_fish2 use \-\-cipher
++twofish-cbc-null \-s 256 \-h sha512, for images created with even
++older SuSE Linux use \-\-cipher twofish-cbc-null \-s 192 \-h
+ ripemd160:20
+ .SH "REPORTING BUGS"
+ Report bugs to <dm-crypt@saout.de>.
