@@ -69,7 +69,6 @@ partitions with type 'swap' (82) are used for encrypted swap.
  Please send us your checks, if you write new ones. If they are generally
 useful, we will include them in the package.
 
- See CheckSystem.Doc and man crypttab(5) for more information about the
-checksystem.
+ See man crypttab(5) for more information about the checksystem.
 
  -- Jonas Meurer <mejo@debian.org>, Sun, 30 Jul 2006 21:53:56 +0200
