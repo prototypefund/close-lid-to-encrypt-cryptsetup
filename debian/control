@@ -14,18 +14,15 @@ Suggests: udev, initramfs-tools (>= 0.91) | linux-initramfs-tool, dosfstools
 Conflicts: cryptsetup-luks (<= 1.0.1-8), hashalot (<= 0.3-1)
 Replaces: cryptsetup-luks (<= 1.0.1-8)
 Description: configures encrypted block devices
- Since kernel 2.6.4, encrypted filesystem support is provided by the device
- mapper target dm-crypt. This utility provides a command-line interface for
- configuring this facility. It has integrated support for LUKS.
+ Cryptsetup provides a command-line interface for configuring encrypted
+ devices. This is done using the linux kernel device mapper target
+ dm-crypt. This version of cryptsetup has integrated support for LUKS.
  .
  cryptsetup is backwards compatible with the on-disk format of cryptoloop,
- but also supports more secure formats. This package also includes support
- for automatically configuring encrypted devices at boot time via the config
- file /etc/crypttab. When combined with newer versions of the debian
- initrd-tools and standard debian kernels, cryptoroot is also supported.
- .
- For information on how to convert your system to use encrypted filesystems
- please read /usr/share/doc/cryptsetup/CryptoRoot.HowTo.
+ but also supports more secure formats. This package includes support for
+ automatically configuring encrypted devices at boot time via the config
+ file /etc/crypttab. Additional features are cryptoroot support through
+ initramfs-tools and several supported ways to read a passphrase or key.
 
 Package: cryptsetup-udeb
 Section: debian-installer
@@ -33,12 +30,12 @@ XC-Package-Type: udeb
 Architecture: any
 Depends: ${shlibs:Depends}, dmsetup-udeb
 Description: configures encrypted block devices
- Since kernel 2.6.4, encrypted filesystem support is provided by the device
- mapper target dm-crypt. This utility provides a command-line interface for
- configuring this facility. It has integrated support for LUKS.
+ Cryptsetup provides a command-line interface for configuring encrypted
+ devices. This is done using the linux kernel device mapper target
+ dm-crypt. This version of cryptsetup has integrated support for LUKS.
  .
  cryptsetup is backwards compatible with the on-disk format of cryptoloop,
- but also supports more secure formats. This package also includes support
- for automatically configuring encrypted devices at boot time via the config
- file /etc/crypttab. When combined with newer versions of the debian
- initrd-tools and standard debian kernels, cryptoroot is also supported.
+ but also supports more secure formats. This package includes support for
+ automatically configuring encrypted devices at boot time via the config
+ file /etc/crypttab. Additional features are cryptoroot support through
+ initramfs-tools and several supported ways to read a passphrase or key.

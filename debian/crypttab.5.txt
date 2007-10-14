@@ -52,6 +52,12 @@ Encryption key size. See *cryptsetup -s*.
 *hash*=<hash>::
 Hash algorithm. See *cryptsetup -h*.
 
+*offset*=<offset>::
+Start offset. Uses *cryptsetup -o*.
+
+*skip*=<skip>::
+Skip sectors at the beginning. Uses *cryptsetup -p*.
+
 *verify*::
 Verify password. Uses *cryptsetup -y*.
 

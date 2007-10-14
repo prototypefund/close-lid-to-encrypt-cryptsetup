@@ -1,3 +1,14 @@
+cryptsetup (2:1.0.5-3) unstable; urgency=low
+
+  [ Jonas Meurer ]
+  * Add support for offset and skip options to cryptdisks/crypttab. Thanks to
+    Marc-Jano Knopp. (closes: #446674)
+  * Update the long description in debian/control. Don't mention kernel 2.6.4
+    any longer, remove references to /usr/share/doc/cryptsetup/CryptoRoot.HowTo
+    and mkinitrd.
+
+ -- Jonas Meurer <mejo@debian.org>  Mon, 15 Oct 2007 01:47:09 +0200
+
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 
   [ Jonas Meurer ]

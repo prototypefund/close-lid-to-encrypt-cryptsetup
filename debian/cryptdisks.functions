@@ -72,6 +72,20 @@ parse_opts () {
 			fi
 			PARAMS="$PARAMS -h $VALUE"
 			;;
+		offset)
+			if [ -z "$VALUE" ]; then
+				log_warning_msg "$dst: no value for offset option, skipping"
+				return 1
+			fi
+			PARAMS="$PARAMS -o $VALUE"
+			;;
+		skip)
+			if [ -z "$VALUE" ]; then
+				log_warning_msg "$dst: no value for skip option, skipping"
+				return 1
+			fi
+			PARAMS="$PARAMS -p $VALUE"
+			;;
 		verify)
 			PARAMS="$PARAMS -y"
 			;;
