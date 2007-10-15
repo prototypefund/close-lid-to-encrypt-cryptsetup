@@ -10,8 +10,11 @@ cryptsetup (2:1.0.5-3) unstable; urgency=low
     to ignore the entry. Thanks to Joerg Jaspert (closes: #423102)
   * Change log_progress_msg "$dst (started)" to device_msg "$dst" "started" in
     cryptdisks.functions. Makes console output of cryptdisks more consistent.
+  * [06_run_udevsettle.dpatch] Run udevsettle after device-mapper device
+    creation. Fixes issues with temporary device files in /dev/mapper. Patch
+    by Matthias Koenig. (closes: #444914)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 15 Oct 2007 02:30:50 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 16 Oct 2007 01:27:39 +0200
 
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 
