@@ -6,8 +6,12 @@ cryptsetup (2:1.0.5-3) unstable; urgency=low
   * Update the long description in debian/control. Don't mention kernel 2.6.4
     any longer, remove references to /usr/share/doc/cryptsetup/CryptoRoot.HowTo
     and mkinitrd.
+  * Add noearly option to cryptdisks/crypttab, which causes cryptdisks-early
+    to ignore the entry. Thanks to Joerg Jaspert (closes: #423102)
+  * Change log_progress_msg "$dst (started)" to device_msg "$dst" "started" in
+    cryptdisks.functions. Makes console output of cryptdisks more consistent.
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 15 Oct 2007 01:47:09 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 15 Oct 2007 02:30:50 +0200
 
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 

@@ -98,6 +98,12 @@ If key is "'none'", the cryptdisks script interactively prompts for a
 password. The timeout option specifies the time in seconds to wait for
 the password before timing out.
 
+*noearly*::
+Cryptdisks is invoked two times at the boot process. Once before lvm, evms,
+raid, etc. are started, and once after that. Sometimes you need to start your
+encrypted disks in a special order. With this option the first invokation of
+cryptdisks ignores the device.
+
 *loud*::
 Be loud. Print warnings if a device does not exist.
 

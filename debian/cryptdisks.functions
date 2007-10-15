@@ -149,6 +149,11 @@ parse_opts () {
 		luks)
 			USELUKS=yes
 			;;
+		noearly)
+			if [ "$INITSTATE" = "early" ]; then
+				IGNORE="yes"
+			fi
+			;;
 		loud)
 			LOUD=yes
 			;;
@@ -451,21 +456,27 @@ do_start () {
 		fi
 
 		# Do the real setup
-		log_progress_msg "$dst (starting)"
-		result="ok"
-		if [ "$USELUKS" = "yes" ]; then
-			do_luks || result="fail"
+		if [ "$IGNORE" = "yes" ]; then
+			result="ignore"
 		else
-			do_noluks || result="fail"
+			log_progress_msg "$dst (starting)"
+			result="ok"
+			if [ "$USELUKS" = "yes" ]; then
+				do_luks || result="fail"
+			else
+				do_noluks || result="fail"
+			fi
 		fi
 
 		# Finish up
-		if [ "$result" != "ok" ]; then
-			log_progress_msg "$dst (failed)"
+		if [ "$result" = "ignore" ]; then
+			device_msg "$dst" "ignored"
+		elif [ "$result" != "ok" ]; then
+			device_msg "$dst" "failed"
 		else
 			do_swap
 			do_tmp
-			log_progress_msg "$dst (started)"
+			device_msg "$dst" "started"
 		fi
 	done
 
