@@ -1,3 +1,8 @@
+#
+# This file is for inclusion with
+#    . /lib/cryptsetup/cryptdisks.functions
+# and should not be executed directly.
+
 PATH="/sbin:/bin"
 TABFILE=/etc/crypttab
 CRYPTDISKS_ENABLE="Yes"
@@ -410,8 +415,21 @@ do_close () {
 	return $?
 }
 
+load_optimized_module () {
+	local module optmodule
+	module="$1"
+
+	optmodule=$(find "/lib/modules/$(uname -r)/kernel/arch" -name "${module}*.ko" 2> /dev/null)
+	if [ -n "$optmodule" ] && [ "$(echo -n "$optmodule" | wc -l)" -eq 1 ]; then
+		modprobe "$optmodule" 2>/dev/null && return 0
+	fi
+
+	modprobe "$module" 2>/dev/null || return 1
+	return 0
+}
+
 # Sets up all entries in crypttab
-handle_crypttab_line() {
+handle_crypttab_line () {
 	dst=$1
 	src=$2
 	key=$3
@@ -476,6 +494,7 @@ handle_crypttab_line() {
 
 	umount_fs
 	log_action_end_msg 0
+	return 0
 }
 
 do_start () {

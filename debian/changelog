@@ -19,8 +19,11 @@ cryptsetup (2:1.0.5-3) unstable; urgency=low
     dm-crypt@saout.de, cryptsetup 1.0.5 already prints out meaningfull errors
     if expected permissions are not available. Therefore the check for uid ==
     0 is superfluous.
+  * Add load_optimized_module() function to cryptdisks.functions. Initial idea
+    by Reinhard Tartler from Ubuntu, enhanced by David Härdeman.
+    (closes: #445186)
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 20 Oct 2007 15:22:01 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 20 Oct 2007 15:52:01 +0200
 
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 
