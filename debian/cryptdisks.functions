@@ -411,6 +411,73 @@ do_close () {
 }
 
 # Sets up all entries in crypttab
+handle_crypttab_line() {
+	dst=$1
+	src=$2
+	key=$3
+	opts=$4
+
+	# Make sure that all fields are present
+	if [ -z "$dst" ]; then
+		continue
+	elif [ -z "$src" ] || [ -z "$key" ] || [ -z "$opts" ]; then
+		device_msg "$dst" "skipped, missing parameters"
+		continue
+	fi
+
+	# Make sure source device exists
+	if [ ! -r "$src" ]; then
+		if [ "$LOUD" = "yes" ]; then
+			device_msg "$dst" "skipped, device $src does not exist"
+		fi
+		continue
+	fi
+
+	# Make sure that target device doesn't exist
+	if [ -b "/dev/mapper/$dst" ]; then
+		device_msg "$dst" "running"
+		continue
+	fi
+
+	# All checks passed, do the preparatory steps
+	if ! parse_opts "$opts"; then
+		device_msg "$dst" "invalid opts"
+		continue
+	elif ! check_key; then
+		device_msg "$dst" "invalid key"
+		continue
+	elif ! lo_setup; then
+		device_msg "$dst" "loopback failed"
+	fi
+
+	# Do the real setup
+	if [ "$IGNORE" = "yes" ]; then
+		result="ignore"
+	else
+		log_progress_msg "$dst (starting)"
+		result="ok"
+		if [ "$USELUKS" = "yes" ]; then
+			do_luks || result="fail"
+		else
+			do_noluks || result="fail"
+		fi
+	fi
+
+	# Finish up
+	if [ "$result" = "ignore" ]; then
+		device_msg "$dst" "ignored"
+	elif [ "$result" != "ok" ]; then
+		device_msg "$dst" "failed"
+	else
+		do_swap
+		do_tmp
+		device_msg "$dst" "started"
+	fi
+
+	umount_fs
+	log_action_end_msg 0
+}
+
 do_start () {
 	local dst src key opts result
 
@@ -421,67 +488,8 @@ do_start () {
 	mount_fs
 
 	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
-
-		# Make sure that all fields are present
-		if [ -z "$dst" ]; then
-			continue
-		elif [ -z "$src" ] || [ -z "$key" ] || [ -z "$opts" ]; then
-			device_msg "$dst" "skipped, missing parameters"
-			continue
-		fi
-
-		# Make sure source device exists
-		if [ ! -r "$src" ]; then
-			if [ "$LOUD" = "yes" ]; then
-				device_msg "$dst" "skipped, device $src does not exist"
-			fi
-			continue
-		fi
-
-		# Make sure that target device doesn't exist
-		if [ -b "/dev/mapper/$dst" ]; then
-			device_msg "$dst" "running"
-			continue
-		fi
-
-		# All checks passed, do the preparatory steps
-		if ! parse_opts "$opts"; then
-			device_msg "$dst" "invalid opts"
-			continue
-		elif ! check_key; then
-			device_msg "$dst" "invalid key"
-			continue
-		elif ! lo_setup; then
-			device_msg "$dst" "loopback failed"
-		fi
-
-		# Do the real setup
-		if [ "$IGNORE" = "yes" ]; then
-			result="ignore"
-		else
-			log_progress_msg "$dst (starting)"
-			result="ok"
-			if [ "$USELUKS" = "yes" ]; then
-				do_luks || result="fail"
-			else
-				do_noluks || result="fail"
-			fi
-		fi
-
-		# Finish up
-		if [ "$result" = "ignore" ]; then
-			device_msg "$dst" "ignored"
-		elif [ "$result" != "ok" ]; then
-			device_msg "$dst" "failed"
-		else
-			do_swap
-			do_tmp
-			device_msg "$dst" "started"
-		fi
+		handle_crypttab_line "$dst" "$src" "$key" "$opts"
 	done
-
-	umount_fs
-	log_action_end_msg 0
 }
 
 # Removes all mappings in crypttab

@@ -13,8 +13,10 @@ cryptsetup (2:1.0.5-3) unstable; urgency=low
   * [06_run_udevsettle.dpatch] Run udevsettle after device-mapper device
     creation. Fixes issues with temporary device files in /dev/mapper. Patch
     by Matthias Koenig. (closes: #444914)
+  * Add cryptdisks_start and patch to cryptdisks.functions by Jon Dowland.
+    (closes: #447159)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 16 Oct 2007 01:27:39 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 20 Oct 2007 14:56:55 +0200
 
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 
