@@ -70,8 +70,7 @@ build-stamp: config.status
 	$(MAKE)
 	# cannot depend on libraries in /usr !
 	gcc lib/.libs/*.o src/*.o luks/.libs/*.o -o src/cryptsetup.static \
-		-lpopt -ldevmapper -luuid /usr/lib/libgcrypt.a \
-		/usr/lib/libgpg-error.a
+		-lpopt -ldevmapper -luuid -lgcrypt -lgpg-error
 	touch build-stamp
 
 clean: clean-patched unpatch
@@ -86,7 +85,7 @@ clean-patched:
 
 	rm -f debian/crypttab.5 debian/crypttab.5.xml debian/luksformat.8
 	rm -f config.mess
-	rm -f autom4te.cache 
+	rm -rf autom4te.cache 
 	rm -f src/cryptsetup.static
 
 	dh_clean 
@@ -138,6 +137,12 @@ binary-arch: build install
 	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/sbin $(CURDIR)/debian/cryptsetup-udeb/
+	
+	# Get rid of libcryptsetup.so since it has no stable API.
+	# We instead statically link the relevant code
+	# into the cryptsetup executable, so the .so is not needed.
+	rm -rf $(CURDIR)/debian/cryptsetup/usr/lib
+
 #	dh_install
 	dh_installman debian/crypttab.5 debian/luksformat.8
 	dh_link -a

@@ -180,7 +180,7 @@ parse_opts () {
 
 # Set up loopback devices
 lo_setup () {
-	local loopdev
+	#local loopdev
 
 	if [ ! -f "$src" ]; then
 		return 0
@@ -198,6 +198,13 @@ lo_setup () {
 
 	losetup "$loopdev" "$src" || return 1
 	src="$loopdev"
+	return 0
+}
+
+rm_lo_setup () {
+	if [ "$loopdev" != "" ]; then
+		losetup -d "$loopdev" || return 1
+	fi
 	return 0
 }
 
@@ -443,6 +450,13 @@ handle_crypttab_line () {
 		continue
 	fi
 
+	# parse UUID= symlinks
+	if [ ${src#UUID=} != $src ]; then
+		src="/dev/disk/by-uuid/${src#UUID=}"
+	elif [ ${src#LABEL=} != $src ]; then
+		src="/dev/disk/by-label/${src#LABEL=}"
+	fi
+
 	# Make sure source device exists
 	if [ ! -r "$src" ]; then
 		if [ "$LOUD" = "yes" ]; then
@@ -485,6 +499,7 @@ handle_crypttab_line () {
 	if [ "$result" = "ignore" ]; then
 		device_msg "$dst" "ignored"
 	elif [ "$result" != "ok" ]; then
+		rm_lo_setup
 		device_msg "$dst" "failed"
 	else
 		do_swap

@@ -26,7 +26,7 @@ The first field 'target device' describes the mapped 'device name'.
 It must be a plain filename without any directories.
 A mapped device */dev/mapper/*'device name' will be created by *cryptsetup(8)* crypting data from and onto the 'source device'.
 
-The second field 'source device' describes the block special device that should hold the encrypted data.
+The second field 'source device' describes either the block special device or file (which will be automatically mounted as loop device) that should hold the encrypted data.
 
 The third field 'key file' describes the file to use for decrypting the encrypted data of the 'source device'.
 

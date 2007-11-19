@@ -12,7 +12,7 @@ cryptsetup (2:1.0.5-3) unstable; urgency=low
     cryptdisks.functions. Makes console output of cryptdisks more consistent.
   * [06_run_udevsettle.dpatch] Run udevsettle after device-mapper device
     creation. Fixes issues with temporary device files in /dev/mapper. Patch
-    by Matthias Koenig. (closes: #444914)
+    by Reinhard Tartler from Ubuntu. (closes: #444914)
   * Add cryptdisks_start and patch to cryptdisks.functions by Jon Dowland.
     (closes: #447159)
   * Drop 03_check_for_root.dpatch. As Ludwig Nussel mentioned on
@@ -22,8 +22,19 @@ cryptsetup (2:1.0.5-3) unstable; urgency=low
   * Add load_optimized_module() function to cryptdisks.functions. Initial idea
     by Reinhard Tartler from Ubuntu, enhanced by David Härdeman.
     (closes: #445186)
-
- -- Jonas Meurer <mejo@debian.org>  Sat, 20 Oct 2007 15:52:01 +0200
+  * Add support for UUID=.. device strings to initramfs cryptroot-hook. Thanks
+    to Reinhard Tartler from Ubuntu for the patch. (closes: #445189)
+  * Support UUID=... and LABEL=... device strings in /etc/crypttab. Thanks
+    to Martin Pitt from Ubuntu for the patch. (closes: #445189)
+  * Add Vcs-Browser and Vcs-Svn fields to debian/control.
+  * Fix debian/rules to not fail to build if autom4te.cache is left behind
+    from a previous incomplete build. Patch again taken from Ubuntu.
+  * Remove loopback devices even if the cryptsetup device setup fails. Thanks
+    to Rene Pavlik. (closes: #451916)
+  * Mention in the crypttab manpage that files are allowed as source. In that
+    case they are mounted as loopback device automatically. Thanks to
+    Michal Cihar (closes: #451909)
+ -- Jonas Meurer <mejo@debian.org>  Mon, 19 Nov 2007 23:36:36 +0100
 
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 

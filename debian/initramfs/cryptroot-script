@@ -61,6 +61,11 @@ parse_options()
 			;;
 		source=*)
 			cryptsource=${x#source=}
+			if [ ${cryptsource#UUID=} != $cryptsource ]; then
+				cryptsource="/dev/disk/by-uuid/${cryptsource#UUID=}"
+			elif [ ${cryptsource#LABEL=} != $cryptsource ]; then
+				cryptsource="/dev/disk/by-label/${cryptsource#LABEL=}"
+			fi
 			;;
 		lvm=*)
 			cryptlvm=${x#lvm=}
@@ -186,7 +191,7 @@ setup_mapping()
 			$cryptkeyscript $cryptkey < /dev/console 2> /dev/console | \
 			$cryptcreate --key-file=- > /dev/console 2>&1
 		elif [ -p /dev/.initramfs/usplash_outfifo ] && [ -x /sbin/usplash_write ]; then
-			usplash_write "INPUTQUIET Enter password for $crypttarget ($cryptsource): "
+			usplash_write "INPUTQUIET Enter password for $crypttarget: "
 			PASS="$(cat /dev/.initramfs/usplash_outfifo)"
 			echo -n "$PASS" | $cryptcreate > /dev/null 2>&1
 		else
@@ -200,6 +205,10 @@ setup_mapping()
 		elif [ ! -e "$NEWROOT" ]; then
 			echo "cryptsetup: unknown error setting up device mapping"
 			return 1
+		elif [ -p /dev/.initramfs/usplash_outfifo ] && [ -x /sbin/usplash_write ]; then
+			# clean the text, to give feedback that it worked
+			usplash_write "TEXT-URGENT "
+		fi
 		fi
 
 		FSTYPE=''

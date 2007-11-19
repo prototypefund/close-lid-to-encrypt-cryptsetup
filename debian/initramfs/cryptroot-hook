@@ -40,7 +40,7 @@ get_resume_devices() {
 
 	# uswsusp
 	if [ -e /etc/uswsusp.conf ]; then
-		device=$(sed -rn 's/^resume device[[:space:]]+[:=][[:space:]]+// p' /etc/uswsusp.conf)
+		device=$(sed -rn 's/^resume device[[:space:]]*[:=][[:space:]]+// p' /etc/uswsusp.conf)
 		if [ -n "$device" ]; then
 			candidates="$candidates $device"
 		fi
@@ -122,6 +122,11 @@ node_is_in_crypttab() {
 get_lvm_deps() {
 	local node deps maj min depnode
 	node="$1"
+
+	uuid_resolv="/dev/disk/by-uuid/${node#UUID=}"
+	if [ -L "$uuid_resolv" ]; then
+		node=$(readlink -f "$uuid_resolv")
+	fi
 
 	if [ -z $node ]; then
 		echo "cryptsetup: WARNING: get_lvm_deps - invalid arguments" >&2
@@ -289,7 +294,10 @@ add_device() {
 	# Check that it is a node under /dev/mapper/
 	nodes="${nodes#/dev/mapper/}"
 	if [ "$nodes" = "$1" ]; then
-		return 0
+		# check that it is a UUID
+		if [ "${nodes#UUID=}" = "$nodes" ]; then
+			return 0
+		fi
 	fi
 
 	# Can we find this node in crypttab

@@ -1,36 +1,36 @@
 #! /bin/sh /usr/share/dpatch/dpatch-run
 
 ## 06_run_udevsettle.dpatch
-## by Matthias Koenig <mkoenig@novell.com>
+## by Reinhard Tartler <siretart@ubuntu.com>
 ##
 ## All lines beginning with `## DP:' are a description of the patch.
 ## DP: run udevsettle after dm device creation
+## DP: See https://bugs.launchpad.net/bugs/132373
 
 @DPATCH@
 
 --- cryptsetup-1.0.5/lib/libdevmapper.c
 +++ cryptsetup-1.0.5/lib/libdevmapper.c
-@@ -18,6 +18,13 @@
- 
- #define	CRYPT_TARGET	"crypt"
- 
-+#define UDEVSETTLE	"/sbin/udevsettle"
-+
-+static void run_udevsettle(void)
-+{
-+	system(UDEVSETTLE);
-+}
-+
- static void set_dm_error(int level, const char *file, int line,
-                          const char *f, ...)
- {
-@@ -184,6 +191,9 @@ static int dm_create_device(int reload, 
+@@ -184,6 +184,21 @@
  	if (dmi.read_only)
  		options->flags |= CRYPT_FLAG_READONLY;
  
-+	/* run udevsettle to avoid problems with busy dm devices */
-+	run_udevsettle();
-+
++	/*
++	 * patch inspired from
++	 * https://bugzilla.novell.com/show_bug.cgi?id=285478
++	 *
++	 * At this point, it is quite likely that there are currently
++	 * devmapper events being processed. In order to avoid
++	 * workarounds (which involve calling udevsettle at the
++	 * 'right' places in scripts integrating cryptsetup), we are
++	 * checking here if udevsettle is available and call it if it
++	 * is.
++	 */
++	if (0 == access("/sbin/udevsettle", X_OK)) {
++		system("/sbin/udevsettle");
++	}
++	
  	r = 0;
  	
  out:
+
