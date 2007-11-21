@@ -44,6 +44,20 @@ like this:
 links instead of /dev/sdg2 as the link will work no matter in which order the
 media is inserted and detected.
 
+Cryptsetup and udev
+-------------------
+
+ As a workaround for some yet-to-be-fixed race condition in kernel,
+device-mapper or udev, cryptsetup currently runs udevsettle.
+
+ This leads to problems if you invoke cryptsetup as part of a udev role.
+udevsettle waits until queued kernel/udev events are processed and the
+'run programs' have finished. Due to cryptsetup itself being a 'run
+programm' in this case, this ends in a deadlock.
+
+ Therefore cryptsetup should be detached directly after invokation, so
+that it runs asynchronously.
+
 The 'check' option
 ------------------
 

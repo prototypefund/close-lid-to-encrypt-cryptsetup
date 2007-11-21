@@ -34,7 +34,12 @@ cryptsetup (2:1.0.5-3) unstable; urgency=low
   * Mention in the crypttab manpage that files are allowed as source. In that
     case they are mounted as loopback device automatically. Thanks to
     Michal Cihar (closes: #451909)
- -- Jonas Meurer <mejo@debian.org>  Mon, 19 Nov 2007 23:36:36 +0100
+  * Document a possible deadlock if cryptsetup is invoked as a 'run programm'
+    in a udev role. This i related to the invokation of udevsettle in
+    cryptsetup. Thanks to Dick Middleton for reporting and debugging.
+    (closes: #444914)
+
+ -- Jonas Meurer <mejo@debian.org>  Wed, 21 Nov 2007 15:12:41 +0100
 
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 
