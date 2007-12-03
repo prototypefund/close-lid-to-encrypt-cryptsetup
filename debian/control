@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Debian Cryptsetup Team <pkg-cryptsetup-devel@lists.alioth.debian.org>
 Uploaders: Jonas Meurer <mejo@debian.org>
 Build-Depends: debhelper (>= 5.0.0), libgcrypt11-dev, libdevmapper-dev, libpopt-dev, uuid-dev, libselinux1-dev, libsepol1-dev, gettext, libtool, autoconf, automake1.9, dpatch, xsltproc, docbook-xsl, asciidoc
-Standards-Version: 3.7.2.2
+Standards-Version: 3.7.3.0
 Homepage: http://luks.endorphin.org/
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-cryptsetup/cryptsetup/trunk
 Vcs-Svn: svn://svn.debian.org/svn/pkg-cryptsetup/cryptsetup/trunk

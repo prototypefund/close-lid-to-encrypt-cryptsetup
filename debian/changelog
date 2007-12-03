@@ -38,8 +38,9 @@ cryptsetup (2:1.0.5-3) unstable; urgency=low
     in a udev role. This i related to the invokation of udevsettle in
     cryptsetup. Thanks to Dick Middleton for reporting and debugging.
     (closes: #444914)
+  * Bump Standards-Version to 3.7.3.0. No changes needed.
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 21 Nov 2007 15:12:41 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 03 Dec 2007 10:47:08 +0100
 
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 
