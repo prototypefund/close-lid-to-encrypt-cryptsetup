@@ -202,7 +202,11 @@ lo_setup () {
 }
 
 rm_lo_setup () {
-	if [ "$loopdev" != "" ]; then
+	if [ ! -f "$src" ]; then
+		return 0
+	fi
+
+	if [ -n "$loopdev" ]; then
 		losetup -d "$loopdev" || return 1
 	fi
 	return 0
@@ -540,7 +544,7 @@ do_stop () {
 			continue
 		fi
 
-		opencount=$(dmsetup info -c --noheadings -o open "$dst" 2> /dev/null)
+		opencount=$(dmsetup info -c --noheadings -o open "$dst" 2> /dev/null || true)
 		if [ -z "$opencount" ]; then
 			device_msg "$dst" "error"
 			continue
@@ -549,8 +553,9 @@ do_stop () {
 			continue
 		fi
 
-		major=$(dmsetup info -c --noheadings -o major "$dst" 2> /dev/null)
-		minor=$(dmsetup info -c --noheadings -o minor "$dst" 2> /dev/null)
+		major=$(dmsetup info -c --noheadings -o major "$dst" 2> /dev/null || true)
+		minor=$(dmsetup info -c --noheadings -o minor "$dst" 2> /dev/null || true)
+		loopdev="/dev/"$(cryptsetup status "$dst" | grep "device" | sed -e 's/.*device.*\///g' | grep "^loop" || true)
 
 		if [ -z "$major" ] || [ -z "$minor" ]; then
 			device_msg "$dst" "error"
@@ -558,12 +563,14 @@ do_stop () {
 		fi
 
 		do_close
-		log_action_cont_msg "$dst (stopping)"
 
 		# Detach loopback device, if attached
-		if [ -f "$src" ] && [ -n "$loopmajor" ] && [ "$loopmajor" = "$major" ]; then 
-			losetup -d "/dev/loop$minor" > /dev/null 2>&1 || true
+		if ! rm_lo_setup; then
+			device_msg "$dst" "detaching loopback failed"
+			continue
 		fi
+
+		log_action_cont_msg "$dst (stopping)"
 	done
 
 	log_action_end_msg 0

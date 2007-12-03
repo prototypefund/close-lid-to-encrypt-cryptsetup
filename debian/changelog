@@ -29,18 +29,19 @@ cryptsetup (2:1.0.5-3) unstable; urgency=low
   * Add Vcs-Browser and Vcs-Svn fields to debian/control.
   * Fix debian/rules to not fail to build if autom4te.cache is left behind
     from a previous incomplete build. Patch again taken from Ubuntu.
-  * Remove loopback devices even if the cryptsetup device setup fails. Thanks
-    to Rene Pavlik. (closes: #451916)
   * Mention in the crypttab manpage that files are allowed as source. In that
     case they are mounted as loopback device automatically. Thanks to
     Michal Cihar (closes: #451909)
+  * At stopping dm-crypt devices really remove the corresponding loopback
+    device if one has been used. Thanks to Rene Pavlik. (closes: #451916)
+  * Also remove loopback devices if the cryptsetup device setup fails.
   * Document a possible deadlock if cryptsetup is invoked as a 'run programm'
     in a udev role. This i related to the invokation of udevsettle in
     cryptsetup. Thanks to Dick Middleton for reporting and debugging.
     (closes: #444914)
   * Bump Standards-Version to 3.7.3.0. No changes needed.
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 03 Dec 2007 10:47:08 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 03 Dec 2007 22:58:44 +0100
 
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 
