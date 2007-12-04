@@ -1,7 +1,16 @@
 cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
 
   [ Jonas Meurer ]
-  * New upstream alpha release 1.0.6~pre1.
+  * New upstream alpha release 1.0.6~pre1:
+    - [01_crypt_luksFormat_libcryptsetup.dpatch] removed, applied upstream
+    - [02_manpage.dpatch] likewise
+    - [04_fix_unused_or_unitialized_variables.dpatch] likewise
+    - [05_segfault_at_nonexisting_device.dpatch] likewise
+    - [06_run_udevsettle.dpatch] update for new upstream
+  * Disable 03_check_for_root.dpatch. As Ludwig Nussel mentioned on
+    dm-crypt@saout.de, cryptsetup 1.0.5 already prints out meaningfull errors
+    if expected permissions are not available. Therefore the check for uid ==
+    0 is superfluous.
   * Add support for offset and skip options to cryptdisks/crypttab. Thanks to
     Marc-Jano Knopp. (closes: #446674)
   * Update the long description in debian/control. Don't mention kernel 2.6.4
@@ -16,10 +25,6 @@ cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
     by Reinhard Tartler from Ubuntu. (closes: #444914)
   * Add cryptdisks_start and patch to cryptdisks.functions by Jon Dowland.
     (closes: #447159)
-  * Drop 03_check_for_root.dpatch. As Ludwig Nussel mentioned on
-    dm-crypt@saout.de, cryptsetup 1.0.5 already prints out meaningfull errors
-    if expected permissions are not available. Therefore the check for uid ==
-    0 is superfluous.
   * Add load_optimized_module() function to cryptdisks.functions. Initial idea
     by Reinhard Tartler from Ubuntu, enhanced by David Härdeman.
     (closes: #445186)
@@ -44,7 +49,7 @@ cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
   * Move umount_fs() from handle_crypttab_line() to the end of do_start().
   * Bump Standards-Version to 3.7.3.0. No changes needed.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 04 Dec 2007 13:01:45 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 04 Dec 2007 13:07:40 +0100
 
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 
