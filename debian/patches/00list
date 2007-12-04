@@ -1,7 +1,3 @@
 # no patches
-01_crypt_luksFormat_libcryptsetup
-02_manpage
 #03_check_for_root
-04_fix_unused_or_unitialized_variables
-05_segfault_at_nonexisting_device
-06_run_udevsettle
+#06_run_udevsettle
