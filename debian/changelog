@@ -1,6 +1,7 @@
-cryptsetup (2:1.0.5-3) unstable; urgency=low
+cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
 
   [ Jonas Meurer ]
+  * New upstream alpha release 1.0.6~pre1.
   * Add support for offset and skip options to cryptdisks/crypttab. Thanks to
     Marc-Jano Knopp. (closes: #446674)
   * Update the long description in debian/control. Don't mention kernel 2.6.4
@@ -43,7 +44,7 @@ cryptsetup (2:1.0.5-3) unstable; urgency=low
   * Move umount_fs() from handle_crypttab_line() to the end of do_start().
   * Bump Standards-Version to 3.7.3.0. No changes needed.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 04 Dec 2007 12:09:53 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 04 Dec 2007 13:01:45 +0100
 
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 
