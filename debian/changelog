@@ -40,9 +40,10 @@ cryptsetup (2:1.0.5-3) unstable; urgency=low
     in a udev role. This i related to the invokation of udevsettle in
     cryptsetup. Thanks to Dick Middleton for reporting and debugging.
     (closes: #444914)
+  * Move umount_fs() from handle_crypttab_line() to the end of do_start().
   * Bump Standards-Version to 3.7.3.0. No changes needed.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 04 Dec 2007 03:15:01 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 04 Dec 2007 12:09:53 +0100
 
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 

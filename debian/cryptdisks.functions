@@ -511,8 +511,6 @@ handle_crypttab_line () {
 		device_msg "$dst" "started"
 	fi
 
-	umount_fs
-	log_action_end_msg 0
 	return 0
 }
 
@@ -528,6 +526,9 @@ do_start () {
 	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
 		handle_crypttab_line "$dst" "$src" "$key" "$opts"
 	done
+	umount_fs
+
+	log_action_end_msg 0
 }
 
 # Removes all mappings in crypttab
