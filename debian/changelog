@@ -11,6 +11,9 @@ cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
     dm-crypt@saout.de, cryptsetup 1.0.5 already prints out meaningfull errors
     if expected permissions are not available. Therefore the check for uid ==
     0 is superfluous.
+  * [06_run_udevsettle.dpatch] Run udevsettle after device-mapper device
+    creation. Fixes issues with temporary device files in /dev/mapper. Patch
+    by Reinhard Tartler from Ubuntu. (closes: #444914)
   * Add support for offset and skip options to cryptdisks/crypttab. Thanks to
     Marc-Jano Knopp. (closes: #446674)
   * Update the long description in debian/control. Don't mention kernel 2.6.4
@@ -20,9 +23,6 @@ cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
     to ignore the entry. Thanks to Joerg Jaspert (closes: #423102)
   * Change log_progress_msg "$dst (started)" to device_msg "$dst" "started" in
     cryptdisks.functions. Makes console output of cryptdisks more consistent.
-  * [06_run_udevsettle.dpatch] Run udevsettle after device-mapper device
-    creation. Fixes issues with temporary device files in /dev/mapper. Patch
-    by Reinhard Tartler from Ubuntu. (closes: #444914)
   * Add cryptdisks_start and patch to cryptdisks.functions by Jon Dowland.
     (closes: #447159)
   * Add load_optimized_module() function to cryptdisks.functions. Initial idea
@@ -49,7 +49,7 @@ cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
   * Move umount_fs() from handle_crypttab_line() to the end of do_start().
   * Bump Standards-Version to 3.7.3.0. No changes needed.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 04 Dec 2007 13:07:40 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 06 Dec 2007 14:33:03 +0100
 
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 
