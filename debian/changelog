@@ -24,7 +24,7 @@ cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
   * Change log_progress_msg "$dst (started)" to device_msg "$dst" "started" in
     cryptdisks.functions. Makes console output of cryptdisks more consistent.
   * Add cryptdisks_start and patch to cryptdisks.functions by Jon Dowland.
-    (closes: #447159)
+    Also add a manpage for cryptdisks_start(8). (closes: #447159)
   * Add load_optimized_module() function to cryptdisks.functions. Initial idea
     by Reinhard Tartler from Ubuntu, enhanced by David Härdeman.
     (closes: #445186)
@@ -50,7 +50,7 @@ cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
   * Bump Standards-Version to 3.7.3.0. No changes needed.
   * Remove unused litian-override file
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 06 Dec 2007 15:00:30 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 06 Dec 2007 15:35:21 +0100
 
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 

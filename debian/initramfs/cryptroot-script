@@ -209,7 +209,6 @@ setup_mapping()
 			# clean the text, to give feedback that it worked
 			usplash_write "TEXT-URGENT "
 		fi
-		fi
 
 		FSTYPE=''
 		eval $(fstype < "$NEWROOT")
