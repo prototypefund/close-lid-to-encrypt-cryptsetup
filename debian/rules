@@ -147,7 +147,7 @@ binary-arch: build install
 	rm -rf $(CURDIR)/debian/cryptsetup/usr/lib
 
 #	dh_install
-	dh_installman debian/crypttab.5 debian/luksformat.8
+	dh_installman debian/crypttab.5 debian/luksformat.8 debian/cryptdisks_start.8
 	dh_link -a
 	dh_strip -a
 	dh_compress -a
