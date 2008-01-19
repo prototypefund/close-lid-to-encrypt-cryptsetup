@@ -5,6 +5,7 @@
 # Required-Stop:     umountroot
 # Should-Start:      udev devfsd
 # Should-Stop:       udev devfsd
+# X-Start-Before:    mdadm lvm2 evms
 # Default-Start:     S
 # Default-Stop:      0 6
 # Short-Description: Setup early encrypted block devices.

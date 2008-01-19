@@ -1,10 +1,11 @@
 #! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          cryptdisks
-# Required-Start:    checkroot
-# Required-Stop:     umountroot
-# Should-Start:      udev devfsd raid2 mdadm lvm evms
-# Should-Stop:       udev devfsd raid2 mdadm lvm evms
+# Required-Start:    checkroot cryptdisks-early
+# Required-Stop:     umountroot cryptdisks-early
+# Should-Start:      udev devfsd raid2 mdadm lvm2 evms
+# Should-Stop:       udev devfsd raid2 mdadm lvm2 evms
+# X-Start-Before:    checkfs
 # Default-Start:     S
 # Default-Stop:      0 6
 # Short-Description: Setup remaining encrypted block devices.

@@ -39,7 +39,7 @@ parse_opts () {
 	CHECKARGS=""
 	PRECHECK=""
 	TRIES="3"
-	MAKETMP=""
+	TMPFS=""
 	MAKESWAP=""
 	USELUKS=""
 	TIMEOUT=""
@@ -149,7 +149,11 @@ parse_opts () {
 			SWCHECKARGS="swap"
 			;;
 		tmp)
-			MAKETMP=yes
+			if [ -z "$VALUE" ]; then
+				TMPFS="ext2"
+			else
+				TMPFS="$VALUE"
+			fi
 			;;
 		luks)
 			USELUKS=yes
@@ -394,12 +398,12 @@ do_swap () {
 
 # Prepares tmp partitions using random keys
 do_tmp () {
-	if [ "$MAKETMP" != "yes" ] || [ ! -b "/dev/mapper/$dst" ]; then
+	if [ "x$TMPFS" = "x" ] || [ ! -b "/dev/mapper/$dst" ]; then
 		return 0
 	fi
 
-	mke2fs "/dev/mapper/$dst" > /dev/null 2>&1 || return 1
-	mount -t ext2 "/dev/mapper/$dst" /tmp || return 1
+	mkfs -t $TMPFS -q "/dev/mapper/$dst" > /dev/null 2>&1 || return 1
+	mount -t $TMPFS "/dev/mapper/$dst" /tmp || return 1
 	chmod 1777 /tmp
 	umount /tmp
 	return 0
