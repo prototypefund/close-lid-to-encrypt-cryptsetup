@@ -449,7 +449,7 @@ load_optimized_module () {
 }
 
 # Sets up all entries in crypttab
-handle_crypttab_line () {
+handle_crypttab_line_start () {
 	dst=$1
 	src=$2
 	key=$3
@@ -523,6 +523,52 @@ handle_crypttab_line () {
 	return 0
 }
 
+handle_crypttab_line_stop () {
+	dst=$1
+	src=$2
+	key=$3
+	opts=$4
+
+	if [ ! -b "/dev/mapper/$dst" ]; then
+		device_msg "$dst" "stopped"
+		continue
+	fi
+
+	opencount=$(dmsetup info -c --noheadings -o open "$dst" 2> /dev/null || true)
+	if [ -z "$opencount" ]; then
+		device_msg "$dst" "error"
+		continue
+	elif [ "$opencount" != "0" ]; then
+		device_msg "$dst" "busy"
+		continue
+	fi
+
+	#major=$(dmsetup info -c --noheadings -o major "$dst" 2> /dev/null || true)
+	#minor=$(dmsetup info -c --noheadings -o minor "$dst" 2> /dev/null || true)
+	src_major=$(dmsetup deps "$dst" 2> /dev/null | sed -e 's/^.*(\([0-9]*\), [0-9]*)$/\1/g' || true)
+	src_minor=$(dmsetup deps "$dst" 2> /dev/null | sed -e 's/^.*([0-9]*, \([0-9]*\))$/\1/g' || true)
+
+	if [ -z "$src_major" ] || [ -z "$src_minor" ]; then
+		device_msg "$dst" "error"
+		continue
+	fi
+
+	do_close
+
+	# Detach loopback device, if attached
+	if [ "$src_major" = "7" ]; then
+		loopdev="/dev/loop${src_minor}"
+		if ! rm_lo_setup; then
+			device_msg "$dst" "detaching loopback failed"
+			continue
+		fi
+	fi
+
+	device_msg "$dst" "stopping"
+
+	return 0
+}
+
 do_start () {
 	local dst src key opts result
 
@@ -533,7 +579,7 @@ do_start () {
 	mount_fs
 
 	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
-		handle_crypttab_line "$dst" "$src" "$key" "$opts"
+		handle_crypttab_line_start "$dst" "$src" "$key" "$opts"
 	done
 	umount_fs
 
@@ -549,42 +595,7 @@ do_stop () {
 	loopmajor=$(grep "[[:space:]]*loop$" /proc/devices | sed 's/^[[:space:]]*//;s/[[:space:]].*//')
 
 	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
-		if [ ! -b "/dev/mapper/$dst" ]; then
-			device_msg "$dst" "stopped"
-			continue
-		fi
-
-		opencount=$(dmsetup info -c --noheadings -o open "$dst" 2> /dev/null || true)
-		if [ -z "$opencount" ]; then
-			device_msg "$dst" "error"
-			continue
-		elif [ "$opencount" != "0" ]; then
-			device_msg "$dst" "busy"
-			continue
-		fi
-
-		#major=$(dmsetup info -c --noheadings -o major "$dst" 2> /dev/null || true)
-		#minor=$(dmsetup info -c --noheadings -o minor "$dst" 2> /dev/null || true)
-		src_major=$(dmsetup deps "$dst" 2> /dev/null | sed -e 's/^.*(\([0-9]*\), [0-9]*)$/\1/g' || true)
-		src_minor=$(dmsetup deps "$dst" 2> /dev/null | sed -e 's/^.*([0-9]*, \([0-9]*\))$/\1/g' || true)
-
-		if [ -z "$src_major" ] || [ -z "$src_minor" ]; then
-			device_msg "$dst" "error"
-			continue
-		fi
-
-		do_close
-
-		# Detach loopback device, if attached
-		if [ "$src_major" = "7" ]; then
-			loopdev="/dev/loop${src_minor}"
-			if ! rm_lo_setup; then
-				device_msg "$dst" "detaching loopback failed"
-				continue
-			fi
-		fi
-
-		log_action_cont_msg "$dst (stopping)"
+		handle_crypttab_line_stop "$dst" "$src" "$key" "$opts"
 	done
 
 	log_action_end_msg 0

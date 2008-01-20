@@ -9,8 +9,10 @@ cryptsetup (2:1.0.6~pre1-2) unstable; urgency=low
     <ukuehn@acm.org> for the idea.
   * Add typo fixes by Justin Pryzby <jpryzby+d@quoininc.com> to crypttab.5 and
     cryptsetup.8. New dpatch 02_manpage.dpatch. (closes: #460994)
+  * Add a cryptdisks_stop script, corresponding to cryptdisks_start. Thanks to
+    Joachim Breitner <nomeata@debian.org> for the idea. (closes: #459832)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 20 Jan 2008 16:10:51 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 20 Jan 2008 16:27:48 +0100
 
 cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
 
