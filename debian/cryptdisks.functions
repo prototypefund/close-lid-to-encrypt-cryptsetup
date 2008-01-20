@@ -144,7 +144,7 @@ parse_opts () {
 			PARAMS="$PARAMS --timeout=$TIMEOUT"
 			;;
 		swap)
-			MAKESWAP=yes
+			MAKESWAP="yes"
 			SWCHECK="/lib/cryptsetup/checks/un_vol_id"
 			SWCHECKARGS="swap"
 			;;
@@ -156,15 +156,20 @@ parse_opts () {
 			fi
 			;;
 		luks)
-			USELUKS=yes
+			USELUKS="yes"
 			;;
 		noearly)
 			if [ "$INITSTATE" = "early" ]; then
 				IGNORE="yes"
 			fi
 			;;
+		noauto)
+			if [ -n "$INITSTATE" ]; then
+				IGNORE="yes"
+			fi
+			;;
 		loud)
-			LOUD=yes
+			LOUD="yes"
 			;;
 		keyscript)
 			if [ -n "$KEYSCRIPT" ]; then

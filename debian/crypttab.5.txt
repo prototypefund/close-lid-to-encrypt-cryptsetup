@@ -16,9 +16,9 @@ SYNOPSIS
     
 DESCRIPTION
 -----------
-The file *crypttab* (usually located at */etc/crypttab*) contains descriptive information about encrypted file systems.
+The file *crypttab* (usually located at */etc/crypttab*) contains descriptive information about encrypted filesystems.
 *crypttab* is only read by programs, and not written; it is the duty of the system administrator to properly create and maintain this file.
-Each file system is described on a separate line; fields on each line are separated by tabs or spaces. Lines starting with "'#'" are comments, empty lines are ignored.
+Each filesystem is described on a separate line; fields on each line are separated by tabs or spaces. Lines starting with "'#'" are comments, empty lines are ignored.
 The order of records in *crypttab* is important because the */etc/init.d/cryptdisks* script sequentially iterates through *crypttab* doing its thing.
 Note that all four fields are mandatory and that a missing field will lead to unspecified behaviour.
 
@@ -26,7 +26,7 @@ The first field 'target device' describes the mapped 'device name'.
 It must be a plain filename without any directories.
 A mapped device */dev/mapper/*'device name' will be created by *cryptsetup(8)* crypting data from and onto the 'source device'.
 
-The second field 'source device' describes either the block special device or file (which will be automatically mounted as loop device) that should hold the encrypted data.
+The second field 'source device' describes either the block special device or file (which will be automatically mounted as a loop device) that should hold the encrypted data.
 
 The third field 'key file' describes the file to use for decrypting the encrypted data of the 'source device'.
 
@@ -70,28 +70,28 @@ Use device with luks extensions.
 *swap*::
 Run *mkswap* on the created device.
 
-*tmp*::
-Run *mke2fs* on the created device.
+*tmp*=<tmpfs>::
+Run *mkfs* with filesystem type <tmpfs> on the created device. Default is ext2.
 
 *precheck*=<precheck>::
-Check the source device by suitable program; if the check fails the device is
+Check the source device by suitable program; if the check fails, the device is
 not created; <precheck> is a script to check the source device. The source
-device is given as argument to the script.
+device is given as an argument to the script.
 
 *check*=<check>::
-Check the content of the device by a suitable program; if the check fails the
-device is removed. If a program is provided as argument, it is run, giving the
-decrypted volume (target device) as first, and the value of the checkargs
-option as second argument. Cryptdisks searches for the given program in
-/lib/cryptsetup/checks/. Default is vol_id.
+Check the content of the device by a suitable program; if the check fails, the
+device is removed. If a program is provided as an argument, it is run, giving
+the decrypted volume (target device) as the first argument, and the value of the
+checkargs option as the second argument. Cryptdisks searches for the given program
+in /lib/cryptsetup/checks/. Default is vol_id.
 
 *checkargs*=<arguments>::
-Give <arguments> as second argument to the check script. See description for
+Give <arguments> as the second argument to the check script. See description for
 CHECKSCRIPTS for more information.
 
 *tries*=<num>::
 The input of the passphrase is tried <num> times in case that it fails. If you
-want to disable retries, give tries=1 as argument. Default is 3.
+want to disable retries, pass tries=1. Default is 3.
 
 *timeout*=<sec>::
 If key is "'none'", the cryptdisks script interactively prompts for a
@@ -104,11 +104,15 @@ raid, etc. are started, and once after that. Sometimes you need to start your
 encrypted disks in a special order. With this option the first invokation of
 cryptdisks ignores the device.
 
+*noauto*::
+Entirely ignore the device at the boot process. It's still possible to map the device
+manually using cryptdisks_start.
+
 *loud*::
 Be loud. Print warnings if a device does not exist.
 
 *keyscript*=<path>::
-The executable at the inidicated path is executed with the 'key file' from the third 
+The executable at the indicated path is executed with the 'key file' from the third 
 field of the crypttab as its only argument and the output is used as the key. This
 also works with encrypted root filesystems via initramfs if the executable is 
 self-contained (i.e. not a shell script which relies on external programs).
@@ -150,7 +154,7 @@ cdisk1 /dev/sda2 none checkargs=ext2,tries=5
 *Encrypted disk with interactive password, use a nondefault check script, no retries*::
 cdisk2 /dev/hdc1 none check=customscript,tries=1
 
-*Encrypted disk with interactive password and twofish as cipher*::
+*Encrypted disk with interactive password and twofish as the cipher*::
 cdisk3 /dev/sda3 none cipher=twofish
 
 ENVIRONMENT
@@ -164,15 +168,15 @@ for keys on removable devices, such as cdrom, usbstick, flashcard, ...
 
 *CRYPTDISKS_CHECK*::
 Specifies the checkscript to be run against the target device, after cryptdisks
-has been invoked. The target device is given as only argument to the
-checkscript. Takes effect, if the 'check' option is given in crypttab with no
-value.
+has been invoked. The target device is passed as the first and only argument to
+the checkscript. Takes effect, if the 'check' option is given in crypttab with
+no value.
 
 *CRYPTDISKS_PRECHECK*::
 Specifies the checkscript to be run against the source device, before
-cryptdisks has been invoked. The source device is given as only argument to the
-checkscript. Takes effect, if the 'precheck' option is given in crypttab with
-no value.
+cryptdisks has been invoked. The source device is given as the first and only
+argument to the checkscript. Takes effect, if the 'precheck' option is given in
+crypttab with no value.
 
 *CRYPTDISKS_TIMEOUT*::
 Specifies the time in seconds to wait for the password before timing out. Takes
@@ -181,7 +185,7 @@ effect, if the 'timeout' option is given in crypttab with no value.
 
 SEE ALSO
 --------
-cryptsetup(8), /etc/crypttab
+*cryptsetup*(8), '/etc/crypttab'
 
 
 AUTHOR
