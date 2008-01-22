@@ -10,7 +10,7 @@ might be a different partition on your system):
 # <file system> <mount point>   <type>  <options>     <dump>  <pass>
 /dev/hda9        none           swap    sw            0       0
 
-Now just replace /dev/hda9 (or whatever your swap own partition is)
+Now just replace /dev/hda9 (or whatever your swap partition is)
 with the new device name /dev/mapper/cswap:
 # <file system> <mount point>   <type>  <options>     <dump>  <pass>
 /dev/mapper/cswap  none         swap    sw            0       0
@@ -21,7 +21,7 @@ your own swap partition):
 cswap		/dev/hda9	/dev/random	swap,cipher=aes-cbc-plain,size=128,hash=ripemd160
 
 Now start your crypted device:  /etc/init.d/cryptdisks start
-And reaktivate your swap:       swapon -a
+And reactivate your swap:       swapon -a
 
 Thats it! You have a crypted swap device. Note that the
 /dev/random device might not generate enough random bytes, so the boot

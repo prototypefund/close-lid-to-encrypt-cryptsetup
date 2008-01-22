@@ -11,8 +11,9 @@ cryptsetup (2:1.0.6~pre1-2) unstable; urgency=low
     cryptsetup.8. New dpatch 02_manpage.dpatch. (closes: #460994)
   * Add a cryptdisks_stop script, corresponding to cryptdisks_start. Thanks to
     Joachim Breitner <nomeata@debian.org> for the idea. (closes: #459832)
+  * 
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 20 Jan 2008 16:27:48 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 22 Jan 2008 13:15:14 +0100
 
 cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
 

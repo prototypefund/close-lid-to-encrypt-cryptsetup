@@ -34,7 +34,7 @@ Step by step:
 init 1
 
 # Install a standard debian linux kernel (>= 2.6.4) and the initrd-tools
-# packages, replace 2.6.12-1 with the kernel version you'dd like to install,
+# packages, replace 2.6.12-1 with the kernel version you'd like to install,
 # and 386 with whatever architecture you have (such as k8)
 apt-get install initrd-tools linux-image-2.6.12-1-386
 
