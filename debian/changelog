@@ -1,5 +1,14 @@
-cryptsetup (2:1.0.6~pre1-2) unstable; urgency=low
+cryptsetup (2:1.0.6~pre1+svn44-1) unstable; urgency=low
 
+  * New upstream svn snapshot:
+    - Adds typo fixes by Justin Pryzby <jpryzby+d@quoininc.com> to cryptsetup.8
+      manpage.
+    - Mentions luksKillSlot in the manpage. Thanks to Alexander Heinlein
+      <alexander.heinlein@web.de>. (closes: #459206)
+    - Adds the patch by U Kuehn <ukuehn@acm.org> to support explicit key slots
+      for luksFormat, luksAddKey.
+    - Supports adding new keys to active devices again. Thanks to Tobias Frost
+      <tobi@coldtobi.de> for the bugreport. (closes: #460409)
   * Add support for a custom filesystem for /tmp. Patch provided by
     Hans-Peter Oeri <hp@oeri.ch>.
   * Add X-Start-Before headers to cryptdisks and cryptdisks-early initscripts.
@@ -7,13 +16,12 @@ cryptsetup (2:1.0.6~pre1-2) unstable; urgency=low
     (closes: #458944)
   * Add support for a noauto option to cryptdisks. Thanks to U Kuehn
     <ukuehn@acm.org> for the idea.
-  * Add typo fixes by Justin Pryzby <jpryzby+d@quoininc.com> to crypttab.5 and
-    cryptsetup.8. New dpatch 02_manpage.dpatch. (closes: #460994)
+  * Add typo fixes by Justin Pryzby <jpryzby+d@quoininc.com> to crypttab.5
+    manpage. (closes: #460994)
   * Add a cryptdisks_stop script, corresponding to cryptdisks_start. Thanks to
     Joachim Breitner <nomeata@debian.org> for the idea. (closes: #459832)
-  * 
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 22 Jan 2008 13:15:14 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 28 Jan 2008 15:03:34 +0100
 
 cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
 
