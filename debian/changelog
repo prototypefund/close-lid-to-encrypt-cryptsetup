@@ -1,4 +1,4 @@
-cryptsetup (2:1.0.6~pre1+svn44-1) unstable; urgency=low
+cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
 
   * New upstream svn snapshot:
     - Adds typo fixes by Justin Pryzby <jpryzby+d@quoininc.com> to cryptsetup.8
@@ -21,7 +21,7 @@ cryptsetup (2:1.0.6~pre1+svn44-1) unstable; urgency=low
   * Add a cryptdisks_stop script, corresponding to cryptdisks_start. Thanks to
     Joachim Breitner <nomeata@debian.org> for the idea. (closes: #459832)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 28 Jan 2008 15:03:34 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 28 Jan 2008 16:07:19 +0100
 
 cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
 
