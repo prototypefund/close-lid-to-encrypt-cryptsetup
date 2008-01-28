@@ -20,8 +20,11 @@ cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
     manpage. (closes: #460994)
   * Add a cryptdisks_stop script, corresponding to cryptdisks_start. Thanks to
     Joachim Breitner <nomeata@debian.org> for the idea. (closes: #459832)
+  * Change log_progress_msg to log_action_msg in cryptdisks.functions. That
+    way a newline is printed after the start of every device. Thanks to Frans
+    Pop <elendil@planet.nl> for the bugreport. (closes: #461548)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 28 Jan 2008 16:07:19 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 28 Jan 2008 16:23:53 +0100
 
 cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
 

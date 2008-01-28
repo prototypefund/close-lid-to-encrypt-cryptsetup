@@ -499,7 +499,7 @@ handle_crypttab_line_start () {
 	if [ "$IGNORE" = "yes" ]; then
 		result="ignore"
 	else
-		log_progress_msg "$dst (starting)"
+		log_action_msg "$dst (starting)"
 		result="ok"
 		if [ "$USELUKS" = "yes" ]; then
 			do_luks || result="fail"
