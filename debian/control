@@ -17,7 +17,7 @@ Conflicts: cryptsetup-luks (<= 1.0.1-8), hashalot (<= 0.3-1)
 Replaces: cryptsetup-luks (<= 1.0.1-8)
 Description: configures encrypted block devices
  Cryptsetup provides a command-line interface for configuring encrypted
- devices. This is done using the linux kernel device mapper target
+ devices. This is done using the Linux kernel device mapper target
  dm-crypt. This version of cryptsetup has integrated support for LUKS.
  .
  cryptsetup is backwards compatible with the on-disk format of cryptoloop,
@@ -33,7 +33,7 @@ Architecture: any
 Depends: ${shlibs:Depends}, dmsetup-udeb
 Description: configures encrypted block devices
  Cryptsetup provides a command-line interface for configuring encrypted
- devices. This is done using the linux kernel device mapper target
+ devices. This is done using the Linux kernel device mapper target
  dm-crypt. This version of cryptsetup has integrated support for LUKS.
  .
  cryptsetup is backwards compatible with the on-disk format of cryptoloop,
