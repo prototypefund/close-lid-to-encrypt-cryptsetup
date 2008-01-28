@@ -1,4 +1,4 @@
-/etc/bash_completition.d
+/etc/bash_completion.d
 /etc/default
 /etc/init.d
 /lib/cryptsetup/checks
