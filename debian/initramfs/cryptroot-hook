@@ -242,7 +242,7 @@ get_device_opts() {
 
 	# Warn for missing hash option, unless we have a LUKS partition
 	if [ -z "$HASH_FOUND" ] && [ -z "$LUKS_FOUND" ]; then
-		echo "WARNING: Option hash missing in crypttab for target $target, assuming sha256." >&2
+		echo "WARNING: Option hash missing in crypttab for target $target, assuming ripemd160." >&2
 		echo "         If this is wrong, this initramfs image will not boot." >&2
 		echo "         Please read /usr/share/doc/cryptsetup/README.initramfs.gz and add" >&2
 		echo "         the correct hash option to your /etc/crypttab."  >&2

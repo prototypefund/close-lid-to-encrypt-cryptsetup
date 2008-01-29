@@ -37,7 +37,7 @@ parse_options()
 	# Defaults
 	cryptcipher=aes-cbc-essiv:sha256
 	cryptsize=256
-	crypthash=sha256
+	crypthash=ripemd160
 	crypttarget=cryptroot
 	cryptsource=""
 	cryptlvm=""
