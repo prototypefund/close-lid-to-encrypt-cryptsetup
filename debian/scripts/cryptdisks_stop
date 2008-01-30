@@ -24,7 +24,7 @@ else
 fi
 
 egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
-	if [ "$1" == "$dst" ]; then
+	if [ "$1" = "$dst" ]; then
 		handle_crypttab_line_stop "$dst" "$src" "$key" "$opts"
 		exit 0
 	fi

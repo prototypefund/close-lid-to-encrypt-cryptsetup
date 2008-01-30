@@ -26,12 +26,14 @@ cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
   * Add bash_completition script provided by Kevin Locke <kwl7@cornell.edu>.
     (closes: #423591)
   * Fix a spelling error in the package description: linux -> Linux.
+  * Fix bashisms in cryptdisks_{start,stop} found by Raphael Geissert
+    <atomo64+debian@gmail.com>.
   * Change the default hash in initramfs scripts from sha256 to ripemd160 for
     consistency with cryptsetup default. Add information about that to
     NEWS.Debian. Thanks to martin f krafft <madduck@debian.org>.
     (closes: #406317)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 29 Jan 2008 11:52:30 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 30 Jan 2008 09:01:52 +0100
 
 cryptsetup (2:1.0.6~pre1-1) unstable; urgency=low
 
