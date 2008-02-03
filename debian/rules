@@ -30,8 +30,8 @@ CRYPTSETUP_UDEB=cryptsetup-udeb
 
 UDEBNAME=$(CRYPTSETUP_UDEB)_$(DEBVERSION)_$(shell dpkg --print-architecture).udeb
 
-# Include dpatch stuff.
-include /usr/share/dpatch/dpatch.make
+# Include quilt stuff.
+include /usr/share/quilt/quilt.make
 
 config.status: configure.in patch
 	dh_testdir

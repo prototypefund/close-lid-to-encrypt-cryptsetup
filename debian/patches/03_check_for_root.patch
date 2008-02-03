@@ -1,12 +1,8 @@
-#! /bin/sh /usr/share/dpatch/dpatch-run
-
-## 03_check_for_root.dpatch
+## 03_check_for_root.patch
 ## by Jonas Meurer <mejo@debian.org>
 ##
-## All lines beginning with `## DP:' are a description of the patch.
-## DP: check for UID == 0 before actually doing anything.
+## check for UID == 0 before actually doing anything.
 
-@DPATCH@
 diff -urNad cryptsetup-1.0.6~pre1~/src/cryptsetup.c cryptsetup-1.0.6~pre1/src/cryptsetup.c
 --- cryptsetup-1.0.6~pre1~/src/cryptsetup.c	2007-12-01 17:46:10.000000000 +0100
 +++ cryptsetup-1.0.6~pre1/src/cryptsetup.c	2007-12-04 13:25:23.000000000 +0100

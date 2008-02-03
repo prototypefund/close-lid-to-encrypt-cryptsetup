@@ -1,11 +1,8 @@
-#! /bin/sh /usr/share/dpatch/dpatch-run
-
-## 06_run_udevsettle.dpatch
+## 06_run_udevsettle.patch
 ## by Reinhard Tartler <siretart@ubuntu.com>
 ##
-## All lines beginning with `## DP:' are a description of the patch.
-## DP: run udevsettle after dm device creation
-## DP: See https://bugs.launchpad.net/bugs/132373
+## run udevsettle after dm device creation
+## See https://bugs.launchpad.net/bugs/132373
 
 @DPATCH@
 diff -urNad cryptsetup-1.0.6~pre1~/lib/libdevmapper.c cryptsetup-1.0.6~pre1/lib/libdevmapper.c
