@@ -93,7 +93,7 @@ install: install-stamp
 install-stamp: build-stamp
 	dh_testdir
 	dh_testroot
-	dh_clean -a -k
+	dh_clean
 	dh_installdirs
 	mkdir -p $(CURDIR)/debian/cryptsetup-udeb/
 	$(MAKE) DESTDIR=$(CURDIR)/debian/cryptsetup install
@@ -131,8 +131,8 @@ binary-arch: build install
 	dh_installchangelogs ChangeLog
 	dh_installdocs
 	dh_installexamples debian/scripts/gen-ssl-key debian/scripts/gen-old-ssl-key debian/usbcrypto.udev
-	dh_installinit -a --no-start --name=cryptdisks-early --update-rcd-params="start 26 S . start 59 0 6 ."
-	dh_installinit -a --no-start --name=cryptdisks --update-rcd-params="start 28 S . start 48 0 6 ."
+	dh_installinit --no-start --name=cryptdisks-early --update-rcd-params="start 26 S . start 59 0 6 ."
+	dh_installinit --no-start --name=cryptdisks --update-rcd-params="start 28 S . start 48 0 6 ."
 	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/sbin $(CURDIR)/debian/cryptsetup-udeb/
@@ -140,18 +140,18 @@ binary-arch: build install
 	# We instead statically link the relevant code
 	# into the cryptsetup executable, so the .so is not needed.
 	rm -rf $(CURDIR)/debian/cryptsetup/usr/lib
-#	dh_install
+#	dh_install 
 	dh_installman debian/crypttab.5 debian/luksformat.8 debian/cryptdisks_start.8 debian/cryptdisks_stop.8
-	dh_link -a
-	dh_strip -a
-	dh_compress -a
-	dh_fixperms -a
-	dh_makeshlibs -a
-	dh_installdeb -a
-	dh_shlibdeps -a
-	dh_gencontrol -a
+	dh_link 
+	dh_strip 
+	dh_compress 
+	dh_fixperms 
+	dh_makeshlibs 
+	dh_installdeb 
+	dh_shlibdeps 
+	dh_gencontrol 
 	dh_md5sums
-	dh_builddeb -a
+	dh_builddeb 
 
 binary: binary-indep binary-arch
 .PHONY: configure build clean install binary-indep binary-arch binary patch unpatch
