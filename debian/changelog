@@ -4,9 +4,9 @@ cryptsetup (2:1.0.6~pre1+svn45-2) unstable; urgency=low
   * enhance the information regarding the default hash setting in NEWS.Debian.
   * change author of keyslot patch to Marc Merlin in changelog, thanks to
     U. Kuehn for raising that issue.
-  * doing some debian/rules redesign, speeds up the build process.
+  * doing some debian/rules redesign and cleanup, speeds up the build process.
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 06 Feb 2008 16:20:51 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 06 Feb 2008 17:52:22 +0100
 
 cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
 
