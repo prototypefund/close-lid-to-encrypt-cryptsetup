@@ -2,8 +2,11 @@ cryptsetup (2:1.0.6~pre1+svn45-2) unstable; urgency=low
 
   * convert patch system from dpatch to quilt.
   * enhance the information regarding the default hash setting in NEWS.Debian.
+  * change author of keyslot patch to Marc Merlin in changelog, thanks to
+    U. Kuehn for raising that issue.
+  * doing some debian/rules redesign, speeds up the build process.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 05 Feb 2008 00:38:08 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 06 Feb 2008 16:20:51 +0100
 
 cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
 
@@ -12,8 +15,9 @@ cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
       manpage.
     - Mentions luksKillSlot in the manpage. Thanks to Alexander Heinlein
       <alexander.heinlein@web.de>. (closes: #459206)
-    - Adds the patch by U Kuehn <ukuehn@acm.org> to support explicit key slots
-      for luksFormat, luksAddKey.
+    - Adds the patch by Marc Merlin <marc_www@merlins.org> to support explicit
+      key slots for luksFormat and luksAddKey. Thanks to U. Kuehn, who figured
+      out that this patch wasn't applied even though changelog said so.
     - Supports adding new keys to active devices again. Thanks to Tobias Frost
       <tobi@coldtobi.de> for the bugreport. (closes: #460409)
   * Add support for a custom filesystem for /tmp. Patch provided by
