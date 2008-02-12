@@ -1,9 +1,14 @@
 This package was debianized by Michael Gebetsroither <michael.geb@gmx.at> on
-Sat Feb 12 16:10:12 CET 2005
+Sat Feb 12 16:10:12 CET 2005, further development was done by Jonas Meurer
+<jonas@freesources.org> and David Härdeman <david@hardeman.nu>.
 
-It was downloaded from http://clemens.endorphin.org/LUKS
+The upstream source was downloaded from http://clemens.endorphin.org/LUKS
 
-Upstream Author: Clemens Fruhwirth <clemens@endorphin.org>
+Upstream Authors: Clemens Fruhwirth <clemens@endorphin.org>
+                  Christophe Saout <christophe@saout.de>
+
+Copyright © 2005-2008 Clemens Fruhwirth <clemens@endorphin.org>
+Copyright © 2004      Christophe Saout <christophe@saout.de>
 
 License:
 
