@@ -455,6 +455,12 @@ handle_crypttab_line_start () {
 	key=$3
 	opts=$4
 
+	# Ignore noauto devices
+	if [ "$IGNORE" = "yes" ]; then
+		device_msg "$dst" "ignored"
+		continue
+	fi
+
 	# Make sure that all fields are present
 	if [ -z "$dst" ]; then
 		continue
@@ -496,22 +502,16 @@ handle_crypttab_line_start () {
 	fi
 
 	# Do the real setup
-	if [ "$IGNORE" = "yes" ]; then
-		result="ignore"
+	log_action_msg "$dst (starting)"
+	result="ok"
+	if [ "$USELUKS" = "yes" ]; then
+		do_luks || result="fail"
 	else
-		log_action_msg "$dst (starting)"
-		result="ok"
-		if [ "$USELUKS" = "yes" ]; then
-			do_luks || result="fail"
-		else
-			do_noluks || result="fail"
-		fi
+		do_noluks || result="fail"
 	fi
 
 	# Finish up
-	if [ "$result" = "ignore" ]; then
-		device_msg "$dst" "ignored"
-	elif [ "$result" != "ok" ]; then
+	if [ "$result" != "ok" ]; then
 		rm_lo_setup
 		device_msg "$dst" "failed"
 	else

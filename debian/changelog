@@ -1,12 +1,15 @@
-cryptsetup (2:1.0.6~pre1+svn45-2) unstable; urgency=low
+cryptsetup (2:1.0.6~pre1+svn46-1) unstable; urgency=low
 
+  * New upstream svn snapshot
   * convert patch system from dpatch to quilt.
   * enhance the information regarding the default hash setting in NEWS.Debian.
   * change author of keyslot patch to Marc Merlin in changelog, thanks to
     U. Kuehn for raising that issue.
   * doing some debian/rules redesign and cleanup, speeds up the build process.
+  * ignore devices with the noauto option early enough to prevent any checks
+    on them. Thanks to Joachim Breitner <nomeata@debian.org> (closes: #464672)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 06 Feb 2008 17:52:22 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 12 Feb 2008 10:08:24 +0100
 
 cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
 
