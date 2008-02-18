@@ -10,8 +10,10 @@ cryptsetup (2:1.0.6~pre1+svn46-1) unstable; urgency=low
   * ignore devices with the noauto option early enough to prevent any checks
     on them. Thanks to Joachim Breitner <nomeata@debian.org> (closes: #464672)
   * update debian/copyright to actually mention copyright, thanks lintian.
+  * change script=$(basename $req) to script=${req##*/} in initramfs cryptroot
+    script. Thanks to Adeodato Simó <dato@net.com.org.es>. (closes: #466240)
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 16 Feb 2008 20:28:14 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 18 Feb 2008 14:14:42 +0100
 
 cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
 

@@ -7,7 +7,7 @@ prereqs()
 {
 	# Make sure that cryptroot is run last in local-top
 	for req in /scripts/local-top/*; do
-		script=$(basename $req)
+		script=${req##*/}
 		if [ $script != cryptroot ]; then
 			echo $script
 		fi

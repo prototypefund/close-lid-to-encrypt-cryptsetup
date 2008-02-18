@@ -3,8 +3,14 @@ cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
   The default hash used by the initramfs cryptroot scripts has been changed
   from sha256 to ripemd160 for consistency with the cryptsetup default. If you
   have followed the recommendation to configure the hash in /etc/crypttab this
-  change will have no effect on you. It also does not effects LUKS, since it
-  does not use the hash option.
+  change will have no effect on you.
+  
+  If you set up disk encryption on your system using the Debian installer
+  and/or if you use LUKS encryption, everything is already set up correctly
+  and you don't need to do anything.
+  If you did *not* use the Debian installer and if you have encrypted devices
+  which do *not* use LUKS, you must make sure that the relevant entries in
+  /etc/crypttab contain a hash=<hash> setting.
 
  -- Jonas Meurer <mejo@debian.org>  Tue, 29 Jan 2008 11:46:57 +0100
 
