@@ -12,8 +12,9 @@ cryptsetup (2:1.0.6~pre1+svn46-1) unstable; urgency=low
   * update debian/copyright to actually mention copyright, thanks lintian.
   * change script=$(basename $req) to script=${req##*/} in initramfs cryptroot
     script. Thanks to Adeodato Simó <dato@net.com.org.es>. (closes: #466240)
+  * change test ... -a ... to [ ... ] && [ ... ] in the check scripts.
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 18 Feb 2008 14:14:42 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 21 Feb 2008 13:34:33 +0100
 
 cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
 

@@ -20,10 +20,10 @@ fs=$2
 
 vol_id=`/lib/udev/vol_id -t $dev 2>&1`
 
-if test "$vol_id" != "$dev: unknown volume type" -a "$vol_id" != "minix" -a -z "$fs"; then
+if [ "$vol_id" != "$dev: unknown volume type" ] && [ "$vol_id" != "minix" ] && [ -z "$fs" ]; then
   echo " - The device $dev contains a valid filesystem type $vol_id."
   exit 1
-elif test -n "$fs" -a "$vol_id" = "$fs"; then
+elif [ -n "$fs" ] && [ "$vol_id" = "$fs" ]; then
   echo " - The device $dev contains a filesystem type $fs."
   exit 1
 fi
