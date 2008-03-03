@@ -43,6 +43,7 @@ parse_options()
 	cryptlvm=""
 	cryptkeyscript=""
 	cryptkey="" # This is only used as an argument to an eventual keyscript
+	crypttries=3
 
 	local IFS=" ,"
 	for x in $cryptopts; do
@@ -77,6 +78,14 @@ parse_options()
 			if [ "${x#key=}" != "none" ]; then
 				cryptkey=${x#key=}
 			fi
+			;;
+		tries=*)
+			crypttries="${x#tries=}"
+			case "$crypttries" in
+			  *[![:digit:].]*)
+				crypttries=3
+				;;
+			esac
 			;;
 		esac
 	done
@@ -179,7 +188,7 @@ setup_mapping()
 
 	# Try to get a satisfactory password three times
 	count=0
-	while [ $count -lt 3 ]; do
+	while [ $crypttries -le 0 ] || [ $count -lt $crypttries ]; do
 		count=$(( $count + 1 ))
 
 		if [ -n "$cryptkeyscript" ]; then

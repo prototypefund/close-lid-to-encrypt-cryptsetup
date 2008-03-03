@@ -1,6 +1,7 @@
-cryptsetup (2:1.0.6~pre1+svn46-1) unstable; urgency=low
+cryptsetup (2:1.0.6~pre2-1) unstable; urgency=low
 
-  * New upstream svn snapshot
+  * new upstream prerelease
+    - reload option is depreciated and a warning is printed. (closes: #428288)
   * convert patch system from dpatch to quilt.
   * enhance the information regarding the default hash setting in NEWS.Debian.
     Thanks to Ross Boylan <ross@biostat.ucsf.edu>.
@@ -13,8 +14,10 @@ cryptsetup (2:1.0.6~pre1+svn46-1) unstable; urgency=low
   * change script=$(basename $req) to script=${req##*/} in initramfs cryptroot
     script. Thanks to Adeodato Simó <dato@net.com.org.es>. (closes: #466240)
   * change test ... -a ... to [ ... ] && [ ... ] in the check scripts.
+  * add support for tries option to initramfs scripts. Thanks to Helmut Grohne
+    <helmut@subdivi.de>. (closes: #430158)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 21 Feb 2008 13:34:33 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 03 Mar 2008 14:25:48 +0100
 
 cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
 

@@ -231,6 +231,9 @@ get_device_opts() {
 				opt=$(basename "$opt")
 				OPTIONS="$OPTIONS,keyscript=/keyscripts/$opt"
 				;;
+			tries=*)
+				OPTIONS="$OPTIONS,$opt"
+				;;
 			luks)
 				LUKS_FOUND=1
 				;;
