@@ -3,9 +3,8 @@
 ##
 ## check for UID == 0 before actually doing anything.
 
-diff -urNad cryptsetup-1.0.6~pre1~/src/cryptsetup.c cryptsetup-1.0.6~pre1/src/cryptsetup.c
---- cryptsetup-1.0.6~pre1~/src/cryptsetup.c	2007-12-01 17:46:10.000000000 +0100
-+++ cryptsetup-1.0.6~pre1/src/cryptsetup.c	2007-12-04 13:25:23.000000000 +0100
+--- a/src/cryptsetup.c
++++ b/src/cryptsetup.c
 @@ -6,6 +6,8 @@
  #include <errno.h>
  #include <unistd.h>
@@ -15,7 +14,7 @@ diff -urNad cryptsetup-1.0.6~pre1~/src/cryptsetup.c cryptsetup-1.0.6~pre1/src/cr
  
  #include <libcryptsetup.h>
  #include <popt.h>
-@@ -424,6 +426,10 @@
+@@ -431,6 +433,10 @@
  
  int main(int argc, char **argv)
  {

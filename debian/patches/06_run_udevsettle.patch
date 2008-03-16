@@ -5,9 +5,8 @@
 ## See https://bugs.launchpad.net/bugs/132373
 
 @DPATCH@
-diff -urNad cryptsetup-1.0.6~pre1~/lib/libdevmapper.c cryptsetup-1.0.6~pre1/lib/libdevmapper.c
---- cryptsetup-1.0.6~pre1~/lib/libdevmapper.c	2007-10-25 09:11:19.000000000 +0200
-+++ cryptsetup-1.0.6~pre1/lib/libdevmapper.c	2007-12-04 13:29:05.000000000 +0100
+--- a/lib/libdevmapper.c
++++ b/lib/libdevmapper.c
 @@ -18,13 +18,6 @@
  
  #define	CRYPT_TARGET	"crypt"
