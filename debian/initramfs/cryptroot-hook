@@ -123,11 +123,6 @@ get_lvm_deps() {
 	local node deps maj min depnode
 	node="$1"
 
-	uuid_resolv="/dev/disk/by-uuid/${node#UUID=}"
-	if [ -L "$uuid_resolv" ]; then
-		node=$(readlink -f "$uuid_resolv")
-	fi
-
 	if [ -z $node ]; then
 		echo "cryptsetup: WARNING: get_lvm_deps - invalid arguments" >&2
 		return 1
@@ -284,6 +279,33 @@ get_device_modules() {
 	return 0
 }
 
+canonical_device() {
+	local dev altdev
+	dev="$1"
+
+	altdev="${dev#LABEL=}"
+	if [ "$altdev" != "$dev" ]; then
+		dev="/dev/disk/by-label/$altdev"
+	fi
+
+	altdev="${dev#UUID=}"
+	if [ "$altdev" != "$dev" ]; then
+		dev="/dev/disk/by-uuid/$altdev"
+	fi
+
+	if [ -h "$dev" ]; then
+		dev=$(readlink -e "$dev")
+	fi
+
+	altdev="${dev#/dev/mapper/}"
+	if [ "$altdev" != "$dev" ]; then
+		echo "$altdev"
+		return 0
+	fi
+
+	return 1
+}
+
 add_device() {
 	local node nodes opts lastopts i count
 	nodes="$1"
@@ -295,13 +317,7 @@ add_device() {
 	fi
 
 	# Check that it is a node under /dev/mapper/
-	nodes="${nodes#/dev/mapper/}"
-	if [ "$nodes" = "$1" ]; then
-		# check that it is a UUID
-		if [ "${nodes#UUID=}" = "$nodes" ]; then
-			return 0
-		fi
-	fi
+	nodes=$(canonical_device "$nodes") || return 0
 
 	# Can we find this node in crypttab
 	if ! node_is_in_crypttab "$nodes"; then
