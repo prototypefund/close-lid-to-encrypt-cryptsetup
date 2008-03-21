@@ -20,8 +20,11 @@ cryptsetup (2:1.0.6-1) unstable; urgency=low
 
   [ David Härdeman ]
   * Work with LABEL=, UUID= and symlinks in /etc/fstab (closes: #466175)
+  * Improve module loading in initramfs hook so that the newer  as well
+    as arch specific crypto drivers are taken into consideration
+    (closes: #464673)
 
- -- David Härdeman <david@hardeman.nu>  Fri, 21 Mar 2008 21:58:25 +0100
+ -- David Härdeman <david@hardeman.nu>  Fri, 21 Mar 2008 23:30:29 +0100
 
 cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
 
