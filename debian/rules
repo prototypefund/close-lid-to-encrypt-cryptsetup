@@ -71,6 +71,7 @@ build-stamp: configure-stamp
 	# cannot depend on libraries in /usr !
 	gcc lib/.libs/*.o src/*.o luks/.libs/*.o -o src/cryptsetup.static \
 		-lpopt -ldevmapper -luuid /usr/lib/libgcrypt.a /usr/lib/libgpg-error.a
+	gcc debian/askpass.c -o debian/askpass
 	touch $@
 
 clean: unpatch
@@ -81,6 +82,7 @@ clean: unpatch
 	rm -f debian/crypttab.5 debian/crypttab.5.xml debian/luksformat.8
 	rm -f debian/cryptdisks_start.8 debian/cryptdisks_start.8.xml
 	rm -f debian/cryptdisks_stop.8 debian/cryptdisks_stop.8.xml
+	rm -f debian/askpass
 	rm -f config.mess
 	rm -rf autom4te.cache 
 	rm -f src/cryptsetup.static
@@ -116,6 +118,7 @@ install-stamp: build-stamp
 	install -m 0755 debian/initramfs/cryptopensc-script-local-bottom \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-bottom/cryptopensc
 	install -m 0644 debian/bash_completion $(CURDIR)/debian/cryptsetup/etc/bash_completion.d/cryptsetup
+	install -m 0755 debian/askpass $(CURDIR)/debian/cryptsetup/lib/cryptsetup/askpass
 	rmdir $(CURDIR)/debian/cryptsetup/usr/lib/cryptsetup
 	touch $@
 

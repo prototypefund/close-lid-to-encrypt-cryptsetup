@@ -16,7 +16,11 @@ cryptsetup (2:1.0.6-1) unstable; urgency=low
     script. Thanks to Adeodato Simó <dato@net.com.org.es>. (closes: #466240)
   * change test ... -a ... to [ ... ] && [ ... ] in the check scripts.
   * add support for tries option to initramfs scripts. Thanks to Helmut Grohne
-    <helmut@subdivi.de>. (closes: #430158, #469869)
+    <helmut@subdivi.de>. (closes: #430158, #469869) Use --tries=1 for
+    cryptsetup in the initramfs script. Document the difference between
+    initscript and initramfs for tries=0 in the crypttab manpage.
+  * add, build and install askpass.c, a helper program by David Härdeman. The
+    idea is to use it for passphrase prompt in the initramfs script.
 
   [ David Härdeman ]
   * Work with LABEL=, UUID= and symlinks in /etc/fstab (closes: #466175)
@@ -24,7 +28,7 @@ cryptsetup (2:1.0.6-1) unstable; urgency=low
     as arch specific crypto drivers are taken into consideration
     (closes: #464673)
 
- -- David Härdeman <david@hardeman.nu>  Fri, 21 Mar 2008 23:30:29 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 23 Mar 2008 14:59:31 +0100
 
 cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
 

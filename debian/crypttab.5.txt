@@ -92,6 +92,8 @@ CHECKSCRIPTS for more information.
 *tries*=<num>::
 The input of the passphrase is tried <num> times in case that it fails. If you
 want to disable retries, pass tries=1. Default is 3.
+For the root device, tries=0 enables infinitive retries. This is due to a
+special implementation in initramfs scripts.
 
 *timeout*=<sec>::
 If key is "'none'", the cryptdisks script interactively prompts for a

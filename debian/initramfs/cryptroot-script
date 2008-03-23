@@ -179,9 +179,9 @@ setup_mapping()
 
 	# Prepare commands
 	if /sbin/cryptsetup isLuks $cryptsource > /dev/null 2>&1; then
-		cryptcreate="/sbin/cryptsetup luksOpen $cryptsource $crypttarget"
+		cryptcreate="/sbin/cryptsetup -T 1 luksOpen $cryptsource $crypttarget"
 	else
-		cryptcreate="/sbin/cryptsetup -c $cryptcipher -s $cryptsize -h $crypthash create $crypttarget $cryptsource"
+		cryptcreate="/sbin/cryptsetup -T 1 -c $cryptcipher -s $cryptsize -h $crypthash create $crypttarget $cryptsource"
 	fi
 	cryptremove="/sbin/cryptsetup remove $crypttarget"
 	NEWROOT="/dev/mapper/$crypttarget"
