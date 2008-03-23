@@ -476,6 +476,7 @@ done
 # Prepare the initramfs
 copy_exec /sbin/cryptsetup /sbin
 copy_exec /sbin/dmsetup /sbin
+copy_exec /lib/cryptsetup/askpass /lib/cryptsetup
 
 # Done
 exit 0
