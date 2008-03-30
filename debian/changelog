@@ -27,8 +27,13 @@ cryptsetup (2:1.0.6-1) unstable; urgency=low
   * Improve module loading in initramfs hook so that the newer  as well
     as arch specific crypto drivers are taken into consideration
     (closes: #464673)
+  * Depend on race-free version of libdevmapper, thus making udevsettle
+    call from cryptsetup binary unnecessary. Also change call to
+    udevsettle in initramfs script (which is still useful as it related
+    to the source device) to optionally use udevadm if present (closes:
+    #456326).
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 23 Mar 2008 14:59:31 +0100
+ -- David Härdeman <david@hardeman.nu>  Sun, 30 Mar 2008 22:09:31 +0200
 
 cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
 
