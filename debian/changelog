@@ -33,7 +33,7 @@ cryptsetup (2:1.0.6-1) unstable; urgency=low
     to the source device) to optionally use udevadm if present (closes:
     #456326).
 
- -- David Härdeman <david@hardeman.nu>  Sun, 30 Mar 2008 22:09:31 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 31 Mar 2008 15:58:35 +0200
 
 cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
 
