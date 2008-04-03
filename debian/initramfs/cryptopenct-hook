@@ -55,7 +55,7 @@ cp /etc/udev/rules.d/z60_openct.rules ${DESTDIR}/etc/udev/rules.d/
 cp /lib/udev/openct_pcmcia ${DESTDIR}/lib/udev/
 cp /lib/udev/openct_serial ${DESTDIR}/lib/udev/
 cp /lib/udev/openct_usb ${DESTDIR}/lib/udev/
-copy_exec /usr/bin/openct-tool /usr/bin
-copy_exec /usr/bin/pkcs15-tool /usr/bin
-copy_exec /usr/sbin/ifdhandler /usr/sbin
-copy_exec /usr/sbin/openct-control /usr/sbin
+copy_exec /usr/bin/openct-tool
+copy_exec /usr/bin/pkcs15-tool
+copy_exec /usr/sbin/ifdhandler
+copy_exec /usr/sbin/openct-control

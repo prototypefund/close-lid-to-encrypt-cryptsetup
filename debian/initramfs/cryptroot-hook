@@ -442,8 +442,8 @@ if [ "$MODULES" != "dep" ]; then
 		add_crypto_modules $mod
 	done
 
-	copy_exec /sbin/cryptsetup /sbin
-	copy_exec /sbin/dmsetup /sbin
+	copy_exec /sbin/cryptsetup
+	copy_exec /sbin/dmsetup
 fi
 
 # We can't do anything without a config file
@@ -474,9 +474,9 @@ for dev in $rootdev $resumedevs; do
 done
 
 # Prepare the initramfs
-copy_exec /sbin/cryptsetup /sbin
-copy_exec /sbin/dmsetup /sbin
-copy_exec /lib/cryptsetup/askpass /lib/cryptsetup
+copy_exec /sbin/cryptsetup
+copy_exec /sbin/dmsetup
+copy_exec /lib/cryptsetup/askpass
 
 # Done
 exit 0
