@@ -54,7 +54,7 @@ $name or die "Error: could not generate temporary mapped device name";
 # we do not need to be overly concerned with race conditions here, cryptsetup
 # will just fail if the name already exists now.
 print "Creating encrypted device on $device...\n";
-if ((system 'cryptsetup', 'luksFormat', '--cipher', 'aes-cbc-essiv:sha256', $device)) {
+if ((system 'cryptsetup', 'luksFormat', '-s', '256', '--cipher', 'aes-cbc-essiv:sha256', $device)) {
     die "Could not create LUKS device $device";
 }
 
