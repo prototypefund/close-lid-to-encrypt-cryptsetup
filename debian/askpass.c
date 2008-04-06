@@ -50,32 +50,33 @@ static void
 debug(const char *fmt, ...)
 {
 	va_list ap;
-	
+	static bool first = true;
+	static FILE *dbgfile;
+
 	if (!DEBUG)
 		return;
-	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
-	va_end(ap);
-}
 
-static void
-die_error(const char *fmt, ...)
-{
-	va_list ap;
+	if (first) {
+		first = false;
+		dbgfile = fopen("/tmp/askpass.debug", "a");
+	}
+
+	if (!dbgfile)
+		return;
 
 	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
+	vfprintf(dbgfile, fmt, ap);
 	va_end(ap);
-	exit(EXIT_FAILURE);
 }
 
 static void
 usage(const char *arg0, const char *errmsg)
 {
 	if (errmsg)
-		die_error("Error: %s\nUsage: %s PROMPT\n", errmsg, arg0);
+		fprintf(stderr, "Error: %s\nUsage: %s PROMPT\n", errmsg, arg0);
 	else
-		die_error("Usage: %s PROMPT\n", arg0);
+		fprintf(stderr, "Usage: %s PROMPT\n", arg0);
+	exit(EXIT_FAILURE);
 }
 
 static void
