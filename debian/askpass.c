@@ -200,6 +200,13 @@ usplash_read(int fd, char **buf, size_t *size)
 {
 	debug("In usplash_read\n");
 	if (fifo_common_read(fd, &usplashbuf, &usplashused, &usplashsize)) {
+		while (usplashused > 0 && 
+		       (usplashbuf[usplashused - 1] == '\n') ||
+		       (usplashbuf[usplashused - 1] == '\0')) {
+			usplashused--;
+			usplashbuf[usplashused] = '\0';
+			debug("Correcting usplash read length\n");
+		}
 		*buf = usplashbuf;
 		*size = usplashused;
 		usplashwaiting = false;
@@ -483,6 +490,7 @@ main(int argc, char **argv, char **envp)
 		}
 	}
 
+	debug("Writing %i bytes to stdout\n", (int)passlen);
 	write(STDOUT_FILENO, pass, passlen);
 	disable_method(NULL);
 	exit(EXIT_SUCCESS);
