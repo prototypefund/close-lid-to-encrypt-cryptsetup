@@ -71,7 +71,7 @@ build-stamp: configure-stamp
 	# cannot depend on libraries in /usr !
 	gcc lib/.libs/*.o src/*.o luks/.libs/*.o -o src/cryptsetup.static \
 		-lpopt -ldevmapper -luuid /usr/lib/libgcrypt.a /usr/lib/libgpg-error.a
-	gcc debian/askpass.c -o debian/askpass
+	gcc -Wall -pedantic -std=c99 debian/askpass.c -o debian/askpass
 	touch $@
 
 clean: unpatch

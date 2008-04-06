@@ -1,11 +1,16 @@
 cryptsetup (2:1.0.6-2) unstable; urgency=low
 
+  [ Jonas Meurer ]
   * Taken from ubuntu:
     - debian/scripts/luksformat: Use 256 bit key size by default. (LP: #78508)
     - debian/patches/02_manpage.patch: Clarify default key sizes (128 for
       luksFormat and 256 for create) in cryptsetup.8. (side-note in LP #78508)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 06 Apr 2008 03:47:15 +0200
+  [ David Härdeman ]
+  * Misc bugfixes to askpass, make sure it is installed to the correct
+    location and is built using pedantic mode.
+
+ -- David Härdeman <david@hardeman.nu>  Sun, 06 Apr 2008 14:26:39 +0200
 
 cryptsetup (2:1.0.6-1) unstable; urgency=low
 
