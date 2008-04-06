@@ -9,8 +9,11 @@ cryptsetup (2:1.0.6-2) unstable; urgency=low
   [ David Härdeman ]
   * Misc bugfixes to askpass, make sure it is installed to the correct
     location and is built using pedantic mode.
+  * Change the initramfs script to use askpass to prompt for
+    passphrases, this should hopefully fix #382375 and #465902 once it
+    is enabled in the init scripts as well.
 
- -- David Härdeman <david@hardeman.nu>  Sun, 06 Apr 2008 14:26:39 +0200
+ -- David Härdeman <david@hardeman.nu>  Sun, 06 Apr 2008 19:29:53 +0200
 
 cryptsetup (2:1.0.6-1) unstable; urgency=low
 
