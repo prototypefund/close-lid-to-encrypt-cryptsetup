@@ -1,27 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
-<refentry>
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+<refentry id="command.cryptdisks_stop">
  <refmeta>
-  <refentrytitle>cryptdisk_start</refentrytitle><manvolnum>8</manvolnum>
+  <refentrytitle>cryptdisk_start</refentrytitle>
+  <manvolnum>8</manvolnum>
  </refmeta>
  <refnamediv>
-      <refname>cryptdisks_stop</refname>    <refpurpose>wrapper around
-   cryptsetup which parses /etc/crypttab.
-  </refpurpose>
+  <refname>cryptdisks_stop</refname>
+  <refpurpose>wrapper around cryptsetup which parses /etc/crypttab.</refpurpose>
  </refnamediv>
  <refsynopsisdiv>
   <simpara>
-   <emphasis role="strong">cryptdisks_stop</emphasis> <emphasis>&lt;name&gt;</emphasis>
+   <emphasis role="strong">cryptdisks_stop</emphasis>
+   <emphasis>&lt;name&gt;</emphasis>
   </simpara>
  </refsynopsisdiv>
  <refsect1 id="_description">
   <title>DESCRIPTION</title>
   <simpara>
-   <emphasis role="strong">cryptdisks_stop</emphasis> is a wrapper around <emphasis role="strong">
-    cryptsetup
-   </emphasis>
-   which parses <emphasis role="strong">/etc/crypttab</emphasis> just like the
-   initscript /etc/init.d/cryptdisksdoes, and stops the dm-crypt mapping which
-   corresponds to <emphasis>&lt;name&gt;</emphasis>.
+   <emphasis role="strong">cryptdisks_stop</emphasis> is a wrapper around
+   <emphasis role="strong">cryptsetup</emphasis> which parses
+   <emphasis role="strong">/etc/crypttab</emphasis> just like the initscript
+   /etc/init.d/cryptdisks does, and stops the dm-crypt mapping which corresponds
+   to <emphasis>&lt;name&gt;</emphasis>.
   </simpara>
  </refsect1>
  <refsect1 id="_see_also">
