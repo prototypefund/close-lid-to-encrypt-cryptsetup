@@ -53,6 +53,9 @@ configure-stamp: $(QUILT_STAMPFN)
 build: build-stamp
 build-stamp: configure-stamp
 	dh_testdir
+	xsltproc --xinclude -o debian/doc/					\
+		/usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl	\
+		debian/doc/manpages.xml
 	asciidoc -d manpage -b docbook debian/crypttab.5.txt
 	asciidoc -d manpage -b docbook debian/cryptdisks_start.8.txt
 	asciidoc -d manpage -b docbook debian/cryptdisks_stop.8.txt
@@ -82,6 +85,7 @@ clean: unpatch
 	rm -f debian/crypttab.5 debian/crypttab.5.xml debian/luksformat.8
 	rm -f debian/cryptdisks_start.8 debian/cryptdisks_start.8.xml
 	rm -f debian/cryptdisks_stop.8 debian/cryptdisks_stop.8.xml
+	rm -f debian/doc/*.[0-9] 
 	rm -f debian/askpass
 	rm -f config.mess
 	rm -rf autom4te.cache 
