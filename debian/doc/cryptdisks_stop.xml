@@ -1,32 +1,38 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
 <refentry>
-<refmeta>
-<refentrytitle>cryptdisk_start</refentrytitle>
-<manvolnum>8</manvolnum>
-</refmeta>
-<refnamediv>
-    <refname>cryptdisks_stop</refname>
-    <refpurpose>wrapper around cryptsetup which parses /etc/crypttab.</refpurpose>
-</refnamediv>
-<refsynopsisdiv>
-<simpara><emphasis role="strong">cryptdisks_stop</emphasis> <emphasis>&lt;name&gt;</emphasis></simpara>
-
-</refsynopsisdiv>
-<refsect1 id="_description">
-<title>DESCRIPTION</title>
-<simpara><emphasis role="strong">cryptdisks_stop</emphasis> is a wrapper around <emphasis role="strong">cryptsetup</emphasis> which parses <emphasis role="strong">/etc/crypttab</emphasis> just like the initscript /etc/init.d/cryptdisks
-does, and stops the dm-crypt mapping which corresponds to <emphasis>&lt;name&gt;</emphasis>.</simpara>
-
-</refsect1>
-<refsect1 id="_see_also">
-<title>SEE ALSO</title>
-<simpara><emphasis>cryptsetup</emphasis>(8), <emphasis>crypttab</emphasis>(5)</simpara>
-
-</refsect1>
-<refsect1 id="_author">
-<title>AUTHOR</title>
-<simpara>This manual page was written by Jonas Meurer &lt;mejo@debian.org&gt; in January 2008.</simpara>
-
-</refsect1>
+ <refmeta>
+  <refentrytitle>cryptdisk_start</refentrytitle><manvolnum>8</manvolnum>
+ </refmeta>
+ <refnamediv>
+      <refname>cryptdisks_stop</refname>    <refpurpose>wrapper around
+   cryptsetup which parses /etc/crypttab.
+  </refpurpose>
+ </refnamediv>
+ <refsynopsisdiv>
+  <simpara>
+   <emphasis role="strong">cryptdisks_stop</emphasis> <emphasis>&lt;name&gt;</emphasis>
+  </simpara>
+ </refsynopsisdiv>
+ <refsect1 id="_description">
+  <title>DESCRIPTION</title>
+  <simpara>
+   <emphasis role="strong">cryptdisks_stop</emphasis> is a wrapper around <emphasis role="strong">
+    cryptsetup
+   </emphasis>
+   which parses <emphasis role="strong">/etc/crypttab</emphasis> just like the
+   initscript /etc/init.d/cryptdisksdoes, and stops the dm-crypt mapping which
+   corresponds to <emphasis>&lt;name&gt;</emphasis>.
+  </simpara>
+ </refsect1>
+ <refsect1 id="_see_also">
+  <title>SEE ALSO</title>
+  <simpara>
+   <emphasis>cryptsetup</emphasis>(8), <emphasis>crypttab</emphasis>(5)
+  </simpara>
+ </refsect1>
+ <refsect1 id="_author">
+  <title>AUTHOR</title><simpara>This manual page was written by Jonas Meurer
+   &lt;mejo@debian.org&gt; in January 2008.
+  </simpara>
+ </refsect1>
 </refentry>
