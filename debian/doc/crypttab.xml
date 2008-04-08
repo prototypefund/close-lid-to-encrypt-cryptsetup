@@ -1,313 +1,276 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
 <refentry id="file.crypttab">
+
  <refmeta>
   <refentrytitle>crypttab</refentrytitle>
   <manvolnum>5</manvolnum>
+  <xi:include href="variables.xml"
+              xpointer="xpointer(/refentry/refmeta/*)"
+	      xmlns:xi="http://www.w3.org/2001/XInclude"/>
  </refmeta>
+
  <refnamediv>
   <refname>crypttab</refname>
-  <refpurpose>static information about crypted filesystems</refpurpose>
+  <refpurpose>static information about encrypted filesystems</refpurpose>
  </refnamediv>
- <refsynopsisdiv>
-  <variablelist>
-   <varlistentry>
-    <term>
-     <emphasis role="strong">crypttab</emphasis>
-    </term>
-    <listitem>
-     <simpara>
-      <emphasis>&lt;target device&gt;</emphasis> <emphasis>&lt;source
-       device&gt;
-      </emphasis>
-      <emphasis>&lt;key file&gt;</emphasis> <emphasis>&lt;options&gt;</emphasis>
-     </simpara>
-    </listitem>
-   </varlistentry>
-  </variablelist>
- </refsynopsisdiv>
+
+ <xi:include href="variables.xml"
+             xpointer="xpointer(/refentry/refentryinfo)"
+             xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
  <refsect1 id="_description">
   <title>DESCRIPTION</title>
   <simpara>
-   The file <emphasis role="strong">crypttab</emphasis> (usually located at <emphasis role="strong">
-    /etc/crypttab
-   </emphasis>
-   )contains descriptive information about encrypted filesystems.<emphasis role="strong">
-    crypttab
-   </emphasis>
+   The file <filename>/etc/crypttab</filename> contains descriptive
+   information about encrypted filesystems. <filename>crypttab</filename>
    is only read by programs, and not written; it is the duty of the system
-   administrator to properly create and maintain this file.Each filesystem is
+   administrator to properly create and maintain this file. Each filesystem is
    described on a separate line; fields on each line are separated by tabs or
-   spaces. Lines starting with "<emphasis>#</emphasis>" are comments, empty
-   lines are ignored.The order of records in <emphasis role="strong">crypttab</emphasis> is important because the <emphasis role="strong">
-    /etc/init.d/cryptdisks
-   </emphasis>
-   script sequentially iterates through <emphasis role="strong">crypttab</emphasis> doing its thing.Note that all four fields are mandatory and that a missing field will lead to unspecified behaviour.
+   spaces. Lines starting with <quote>#</quote> are comments, empty lines are 
+   ignored. The order of records in <filename>crypttab</filename> is important
+   because the init scripts sequentially iterate through 
+   <filename>crypttab</filename> doing their thing.
   </simpara>
   <simpara>
-   The first field <emphasis>target device</emphasis> describes the mapped <emphasis>
-    device name
-   </emphasis>
-   .It must be a plain filename without any directories.A mapped device <emphasis role="strong">
-    /dev/mapper/
-   </emphasis>
-   <emphasis>device name</emphasis> will be created by <emphasis role="strong">
-    cryptsetup(8)
-   </emphasis>
-   crypting data from and onto the <emphasis>source device</emphasis>.
+   The first field, <emphasis>target</emphasis>, describes the mapped
+   device name. It must be a plain filename without any directory components.
+   A mapped device which encrypts/decrypts data to/from the <emphasis>source
+   device</emphasis> will be created at
+   <filename class="devicefile">/dev/mapper/target</filename> by
+   <command moreinfo="refentry">cryptsetup</command>.
   </simpara>
   <simpara>
-   The second field <emphasis>source device</emphasis> describes either the
+   The second field, <emphasis>source device</emphasis>, describes either the
    block special device or file (which will be automatically mounted as a loop
    device) that should hold the encrypted data.
   </simpara>
   <simpara>
-   The third field <emphasis>key file</emphasis> describes the file to use for
-   decrypting the encrypted data of the <emphasis>source device</emphasis>.
+   The third field, <emphasis>key file</emphasis>, describes the file to use
+   as a key for decrypting the data of the <emphasis>source device</emphasis>.
+   It can also be a device name (e.g.
+   <filename class="devicefile">/dev/random</filename>), note however that
+   LUKS requires a persistent key and therefore does <emphasis>not</emphasis>
+   support random data keys.
   </simpara>
   <simpara>
-   It can also be a device name (eg.
-   <emphasis role="strong">/dev/random</emphasis>, which is useful for encrypted
-   swap devices).Warning: luks does not support random data keys (like
-   <emphasis role="strong">/dev/random</emphasis>), it requires a persistent
-   key.
+   If the <emphasis>key file</emphasis> is the string <quote>none</quote>, 
+   a passphrase will be read interactively from the console. In this case, the
+   options precheck, check, checkargs and tries may be useful.
   </simpara>
   <simpara>
-   If the <emphasis>key file</emphasis> is the string
-   <emphasis role="strong">none</emphasis>, the key data (ie. a password) will
-   be read interactively from the console. In this case, the options precheck,
-   check, checkargs and tries may be useful.
-  </simpara>
-  <simpara>
-   The fourth field <emphasis>options</emphasis> describes the cryptsetup
+   The fourth field, <emphasis>options</emphasis>, describes the cryptsetup
    options associated with the encryption process. At minimum, the field should
-   contain the string <emphasis role="strong">luks</emphasis> or the <emphasis>
-    cipher
-   </emphasis>
-   ,<emphasis>hash</emphasis> and <emphasis>size</emphasis> options.
+   contain the string <emphasis>luks</emphasis> or the
+   <emphasis>cipher</emphasis>, <emphasis>hash</emphasis> and
+   <emphasis>size</emphasis> options.
   </simpara>
   <simpara>
-   Options are in the format: <emphasis>key</emphasis>=<emphasis>value</emphasis>[,<emphasis>
-    key
-   </emphasis>
-   =<emphasis>value</emphasis> &#8230;] The following options are supported:
+   Options are in the format: <emphasis>key</emphasis>=<emphasis>value</emphasis>
+   [,<emphasis>key</emphasis>=<emphasis>value</emphasis> &#8230;]. The
+   supported options are described below.
+  </simpara>
+  <simpara>
+   Note that all four fields are mandatory and that a missing field will lead
+   to unspecified behaviour.
   </simpara>
  </refsect1>
+
  <refsect1 id="_options">
   <title>OPTIONS</title>
   <variablelist>
    <varlistentry>
-    <term>
-     <emphasis role="strong">cipher</emphasis>=&lt;cipher&gt;
-    </term>
+    <term><emphasis>cipher</emphasis>=&lt;cipher&gt;</term>
     <listitem>
      <simpara>
-      Encryption algorithm. See <emphasis role="strong">cryptsetup -c</emphasis>.
+      Encryption algorithm. See <command>cryptsetup -c</command>.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">size</emphasis>=&lt;size&gt;
-    </term>
+    <term><emphasis>size</emphasis>=&lt;size&gt;</term>
     <listitem>
      <simpara>
-      Encryption key size. See <emphasis role="strong">cryptsetup
-      -s</emphasis>.
+      Encryption key size. See <command>cryptsetup -s</command>.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">hash</emphasis>=&lt;hash&gt;
-    </term>
+    <term><emphasis>hash</emphasis>=&lt;hash&gt;</term>
     <listitem>
      <simpara>
-      Hash algorithm. See <emphasis role="strong">cryptsetup -h</emphasis>.
+      Hash algorithm. See <command>cryptsetup -h</command>.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">offset</emphasis>=&lt;offset&gt;
-    </term>
+    <term><emphasis>offset</emphasis>=&lt;offset&gt;</term>
     <listitem>
      <simpara>
       Start offset. Uses <emphasis role="strong">cryptsetup -o</emphasis>.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">skip</emphasis>=&lt;skip&gt;
-    </term>
+    <term><emphasis>skip</emphasis>=&lt;skip&gt;</term>
     <listitem>
      <simpara>
       Skip sectors at the beginning. Uses <emphasis role="strong">cryptsetup -p</emphasis>.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">verify</emphasis>
-    </term>
+    <term><emphasis>verify</emphasis></term>
     <listitem>
      <simpara>
       Verify password. Uses <emphasis role="strong">cryptsetup -y</emphasis>.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">readonly</emphasis>
-    </term>
+    <term><emphasis>readonly</emphasis></term>
     <listitem>
      <simpara>The backing device is read-only (eg: a dvd).</simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">luks</emphasis>
-    </term>
+    <term><emphasis>luks</emphasis></term>
     <listitem>
      <simpara>Use device with luks extensions.</simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">swap</emphasis>
-    </term>
+    <term><emphasis>swap</emphasis></term>
     <listitem>
      <simpara>
-      Run <emphasis role="strong">mkswap</emphasis> on the created device.
+      Run <command moreinfo="refentry">mkswap</command> on the created device.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">tmp</emphasis>=&lt;tmpfs&gt;
-    </term>
+    <term><emphasis>tmp</emphasis>=&lt;tmpfs&gt;</term>
     <listitem>
      <simpara>
-      Run <emphasis role="strong">mkfs</emphasis> with filesystem type
+      Run <command moreinfo="refentry">mkfs</command> with filesystem type
       &lt;tmpfs&gt; on the created device. Default is ext2.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">precheck</emphasis>=&lt;precheck&gt;
-    </term>
+    <term><emphasis>precheck</emphasis>=&lt;precheck&gt;</term>
     <listitem>
      <simpara>Check the source device by suitable program; if the check fails,
-      the device isnot created; &lt;precheck&gt; is a script to check the
+      the device is not created; &lt;precheck&gt; is a script to check the
       source device. The sourcedevice is given as an argument to the script.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">check</emphasis>=&lt;check&gt;
-    </term>
+    <term><emphasis>check</emphasis>=&lt;check&gt;</term>
     <listitem>
      <simpara>Check the content of the device by a suitable program; if the
-      check fails, thedevice is removed. If a program is provided as an
-      argument, it is run, givingthe decrypted volume (target device) as the
-      first argument, and the value of thecheckargs option as the second
-      argument. Cryptdisks searches for the given programin
-      /lib/cryptsetup/checks/. Default is vol_id.
+      check fails, the device is removed. If a program is provided as an
+      argument, it is run, giving the decrypted volume (target device) as the
+      first argument, and the value of the checkargs option as the second
+      argument. Cryptdisks searches for the given program in
+      <filename class="directory">/lib/cryptsetup/checks/</filename>.
+      Default is <filename>vol_id</filename>.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">checkargs</emphasis>=&lt;arguments&gt;
-    </term>
+    <term><emphasis>checkargs</emphasis>=&lt;arguments&gt;</term>
     <listitem>
      <simpara>Give &lt;arguments&gt; as the second argument to the check
-      script. See description forCHECKSCRIPTS for more information.
+      script. See the CHECKSCRIPTS section for more information.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">tries</emphasis>=&lt;num&gt;
-    </term>
+    <term><emphasis>tries</emphasis>=&lt;num&gt;</term>
     <listitem>
      <simpara>The input of the passphrase is tried &lt;num&gt; times in case
-      that it fails. If youwant to disable retries, pass tries=1. Default is
-      3.For the root device, tries=0 enables infinitive retries. This is due to
-      aspecial implementation in initramfs scripts.
+      of failure. If you want to disable retries, pass <quote>tries=1</quote>.
+      Default is 3. For the root device, <quote>tries=0</quote> enables
+      infinitive retries due to a special case in the initramfs scripts.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">timeout</emphasis>=&lt;sec&gt;
-    </term>
+    <term><emphasis>timeout</emphasis>=&lt;sec&gt;</term>
     <listitem>
      <simpara>
-      If key is "<emphasis>none</emphasis>", the cryptdisks script
-      interactively prompts for apassword. The timeout option specifies the
-      time in seconds to wait forthe password before timing out.
+      If key is <quote>none</quote>, the cryptdisks script interactively
+      prompts for a password. The timeout option specifies the time in
+      seconds to wait for the password before timing out.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">noearly</emphasis>
-    </term>
+    <term><emphasis>noearly</emphasis></term>
     <listitem>
-     <simpara>Cryptdisks is invoked two times at the boot process. Once before
-      lvm, evms,raid, etc. are started, and once after that. Sometimes you need
-      to start yourencrypted disks in a special order. With this option the
-      first invokation ofcryptdisks ignores the device.
+     <simpara>The cryptsetup init scripts are invoked twice during the boot 
+      process - once before lvm, evms, raid, etc. are started and once again
+      after that. Sometimes you need to start your encrypted disks in a special
+      order. With this option the device is ignored during the first invokation
+      of the cryptsetup init scripts.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">noauto</emphasis>
-    </term>
+    <term><emphasis>noauto</emphasis></term>
     <listitem>
      <simpara>Entirely ignore the device at the boot process. It's still
-      possible to map the devicemanually using cryptdisks_start.
+      possible to map the device manually using cryptdisks_start.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">loud</emphasis>
-    </term>
+    <term><emphasis>loud</emphasis></term>
     <listitem>
      <simpara>Be loud. Print warnings if a device does not exist.</simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">keyscript</emphasis>=&lt;path&gt;
-    </term>
+    <term><emphasis>keyscript</emphasis>=&lt;path&gt;</term>
     <listitem>
      <simpara>
-      The executable at the indicated path is executed with the <emphasis>key
-       file
-      </emphasis>
-      from the thirdfield of the crypttab as its only argument and the output
-      is used as the key. Thisalso works with encrypted root filesystems via
-      initramfs if the executable isself-contained (i.e. not a shell script
-      which relies on external programs).
+      The executable at the indicated path is executed with the
+      <emphasis>key file</emphasis> from the thirdfield of the crypttab as its
+      only argument and the output is used as the key. This also works with
+      encrypted root filesystems via initramfs if the executable is
+      self-contained (i.e. not a shell script which relies on external
+      programs not present in the standard initramfs environment).
      </simpara>
     </listitem>
    </varlistentry>
   </variablelist>
  </refsect1>
+
  <refsect1 id="_checkscripts">
   <title>CHECKSCRIPTS</title>
   <variablelist>
    <varlistentry>
-    <term>
-     <emphasis role="strong">vol_id</emphasis>
-    </term>
+    <term><emphasis>vol_id</emphasis></term>
     <listitem>
      <simpara>Checks for any known filesystem. Supports a filesystem type as
       argument via&lt;checkargs&gt;:no checkargs - succeeds if any valid
@@ -318,10 +281,9 @@
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">un_vol_id</emphasis>
-    </term>
+    <term><emphasis>un_vol_id</emphasis></term>
     <listitem>
      <simpara>Checks for no known filesystem. Supports a filesystem type as
       argument via&lt;checkargs&gt;:no checkargs - succeeds if no valid
@@ -331,156 +293,140 @@
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">ext2</emphasis>
-    </term>
+    <term><emphasis>ext2</emphasis></term>
     <listitem>
      <simpara>Checks for a valid ext2/ext3 filesystem.</simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">xfs</emphasis>
-    </term>
+    <term><emphasis>xfs</emphasis></term>
     <listitem>
      <simpara>Checks for a valid xfs filesystem.</simpara>
     </listitem>
    </varlistentry>
   </variablelist>
  </refsect1>
+
  <refsect1 id="_examples">
   <title>EXAMPLES</title>
-  <variablelist>
-   <varlistentry>
-    <term>
-     <emphasis role="strong">Encrypted swap device</emphasis>
-    </term>
-    <listitem>
-     <simpara>cswap /dev/sda6 /dev/random swap</simpara>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term>
-     <emphasis role="strong">Encrypted luks disk with interactive password</emphasis>
-    </term>
-    <listitem>
-     <simpara>cdisk0 /dev/hda1 none luks</simpara>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term>
-     <emphasis role="strong">Encrypted ext2 disk with interactive password,
-      retry 5 times if the check fails
-     </emphasis>
-    </term>
-    <listitem>
-     <simpara>cdisk1 /dev/sda2 none checkargs=ext2,tries=5</simpara>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term>
-     <emphasis role="strong">Encrypted disk with interactive password, use a
-      nondefault check script, no retries
-     </emphasis>
-    </term>
-    <listitem>
-     <simpara>cdisk2 /dev/hdc1 none check=customscript,tries=1</simpara>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term>
-     <emphasis role="strong">Encrypted disk with interactive password and
-      twofish as the cipher
-     </emphasis>
-    </term>
-    <listitem>
-     <simpara>cdisk3 /dev/sda3 none cipher=twofish</simpara>
-    </listitem>
-   </varlistentry>
-  </variablelist>
+  <para>
+   <screen>
+# Encrypted swap device
+cswap /dev/sda6 /dev/random swap
+    
+# Encrypted luks disk with interactive password
+cdisk0 /dev/hda1 none luks
+    
+# Encrypted ext2 disk with interactive password
+# - retry 5 times if the check fails
+cdisk1 /dev/sda2 none checkargs=ext2,tries=5
+
+# Encrypted disk with interactive password
+# - use a nondefault check script
+# - no retries
+cdisk2 /dev/hdc1 none check=customscript,tries=1
+
+# Encrypted disk with interactive password
+# - twofish as the cipher
+cdisk3 /dev/sda3 none cipher=twofish
+   </screen>
+  </para>
  </refsect1>
+
  <refsect1 id="_environment">
   <title>ENVIRONMENT</title>
   <variablelist>
    <varlistentry>
-    <term>
-     <emphasis role="strong">CRYPTDISKS_ENABLE</emphasis>
-    </term>
+    <term><emphasis>CRYPTDISKS_ENABLE</emphasis></term>
     <listitem>
      <simpara>
-      Set to <emphasis>yes</emphasis> to run cryptdisks at startup. Set to <emphasis>
-       no
-      </emphasis>
-      to disable cryptdisks.
+      Set to <emphasis>yes</emphasis> to run cryptdisks at startup. Set to
+      <emphasis>no</emphasis> to disable cryptdisks.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">CRYPTDISKS_MOUNT</emphasis>
-    </term>
+    <term><emphasis>CRYPTDISKS_MOUNT</emphasis></term>
     <listitem>
      <simpara>Specifies the mountpoints that are mounted before cryptdisks is
-      invoked. Usefulfor keys on removable devices, such as cdrom, usbstick,
-      flashcard, &#8230;
+      invoked. Useful for keys on removable devices, such as cdrom, usbstick,
+      flashcard, etc.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">CRYPTDISKS_CHECK</emphasis>
-    </term>
+    <term><emphasis>CRYPTDISKS_CHECK</emphasis></term>
     <listitem>
      <simpara>Specifies the checkscript to be run against the target device,
-      after cryptdiskshas been invoked. The target device is passed as the
-      first and only argument tothe checkscript. Takes effect, if the <emphasis>
-       check
-      </emphasis>
-      option is given in crypttab withno value.
+      after cryptdisks has been invoked. The target device is passed as the
+      first and only argument to the checkscript. Takes effect if the
+      <emphasis>check</emphasis> option is given in crypttab with no value.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">CRYPTDISKS_PRECHECK</emphasis>
-    </term>
+    <term><emphasis>CRYPTDISKS_PRECHECK</emphasis></term>
     <listitem>
      <simpara>Specifies the checkscript to be run against the source device,
-      beforecryptdisks has been invoked. The source device is given as the
-      first and onlyargument to the checkscript. Takes effect, if the <emphasis>
-       precheck
-      </emphasis>
-      option is given incrypttab with no value.
+      before cryptdisks has been invoked. The source device is given as the
+      first and only argument to the checkscript. Takes effect if the
+      <emphasis>precheck</emphasis> option is given in crypttab with no value.
      </simpara>
     </listitem>
    </varlistentry>
+
    <varlistentry>
-    <term>
-     <emphasis role="strong">CRYPTDISKS_TIMEOUT</emphasis>
-    </term>
+    <term><emphasis>CRYPTDISKS_TIMEOUT</emphasis></term>
     <listitem>
      <simpara>Specifies the time in seconds to wait for the password before
-      timing out. Takeseffect, if the <emphasis>timeout</emphasis> option is
+      timing out. Takes effect if the <emphasis>timeout</emphasis> option is
       given in crypttab with no value.
      </simpara>
     </listitem>
    </varlistentry>
   </variablelist>
  </refsect1>
+
  <refsect1 id="_see_also">
   <title>SEE ALSO</title>
-  <simpara>
-   <emphasis role="strong">cryptsetup</emphasis>(8), <emphasis>/etc/crypttab</emphasis>
-  </simpara>
+  <simplelist type="inline">
+   <member><command moreinfo="refentry">cryptsetup</command>(8)</member>
+   <member><filename>/etc/crypttab</filename></member>
+  </simplelist>
  </refsect1>
+
  <refsect1 id="_author">
-  <title>AUTHOR</title><simpara>This manual page was converted to asciidoc from
-   Michael Gebetsroither &lt;michael.geb@gmx.at&gt;.This manual page was
-   originally written by Bastian Kleineidam &lt;calvin@debian.org&gt; for the
-   Debian distribution of cryptsetup (but can be used by others). It has been
-   improved by Jonas Meurer &lt;jonas@freesources.org&gt;.Parts of this manual
-   are taken and adapted from the fstab(5) manual page.
+  <title>AUTHOR</title>
+  <simpara>
+   This manual page was originally written by
+   <author>
+    <firstname>Bastian</firstname>
+    <surname>Kleineidam</surname>
+   </author>
+   <email>calvin@debian.org</email>
+   for the Debian distribution of cryptsetup. It has been further improved by
+   <author>
+    <firstname>Michael</firstname>
+    <surname>Gebetsroither</surname>
+   </author>
+   <email>michael.geb@gmx.at</email>,
+   <author>
+    <firstname>Jonas</firstname>
+    <surname>Meurer</surname>
+   </author>
+   <email>jonas@freesources.org</email>
+   and
+   <author>
+    <firstname>David</firstname>
+    <surname>Härdeman</surname>
+   </author>
+   <email>david@hardeman.nu</email>.
   </simpara>
  </refsect1>
 </refentry>

@@ -3,6 +3,11 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+DEB_VERSION := $(strip $(shell LC_ALL=C dpkg-parsechangelog          |          \
+                               egrep '^Version:' | head -n1 | cut -f2 -d ' '    ))
+DEB_DATE    := $(strip $(shell LC_ALL=C dpkg-parsechangelog          |          \
+                               egrep '^Date:'    | head -n1 | cut -f2- -d ' ' | \
+                               LC_ALL=C date --file=- +%F                       ))
 
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)
@@ -53,6 +58,8 @@ configure-stamp: $(QUILT_STAMPFN)
 build: build-stamp
 build-stamp: configure-stamp
 	dh_testdir
+	sed 's/VERSION/$(DEB_VERSION)/;s/DATE/$(DEB_DATE)/' \
+		debian/doc/variables.xml.in > debian/doc/variables.xml
 	xsltproc --xinclude -o debian/doc/					\
 		/usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl	\
 		debian/doc/manpages.xml
@@ -85,7 +92,7 @@ clean: unpatch
 	rm -f debian/crypttab.5 debian/crypttab.5.xml debian/luksformat.8
 	rm -f debian/cryptdisks_start.8 debian/cryptdisks_start.8.xml
 	rm -f debian/cryptdisks_stop.8 debian/cryptdisks_stop.8.xml
-	rm -f debian/doc/*.[0-9] 
+	rm -f debian/doc/*.[0-9] debian/doc/variables.xml
 	rm -f debian/askpass
 	rm -f config.mess
 	rm -rf autom4te.cache 
