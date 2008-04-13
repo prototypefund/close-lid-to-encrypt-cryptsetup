@@ -62,7 +62,7 @@ parse_options()
 	crypttarget=cryptroot
 	cryptsource=""
 	cryptlvm=""
-	cryptkeyscript="/lib/cryptsetup/askpass"
+	cryptkeyscript=""
 	cryptkey="" # This is only used as an argument to an eventual keyscript
 	crypttries=3
 
@@ -174,7 +174,7 @@ setup_mapping()
 
 	parse_options "$opts" || return 1
 
-	if [ -z "$cryptkeyscript" ] || [ ! -x "$cryptkeyscript" ]; then
+	if [ -n "$cryptkeyscript" ] && [ ! -x "$cryptkeyscript" ]; then
 		message "cryptsetup: error - script \"$cryptkeyscript\" missing"
 		return 1
 	fi
@@ -222,6 +222,12 @@ setup_mapping()
 			message "cryptsetup: maximum number of tries exceeded for $crypttarget"
 			return 1
 		fi
+
+		if [ -n "$cryptkeyscript" ]; then
+			cryptkeyscript="/lib/cryptsetup/askpass"
+			cryptkey="Enter passphrase for $crypttarget ($cryptsource): "
+		fi
+
 
 		if ! crypttarget="$crypttarget" cryptsource="$cryptsource" \
 		     $cryptkeyscript "$cryptkey" | $cryptcreate --key-file=- ; then
