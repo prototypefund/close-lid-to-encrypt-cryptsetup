@@ -223,7 +223,7 @@ setup_mapping()
 			return 1
 		fi
 
-		if [ -n "$cryptkeyscript" ]; then
+		if [ -z "$cryptkeyscript" ]; then
 			cryptkeyscript="/lib/cryptsetup/askpass"
 			cryptkey="Enter passphrase for $crypttarget ($cryptsource): "
 		fi
