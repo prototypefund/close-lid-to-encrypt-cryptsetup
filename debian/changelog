@@ -12,8 +12,11 @@ cryptsetup (2:1.0.6-2) unstable; urgency=low
   * Change the initramfs script to use askpass to prompt for
     passphrases, this should hopefully fix #382375 and #465902 once it
     is enabled in the init scripts as well.
+  * Add a keyscript called mountdev which allows a keyfile to be
+    retrieved from a device which is first mounted, mainly useful to get
+    keyfiles off USB devices etc.
 
- -- David Härdeman <david@hardeman.nu>  Sun, 06 Apr 2008 19:29:53 +0200
+ -- David Härdeman <david@hardeman.nu>  Mon, 12 May 2008 21:47:28 +0200
 
 cryptsetup (2:1.0.6-1) unstable; urgency=low
 

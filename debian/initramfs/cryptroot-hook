@@ -218,13 +218,12 @@ get_device_opts() {
 				;;
 			keyscript=*)
 				opt=${opt#keyscript=}
-				if [ ! -x "$opt" ]; then
+				if [ ! -x "/lib/cryptsetup/scripts/$opt" ] && [ ! -x "$opt" ]; then
 					echo "cryptsetup: WARNING: target $target has an invalid keyscript, skipped" >&2
 					return 1
 				fi
 				KEYSCRIPT="$opt"
-				opt=$(basename "$opt")
-				OPTIONS="$OPTIONS,keyscript=/keyscripts/$opt"
+				OPTIONS="$OPTIONS,keyscript=/keyscripts/$(basename "$opt")"
 				;;
 			tries=*)
 				OPTIONS="$OPTIONS,$opt"
@@ -358,7 +357,15 @@ add_device() {
 			if [ ! -d "$DESTDIR/keyscripts" ]; then
 				mkdir "$DESTDIR/keyscripts"
 			fi
-			copy_exec "$KEYSCRIPT" /keyscripts
+
+			if [ -e "/lib/cryptsetup/scripts/$KEYSCRIPT" ]; then
+				copy_exec "/lib/cryptsetup/scripts/$KEYSCRIPT" /keyscripts
+			elif [ -e "$KEYSCRIPT" ]; then
+				copy_exec "$KEYSCRIPT" /keyscripts
+			else
+				echo "cryptsetup: WARNING: failed to find keyscript $KEYSCRIPT" >&2
+				continue
+			fi
 		fi
 
 		# Calculate needed modules
