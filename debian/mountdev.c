@@ -49,15 +49,18 @@ do_mount(const char *device, const char *dir)
 		return false;
 	} else {
 		/* We're in the child process */
-		fprintf(stderr, "mounting %s at %s\n", device, dir);
+		debug("Mounting %s at %s\n", device, dir);
 		close(STDIN_FILENO);
 		close(STDOUT_FILENO);
 		close(STDERR_FILENO);
 		open("/dev/null", O_RDONLY, 0);
 		open("/dev/null", O_WRONLY, 0);
 		open("/dev/null", O_WRONLY, 0);
-		execl("/bin/mount", "/bin/mount", "-t", "auto", "-o",
-		      "noatime,nodiratime,nodev,noexec,nosuid,ro", device, dir, NULL);
+		execl("/bin/mount", "/bin/mount", "-n", "-t",
+		      "ext3",
+		      /*"ext3,ext2,vfat,reiserfs,xfs,isofs,udf",*/
+		      "-o", "noatime,nodiratime,nodev,noexec,nosuid,ro",
+		      device, dir, (char *)NULL);
 
 		/* If execl works, we won't end up here */
 		exit(EXIT_FAILURE);
@@ -195,7 +198,7 @@ main(int argc, char **argv, char **envp)
 	byteswritten = 0;
 	towrite = toread;
 	while (byteswritten < towrite) {
-		bytes = write(STDERR_FILENO, keybuffer + byteswritten,
+		bytes = write(STDOUT_FILENO, keybuffer + byteswritten,
 			      towrite - byteswritten);
 		if (bytes <= 0) {
 			fprintf(stderr, "Failed to write entire key\n");
