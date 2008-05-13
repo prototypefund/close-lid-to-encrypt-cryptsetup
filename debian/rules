@@ -117,6 +117,8 @@ install-stamp: build-stamp
 	install -m 0755 debian/scripts/cryptdisks_stop $(CURDIR)/debian/cryptsetup/usr/sbin/
 	install -m 0755 debian/scripts/decrypt_* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
 	install -m 0755 debian/scripts/mountdev $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
+	install -m 0755 debian/initramfs/cryptmountdev-hook \
+		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptmountdev
 	install -m 0755 debian/initramfs/cryptroot-hook \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptroot
 	install -m 0755 debian/initramfs/cryptroot-script \
