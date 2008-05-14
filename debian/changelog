@@ -15,8 +15,9 @@ cryptsetup (2:1.0.6-2) unstable; urgency=low
   * Add a keyscript called mountdev which allows a keyfile to be
     retrieved from a device which is first mounted, mainly useful to get
     keyfiles off USB devices etc.
+  * Unbreak MODULES=dep booting (closes: #478268)
 
- -- David Härdeman <david@hardeman.nu>  Mon, 12 May 2008 21:47:28 +0200
+ -- David Härdeman <david@hardeman.nu>  Wed, 14 May 2008 18:30:19 +0200
 
 cryptsetup (2:1.0.6-1) unstable; urgency=low
 

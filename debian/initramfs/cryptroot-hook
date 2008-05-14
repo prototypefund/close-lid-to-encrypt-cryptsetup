@@ -439,33 +439,17 @@ add_crypto_modules() {
 # Begin real processing
 #
 
-# Unless MODULES = "dep", we always add a basic subset of modules/tools
-if [ "$MODULES" != "dep" ]; then
-	for mod in dm_mod dm_crypt; do
-		manual_add_modules $mod
-	done
+setup="no"
+rootdev=""
+resumedevs=""
 
-	for mod in aes sha256 cbc; do
-		add_crypto_modules $mod
-	done
-
-	copy_exec /sbin/cryptsetup
-	copy_exec /sbin/dmsetup
-fi
-
-# We can't do anything without a config file
-if [ ! -r /etc/crypttab ]; then
-	exit 0
-fi
-
-# Find out which devices to add to the config file
-rootdev=$(get_root_device)
-if [ -z "$rootdev" ]; then
-	echo "cryptsetup: WARNING: could not determine root device from /etc/fstab" >&2
-fi
-resumedevs=$(get_resume_devices)
-if [ -z "$rootdev" ] && [ -z "$resumedevs" ]; then
-	exit 0
+# Find the root and resume device(s)
+if [ -r /etc/crypttab ]; then
+	rootdev=$(get_root_device)
+	if [ -z "$rootdev" ]; then
+		echo "cryptsetup: WARNING: could not determine root device from /etc/fstab" >&2
+	fi
+	resumedevs=$(get_resume_devices)
 fi
 
 # Load the config opts and modules for each device
@@ -475,15 +459,28 @@ for dev in $rootdev $resumedevs; do
 		continue
 	fi
 
+	setup="yes"
 	for mod in $modules; do
 		add_crypto_modules $mod
 	done
 done
 
-# Prepare the initramfs
-copy_exec /sbin/cryptsetup
-copy_exec /sbin/dmsetup
-copy_exec /lib/cryptsetup/askpass
+# With large initramfs, we always add a basic subset of modules
+if [ "$MODULES" != "dep" ]; then
+	for mod in aes sha256 cbc; do
+		add_crypto_modules $mod
+	done
+fi
 
-# Done
+# See if we need to add the basic components
+if [ "$MODULES" != "dep" ] || [ "$setup" = "yes" ]; then
+	for mod in dm_mod dm_crypt; do
+		manual_add_modules $mod
+	done
+
+	copy_exec /sbin/cryptsetup
+	copy_exec /sbin/dmsetup
+	copy_exec /lib/cryptsetup/askpass
+fi
+
 exit 0
