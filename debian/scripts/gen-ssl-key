@@ -19,7 +19,8 @@ if [ -x /usr/bin/openssl ]; then
 	key=`tempfile`
 	dd if=/dev/random of=$key bs=1c count=256
 	openssl enc -aes-256-cbc -e -salt -in $key -out $1
-	rm -f $key; key=""
+	#rm -f $key; key=""
+	shred -uz $key; key=""
 else
 	echo "/usr/bin/openssl is not available" && exit 1
 fi

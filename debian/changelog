@@ -5,6 +5,8 @@ cryptsetup (2:1.0.6-2) unstable; urgency=low
     - debian/scripts/luksformat: Use 256 bit key size by default. (LP: #78508)
     - debian/patches/02_manpage.patch: Clarify default key sizes (128 for
       luksFormat and 256 for create) in cryptsetup.8. (side-note in LP #78508)
+  * Use 'shred -uz' instead of 'rm -r' to remove a tempfile that contains a
+    key in gen-ssl-key example script.
 
   [ David Härdeman ]
   * Misc bugfixes to askpass, make sure it is installed to the correct
@@ -17,7 +19,7 @@ cryptsetup (2:1.0.6-2) unstable; urgency=low
     keyfiles off USB devices etc.
   * Unbreak MODULES=dep booting (closes: #478268)
 
- -- David Härdeman <david@hardeman.nu>  Wed, 14 May 2008 18:30:19 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 15 May 2008 23:04:55 +0200
 
 cryptsetup (2:1.0.6-1) unstable; urgency=low
 
