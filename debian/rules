@@ -58,11 +58,11 @@ configure-stamp: $(QUILT_STAMPFN)
 build: build-stamp
 build-stamp: configure-stamp
 	dh_testdir
-	sed 's/VERSION/$(DEB_VERSION)/;s/DATE/$(DEB_DATE)/' \
-		debian/doc/variables.xml.in > debian/doc/variables.xml
-	xsltproc --xinclude -o debian/doc/					\
-		/usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl	\
-		debian/doc/manpages.xml
+	#sed 's/VERSION/$(DEB_VERSION)/;s/DATE/$(DEB_DATE)/' \
+	#	debian/doc/variables.xml.in > debian/doc/variables.xml
+	#xsltproc --xinclude -o debian/doc/					\
+	#	/usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl	\
+	#	debian/doc/manpages.xml
 	asciidoc -d manpage -b docbook debian/crypttab.5.txt
 	asciidoc -d manpage -b docbook debian/cryptdisks_start.8.txt
 	asciidoc -d manpage -b docbook debian/cryptdisks_stop.8.txt
