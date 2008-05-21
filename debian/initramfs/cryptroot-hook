@@ -40,7 +40,7 @@ get_resume_devices() {
 
 	# uswsusp
 	if [ -e /etc/uswsusp.conf ]; then
-		device=$(sed -rn 's/^resume device[[:space:]]*[:=][[:space:]]+// p' /etc/uswsusp.conf)
+		device=$(sed -rn 's/^resume device[[:space:]]*[:=][[:space:]]*// p' /etc/uswsusp.conf)
 		if [ -n "$device" ]; then
 			candidates="$candidates $device"
 		fi
@@ -48,7 +48,7 @@ get_resume_devices() {
 
 	# uswsusp - again...
 	if [ -e /etc/suspend.conf ]; then
-		device=$(sed -rn 's/^resume device[[:space:]]+[:=][[:space:]]+// p' /etc/suspend.conf)
+		device=$(sed -rn 's/^resume device[[:space:]]*[:=][[:space:]]*// p' /etc/suspend.conf)
 		if [ -n "$device" ]; then
 			candidates="$candidates $device"
 		fi
@@ -66,7 +66,7 @@ get_resume_devices() {
 
 	# initramfs-tools
 	if [ -e /etc/initramfs-tools/conf.d/resume ]; then
-		device=$(sed -rn 's/^RESUME[[:space:]]+=[[:space:]]+// p' /etc/initramfs-tools/conf.d/resume)
+		device=$(sed -rn 's/^RESUME[[:space:]]*=[[:space:]]*// p' /etc/initramfs-tools/conf.d/resume)
 		if [ -n "$device" ]; then
 			candidates="$candidates $device"
 		fi
