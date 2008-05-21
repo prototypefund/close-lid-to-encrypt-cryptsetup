@@ -18,8 +18,9 @@ cryptsetup (2:1.0.6-2) unstable; urgency=low
     retrieved from a device which is first mounted, mainly useful to get
     keyfiles off USB devices etc.
   * Unbreak MODULES=dep booting (closes: #478268)
+  * Relax checks for suspend devices a bit (closes: #477658)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 15 May 2008 23:04:55 +0200
+ -- David Härdeman <david@hardeman.nu>  Wed, 21 May 2008 09:10:42 +0200
 
 cryptsetup (2:1.0.6-1) unstable; urgency=low
 
