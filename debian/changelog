@@ -14,7 +14,7 @@ cryptsetup (2:1.0.6-2) unstable; urgency=low
   * Change the initramfs script to use askpass to prompt for
     passphrases, this should hopefully fix #382375 and #465902 once it
     is enabled in the init scripts as well.
-  * Add a keyscript called mountdev which allows a keyfile to be
+  * Add a keyscript called passdev which allows a keyfile to be
     retrieved from a device which is first mounted, mainly useful to get
     keyfiles off USB devices etc.
   * Unbreak MODULES=dep booting (closes: #478268)

@@ -173,10 +173,10 @@ cryptswap /dev/hda2 cryptroot cipher=aes-cbc-essiv:sha256,size=256,hash=sha256,k
 After you've followed the above steps, your swap device should be setup
 automatically after the root device has been setup during the boot stage.
 
-10. The "mountdev" keyscript
+10. The "passdev" keyscript
 ----------------------------
 If you have a keyfile on a removable device (e.g. a USB-key), you can use the
-mountdev keyscript. It will wait for the device to appear, mount it read-only,
+passdev keyscript. It will wait for the device to appear, mount it read-only,
 read the key and then unmount the device.
 
 The "key" part of /etc/crypttab will be interpreted as <device>:<path>, it is
@@ -184,7 +184,7 @@ strongly recommended that you use one of the persistent device names from
 /dev/disk/*, e.g. /dev/disk/by-label/myusbkey.
 
 This is an example of a suitable line in cryptsetup:
-cryptroot /dev/hda2 /dev/disk/by-label/myusbkey:/keys/root.key cipher=aes-cbc-essiv:sha256,size=256,hash=plain,keyscript=/lib/cryptsetup/scripts/mountdev
+cryptroot /dev/hda2 /dev/disk/by-label/myusbkey:/keys/root.key cipher=aes-cbc-essiv:sha256,size=256,hash=plain,keyscript=/lib/cryptsetup/scripts/passdev
 
 The above line would cause the boot to pause until /dev/disk/by-label/myusbkey
 appears in the fs, then mount that device and use the file /keys/root.key

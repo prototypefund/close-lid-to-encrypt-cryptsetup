@@ -75,7 +75,7 @@ main(int argc, char **argv, char **envp)
 	char *filepath;
 	struct stat st;
 	char *tmppath;
-	char tpath[] = "/tmp/mountdev.XXXXXX";
+	char tpath[] = "/tmp/passdev.XXXXXX";
 	char *keypath;
 	int fd;
 	size_t toread;
