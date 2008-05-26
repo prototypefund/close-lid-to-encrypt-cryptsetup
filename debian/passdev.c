@@ -31,40 +31,52 @@ do_mount(const char *device, const char *dir)
 	pid_t pid;
 	pid_t wpid;
 	int status;
+	char *fstypes[] = { "ext3", "ext2", "vfat", "reiserfs", "xfs", "isofs", "udf" };
+	int fsindex;
 
 	if (!device || !dir)
 		return false;
 
-	pid = fork();
-	if (pid < 0) {
-		/* Error */
-		return false;
-	} else if (pid > 0) {
-		/* We're in the parent process */
-		do {
-			wpid = waitpid(pid, &status, 0);
-		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
-		if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS)
-			return true;
-		return false;
-	} else {
-		/* We're in the child process */
-		debug("Mounting %s at %s\n", device, dir);
-		close(STDIN_FILENO);
-		close(STDOUT_FILENO);
-		close(STDERR_FILENO);
-		open("/dev/null", O_RDONLY, 0);
-		open("/dev/null", O_WRONLY, 0);
-		open("/dev/null", O_WRONLY, 0);
-		execl("/bin/mount", "/bin/mount", "-n", "-t",
-		      "ext3",
-		      /*"ext3,ext2,vfat,reiserfs,xfs,isofs,udf",*/
-		      "-o", "noatime,nodiratime,nodev,noexec,nosuid,ro",
-		      device, dir, (char *)NULL);
+	for (fsindex = 0;
+	     fsindex < (sizeof(fstypes) / sizeof(fstypes[0]));
+	     fsindex++)
+	{
+		pid = fork();
+		if (pid < 0) {
+			/* Error */
+			return false;
+		} else if (pid > 0) {
+			/* We're in the parent process */
+			do {
+				wpid = waitpid(pid, &status, 0);
+			} while (!WIFEXITED(status) && !WIFSIGNALED(status));
+			if (WIFEXITED(status) && WEXITSTATUS(status) == EXIT_SUCCESS)
+				return true;
 
-		/* If execl works, we won't end up here */
-		exit(EXIT_FAILURE);
+			/* Let's try another fstype */
+			continue;
+		} else {
+			/* We're in the child process */
+			debug("Mounting %s at %s\n", device, dir);
+			close(STDIN_FILENO);
+			close(STDOUT_FILENO);
+			close(STDERR_FILENO);
+			open("/dev/null", O_RDONLY, 0);
+			open("/dev/null", O_WRONLY, 0);
+			open("/dev/null", O_WRONLY, 0);
+			execl("/bin/mount", "/bin/mount", "-n", "-t",
+			      fstypes[fsindex],
+			      /*"ext3,ext2,vfat,reiserfs,xfs,isofs,udf",*/
+			      "-o", "noatime,nodiratime,nodev,noexec,nosuid,ro",
+			      device, dir, (char *)NULL);
+
+			/* If execl works, we won't end up here */
+			exit(EXIT_FAILURE);
+		}
 	}
+
+	/* We've tried all fstypes with no luck */
+	return false;
 }
 
 int
