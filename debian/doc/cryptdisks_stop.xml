@@ -1,20 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN" "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
 <refentry id="command.cryptdisks_stop">
+
  <refmeta>
-  <refentrytitle>cryptdisk_start</refentrytitle>
+  <refentrytitle>cryptdisk_stop</refentrytitle>
   <manvolnum>8</manvolnum>
+  <xi:include href="variables.xml"
+	      xpointer="xpointer(/refentry/refmeta/*)"
+	      xmlns:xi="http://www.w3.org/2001/XInclude"/>
  </refmeta>
+
  <refnamediv>
   <refname>cryptdisks_stop</refname>
   <refpurpose>wrapper around cryptsetup which parses /etc/crypttab.</refpurpose>
  </refnamediv>
+
+ <xi:include href="variables.xml"
+	     xpointer="xpointer(/refentry/refentryinfo)"
+	     xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
  <refsynopsisdiv>
   <simpara>
    <emphasis role="strong">cryptdisks_stop</emphasis>
    <emphasis>&lt;name&gt;</emphasis>
   </simpara>
  </refsynopsisdiv>
+
  <refsect1 id="_description">
   <title>DESCRIPTION</title>
   <simpara>

@@ -58,23 +58,11 @@ configure-stamp: $(QUILT_STAMPFN)
 build: build-stamp
 build-stamp: configure-stamp
 	dh_testdir
-	#sed 's/VERSION/$(DEB_VERSION)/;s/DATE/$(DEB_DATE)/' \
-	#	debian/doc/variables.xml.in > debian/doc/variables.xml
-	#xsltproc --xinclude -o debian/doc/					\
-	#	/usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl	\
-	#	debian/doc/manpages.xml
-	asciidoc -d manpage -b docbook debian/crypttab.5.txt
-	asciidoc -d manpage -b docbook debian/cryptdisks_start.8.txt
-	asciidoc -d manpage -b docbook debian/cryptdisks_stop.8.txt
-	sed -i 's/<emphasis role="strong">/<emphasis role="bold">/g' debian/crypttab.5.xml
-	sed -i 's/<emphasis role="strong">/<emphasis role="bold">/g' debian/cryptdisks_start.8.xml
-	sed -i 's/<emphasis role="strong">/<emphasis role="bold">/g' debian/cryptdisks_stop.8.xml
-	xsltproc -o debian/crypttab.5 /usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl \
-		debian/crypttab.5.xml
-	xsltproc -o debian/cryptdisks_start.8 /usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl \
-		debian/cryptdisks_start.8.xml
-	xsltproc -o debian/cryptdisks_stop.8 /usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl \
-		debian/cryptdisks_stop.8.xml
+	sed 's/VERSION/$(DEB_VERSION)/;s/DATE/$(DEB_DATE)/' \
+		debian/doc/variables.xml.in > debian/doc/variables.xml
+	xsltproc --xinclude -o debian/doc/					\
+		/usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl	\
+		debian/doc/manpages.xml
 	pod2man --section=8 --center="Administrative commands" --release="" debian/scripts/luksformat \
 		debian/luksformat.8
 	$(MAKE)
@@ -90,9 +78,7 @@ clean: unpatch
 	dh_testroot
 	if test -f Makefile; then $(MAKE) clean; fi
 	if test -f config.mess; then rm -f `cat config.mess`; fi
-	rm -f debian/crypttab.5 debian/crypttab.5.xml debian/luksformat.8
-	rm -f debian/cryptdisks_start.8 debian/cryptdisks_start.8.xml
-	rm -f debian/cryptdisks_stop.8 debian/cryptdisks_stop.8.xml
+	rm -f debian/luksformat.8
 	rm -f debian/doc/*.[0-9] debian/doc/variables.xml
 	rm -f debian/scripts/passdev
 	rm -f debian/askpass
@@ -149,7 +135,7 @@ binary-arch: build install
 	dh_installexamples -a debian/scripts/gen-ssl-key debian/scripts/gen-old-ssl-key debian/usbcrypto.udev
 	dh_installinit -a --no-start --name=cryptdisks-early --update-rcd-params="start 26 S . start 59 0 6 ."
 	dh_installinit -a --no-start --name=cryptdisks --update-rcd-params="start 28 S . start 48 0 6 ."
-	dh_installman -a debian/crypttab.5 debian/luksformat.8 debian/cryptdisks_start.8 debian/cryptdisks_stop.8
+	dh_installman -a debian/doc/crypttab.5 debian/doc/cryptdisks_start.8 debian/doc/cryptdisks_stop.8 debian/luksformat.8
 	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/sbin $(CURDIR)/debian/cryptsetup-udeb/
