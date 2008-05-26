@@ -3,6 +3,10 @@
 
 <refentry id="command.cryptdisks_stop">
 
+ <xi:include href="variables.xml"
+	     xpointer="xpointer(/refentry/refentryinfo)"
+	     xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
  <refmeta>
   <refentrytitle>cryptdisk_stop</refentrytitle>
   <manvolnum>8</manvolnum>
@@ -16,10 +20,6 @@
   <refpurpose>wrapper around cryptsetup which parses /etc/crypttab.</refpurpose>
  </refnamediv>
 
- <xi:include href="variables.xml"
-	     xpointer="xpointer(/refentry/refentryinfo)"
-	     xmlns:xi="http://www.w3.org/2001/XInclude"/>
-
  <refsynopsisdiv>
   <simpara>
    <emphasis role="strong">cryptdisks_stop</emphasis>
@@ -27,7 +27,7 @@
   </simpara>
  </refsynopsisdiv>
 
- <refsect1 id="_description">
+ <refsect1 id="cryptdisks_stop.description">
   <title>DESCRIPTION</title>
   <simpara>
    <emphasis role="strong">cryptdisks_stop</emphasis> is a wrapper around
@@ -37,15 +37,18 @@
    to <emphasis>&lt;name&gt;</emphasis>.
   </simpara>
  </refsect1>
- <refsect1 id="_see_also">
+
+ <refsect1 id="cryptdisks_stop.see_also">
   <title>SEE ALSO</title>
   <simpara>
    <emphasis>cryptsetup</emphasis>(8), <emphasis>crypttab</emphasis>(5)
   </simpara>
  </refsect1>
- <refsect1 id="_author">
+
+ <refsect1 id="cryptdisks_stop.author">
   <title>AUTHOR</title><simpara>This manual page was written by Jonas Meurer
    &lt;mejo@debian.org&gt; in January 2008.
   </simpara>
  </refsect1>
+
 </refentry>

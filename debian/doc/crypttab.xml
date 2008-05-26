@@ -3,6 +3,10 @@
 
 <refentry id="file.crypttab">
 
+ <xi:include href="variables.xml"
+             xpointer="xpointer(/refentry/refentryinfo)"
+             xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
  <refmeta>
   <refentrytitle>crypttab</refentrytitle>
   <manvolnum>5</manvolnum>
@@ -16,11 +20,7 @@
   <refpurpose>static information about encrypted filesystems</refpurpose>
  </refnamediv>
 
- <xi:include href="variables.xml"
-             xpointer="xpointer(/refentry/refentryinfo)"
-             xmlns:xi="http://www.w3.org/2001/XInclude"/>
-
- <refsect1 id="_description">
+ <refsect1 id="crypttab.description">
   <title>DESCRIPTION</title>
   <simpara>
    The file <filename>/etc/crypttab</filename> contains descriptive
@@ -77,7 +77,7 @@
   </simpara>
  </refsect1>
 
- <refsect1 id="_options">
+ <refsect1 id="crypttab.options">
   <title>OPTIONS</title>
   <variablelist>
    <varlistentry>
@@ -266,7 +266,7 @@
   </variablelist>
  </refsect1>
 
- <refsect1 id="_checkscripts">
+ <refsect1 id="crypttab.checkscripts">
   <title>CHECKSCRIPTS</title>
   <variablelist>
    <varlistentry>
@@ -310,7 +310,7 @@
   </variablelist>
  </refsect1>
 
- <refsect1 id="_examples">
+ <refsect1 id="crypttab.examples">
   <title>EXAMPLES</title>
   <para>
    <screen>
@@ -336,7 +336,7 @@ cdisk3 /dev/sda3 none cipher=twofish
   </para>
  </refsect1>
 
- <refsect1 id="_environment">
+ <refsect1 id="crypttab.environment">
   <title>ENVIRONMENT</title>
   <variablelist>
    <varlistentry>
@@ -393,7 +393,7 @@ cdisk3 /dev/sda3 none cipher=twofish
   </variablelist>
  </refsect1>
 
- <refsect1 id="_see_also">
+ <refsect1 id="crypttab.see_also">
   <title>SEE ALSO</title>
   <simplelist type="inline">
    <member><command moreinfo="refentry">cryptsetup</command>(8)</member>
@@ -401,7 +401,7 @@ cdisk3 /dev/sda3 none cipher=twofish
   </simplelist>
  </refsect1>
 
- <refsect1 id="_author">
+ <refsect1 id="crypttab.author">
   <title>AUTHOR</title>
   <simpara>
    This manual page was originally written by
@@ -429,4 +429,5 @@ cdisk3 /dev/sda3 none cipher=twofish
    <email>david@hardeman.nu</email>.
   </simpara>
  </refsect1>
+
 </refentry>
