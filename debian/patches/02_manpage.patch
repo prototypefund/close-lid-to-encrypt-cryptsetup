@@ -5,6 +5,12 @@
 
 --- a/man/cryptsetup.8
 +++ b/man/cryptsetup.8
+@@ -1,4 +1,4 @@
+-.TH CRYPTSETUP "8" "March 2005" "cryptsetup 1.0.3" "Maintainance Commands"
++.TH CRYPTSETUP "8" "March 2005" "cryptsetup 1.0.6" "Maintenance Commands"
+ .SH NAME
+ cryptsetup - setup cryptographic volumes for dm-crypt (including LUKS extension)
+ .SH SYNOPSIS
 @@ -101,7 +101,7 @@
  For LUKS operations that add key material, this options allows to you specify which key slot is selected for the new key. This option can be used for luksFormat and luksAddKey.
  .TP
@@ -22,7 +28,16 @@
 +\fIFrom a file descriptor or a terminal\fR: Password processing is new-line sensitive, meaning the reading will stop after encountering \\n. It will process the read material (without newline) with the default hash or the hash given by \-\-hash. After hashing, it will be cropped to the key size given by \-s.
  
 -\fIFrom stdin\fR: Reading will continue until EOF (so using e.g. /dev/random as stdin will not work), with the trailing newline stripped. After that the read data will be hashed with the default hash or the hash given by \-\-hash and the result will be cropped to the keysize given by \-s (default 256 bits). If "plain" is used as an argument to the hash option, the input data will not be hashed. Instead it will be zero padded (if shorter than the keysize) or truncated (if longer than the keysize) and used directly as the key.
-+\fIFrom stdin\fR: Reading will continue until EOF (so using e.g. /dev/random as stdin will not work), with the trailing newline stripped. After that the read data will be hashed with the default hash or the hash given by \-\-hash and the result will be cropped to the keysize given by \-s. If "plain" is used as an argument to the hash option, the input data will not be hashed. Instead it will be zero padded (if shorter than the keysize) or truncated (if longer than the keysize) and used directly as the key.
++\fIFrom stdin\fR: Reading will continue until EOF (so using e.g. /dev/random as stdin will not work), with the trailing newline stripped. After that the read data will be hashed with the default hash or the hash given by \-\-hash and the result will be cropped to the keysize given by \-s. If "plain" is used as an argument to the hash option, the input data will not be hashed.
  Instead, it will be zero padded (if shorter than the keysize) or truncated (if longer than the keysize) and used directly as the key. No warning will be given if the amount of data read from stdin is less than the keysize.
  
  \fIFrom a key file\fR: It will be cropped to the size given by \-s. If there is insufficient key material in the key file, cryptsetup will quit with an error.
+@@ -156,7 +156,7 @@
+ For any password creation action (luksAddKey, or luksFormat), the user may specify how much the time the password processing should consume.
+ Increasing the time will lead to a more secure password, but also will take luksOpen longer to complete. The default setting of one second is sufficient for good security.
+ .SH NOTES ON PASSWORDS
+-Mathematic can't be bribed. Make sure you keep your passwords safe. There are a few nice tricks for constructing a fallback, when suddenly out of (or after being) blue, your brain refuses to cooperate. These fallbacks are possible with LUKS, as it's only possible with LUKS to have multiple passwords.
++Mathematics can't be bribed. Make sure you keep your passwords safe. There are a few nice tricks for constructing a fallback, when suddenly out of (or after being) blue, your brain refuses to cooperate. These fallbacks are possible with LUKS, as it's only possible with LUKS to have multiple passwords.
+ .SH AUTHORS
+ cryptsetup is written by Christophe Saout <christophe@saout.de>
+ .br

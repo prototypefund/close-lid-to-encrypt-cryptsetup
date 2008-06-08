@@ -225,7 +225,7 @@ setup_mapping()
 
 		if [ -z "$cryptkeyscript" ]; then
 			cryptkeyscript="/lib/cryptsetup/askpass"
-			cryptkey="Enter passphrase for $crypttarget ($cryptsource): "
+			cryptkey="Enter passphrase to unlock the disk $cryptsources ($crypttarget): "
 		fi
 
 

@@ -1,10 +1,15 @@
 cryptsetup (2:1.0.6-3) unstable; urgency=low
 
   [ Jonas Meurer ]
-  * Fix cryptdisks.functions to actually recognize the noauto option. (closes:
-    #483882)
+  * Fix cryptdisks.functions to actually recognize the noauto option. Thanks
+    to Christian Pernegger <pernegger@gmail.com> (closes: #483882)
+  * Update patches/02_manpage.patch to fix two more typos, thanks to Bruno
+    Barrera Yever <bbyever@gmail.com> (closes: #476624) and to remove a
+    duplicate sentence.
+  * Rephrase "Enter password for $crypttarget" to "Enter password to unlock
+    the disk $cryptsource ($crypttarget)" in initramfs/cryptroot.script.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 08 Jun 2008 15:46:37 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 08 Jun 2008 16:29:29 +0200
 
 cryptsetup (2:1.0.6-2) unstable; urgency=low
 
