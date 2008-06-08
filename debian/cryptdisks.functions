@@ -455,12 +455,6 @@ handle_crypttab_line_start () {
 	key=$3
 	opts=$4
 
-	# Ignore noauto devices
-	if [ "$IGNORE" = "yes" ]; then
-		device_msg "$dst" "ignored"
-		continue
-	fi
-
 	# Make sure that all fields are present
 	if [ -z "$dst" ]; then
 		continue
@@ -474,6 +468,23 @@ handle_crypttab_line_start () {
 		src="/dev/disk/by-uuid/${src#UUID=}"
 	elif [ ${src#LABEL=} != $src ]; then
 		src="/dev/disk/by-label/${src#LABEL=}"
+	fi
+
+	# Do the preparatory steps
+	if ! parse_opts "$opts"; then
+		device_msg "$dst" "invalid opts"
+		continue
+	elif ! check_key; then
+		device_msg "$dst" "invalid key"
+		continue
+	elif ! lo_setup; then
+		device_msg "$dst" "loopback failed"
+	fi
+
+	# Ignore noauto devices
+	if [ "$IGNORE" = "yes" ]; then
+		device_msg "$dst" "ignored"
+		continue
 	fi
 
 	# Make sure source device exists
@@ -490,18 +501,7 @@ handle_crypttab_line_start () {
 		continue
 	fi
 
-	# All checks passed, do the preparatory steps
-	if ! parse_opts "$opts"; then
-		device_msg "$dst" "invalid opts"
-		continue
-	elif ! check_key; then
-		device_msg "$dst" "invalid key"
-		continue
-	elif ! lo_setup; then
-		device_msg "$dst" "loopback failed"
-	fi
-
-	# Do the real setup
+	# All checks passed, do the real setup
 	log_action_msg "$dst (starting)"
 	result="ok"
 	if [ "$USELUKS" = "yes" ]; then
