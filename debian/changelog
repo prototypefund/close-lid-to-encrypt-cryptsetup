@@ -13,8 +13,11 @@ cryptsetup (2:1.0.6-3) unstable; urgency=low
     - Add support for debian build option parallel=n to debian/rules.
   * Add a udev rules file to ignore temporary-cryptsetup-* devices, as
     suggested in bug #467200. Thanks to Sam Morris <sam@robots.org.uk>.
+  * Transform debian/copyright into machine-readable code as proposed in
+    http://wiki.debian.org/Proposals/CopyrightFormat. Update and add several
+    copyright notices.
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 12 Jun 2008 15:08:42 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 14 Jun 2008 18:47:03 +0200
 
 cryptsetup (2:1.0.6-2) unstable; urgency=low
 

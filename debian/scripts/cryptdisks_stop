@@ -3,8 +3,8 @@
 # cryptdisks_stop - wrapper around cryptsetup which parses
 # /etc/crypttab, just like mount parses /etc/fstab.
 
-# Initial code stolen by Jonas Meurer <jonas@freesources.org> from
-# cryptdisks_start by Jon Dowland <jon@alcopop.org>
+# Initial code stolen from cryptdisks_start by Jon Dowland <jon@alcopop.org>
+# Copyright (C) 2008 by Jonas Meurer <jonas@freesources.org>
 # License: GNU General Public License, v2 or any later
 # (http://www.gnu.org/copyleft/gpl.html)
 

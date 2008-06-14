@@ -1,31 +1,52 @@
-This package was debianized by Michael Gebetsroither <michael.geb@gmx.at> on
-Sat Feb 12 16:10:12 CET 2005, further development was done by Jonas Meurer
-<jonas@freesources.org> and David Härdeman <david@hardeman.nu>.
+Format-Specification: http://wiki.debian.org/Proposals/CopyrightFormat
+Debianized-By: Milan Kocian <milon@wq.cz>
+Debianized-Date: Thu, 18 Mar 2004 09:28:18 +0100.
+Original-Source: http://clemens.endorphin.org/LUKS
 
-The upstream source was downloaded from http://clemens.endorphin.org/LUKS
+Files: debian/askpass.c, debian/passdev.c
+Copyright: © 2008 David Härdeman <david@hardeman.nu>
+License: GPL-2+
 
-Upstream Authors: Clemens Fruhwirth <clemens@endorphin.org>
-                  Christophe Saout <christophe@saout.de>
+Files: debian/scripts/cryptdisks_start
+Copyright: © 2007 Jon Dowland <jon@alcopop.org>
+License: GPL-2+
 
-Copyright © 2005-2008 Clemens Fruhwirth <clemens@endorphin.org>
-Copyright © 2004      Christophe Saout <christophe@saout.de>
+Files: debian/scripts/cryptdisks_stop
+Copyright: © 2008 Jonas Meurer <jonas@freesources.org>
+License: GPL-2+
 
-License:
+Files: debian/scripts/luksformat
+Copyright: © 2005 Canonical Ltd.
+License: GPL-2+
 
-   This package is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation; either version 2 of the License, or
-   (at your option) any later version.
+Files: debian/*
+Copyright: © 2004-2005 Wesley W. Terpstra <terpstra@debian.org>
+           © 2005-2006 Michael Gebetsroither <michael.geb@gmx.at>
+           © 2006-2008 David Härdeman <david@hardeman.nu>
+           © 2005-2008 Jonas Meurer <jonas@freesources.org>
+License: GPL-2+
 
-   This package is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+Files: luks/sha/*
+Copyright: © 2002 Dr Brian Gladman, Worcester, UK
+License: GPL-any
 
-   You should have received a copy of the GNU General Public License
-   along with this package; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
-
-On Debian systems, the complete text of the GNU General
-Public License can be found in `/usr/share/common-licenses/GPL'.
-
+Files: *
+Copyright: © 2004      Christophe Saout <christophe@saout.de>
+           © 2004-2008 Clemens Fruhwirth <clemens@endorphin.org>
+License: GPL-2+
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this package; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+ .
+ On Debian systems, the complete text of the GNU General
+ Public License can be found in `/usr/share/common-licenses/GPL'.
