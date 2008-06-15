@@ -99,7 +99,7 @@ the above mentioned /etc/crypttab line, so that it looks something like this:
   cryptroot /dev/sda2 none luks,keyscript=/usr/local/sbin/cryptkey
 
 Next, regenerate your initramfs image. This will copy the script into the
-initramfs image as /sbin/cryptgetpw.
+initramfs image under the /keyscripts/ directory.
 
 NOTE: there is a limited set of tools available when the script is executing
 as part of the initramfs bootup, you have to make sure that you do not use
