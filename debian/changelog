@@ -16,8 +16,12 @@ cryptsetup (2:1.0.6-3) unstable; urgency=low
   * Transform debian/copyright into machine-readable code as proposed in
     http://wiki.debian.org/Proposals/CopyrightFormat. Update and add several
     copyright notices.
+  * Change reference to docbook xml v4.2 driver file from an online version
+    to a local one in the manpage files, as the build process should not
+    depend on internet access. Add docbook-xml to build-depends. Thanks to
+    Lucas Nussbaum <lucas@lucas-nussbaum.net>. (closes: #487056)
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 14 Jun 2008 18:47:03 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 19 Jun 2008 13:34:46 +0200
 
 cryptsetup (2:1.0.6-2) unstable; urgency=low
 
