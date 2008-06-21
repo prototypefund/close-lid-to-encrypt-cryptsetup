@@ -21,7 +21,11 @@ cryptsetup (2:1.0.6-3) unstable; urgency=low
     depend on internet access. Add docbook-xml to build-depends. Thanks to
     Lucas Nussbaum <lucas@lucas-nussbaum.net>. (closes: #487056)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 19 Jun 2008 13:34:46 +0200
+  [ David Härdeman ]
+  * Hopefully fix askpass to properly handle console and usplash input
+    (closes: #477203)
+
+ -- David Härdeman <david@hardeman.nu>  Sat, 21 Jun 2008 16:37:49 +0200
 
 cryptsetup (2:1.0.6-2) unstable; urgency=low
 

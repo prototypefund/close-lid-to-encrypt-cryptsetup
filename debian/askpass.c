@@ -21,6 +21,7 @@
 
 
 #define _GNU_SOURCE
+#define _BSD_SOURCE
 #define _POSIX_C_SOURCE 1
 #include <stdio.h>
 #include <unistd.h>
@@ -38,6 +39,7 @@
 #include <sys/ioctl.h>
 #include <signal.h>
 #include <dirent.h>
+#include <linux/vt.h>
 
 #define DEBUG 0
 
@@ -172,24 +174,25 @@ usplash_command(const char *cmd)
 		return true;
 }
 
-static bool
-killall(const char *target, int tsig)
+static pid_t *
+pidlist(const char *target, size_t *retlen)
 {
+	pid_t *plist = NULL;
+	size_t plistlen = 0;
+	pid_t pid;
 	DIR *pdir;
 	FILE *fp;
 	struct dirent *d;
 	char path[256];
 	char buf[256];
-	bool found = false;
-	int pid;
 	char *tmp;
 
 	pdir = opendir("/proc");
 	if (!pdir)
-		return false;
+		goto out;
 
 	while ((d = readdir(pdir)) != NULL) {
-		pid = atoi(d->d_name);
+		pid = (pid_t)atoi(d->d_name);
 		if (!pid)
 			continue;
 
@@ -213,17 +216,77 @@ killall(const char *target, int tsig)
 		if (strcmp(tmp, target))
 			continue;
 
-		kill((pid_t)pid, tsig);
-		found = true;
+		plistlen++;
+		plist = realloc(plist, plistlen * sizeof(pid_t));
+		if (!plist) {
+			debug("realloc failed");
+			plistlen = 0;
+			plist = NULL;
+			goto out;
+		}
+
+		plist[plistlen - 1] = pid;
 	}
 
-	closedir(pdir);
-	return found;
+out:
+	if (pdir)
+		closedir(pdir);
+	*retlen = plistlen;
+	return plist;
+}
+
+static bool
+chvt(int vtnum)
+{
+	int fd;
+	bool rv = false;
+
+	fd = open("/dev/console", O_RDWR);
+	if (fd < 0)
+		goto out;
+
+	if (ioctl(fd, VT_ACTIVATE, vtnum))
+		goto out;
+
+	if (ioctl(fd, VT_WAITACTIVE, vtnum))
+		goto out;
+
+	rv = true;
+out:
+	if (fd >= 0)
+		close(fd);
+	return rv;
+}
+
+static size_t
+killall(pid_t *plist, size_t plistlen, int sig)
+{
+	pid_t pid;
+	int i;
+	size_t signalled = 0;
+
+	for (i = 0; i < plistlen; i++) {
+		pid = plist[i];
+		if (pid == 0)
+			continue;
+
+		debug("Signalling %i\n", (int)pid);
+		if (kill(pid, sig) == 0)
+			signalled++;
+		else
+			plist[i] = 0;
+	}
+
+	return signalled;
 }
 
 static void
 usplash_finish(int fd)
 {
+	pid_t *plist;
+	size_t plistlen;
+
+	debug("usplash_finish\n");
 	if (usplashwaiting) {
 		/* This is ugly, but we need to unwedge usplash if a different
 		 * method has been used to provide the passphrase and usplash
@@ -232,9 +295,19 @@ usplash_finish(int fd)
 		 * method and this should only be needed in exceptional
 		 * cases anyway.
 		 */
-		killall("usplash", SIGTERM);
+		debug("Unwedging usplash\n");
+		/* Changing the VT will normally terminate usplash */
+		chvt(1);
 		sleep(1);
-		killall("usplash", SIGKILL);
+
+		/* Get a list of remaining usplash procs (if any) to kill */
+		plist = pidlist("usplash", &plistlen);
+		if (plistlen > 0) {
+			if (killall(plist, plistlen, SIGTERM) > 0) {
+				sleep(2);
+				killall(plist, plistlen, SIGKILL);
+			}
+		}
 		usplashwaiting = false;
 	} else {
 		usplash_command("TIMEOUT 15");
@@ -449,12 +522,11 @@ disable_method(const char *method)
 	int i;
 	bool result = false;
 
-	debug("Disabling method %s\n", method);
-	if (!method)
-		return false;
+	debug("Disabling method %s\n", method ? method : "ALL");
 
 	for (i = 0; i < ARRAY_SIZE(methods); i++) {
-		if (strcmp(methods[i].name, method))
+		/* A NULL method means all methods should be disabled */
+		if (method && strcmp(methods[i].name, method))
 			continue;
 		if (!methods[i].enabled)
 			continue;
