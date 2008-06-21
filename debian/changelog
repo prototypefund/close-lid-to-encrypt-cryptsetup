@@ -24,8 +24,9 @@ cryptsetup (2:1.0.6-3) unstable; urgency=low
   [ David Härdeman ]
   * Hopefully fix askpass to properly handle console and usplash input
     (closes: #477203)
+  * Clarify crypttab manpage (closes: #487246)
 
- -- David Härdeman <david@hardeman.nu>  Sat, 21 Jun 2008 16:37:49 +0200
+ -- David Härdeman <david@hardeman.nu>  Sat, 21 Jun 2008 17:13:25 +0200
 
 cryptsetup (2:1.0.6-2) unstable; urgency=low
 

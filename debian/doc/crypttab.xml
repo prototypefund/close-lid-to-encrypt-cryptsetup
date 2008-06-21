@@ -255,11 +255,11 @@
     <listitem>
      <simpara>
       The executable at the indicated path is executed with the
-      <emphasis>key file</emphasis> from the thirdfield of the crypttab as its
+      <emphasis>key file</emphasis> from the third field of the crypttab as its
       only argument and the output is used as the key. This also works with
       encrypted root filesystems via initramfs if the executable is
-      self-contained (i.e. not a shell script which relies on external
-      programs not present in the standard initramfs environment).
+      self-contained (i.e. an executable which does not rely on any external
+      program which is not present in the initramfs environment).
      </simpara>
     </listitem>
    </varlistentry>
