@@ -21,6 +21,7 @@
 
 
 #define _GNU_SOURCE
+#define _POSIX_C_SOURCE 1
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -36,6 +37,7 @@
 #include <sys/select.h>
 #include <sys/ioctl.h>
 #include <signal.h>
+#include <dirent.h>
 
 #define DEBUG 0
 
@@ -139,7 +141,6 @@ reread:
  *****************************************************************************/
 #define USPLASH_WRITE_FIFO "/dev/.initramfs/usplash_fifo"
 #define USPLASH_READ_FIFO "/dev/.initramfs/usplash_outfifo"
-#define USPLASH_CONSOLE "/dev/tty8"
 static size_t usplashused = 0;
 static size_t usplashsize = 0;
 static char *usplashbuf = NULL;
@@ -171,55 +172,73 @@ usplash_command(const char *cmd)
 		return true;
 }
 
+static bool
+killall(const char *target, int tsig)
+{
+	DIR *pdir;
+	FILE *fp;
+	struct dirent *d;
+	char path[256];
+	char buf[256];
+	bool found = false;
+	int pid;
+	char *tmp;
+
+	pdir = opendir("/proc");
+	if (!pdir)
+		return false;
+
+	while ((d = readdir(pdir)) != NULL) {
+		pid = atoi(d->d_name);
+		if (!pid)
+			continue;
+
+		snprintf(path, sizeof(path), "/proc/%s/cmdline", d->d_name);
+
+		fp = fopen(path, "r");
+		if (!fp)
+			continue;
+
+		tmp = fgets(buf, sizeof(buf), fp);
+		fclose(fp);
+		if (!tmp)
+			continue;
+
+		tmp = strrchr(buf, '/');
+		if (tmp)
+			tmp++;
+		else
+			tmp = buf;
+
+		if (strcmp(tmp, target))
+			continue;
+
+		kill((pid_t)pid, tsig);
+		found = true;
+	}
+
+	closedir(pdir);
+	return found;
+}
+
 static void
 usplash_finish(int fd)
 {
-	int console;
-	char buf[100];
-	ssize_t ret;
-	int tries = 0;
-	bool somedata = false;
-	const char cmd[] = "TIMEOUT 15";
-
 	if (usplashwaiting) {
 		/* This is ugly, but we need to unwedge usplash if a different
 		 * method has been used to provide the passphrase and usplash
-		 * is still waiting for user input
+		 * is still waiting for user input. Sending a newline to
+		 * usplash's console did not seem to provide a reliable
+		 * method and this should only be needed in exceptional
+		 * cases anyway.
 		 */
-		debug("Usplash cleanup fd %i\n", fd);
-		console = open(USPLASH_CONSOLE, O_RDWR);
-		if (console >= 0) {
-			/* Send newline to usplash */
-			ioctl(console, TIOCSTI, "\n");
-			close(console);
-
-			/* Flush (partial) passphrase from pipe */
-			while (tries < 10) {
-				ret = read(fd, buf, sizeof(buf));
-
-				if (ret > 0) {
-					somedata = true;
-					continue;
-				}
-
-				if (ret < 0 && errno == EINTR)
-					continue;
-
-				if ((ret <  0 && errno == EAGAIN) ||
-				    (ret == 0 && somedata == false)) {
-					sleep(1);
-					tries++;
-					continue;
-				}
-
-				break;
-			}
-			memset(buf, '\0', sizeof(buf));
-		}
+		killall("usplash", SIGTERM);
+		sleep(1);
+		killall("usplash", SIGKILL);
 		usplashwaiting = false;
+	} else {
+		usplash_command("TIMEOUT 15");
 	}
-
-	usplash_command(cmd);
 
 	fifo_common_finish(fd, &usplashbuf, &usplashused, &usplashsize);
 }
@@ -250,9 +269,8 @@ usplash_prepare(const char *prompt)
 {
 	int rdfd = -1;
 	char cmd_input[strlen(prompt) + strlen("INPUTQUIET") + 2];
-	const char cmd_timeout[] = "TIMEOUT 0";
 
-	if (!usplash_command(cmd_timeout))
+	if (!usplash_command("TIMEOUT 0"))
 		return -1;
 
 	sprintf(cmd_input, "INPUTQUIET %s", prompt);
