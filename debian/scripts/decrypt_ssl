@@ -5,23 +5,13 @@
 #
 
 decrypt_ssl () {
-	local tries maxtries
-	maxtries=3
-	tries=0
-
-	echo -e "\nDecrypting ssl key $1..." >&2
-	while [ $tries -lt $maxtries ]; do
-		if /usr/bin/openssl enc -aes-256-cbc -d -salt -in $1 2> /dev/null 2>&1; then
-			break
-		fi
-		tries=$(( $tries + 1))
-	done
-	rm -f $tmpkey
-
-	if [ $tries -eq $maxtries ]; then
-		echo -e "\nMaximum number of attempts exceeded" >&2
-		exit 1
+	echo "" >&2
+	echo "Decrypting ssl key $1..." >&2
+	if ! /usr/bin/openssl enc -aes-256-cbc -d -salt -in $1 2> /dev/null 2>&1; then
+		return 1
 	fi
+	return 0
 }
 
 decrypt_ssl $1
+return $?

@@ -3,38 +3,21 @@
 decrypt_ssl () {
 	local key tmpkey rc tries maxtries
 	key="$1"
-	rc=0
 	tmpkey=$(tempfile)
-	maxtries=3
 
 	echo "Performing (deprecated) two-pass-ssl decryption" >&2
-	tries=0
-	while [ $tries -lt $maxtries ]; do
-		if /usr/bin/openssl enc -aes256 -d -salt -in $key -out $tmpkey > /dev/null 2>&1; then
-			break
-		fi
-		tries=$(( $tries + 1))
-	done
-
-	if [ $tries -eq $maxtries ]; then
-		echo "Maximum number of tries exceeded" >&2
-		exit 1
+	if ! /usr/bin/openssl enc -aes256 -d -salt -in $key -out $tmpkey > /dev/null 2>&1; then
+		echo "First pass decryption failed" >&2
+		return 1
 	fi
 
-	tries=0
-	while [ $tries -lt 3 ]; do
-		if /usr/bin/openssl dsa -in $tmpkey 2> /dev/null; then
-			break
-		fi
-		tries=$(( $tries + 1))
-	done
+	if ! /usr/bin/openssl dsa -in $tmpkey 2> /dev/null; then
+		echo "Second pass decryption failed" >&2
+		rm -f "$tmpkey"
+		return 1
+	fi
 
 	rm -f "$tmpkey"
-	if [ $tries -eq $maxtries ]; then
-		echo "Maximum number of tries exceeded" >&2
-		exit 1
-	fi
-
 	return 0
 }
 

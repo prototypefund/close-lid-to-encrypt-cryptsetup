@@ -7,14 +7,11 @@ decrypt_gpg () {
 	rc=1
 
 	echo "Performing GPG key decryption" >&2
-	while [ $tries -lt 3 ]; do
-		if /usr/bin/gpg -q --decrypt $key; then
-			rc=0
-			break
-		fi
-		tries=$(( tries + 1 ))
-	done
-	return $rc
+	if /usr/bin/gpg -q --decrypt $key; then
+		return 0
+	else
+		return 1
+	fi
 }
 
 echo "gpg decryption not implemented yet" >&2
