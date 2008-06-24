@@ -26,7 +26,7 @@ cryptsetup (2:1.0.6-3) unstable; urgency=low
     (closes: #477203)
   * Clarify crypttab manpage (closes: #487246)
 
- -- David Härdeman <david@hardeman.nu>  Sat, 21 Jun 2008 17:13:25 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 24 Jun 2008 13:39:04 +0200
 
 cryptsetup (2:1.0.6-2) unstable; urgency=low
 
