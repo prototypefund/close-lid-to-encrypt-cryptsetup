@@ -1,3 +1,10 @@
+cryptsetup (2:1.0.6-4) unstable; urgency=low
+
+  * Make regex work if keyfile has extended attributes,
+    https://launchpad.net/bugs/231339 (closes: #488131)
+
+ -- David Härdeman <david@hardeman.nu>  Mon, 30 Jun 2008 20:30:48 +0200
+
 cryptsetup (2:1.0.6-3) unstable; urgency=low
 
   [ Jonas Meurer ]
