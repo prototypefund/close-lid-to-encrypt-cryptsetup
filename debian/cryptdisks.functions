@@ -32,7 +32,8 @@ esac
 parse_opts () {
 	local opts opt IFS PARAM VALUE
 
-	opts="$1"
+	# Strip comments - https://bugs.launchpad.net/bugs/185380
+	opts=$(echo -n $1 | sed 's/ *#.*//')
 	LOUD=""
 	PARAMS=""
 	CHECK=""
