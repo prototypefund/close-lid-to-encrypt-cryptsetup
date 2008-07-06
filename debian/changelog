@@ -1,11 +1,3 @@
-cryptsetup (2:1.0.6-4) unstable; urgency=low
-
-  * Make regex work if keyfile has extended attributes,
-    https://launchpad.net/bugs/231339 (closes: #488131)
-  * Support comments in options part of crypttab (closes: #488128)
-
- -- David Härdeman <david@hardeman.nu>  Mon, 30 Jun 2008 20:34:56 +0200
-
 cryptsetup (2:1.0.6-3) unstable; urgency=low
 
   [ Jonas Meurer ]
@@ -33,8 +25,11 @@ cryptsetup (2:1.0.6-3) unstable; urgency=low
   * Hopefully fix askpass to properly handle console and usplash input
     (closes: #477203)
   * Clarify crypttab manpage (closes: #487246)
+  * Make regex work if keyfile has extended attributes,
+    https://launchpad.net/bugs/231339 (closes: #488131)
+  * Support comments in options part of crypttab (closes: #488128)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 24 Jun 2008 13:39:04 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 07 Jul 2008 00:30:07 +0200
 
 cryptsetup (2:1.0.6-2) unstable; urgency=low
 
