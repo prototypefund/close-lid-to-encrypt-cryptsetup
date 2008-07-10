@@ -45,6 +45,7 @@ parse_opts () {
 	USELUKS=""
 	TIMEOUT=""
 	KEYSCRIPT=""
+	IGNORE=""
 
 	# Parse the options field, convert to cryptsetup parameters
 	# and construct the command line
