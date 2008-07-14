@@ -1,9 +1,10 @@
 cryptsetup (2:1.0.6-4) unstable; urgency=low
 
-  * Make sure  is reset as necessary, patch by
+  [ David Härdeman ]
+  * Make sure $IGNORE is reset as necessary, patch by
     Thomas Luzat <thomas@luzat.com> (closes: #490199)
 
- -- David Härdeman <david@hardeman.nu>  Thu, 10 Jul 2008 19:41:20 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 15 Jul 2008 00:24:47 +0200
 
 cryptsetup (2:1.0.6-3) unstable; urgency=low
 
