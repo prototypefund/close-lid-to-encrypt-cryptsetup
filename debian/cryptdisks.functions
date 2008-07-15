@@ -230,10 +230,12 @@ check_key () {
 	# If the keyscript option is set, the "key" is just an argument to
 	# the keyscript and not necessarily a file
 	if [ -n "$KEYSCRIPT" ]; then
+		INTERACTIVE="yes"
 		return 0
 	fi
 
 	if [ -z "$key" ] || [ "$key" = "none" ]; then
+		key=""
 		INTERACTIVE="yes"
 		return 0
 	fi
@@ -277,8 +279,9 @@ check_key () {
 
 # Setup a luks mapping
 do_luks () {
-	local tried
+	local tried keyscriptarg
 	tried=0
+	keyscriptarg=""
 
 	if ! cryptsetup isLuks "$src" >/dev/null 2>&1; then
 		log_warning_msg "$dst: device '$src' is not a LUKS partition, skipping"
@@ -286,28 +289,36 @@ do_luks () {
 	fi
 
 	if [ -n "$KEYSCRIPT" ]; then
-		PARAMS="$PARAMS --key-file=-"
-		while [ "$tried" -lt "$TRIES" ]; do
-			if "$KEYSCRIPT" "$key" <&1 | cryptsetup $PARAMS luksOpen "$src" "$dst"; then
-				break
-			fi
-			tried=$(( $tried + 1 ))
-		done
-	elif [ "$INTERACTIVE" != "yes" ]; then
-		PARAMS="$PARAMS --key-file=$key"
-		while [ "$tried" -lt "$TRIES" ]; do
-			if cryptsetup $PARAMS luksOpen "$src" "$dst" <&1; then
-				break
-			fi
-			tried=$(( $tried + 1 ))
-		done
+		# keyscript -> "key" is just an argument to the keyscript
+		keyscriptarg="$key"
+		key="-"
+	elif [ -z "$key" ]; then
+		# no keyscript, no key -> password
+		keyscriptarg="Enter passphrase to unlock the disk $src ($dst): "
+		key="-"
+		KEYSCRIPT="/lib/cryptsetup/askpass"
 	else
-		cryptsetup $PARAMS luksOpen "$src" "$dst" <&1 || tried="$TRIES"
+		# no keyscript, key -> file input
+		keyscriptarg="$key"
+		key="-"
+		KEYSCRIPT="cat"
 	fi
 
-	if [ "$tried" -ge "$TRIES" ]; then
-		return 1
+	PARAMS="$PARAMS --key-file=$key"
+	if [ "$INTERACTIVE" = "yes" ]; then
+		TRIES=1
 	fi
+
+	while [ "$tried" -lt "$TRIES" ]; do
+		if "$KEYSCRIPT" "$keyscriptarg" <&1 | cryptsetup $PARAMS luksOpen "$src" "$dst"; then
+			break
+		fi
+
+		tried=$(( $tried + 1 ))
+		if [ "$tried" -ge "$TRIES" ]; then
+			return 1
+		fi
+	done
 
 	if [ -n "$CHECK" ] && ! "$CHECK" "/dev/mapper/$dst" $CHECKARGS; then
 		log_warning_msg "$dst: the check for '/dev/mapper/$dst' failed"
@@ -320,8 +331,9 @@ do_luks () {
 
 # Setup a regular mapping
 do_noluks () {
-	local pre_out tried
+	local pre_out tried keyscriptarg
 	tried=0
+	keyscriptarg=""
 
 	if [ -z "$PRECHECK" ]; then
 		PRECHECK="/lib/cryptsetup/checks/un_vol_id"
@@ -335,17 +347,28 @@ do_noluks () {
 	fi
 
 	if [ -n "$KEYSCRIPT" ]; then
-		PARAMS="$PARAMS --key-file=-"
-	elif [ "$INTERACTIVE" != "yes" ]; then
-		PARAMS="$PARAMS --key-file=$key"
+		# keyscript => "key" is just an argument to the keyscript
+		keyscriptarg="$key"
+		key="-"
+	elif [ -z "$key" ]; then
+		# no keyscript, no key => password
+		keyscriptarg="Enter passphrase to unlock the disk $src ($dst): "
+		key="-"
+		KEYSCRIPT="/lib/cryptsetup/askpass"
+	else
+		# no keyscript, key => file input
+		keyscriptarg="$key"
+		key="-"
+		KEYSCRIPT="cat"
+	fi
+
+	PARAMS="$PARAMS --key-file=$key"
+	if [ "$INTERACTIVE" = "yes" ]; then
+		TRIES=1
 	fi
 
 	while [ "$tried" -lt "$TRIES" ]; do
-		if [ -n "$KEYSCRIPT" ]; then
-			"$KEYSCRIPT" "$key" <&1 | cryptsetup $PARAMS create "$dst" "$src"
-		else
-			cryptsetup $PARAMS create "$dst" "$src" <&1
-		fi
+		"$KEYSCRIPT" "$keyscriptarg" <&1 | cryptsetup $PARAMS create "$dst" "$src"
 
 		if [ -z "$CHECK" ] || "$CHECK" "/dev/mapper/$dst" $CHECKARGS; then
 			break
@@ -353,12 +376,12 @@ do_noluks () {
 			log_warning_msg "$dst: the check for '/dev/mapper/$dst' failed - maybe the password is wrong"
 			cryptsetup remove "$dst"
 		fi
-		tried=$(( $tried + 1 ))
-	done
 
-	if [ "$tried" -ge "$TRIES" ]; then
-		return 1
-	fi
+		tried=$(( $tried + 1 ))
+		if [ "$tried" -ge "$TRIES" ]; then
+			return 1
+		fi
+	done
 
 	return 0
 }
