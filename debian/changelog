@@ -3,9 +3,9 @@ cryptsetup (2:1.0.6-4) unstable; urgency=low
   [ David Härdeman ]
   * Make sure $IGNORE is reset as necessary, patch by
     Thomas Luzat <thomas@luzat.com> (closes: #490199)
-  * Use askpass in init scripts as well
+  * Use askpass in init scripts as well (closes: #489033, #477203)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 15 Jul 2008 00:24:47 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 16 Jul 2008 11:24:47 +0200
 
 cryptsetup (2:1.0.6-3) unstable; urgency=low
 
