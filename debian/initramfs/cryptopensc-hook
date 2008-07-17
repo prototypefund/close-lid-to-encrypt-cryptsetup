@@ -51,7 +51,6 @@ done
 # Install pcscd daemon, drivers, conf file, and include libgcc as well since
 # pcscd utilizes pthread_cancel
 copy_exec /usr/sbin/pcscd 
-copy_exec /lib/libgcc_s.so.1
 cp -r /usr/lib/pcsc ${DESTDIR}/usr/lib
 cp /etc/reader.conf ${DESTDIR}/etc
 

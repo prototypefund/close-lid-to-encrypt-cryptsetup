@@ -1,3 +1,0 @@
-# udev rules file for dm-crypt devices
-
-ENV{DM_NAME}=="temporary-cryptsetup-*", OPTIONS+="ignore_device"
