@@ -344,6 +344,8 @@ do_noluks () {
 		return 1
 	fi
 
+	PARAMS="$PARAMS --key-file=$key"
+
 	if [ -n "$KEYSCRIPT" ]; then
 		# keyscript => "key" is just an argument to the keyscript
 		keyscriptarg="$key"
@@ -368,7 +370,7 @@ do_noluks () {
 	PARAMS="$PARAMS --key-file=$key"
 
 	while [ "$tried" -lt "$TRIES" ]; do
-		"$KEYSCRIPT" "$keyscriptarg" <&1 | cryptsetup $PARAMS create "$dst" "$src"
+		"$KEYSCRIPT" "$keyscriptarg" | cryptsetup $PARAMS create "$dst" "$src"
 
 		if [ -z "$CHECK" ] || "$CHECK" "/dev/mapper/$dst" $CHECKARGS; then
 			break
