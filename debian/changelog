@@ -1,4 +1,4 @@
-cryptsetup (2:1.0.6-4) unstable; urgency=low
+cryptsetup (2:1.0.6-4) unstable; urgency=medium
 
   [ David Härdeman ]
   * Make sure $IGNORE is reset as necessary, patch by Thomas Luzat
@@ -28,8 +28,10 @@ cryptsetup (2:1.0.6-4) unstable; urgency=low
     - Fix section ''9. The "decrypt_derived" keyscript'': Add swap option to
       the example line for crypttab and other minor fixes. Thanks to
       Helmut Grohne <helmut@subdivi.de>. (closes: #491867)
+  * urgency=medium since important (#492451) and security (#477203) bugs get
+    fixed by this upload.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jul 2008 17:44:33 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jul 2008 17:59:00 +0200
 
 cryptsetup (2:1.0.6-3) unstable; urgency=low
 

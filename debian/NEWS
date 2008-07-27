@@ -1,4 +1,4 @@
-cryptsetup (2:1.0.6-4) unstable; urgency=low
+cryptsetup (2:1.0.6-4) unstable; urgency=medium
 
   The obsolete keyscript decrypt_old_ssl and the corresponding example script
   gen-old-ssl-key have been removed from the package. If you're still using
