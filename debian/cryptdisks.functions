@@ -290,16 +290,21 @@ do_luks () {
 	fi
 
 	if [ -n "$KEYSCRIPT" ]; then
-		# keyscript -> "key" is just an argument to the keyscript
+		# keyscript => "key" is just an argument to the keyscript
 		keyscriptarg="$key"
 		key="-"
 	elif [ -z "$key" ]; then
-		# no keyscript, no key -> password
+		# no keyscript, no key => password
 		keyscriptarg="Enter passphrase to unlock the disk $src ($dst): "
 		key="-"
 		KEYSCRIPT="/lib/cryptsetup/askpass"
+	elif [ "$key" -ne "${key%/dev/*}" ]; then
+		# no keyscript, device key => special treatment
+		keyscriptarg=""
+		key="$key"
+		KEYSCRIPT=""
 	else
-		# no keyscript, key -> file input
+		# no keyscript, key => file input
 		keyscriptarg="$key"
 		key="-"
 		KEYSCRIPT="cat"
@@ -308,8 +313,14 @@ do_luks () {
 	PARAMS="$PARAMS --key-file=$key"
 
 	while [ "$tried" -lt "$TRIES" ]; do
-		if "$KEYSCRIPT" "$keyscriptarg" | cryptsetup $PARAMS luksOpen "$src" "$dst"; then
-			break
+		if [ -n "$KEYSCRIPT" ]; then
+			if "$KEYSCRIPT" "$keyscriptarg" | cryptsetup $PARAMS luksOpen "$src" "$dst"; then
+				break
+			fi
+		else
+			if cryptsetup $PARAMS luksOpen "$src" "$dst"; then
+				break
+			fi
 		fi
 
 		tried=$(( $tried + 1 ))
@@ -355,11 +366,11 @@ do_noluks () {
 		keyscriptarg="Enter passphrase to unlock the disk $src ($dst): "
 		key="-"
 		KEYSCRIPT="/lib/cryptsetup/askpass"
-	elif [ "$key" -ne "${key%/dev/*random}" ]; then
-		# no keyscript, random key => special treatment
-		keyscriptarg="$(dd if=$key bs=1 count=$SIZE status=noxfer 2>/dev/null)"
-		key="-"
-		KEYSCRIPT="echo"
+	elif [ "$key" -ne "${key%/dev/*}" ]; then
+		# no keyscript, device (random) key => special treatment
+		keyscriptarg=""
+		key="$key"
+		KEYSCRIPT=""
 	else
 		# no keyscript, key => file input
 		keyscriptarg="$key"
@@ -370,7 +381,11 @@ do_noluks () {
 	PARAMS="$PARAMS --key-file=$key"
 
 	while [ "$tried" -lt "$TRIES" ]; do
-		"$KEYSCRIPT" "$keyscriptarg" | cryptsetup $PARAMS create "$dst" "$src"
+		if [ -n "$KEYSCRIPT" ]; then
+			"$KEYSCRIPT" "$keyscriptarg" | cryptsetup $PARAMS create "$dst" "$src"
+		else
+			cryptsetup $PARAMS create "$dst" "$src"
+		fi
 
 		if [ -z "$CHECK" ] || "$CHECK" "/dev/mapper/$dst" $CHECKARGS; then
 			break
