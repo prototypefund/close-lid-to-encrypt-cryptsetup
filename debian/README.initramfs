@@ -138,7 +138,7 @@ to set them up during the initramfs stage in order to allow suspend and resume
 in combination with encryption to keep the resume image safe from potential
 attackers.
 
-Note: this will not work as expected until #398302 has been fixed as the
+Note: This will not work as expected until #398302 has been fixed as the
 decrypted suspend image will currently not be recognized as such.
 
 If your resume device and your root partition use two different cryptsetup
@@ -161,9 +161,9 @@ In short, you'll need to do something like the following to take advantage
 of the decrypt_derived script:
 
 1) swapoff -a
-2) cryptsetup remove cryptswap
+2) cryptsetup luksClose cryptswap
 3) edit /etc/crypttab and change the cryptswap line to e.g.:
-cryptswap /dev/hda2 cryptroot cipher=aes-cbc-essiv:sha256,size=256,hash=sha256,keyscript=/lib/cryptsetup/scripts/decrypt_derived
+cryptswap /dev/hda2 cryptroot cipher=aes-cbc-essiv:sha256,size=256,hash=sha256,keyscript=/lib/cryptsetup/scripts/decrypt_derived,swap
 4) /etc/init.d/cryptdisks start
 5) Make sure that /dev/mapper/cryptswap has been created
 6) mkswap /dev/mapper/cryptswap
@@ -172,6 +172,11 @@ cryptswap /dev/hda2 cryptroot cipher=aes-cbc-essiv:sha256,size=256,hash=sha256,k
 
 After you've followed the above steps, your swap device should be setup
 automatically after the root device has been setup during the boot stage.
+
+Note: If you don't use suspend device support, it's better to use completely
+random keys for your encrypted swap device. See the section '2. Encrypted
+swap partition(s)' in /usr/share/doc/cryptsetup/README.Debian for information
+on how to setup this.
 
 10. The "passdev" keyscript
 ----------------------------

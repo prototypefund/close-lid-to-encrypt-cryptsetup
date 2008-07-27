@@ -13,8 +13,17 @@ cryptsetup (2:1.0.6-4) unstable; urgency=low
     by dmsetup package which cryptsetup depends on.
   * Add splashy support to askpass, thanks to John Hughes <john@calva.com>
     for the patch. (closes: #492451)
+  * Rewrite CryptoSwap.HowTo in README.Debian, remove CryptoSwap.HowTo.
+  * Refer to README.initramfs instead of CryptoRoot.HowTo for encrypted root
+    filesystem in README.Debian.
+  * Remove outdated docs CryptoRoot.HowTo, usbcrypto.udev and gen-old-ssl-key,
+    as well as the decrypt_old_ssl keyscript.
+  * Remove debian/TODO, didn't have any useful content anyway.
+  * Fix section ''9. The "decrypt_derived" keyscript'': Add swap option to the
+    example line for crypttab and other minor fixes. Thanks to Helmut Grohne
+    <helmut@subdivi.de>. (closes: #491867)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jul 2008 13:39:35 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jul 2008 17:04:22 +0200
 
 cryptsetup (2:1.0.6-3) unstable; urgency=low
 

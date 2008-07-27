@@ -3,7 +3,9 @@ This is the documentation for implementing a robust check system into
 
 checks marked with [default] are enabled per default.
 
-basic ideas:
+introduction
+------------
+
  - default checks are only necessary where one of OUR actions causes
    dataloss.
  - our checks must not cause any modifications to the underlying device.
@@ -16,7 +18,9 @@ The only default checks which apply to all situations are:
 
 Currently, three different branches exist:
 
-### swap ###
+swap checks
+-----------
+
  * precheck:
    - check for all known filesystems on the device, skip if any is found [default]
    - if none is found, check whether the source device is a swap partition.
@@ -33,7 +37,9 @@ note to swap: You may destroy data whenever setting the 'swap' flag. The
 	      is lost after mkswap is run over it. Keep that in mind and double-
 	      check whether the given source device is really the one you meant.
 
-### plain dm-crypt ###
+plain dm-crypt checks
+---------------------
+
  * precheck:
    - check for all known filesystems on the device, skip if one is found [default]
  * postcheck:
@@ -43,7 +49,9 @@ note to swap: You may destroy data whenever setting the 'swap' flag. The
 note to plain dm-crypt: The postcheck (for filesystem or whatever) is the only
                         way to verify that the given password/key is correct.
 
-### luks ###
+luks checks
+-----------
+
  - luks and a /dev/*random key are not compatible. disable this combination.
  * precheck:
    - check whether the device is a LUKS partition, skip if untrue [default]

@@ -1,6 +1,24 @@
 Cryptsetup for Debian
 ---------------------
 
+   Table of Contents
+
+   1. Introduction into Cryptsetup for Debian
+
+   2. Encrypted swap partition(s)
+
+   3. Insecure mode/owner for keys
+
+   4. Cryptsetup and udev
+
+   5. The 'check' option
+
+   6. Credits
+
+
+1. Introduction into Cryptsetup for Debian
+------------------------------------------
+
  Cryptsetup is a command-line interface for configuring encrypted block
 devices via dm-crypt, a kernel device-mapper target.
 The Debian cryptsetup package provides the initscript /etc/init.d/cryptdisks
@@ -11,15 +29,59 @@ encrypted devices at boot time. See man crypttab(5) for more information.
 encrypted device that follows the LUKS standard and for putting a file system
 onto the encrypted device. See man luksformat(8) for more information.
 
-For instructions about how to encrypt your swap partition(s), see
-	/usr/share/doc/cryptsetup/CryptoSwap.HowTo
+ If you wish to perform a Debian installation to an encrypted root, you might
+be interested in using a version of Debian Installer with partman-crypto,
+which will install the system and setup cryptsetup and initramfs-tools.
 
-For instructions about how to encrypt your root filesystem, see
-	/usr/share/doc/cryptsetup/CryptoRoot.HowTo
+ For instructions about how to encrypt your root filesystem and integrate
+cryptsetup into initramfs on a running system, see
+	/usr/share/doc/cryptsetup/README.initramfs.gz.
+
+For instructions about how to encrypt your swap partition(s), see below.
 
 
-Insecure mode/owner for keys
-----------------------------
+2. Encrypted swap partition(s)
+------------------------------
+
+ An encrypted swap partition prevents spying on plaintext secrets (passwords)
+that may be written to disk when memory is swapped to disk.
+
+ To encrypt your swap partitions, you'll first have to deactivate your swap:
+
+swapoff -a
+
+ You'll have to add an entry for every swap partition in /etc/crypttab. Be
+sure toeplace the source device (here /dev/hda9) with your swap devices:
+# <target name> <source device>	<key file>	<options>
+cswap1		/dev/hda9	/dev/random	swap,cipher=aes-cbc-essiv:sha256,size=256,hash=sha256
+
+ Now you need to change the swap devices in /etc/fstab to the encrypted swap
+device names (/dev/mapper/cswap1 in this example).
+
+# <file system> <mount point>   <type>  <options>     <dump>  <pass>
+/dev/hda9        none           swap    sw            0       0
+
+becomes 
+
+# <file system> <mount point>   <type>  <options>     <dump>  <pass>
+/dev/mapper/cswap1  none        swap    sw            0       0
+
+
+ Finally, you need to start the cryptsetup swap devices and reactivate swap:
+
+/etc/init.d/cryptdisks start
+swapon -a
+
+ That's it! You have a crypted swap device. Note that /dev/random as source
+for your keyfile in /etc/crypttab might not generate enough random bytes.
+If you're in doubt, you can use the (less secure) device /dev/urandom instead.
+
+ Read the crypttab(5) manpage for more information, for example options to use
+a different encryption algorithm than the default.
+
+
+3. Insecure mode/owner for keys
+-------------------------------
 
  Any key that is stored somewhere to be used with cryptsetup should have the
 mode 400 (-r--------) and owner/group root. This way only root has permissions
@@ -44,8 +106,9 @@ like this:
 links instead of /dev/sdg2 as the link will work no matter in which order the
 media is inserted and detected.
 
-Cryptsetup and udev
--------------------
+
+4. Cryptsetup and udev
+----------------------
 
  As a workaround for some yet-to-be-fixed race condition in kernel,
 device-mapper or udev, cryptsetup currently runs udevsettle.
@@ -58,8 +121,9 @@ program' in this case, this ends in a deadlock.
  Therefore cryptsetup should be detached directly after invocation in this
 case, so that it runs asynchronously.
 
-The 'check' option
-------------------
+
+5. The 'check' option
+---------------------
 
  The 'check' option in crypttab allows to configure checks to be run against
 the target device after cryptsetup has been invoked.
@@ -85,4 +149,14 @@ useful, we will include them in the package.
 
  See man crypttab(5) for more information about the checksystem.
 
- -- Jonas Meurer <mejo@debian.org>, Sun, 30 Jul 2006 21:53:56 +0200
+6. Credits
+----------
+
+ People who contributed to documentation for the Debian cryptsetup package:
+
+Jonas Meurer <jonas@freesources.org>
+David Härdeman <david@hardeman.nu>
+Bastian Kleineidam <calvin@debian.org>
+Michael Gebetsroither <michael.geb@gmx.at>
+
+ -- Jonas Meurer <mejo@debian.org>, Sun, 27 Jul 2008 17:02:56 +0200

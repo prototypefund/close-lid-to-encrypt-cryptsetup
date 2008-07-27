@@ -1,3 +1,13 @@
+cryptsetup (2:1.0.6-4) unstable; urgency=low
+
+  The obsolete keyscript decrypt_old_ssl and the corresponding example script
+  gen-old-ssl-key have been removed from the package. If you're still using
+  them, either save a local backup of /lib/cryptsetup/scripts/decrypt_old_ssl
+  and put it back after the upgrade finished, or migrate your setup to use
+  keyscripts that are still supported.
+
+ -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jul 2008 16:22:57 +0200
+
 cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
 
   The default hash used by the initramfs cryptroot scripts has been changed
