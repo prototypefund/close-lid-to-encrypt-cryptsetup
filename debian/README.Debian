@@ -13,7 +13,9 @@ Cryptsetup for Debian
 
    5. The 'check' option
 
-   6. Credits
+   6. Cryptsetup and Splashy
+
+   7. Credits
 
 
 1. Introduction into Cryptsetup for Debian
@@ -149,7 +151,20 @@ useful, we will include them in the package.
 
  See man crypttab(5) for more information about the checksystem.
 
-6. Credits
+6. Cryptsetup and Splashy
+-------------------------
+
+ Splashy support in cryptsetup is currently somehow limited. Splashy is known
+to freeze at the password dialog for encrypted non-root filesystems. Only the
+password dialog for the encrypted root filesystem works.
+
+ It seems like splashy freezes for any input dialog in initscripts while
+input dialogs at initramfs stage seem to work. This leads to the assumption
+that the bug is somewhere in splashy and neither in cryptsetups initscripts
+nor in askpass, the keyscript that is responsible for cryptsetups passphrase
+input dialogs.
+
+7. Credits
 ----------
 
  People who contributed to documentation for the Debian cryptsetup package:
