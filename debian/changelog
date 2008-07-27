@@ -13,6 +13,9 @@ cryptsetup (2:1.0.6-4) unstable; urgency=low
     by dmsetup package which cryptsetup depends on.
   * Add splashy support to askpass, thanks to John Hughes <john@calva.com>
     for the patch. (closes: #492451)
+  * Now that askpass is used as keyscript for interactive mode, it's not
+    necessary to set cryptsetup parameter '--tries=$TRIES' and TRIES=1 for
+    interactive mode anymore in cryptdisks.functions.
   * Major documentation cleanup for lenny:
     - Rewrite CryptoSwap.HowTo in README.Debian, remove CryptoSwap.HowTo.
     - Refer to README.initramfs instead of CryptoRoot.HowTo for encrypted root
@@ -24,7 +27,7 @@ cryptsetup (2:1.0.6-4) unstable; urgency=low
       the example line for crypttab and other minor fixes. Thanks to
       Helmut Grohne <helmut@subdivi.de>. (closes: #491867)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jul 2008 17:09:48 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jul 2008 17:33:33 +0200
 
 cryptsetup (2:1.0.6-3) unstable; urgency=low
 

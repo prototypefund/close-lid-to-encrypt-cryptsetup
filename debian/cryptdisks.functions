@@ -133,7 +133,6 @@ parse_opts () {
 			else
 				log_warning_msg "$dst: option tries used with an incorrect argument - forced to $TRIES"
 			fi
-			PARAMS="$PARAMS --tries=$TRIES"
 			;;
 		timeout)
 			if [ -z "$VALUE" ]; then
@@ -305,9 +304,6 @@ do_luks () {
 	fi
 
 	PARAMS="$PARAMS --key-file=$key"
-	if [ "$INTERACTIVE" = "yes" ]; then
-		TRIES=1
-	fi
 
 	while [ "$tried" -lt "$TRIES" ]; do
 		if "$KEYSCRIPT" "$keyscriptarg" | cryptsetup $PARAMS luksOpen "$src" "$dst"; then
@@ -363,9 +359,6 @@ do_noluks () {
 	fi
 
 	PARAMS="$PARAMS --key-file=$key"
-	if [ "$INTERACTIVE" = "yes" ]; then
-		TRIES=1
-	fi
 
 	while [ "$tried" -lt "$TRIES" ]; do
 		"$KEYSCRIPT" "$keyscriptarg" <&1 | cryptsetup $PARAMS create "$dst" "$src"
