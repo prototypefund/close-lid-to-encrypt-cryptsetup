@@ -11,8 +11,10 @@ cryptsetup (2:1.0.6-4) unstable; urgency=low
     <sargentd@die-welt.net>. (closes: #490300)
   * Remove the udev rules file again as the relevant rules are now provided
     by dmsetup package which cryptsetup depends on.
+  * Add splashy support to askpass, thanks to John Hughes <john@calva.com>
+    for the patch. (closes: #492451)
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 18 Jul 2008 01:08:54 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jul 2008 13:39:35 +0200
 
 cryptsetup (2:1.0.6-3) unstable; urgency=low
 

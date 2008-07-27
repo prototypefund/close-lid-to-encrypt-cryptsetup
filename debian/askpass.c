@@ -40,6 +40,9 @@
 #include <signal.h>
 #include <dirent.h>
 #include <linux/vt.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <sys/uio.h>
 
 #define DEBUG 0
 
@@ -361,6 +364,68 @@ usplash_prepare(const char *prompt)
 }
 
 /*****************************************************************************
+ * splashy functions                                                         *
+ *****************************************************************************/
+
+/* It might be better style to just do a popen of splashy_update ? */
+
+#define SPLASHY_SOCK	"\0/splashy"
+static size_t splashyused = 0;
+static size_t splashysize = 0;
+static char *splashybuf = NULL;
+
+static int
+splashy_prepare(const char *prompt)
+{
+	int fd;
+	struct sockaddr addr = {AF_UNIX, SPLASHY_SOCK};
+	struct iovec iov[2];
+
+	if ((fd = socket (PF_UNIX, SOCK_STREAM, 0)) == -1) {
+		return -1;
+	}
+
+	if (connect (fd, &addr, sizeof addr) == -1) {
+		close (fd);
+		return -1;
+	}
+
+	iov[0].iov_base = "getpass ";
+	iov[0].iov_len = strlen ("getpass ");
+	iov[1].iov_base = prompt;
+	iov[1].iov_len = strlen (prompt) + 1;
+
+	if (writev (fd, iov, 2) == -1) {
+		close (fd);
+		return -1;
+	}
+
+	/* Shutdown write? */
+
+	return fd;
+}
+
+static bool
+splashy_read(int fd, char **buf, size_t *size)
+{
+	debug("In splashy_read\n");
+	if (fifo_common_read(fd, &splashybuf, &splashyused, &splashysize)) {
+		*buf = splashybuf;
+		*size = splashyused;
+		return true;
+	}
+
+	return false;
+}
+
+
+static void
+splashy_finish(int fd)
+{
+	fifo_common_finish (fd, &splashybuf, &splashyused, &splashysize);
+}
+
+/*****************************************************************************
  * fifo functions                                                            *
  *****************************************************************************/
 #define FIFO_PATH "/lib/cryptsetup/passfifo"
@@ -512,6 +577,7 @@ struct method {
 
 static struct method methods[] = {
 	{ "usplash", usplash_prepare, usplash_read, usplash_finish, false, true, -1 },
+	{ "splashy", splashy_prepare, splashy_read, splashy_finish, false, true, -1 },
 	{ "fifo", fifo_prepare, fifo_read, fifo_finish, false, true, -1 },
 	{ "console", console_prepare, console_read, console_finish, false, true, -1 }
 };
