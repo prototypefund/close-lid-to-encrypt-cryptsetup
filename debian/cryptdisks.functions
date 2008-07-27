@@ -36,6 +36,7 @@ parse_opts () {
 	opts=$(echo -n $1 | sed 's/ *#.*//')
 	LOUD=""
 	PARAMS=""
+	SIZE=""
 	CHECK=""
 	CHECKARGS=""
 	PRECHECK=""
@@ -66,11 +67,12 @@ parse_opts () {
 			PARAMS="$PARAMS -c $VALUE"
 			;;
 		size)
-			if [ -z "$VALUE" ]; then
-				log_warning_msg "$dst: no value for size option, skipping"
-				return 1
+			if echo "$VALUE" | grep -q "^[[:digit:]]\+$" && [ "$VALUE" -gt 0 ]; then
+				SIZE="$VALUE"
+			else
+				log_warning_msg "$dst: option size used with an incorrect argument - forced to $SIZE"
 			fi
-			PARAMS="$PARAMS -s $VALUE"
+			PARAMS="$PARAMS -s $SIZE"
 			;;
 		hash)
 			if [ -z "$VALUE" ]; then
@@ -351,6 +353,11 @@ do_noluks () {
 		keyscriptarg="Enter passphrase to unlock the disk $src ($dst): "
 		key="-"
 		KEYSCRIPT="/lib/cryptsetup/askpass"
+	elif [ "$key" != "${key%random}" ]; then
+		# no keyscript, random key => special treatment
+		keyscriptarg="$(dd if=$key bs=1 count=$SIZE status=noxfer 2>/dev/null)"
+		key="-"
+		KEYSCRIPT="echo"
 	else
 		# no keyscript, key => file input
 		keyscriptarg="$key"

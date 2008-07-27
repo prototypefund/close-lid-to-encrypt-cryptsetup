@@ -16,6 +16,9 @@ cryptsetup (2:1.0.6-4) unstable; urgency=medium
   * Now that askpass is used as keyscript for interactive mode, it's not
     necessary to set cryptsetup parameter '--tries=$TRIES' and TRIES=1 for
     interactive mode anymore in cryptdisks.functions.
+  * Implemnt special treatment for random passphrases now that we use
+    "--key-file=-" for all situations: set $KEYSCRIPT="echo" and
+    $keyscriptarg="$(dd if=$key bs=1 count=$SIZE status=noxfer 2>/dev/null)"
   * Fix the passphrase prompt string in initramfs/cryptroot.script to use
     $cryptsource instead of $cryptsources.
   * Major documentation cleanup for lenny:
@@ -31,7 +34,7 @@ cryptsetup (2:1.0.6-4) unstable; urgency=medium
   * urgency=medium since important (#492451) and security (#477203) bugs get
     fixed by this upload.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jul 2008 17:59:00 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jul 2008 20:23:13 +0200
 
 cryptsetup (2:1.0.6-3) unstable; urgency=low
 
