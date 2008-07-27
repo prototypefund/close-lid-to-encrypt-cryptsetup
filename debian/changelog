@@ -19,8 +19,7 @@ cryptsetup (2:1.0.6-4) unstable; urgency=medium
     necessary to set cryptsetup parameter '--tries=$TRIES' and TRIES=1 for
     interactive mode anymore in cryptdisks.functions.
   * Implement special treatment for random passphrases now that we use
-    "--key-file=-" for all situations: set $KEYSCRIPT="echo" and
-    $keyscriptarg="$(dd if=$key bs=1 count=$SIZE status=noxfer 2>/dev/null)"
+    "--key-file=-" for all situations. Only necessary in do_noluks.
   * Fix the passphrase prompt string in initramfs/cryptroot.script to use
     $cryptsource instead of $cryptsources.
   * Major documentation cleanup for lenny:
@@ -36,7 +35,7 @@ cryptsetup (2:1.0.6-4) unstable; urgency=medium
   * urgency=medium since important (#492451) and security (#477203) bugs get
     fixed by this upload.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jul 2008 23:25:53 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 28 Jul 2008 00:21:44 +0200
 
 cryptsetup (2:1.0.6-3) unstable; urgency=low
 

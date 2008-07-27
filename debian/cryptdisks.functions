@@ -355,7 +355,7 @@ do_noluks () {
 		keyscriptarg="Enter passphrase to unlock the disk $src ($dst): "
 		key="-"
 		KEYSCRIPT="/lib/cryptsetup/askpass"
-	elif [ "$key" != "${key%random}" ]; then
+	elif [ "$key" -ne "${key%/dev/*random}" ]; then
 		# no keyscript, random key => special treatment
 		keyscriptarg="$(dd if=$key bs=1 count=$SIZE status=noxfer 2>/dev/null)"
 		key="-"
