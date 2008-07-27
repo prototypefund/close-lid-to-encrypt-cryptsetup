@@ -310,7 +310,7 @@ do_luks () {
 	fi
 
 	while [ "$tried" -lt "$TRIES" ]; do
-		if "$KEYSCRIPT" "$keyscriptarg" <&1 | cryptsetup $PARAMS luksOpen "$src" "$dst"; then
+		if "$KEYSCRIPT" "$keyscriptarg" | cryptsetup $PARAMS luksOpen "$src" "$dst"; then
 			break
 		fi
 
@@ -322,7 +322,7 @@ do_luks () {
 
 	if [ -n "$CHECK" ] && ! "$CHECK" "/dev/mapper/$dst" $CHECKARGS; then
 		log_warning_msg "$dst: the check for '/dev/mapper/$dst' failed"
-		cryptsetup luksClose $dst
+		cryptsetup luksClose "$dst"
 		return 1
 	fi
 
@@ -490,9 +490,9 @@ handle_crypttab_line_start () {
 	fi
 
 	# parse UUID= symlinks
-	if [ ${src#UUID=} != $src ]; then
+	if [ "${src#UUID=}" != "$src" ]; then
 		src="/dev/disk/by-uuid/${src#UUID=}"
-	elif [ ${src#LABEL=} != $src ]; then
+	elif [ "${src#LABEL=}" != "$src" ]; then
 		src="/dev/disk/by-label/${src#LABEL=}"
 	fi
 
@@ -605,8 +605,8 @@ do_start () {
 	mount_fs
 
 	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
-		handle_crypttab_line_start "$dst" "$src" "$key" "$opts"
-	done
+		handle_crypttab_line_start "$dst" "$src" "$key" "$opts" <&3
+	done 3<&1
 	umount_fs
 
 	log_action_end_msg 0
@@ -621,8 +621,8 @@ do_stop () {
 	loopmajor=$(grep "[[:space:]]*loop$" /proc/devices | sed 's/^[[:space:]]*//;s/[[:space:]].*//')
 
 	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
-		handle_crypttab_line_stop "$dst" "$src" "$key" "$opts"
-	done
+		handle_crypttab_line_stop "$dst" "$src" "$key" "$opts" <&3
+	done 3<&1
 
 	log_action_end_msg 0
 }
