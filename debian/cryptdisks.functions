@@ -298,7 +298,7 @@ do_luks () {
 		keyscriptarg="Enter passphrase to unlock the disk $src ($dst): "
 		key="-"
 		KEYSCRIPT="/lib/cryptsetup/askpass"
-	elif [ "$key" -ne "${key%/dev/*}" ]; then
+	elif [ "$key" != "${key%/dev/*}" ]; then
 		# no keyscript, device key => special treatment
 		keyscriptarg=""
 		key="$key"
@@ -366,7 +366,7 @@ do_noluks () {
 		keyscriptarg="Enter passphrase to unlock the disk $src ($dst): "
 		key="-"
 		KEYSCRIPT="/lib/cryptsetup/askpass"
-	elif [ "$key" -ne "${key%/dev/*}" ]; then
+	elif [ "$key" != "${key%/dev/*}" ]; then
 		# no keyscript, device (random) key => special treatment
 		keyscriptarg=""
 		key="$key"
