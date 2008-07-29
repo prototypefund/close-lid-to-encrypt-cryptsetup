@@ -1,8 +1,10 @@
 cryptsetup (2:1.0.6-5) unstable; urgency=low
 
   * fix watch file to not report -pre and -rc releases as superior.
+  * remove the global var $SIZE from cryptdisks.functions again but keep the
+    extended value checks.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 29 Jul 2008 02:17:28 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 29 Jul 2008 03:02:47 +0200
 
 cryptsetup (2:1.0.6-4) unstable; urgency=medium
 

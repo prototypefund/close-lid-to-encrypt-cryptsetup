@@ -36,7 +36,6 @@ parse_opts () {
 	opts=$(echo -n $1 | sed 's/ *#.*//')
 	LOUD=""
 	PARAMS=""
-	SIZE=""
 	CHECK=""
 	CHECKARGS=""
 	PRECHECK=""
@@ -67,12 +66,12 @@ parse_opts () {
 			PARAMS="$PARAMS -c $VALUE"
 			;;
 		size)
-			if echo "$VALUE" | grep -q "^[[:digit:]]\+$" && [ "$VALUE" -gt 0 ]; then
-				SIZE="$VALUE"
+			if [ -z "$VALUE" ] || echo "$VALUE" | grep -q "^[[:digit:]]\+$" && [ "$VALUE" -gt 0 ]; then
+				PARAMS="$PARAMS -s $VALUE"
 			else
-				log_warning_msg "$dst: option size used with an incorrect argument - forced to $SIZE"
+				log_warning_msg "$dst: option size used with an incorrect argument, skipping"
+				return 1
 			fi
-			PARAMS="$PARAMS -s $SIZE"
 			;;
 		hash)
 			if [ -z "$VALUE" ]; then
