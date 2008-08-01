@@ -1,10 +1,13 @@
 cryptsetup (2:1.0.6-5) unstable; urgency=low
 
-  * fix watch file to not report -pre and -rc releases as superior.
-  * remove the global var $SIZE from cryptdisks.functions again but keep the
+  * Fix watch file to not report -pre and -rc releases as superior.
+  * Remove the global var $SIZE from cryptdisks.functions again but keep the
     extended value checks.
+  * Remove the udev rules file also in preinst, code taken from example at
+    http://wiki.debian.org/DpkgConffileHandling. Thanks Marco d'Itri.
+    (closes: #493151)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 29 Jul 2008 03:02:47 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 01 Aug 2008 13:06:38 +0200
 
 cryptsetup (2:1.0.6-4) unstable; urgency=medium
 
