@@ -1,4 +1,4 @@
-cryptsetup (2:1.0.6-5) unstable; urgency=low
+cryptsetup (2:1.0.6-5) unstable; urgency=high
 
   * Fix watch file to not report -pre and -rc releases as superior.
   * Remove the global var $SIZE from cryptdisks.functions again but keep the
@@ -6,8 +6,10 @@ cryptsetup (2:1.0.6-5) unstable; urgency=low
   * Remove the udev rules file also in preinst, code taken from example at
     http://wiki.debian.org/DpkgConffileHandling. Thanks Marco d'Itri.
     (closes: #493151)
+  * Remove duplicated configuration of --key-file in $PARAMS at do_noluks().
+    (closes: #493848). As this fixes an RC bug, upload with severity=high.
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 01 Aug 2008 13:06:38 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 06 Aug 2008 00:41:46 +0200
 
 cryptsetup (2:1.0.6-4) unstable; urgency=medium
 
