@@ -57,5 +57,4 @@ esac
 
 #DEBHELPER#
 
-set -e
-
+exit 0
