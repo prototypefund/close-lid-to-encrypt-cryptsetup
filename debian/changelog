@@ -1,3 +1,11 @@
+cryptsetup (2:1.0.6-6) unstable; urgency=high
+
+  * Don't cat keyfile into pipe for do_noluks(). cryptsetup handles
+    --key-file=- different for luks and plain dm-crypt mappings. This time
+    really (closes: #493848). Thus again upload with urgency=high.
+
+ -- Jonas Meurer <mejo@debian.org>  Sat, 09 Aug 2008 13:36:31 +0200
+
 cryptsetup (2:1.0.6-5) unstable; urgency=high
 
   * Fix watch file to not report -pre and -rc releases as superior.

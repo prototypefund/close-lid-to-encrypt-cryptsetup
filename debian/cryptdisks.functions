@@ -363,16 +363,11 @@ do_noluks () {
 		keyscriptarg="Enter passphrase to unlock the disk $src ($dst): "
 		key="-"
 		KEYSCRIPT="/lib/cryptsetup/askpass"
-	elif [ "$key" != "${key%/dev/*}" ]; then
-		# no keyscript, device (random) key => special treatment
+	else
+		# no keyscript, key => file input
 		keyscriptarg=""
 		key="$key"
 		KEYSCRIPT=""
-	else
-		# no keyscript, key => file input
-		keyscriptarg="$key"
-		key="-"
-		KEYSCRIPT="cat"
 	fi
 
 	PARAMS="$PARAMS --key-file=$key"
