@@ -1,0 +1,16 @@
+## 01_gettext_package.patch
+## by Jonas Meurer <jonas@freesources.org>
+##
+## remove -luks from GETTEXT_PACKAGE in configure.in
+
+--- a/configure.in
++++ b/configure.in
+@@ -45,7 +45,7 @@
+ 
+ dnl ==========================================================================
+ 
+-GETTEXT_PACKAGE=cryptsetup-luks
++GETTEXT_PACKAGE=cryptsetup
+ AC_SUBST(GETTEXT_PACKAGE)
+ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE",
+ 	[Definition for the gettext package name])

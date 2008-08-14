@@ -1,3 +1,11 @@
+cryptsetup (2:1.0.6-7) unstable; urgency=low
+
+  * NOT RELEASED YET
+  * Add patches/01_gettext_package.patch: Remove -luks from GETTEXT_PACKAGE
+    in configure.in.
+
+ -- Jonas Meurer <mejo@debian.org>  Thu, 14 Aug 2008 18:15:28 +0200
+
 cryptsetup (2:1.0.6-6) unstable; urgency=high
 
   * Don't cat keyfile into pipe for do_noluks(). cryptsetup handles
