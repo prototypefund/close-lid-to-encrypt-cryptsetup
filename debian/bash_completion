@@ -18,6 +18,11 @@ _cryptsetup()
     argopts="$argopts -t --timeout -T --tries"
     noargopts="-y --verify-passphrase --readonly --version --align-payload"
 
+    # complete file names for -d and --key-file
+    if [ "-d" = "$prev" -o "--key-file" = "$prev" ] ; then
+	COMPREPLY=( $(compgen -f -- "${cur}") )
+    fi
+
     # If previous word was an option requiring an argument, can't complete
     for argopt in $argopts ; do
 	if [ "$argopt" = "$prev" ] ; then
