@@ -5,8 +5,12 @@ cryptsetup (2:1.0.6-7) unstable; urgency=low
     in configure.in.
   * Support keyfiles option in bash completion. Thanks to Stefan Goebel for
     the patch. (closes: #499936)
+  * Update patches/02_manpage.patch: Fix the documnetation of default cipher
+    for LUKS mappings. (closes: #495832)
+  * Update debian/watch file to reflect the move of project home to
+    code.google.com.
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 29 Sep 2008 17:36:40 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 07 Nov 2008 18:05:27 +0100
 
 cryptsetup (2:1.0.6-6) unstable; urgency=high
 

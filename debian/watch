@@ -1,2 +1,2 @@
 version=3
-opts="uversionmangle=s/luks-//;s/-pre/~pre/;s/-rc/~rc/" http://luks.endorphin.org/source/cryptsetup-(.*)\.tar\.bz2
+opts="uversionmangle=s/luks-//;s/-pre/~pre/;s/-rc/~rc/" http://cryptsetup.googlecode.com/files/cryptsetup-(.*)\.tar\.bz2

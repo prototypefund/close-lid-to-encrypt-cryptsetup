@@ -1,7 +1,7 @@
 ## 02_manpage.patch
-## by Martin Pitt <martin.pitt@ubuntu.com> 
+## by Martin Pitt <martin.pitt@ubuntu.com> and others
 ##
-## clarify default key sizes in cryptsetup.8 manpage
+## several documentation and typo fixes.
 
 --- a/man/cryptsetup.8
 +++ b/man/cryptsetup.8
@@ -11,6 +11,15 @@
  .SH NAME
  cryptsetup - setup cryptographic volumes for dm-crypt (including LUKS extension)
  .SH SYNOPSIS
+@@ -87,7 +87,7 @@
+ specifies hash to use for password hashing. This option is only relevant for the "create" action. The hash string is passed to libgcrypt, so all hashes accepted by gcrypt are supported. Default is "ripemd160".
+ .TP
+ .B "\-\-cipher, \-c"
+-set cipher specification string. Usually, this is "aes-cbc-plain". For pre-2.6.10 kernels, use "aes-plain" as they don't understand the new cipher spec strings. To use ESSIV, use "aes-cbc-essiv:sha256".
++set cipher specification string. For plain dm-crypt mappings, the default is "aes-cbc-plain", for LUKS mappings it's "aes-cbc-essiv:sha256". For pre-2.6.10 kernels, use "aes-plain" as they don't understand the new cipher spec strings. To use ESSIV, use "aes-cbc-essiv:sha256".
+ .TP
+ .B "\-\-verify-passphrase, \-y"
+ query for passwords twice. Useful when creating a (regular) mapping for the first time, or when running \fIluksFormat\fR.
 @@ -101,7 +101,7 @@
  For LUKS operations that add key material, this options allows to you specify which key slot is selected for the new key. This option can be used for luksFormat and luksAddKey.
  .TP
