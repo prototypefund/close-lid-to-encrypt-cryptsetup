@@ -9,8 +9,22 @@ cryptsetup (2:1.0.6-7) unstable; urgency=low
     for LUKS mappings. (closes: #495832)
   * Update debian/watch file to reflect the move of project home to
     code.google.com.
+  * Check for $CRYPTDISKS_ENABLE in cryptdisks initscripts instead of
+    cryptdisks.functions. This way, cryptdisks_start/stop work even with
+    $CRYPTDISKS_ENABLE != "yes". Thanks to Pietro Abate. (closes: #506643)
+  * Add force-start to cryptdisks(-early).init in order to support starting
+    noauto devices manually. Thanks to Niccolo Rigacci. (closes: #505779)
+  * Document how to enable remote device unlocking via dropbear ssh server
+    in the initramfs during boot process. Thanks to Chris <debian@x.ray.net>
+    for the great work. (closes: #465902)
+  * Completely remove support and documentation of the timeout option,
+    document this in NEWS.Debian. (closes: #495509, #474120)
+  * Use exit instead of return in decrypt_ssl keyscript. Thanks to Rene Wagner.
+    (closes: #499704)
+  * Fix initramfs/cryptroot-script to use the lvm binary instead of vgchange.
+    Thanks to Marc Haber. (closes: #506536)
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 07 Nov 2008 18:05:27 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sat, 13 Dec 2008 22:18:33 +0100
 
 cryptsetup (2:1.0.6-6) unstable; urgency=high
 

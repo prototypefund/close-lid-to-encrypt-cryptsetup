@@ -124,7 +124,7 @@ activate_vg()
 	vg="${1#/dev/mapper/}"
 
 	# Sanity checks
-	if [ ! -x /sbin/vgchange ] || [ "$vg" = "$1" ]; then
+	if [ ! -x /sbin/lvm ] || [ "$vg" = "$1" ]; then
 		return 1
 	fi
 
@@ -139,7 +139,7 @@ activate_vg()
 	# Reduce padded --'s to -'s
 	vg=$(echo ${vg} | sed -e 's#--#-#g')
 
-	vgchange -ay ${vg}
+	lvm vgchange -ay ${vg}
 	return $?
 }
 

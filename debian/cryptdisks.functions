@@ -21,13 +21,6 @@ fi
 
 MOUNT="$CRYPTDISKS_MOUNT"
 
-case "$CRYPTDISKS_ENABLE" in
-[Nn]*)
-	exit 0
-	;;
-esac
-
-
 # Parses the option field from the crypttab file
 parse_opts () {
 	local opts opt IFS PARAM VALUE
@@ -43,7 +36,6 @@ parse_opts () {
 	TMPFS=""
 	MAKESWAP=""
 	USELUKS=""
-	TIMEOUT=""
 	KEYSCRIPT=""
 	IGNORE=""
 
@@ -134,16 +126,6 @@ parse_opts () {
 			else
 				log_warning_msg "$dst: option tries used with an incorrect argument - forced to $TRIES"
 			fi
-			;;
-		timeout)
-			if [ -z "$VALUE" ]; then
-				TIMEOUT="$CRYPTDISKS_TIMEOUT"
-			elif echo "$VALUE" | grep -q "^[[:digit:]]\+$"; then
-				TIMEOUT="$VALUE"
-			else
-				log_warning_msg "$dst: option timeout used with an incorrect argument - forced to '$TIMEOUT'"
-			fi
-			PARAMS="$PARAMS --timeout=$TIMEOUT"
 			;;
 		swap)
 			MAKESWAP="yes"
@@ -517,7 +499,7 @@ handle_crypttab_line_start () {
 	fi
 
 	# Ignore noauto devices
-	if [ "$IGNORE" = "yes" ]; then
+	if [ "$IGNORE" = "yes" ] && [ -z "$FORCE_START" ]; then
 		device_msg "$dst" "ignored"
 		continue
 	fi

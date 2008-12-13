@@ -23,6 +23,12 @@ else
 	exit 0
 fi
 
+case "$CRYPTDISKS_ENABLE" in
+[Nn]*)
+	exit 0
+	;;
+esac
+
 case "$1" in
 start)
 	do_start
@@ -34,8 +40,12 @@ restart|reload|force-reload)
 	do_stop
 	do_start
 	;;
+force-start)
+	FORCE_START="yes"
+	do_start
+	;;
 *)
-	echo "Usage: cryptdisks-early {start|stop|restart|reload|force-reload}"
+	echo "Usage: cryptdisks-early {start|stop|restart|reload|force-reload|force-start}"
 	exit 1
 	;;
 esac

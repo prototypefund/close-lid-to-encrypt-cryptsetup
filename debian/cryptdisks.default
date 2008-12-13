@@ -12,7 +12,3 @@ CRYPTDISKS_CHECK=vol_id
 # Default precheck script, see 
 # Takes effect, if the 'precheck' option is set in crypttab without a value
 CRYPTDISKS_PRECHECK=
-
-# Default timeout in seconds for password prompt
-# Takes effect, if the 'timeout' option is set in crypttab without a value
-CRYPTDISKS_TIMEOUT=180

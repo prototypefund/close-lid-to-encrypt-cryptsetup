@@ -212,17 +212,6 @@
    </varlistentry>
 
    <varlistentry>
-    <term><emphasis>timeout</emphasis>=&lt;sec&gt;</term>
-    <listitem>
-     <simpara>
-      If key is <quote>none</quote>, the cryptdisks script interactively
-      prompts for a password. The timeout option specifies the time in
-      seconds to wait for the password before timing out.
-     </simpara>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
     <term><emphasis>noearly</emphasis></term>
     <listitem>
      <simpara>The cryptsetup init scripts are invoked twice during the boot 
@@ -377,16 +366,6 @@ cdisk3 /dev/sda3 none cipher=twofish
       before cryptdisks has been invoked. The source device is given as the
       first and only argument to the checkscript. Takes effect if the
       <emphasis>precheck</emphasis> option is given in crypttab with no value.
-     </simpara>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><emphasis>CRYPTDISKS_TIMEOUT</emphasis></term>
-    <listitem>
-     <simpara>Specifies the time in seconds to wait for the password before
-      timing out. Takes effect if the <emphasis>timeout</emphasis> option is
-      given in crypttab with no value.
      </simpara>
     </listitem>
    </varlistentry>

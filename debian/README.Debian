@@ -15,7 +15,9 @@ Cryptsetup for Debian
 
    6. Cryptsetup and Splashy
 
-   7. Credits
+   7. Remote unlocking in the boot process
+
+   8. Credits
 
 
 1. Introduction into Cryptsetup for Debian
@@ -164,7 +166,21 @@ that the bug is somewhere in splashy and neither in cryptsetups initscripts
 nor in askpass, the keyscript that is responsible for cryptsetups passphrase
 input dialogs.
 
-7. Credits
+7. Remote unlocking in the boot process
+---------------------------------------
+
+ Thanks to Chris <debian@x.ray.net> it's possible to install a dropbear ssh
+server into the initramfs, connect to this ssh server during execution of
+initramfs early in the boot process, and unlock encrypted devices - even the
+root device - before the boot process continues.
+
+ This way it is possible to use an encrypted root filesystem on headless
+systems where no physical access is available during boot process.
+
+ Unfortunately dropbear 0.52-1 is required for this to work. As this version
+is not incuded in lenny, you'll have to install it manually.
+
+8. Credits
 ----------
 
  People who contributed to documentation for the Debian cryptsetup package:

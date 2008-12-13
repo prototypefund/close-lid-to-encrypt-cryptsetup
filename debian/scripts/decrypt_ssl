@@ -14,4 +14,4 @@ decrypt_ssl () {
 }
 
 decrypt_ssl $1
-return $?
+exit $?
