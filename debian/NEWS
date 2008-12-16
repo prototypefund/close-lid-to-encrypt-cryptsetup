@@ -12,7 +12,7 @@ cryptsetup (2:1.0.6-7) unstable; urgency=medium
   root filesystems for headless server systems.
   For more information, please see /usr/share/docs/cryptsetup/README.Debian.gz
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 11 Dec 2008 16:40:51 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 16 Dec 2008 18:37:16 +0100
 
 cryptsetup (2:1.0.6-4) unstable; urgency=medium
 
