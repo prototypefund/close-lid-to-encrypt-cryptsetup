@@ -142,6 +142,7 @@ get_lvm_deps() {
 			continue
 		fi
 		if [ "$(dmsetup table $depnode 2> /dev/null | cut -d' ' -f3)" != "crypt" ]; then
+			get_lvm_deps "$depnode"
 			continue
 		fi
 		echo "$depnode"
@@ -347,7 +348,7 @@ add_device() {
 		fi
 
 		# Get crypttab root options
-		if ! get_device_opts $node $opts; then
+		if ! get_device_opts "$node" "$opts"; then
 			continue
 		fi
 		echo "$OPTIONS" >> "$DESTDIR/conf/conf.d/cryptroot"

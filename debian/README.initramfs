@@ -138,9 +138,6 @@ to set them up during the initramfs stage in order to allow suspend and resume
 in combination with encryption to keep the resume image safe from potential
 attackers.
 
-Note: This will not work as expected until #398302 has been fixed as the
-decrypted suspend image will currently not be recognized as such.
-
 If your resume device and your root partition use two different cryptsetup
 mappings, you might want to use the "decrypt_derived" keyscript as described
 below.
@@ -166,9 +163,8 @@ of the decrypt_derived script:
 cryptswap /dev/hda2 cryptroot cipher=aes-cbc-essiv:sha256,size=256,hash=sha256,keyscript=/lib/cryptsetup/scripts/decrypt_derived,swap
 4) /etc/init.d/cryptdisks start
 5) Make sure that /dev/mapper/cryptswap has been created
-6) mkswap /dev/mapper/cryptswap
-7) swapon -a
-8) (optional) update-initramfs -u
+6) swapon -a
+7) (optional) update-initramfs -u
 
 After you've followed the above steps, your swap device should be setup
 automatically after the root device has been setup during the boot stage.

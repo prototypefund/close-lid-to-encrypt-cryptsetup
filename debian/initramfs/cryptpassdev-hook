@@ -18,11 +18,11 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
-# Hooks for adding filesystem modules to the initramfs when the mountdev
+# Hooks for adding filesystem modules to the initramfs when the passdev
 # keyscript is used
 
-# Check whether the mountdev script has been included
-if [ ! -x "${DESTDIR}/keyscripts/mountdev" ]; then
+# Check whether the passdev script has been included
+if [ ! -x "${DESTDIR}/keyscripts/passdev" ]; then
 	exit 0
 fi
 
@@ -32,7 +32,7 @@ fi
 # who needs to create a new cryptkey (using a backup of a keyfile) on
 # a windows-machine for example.
 
-# This list needs to be kept in sync with the one defined in mountdev.c
+# This list needs to be kept in sync with the one defined in passdev.c
 for fs in ext3 ext2 vfat reiserfs xfs isofs udf; do
 	manual_add_modules "$fs" > /dev/null 2>&1 || true
 done

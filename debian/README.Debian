@@ -15,7 +15,7 @@ Cryptsetup for Debian
 
    6. Cryptsetup and Splashy
 
-   7. Remote unlocking in the boot process
+   7. Remotely unlock encrypted rootfs
 
    8. Credits
 
@@ -153,6 +153,7 @@ useful, we will include them in the package.
 
  See man crypttab(5) for more information about the checksystem.
 
+
 6. Cryptsetup and Splashy
 -------------------------
 
@@ -166,8 +167,9 @@ that the bug is somewhere in splashy and neither in cryptsetups initscripts
 nor in askpass, the keyscript that is responsible for cryptsetups passphrase
 input dialogs.
 
-7. Remote unlocking in the boot process
----------------------------------------
+
+7. Remotely unlock encrypted rootfs
+-----------------------------------
 
  Thanks to Chris <debian@x.ray.net> it's possible to install a dropbear ssh
 server into the initramfs, connect to this ssh server during execution of
@@ -178,7 +180,25 @@ root device - before the boot process continues.
 systems where no physical access is available during boot process.
 
  Unfortunately dropbear 0.52-1 is required for this to work. As this version
-is not incuded in lenny, you'll have to install it manually.
+is not incuded in lenny, you'll have to install it manually. Thankfully this
+version configures everything automatically, so all you have to do after
+installing dropbear on the remote system, is to copy the root ssh keyfile from 
+/etc/initramfs/root/ssh/id_rsa to your local system:
+
+$ scp remote.system.com:/etc/initramfs/root/ssh/id_rsa remote_rsa
+
+ Now the remote system should start dropbear automatically during initramfs
+excecution at the boot process. You can login into the initramfs via ssh
+
+$ ssh -i remote_rsa -l root remote.system.com
+
+ and echo the passphrase to a fifo file on the remote system:
+
+# echo -n "my_secret_passphrase" > /lib/cryptsetup/passfifo
+
+ That's it. Now that the encrypted root device is unlocked, the remote system
+should continue with the boot process.
+
 
 8. Credits
 ----------

@@ -1,6 +1,5 @@
 cryptsetup (2:1.0.6-7) unstable; urgency=low
 
-  * NOT RELEASED YET
   * Add patches/01_gettext_package.patch: Remove -luks from GETTEXT_PACKAGE
     in configure.in.
   * Support keyfiles option in bash completion. Thanks to Stefan Goebel for
@@ -21,10 +20,26 @@ cryptsetup (2:1.0.6-7) unstable; urgency=low
     document this in NEWS.Debian. (closes: #495509, #474120)
   * Use exit instead of return in decrypt_ssl keyscript. Thanks to Rene Wagner.
     (closes: #499704)
+  * Fix initramfs/cryptpassdev-hook to check for passdev instead of mountdev.
+    Thanks to Christoph Anton Mitterer.
+  * cryptdisks.functions:
+    - Search for keyscript in /lib/cryptdisks/scripts. the cryptoroot initramfs
+      script already supports keyscripts without path as argument. Thanks to
+      Christoph Anton Mitterer.
+  * README.initramfs:
+    - Remove the mention of bug #398302 from the section about suspend/resume,
+      as this bug has been fixes for some time now.
+    - Remove step 6 (mkswap) from the section about decrypt_derived, as it was
+      superfluous. Thanks to Helmut Grohe. (closes: #491867)
   * Fix initramfs/cryptroot-script to use the lvm binary instead of vgchange.
     Thanks to Marc Haber. (closes: #506536)
+  * Make get_lvm_deps() recursive in initramfs/cryptroot-hook. This is required
+    to detect the dm-crypt device in setups with more than one level of device
+    mapper mappings. For example if LVM is used with snapshots on top of the
+    dm-crypt mapping. Thanks to Christian Jaeger for bugreport and patch, Ben
+    Hutchings and Yves-Alexis Perez for help with debugging. (closes: #507721)
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 13 Dec 2008 22:18:33 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 16 Dec 2008 18:31:02 +0100
 
 cryptsetup (2:1.0.6-6) unstable; urgency=high
 

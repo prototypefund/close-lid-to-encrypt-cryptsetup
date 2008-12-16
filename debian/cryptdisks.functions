@@ -159,11 +159,17 @@ parse_opts () {
 			if [ -n "$KEYSCRIPT" ]; then
 				log_warning_msg "$dst: multiple key decryption options are not allowed together, skipping"
 				return 1
+			elif [ -x "$VALUE" ]; then
+				KEYSCRIPT="$VALUE"
+			elif [ -x "/lib/cryptsetup/scripts/$VALUE" ]; then
+				KEYSCRIPT="/lib/cryptsetup/scripts/$VALUE"
 			elif [ -z "$VALUE" ]; then
 				log_warning_msg "$dst: no value for keyscript option, skipping"
 				return 1
+			else
+				log_warning_msg "script $VALUE is not an executable script, skipping"
+				return 1
 			fi
-			KEYSCRIPT="$VALUE"
 			;;
 		esac
 	done
@@ -212,16 +218,13 @@ check_key () {
 	# If the keyscript option is set, the "key" is just an argument to
 	# the keyscript and not necessarily a file
 	if [ -n "$KEYSCRIPT" ]; then
-		INTERACTIVE="yes"
 		return 0
 	fi
 
 	if [ -z "$key" ] || [ "$key" = "none" ]; then
 		key=""
-		INTERACTIVE="yes"
 		return 0
 	fi
-	INTERACTIVE="no"
 
 	if [ ! -e "$key" ]; then
 		log_warning_msg "$dst: keyfile not found"
