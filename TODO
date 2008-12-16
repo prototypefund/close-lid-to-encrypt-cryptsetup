@@ -1,0 +1,18 @@
+Post-Lenny:
+
+- discuss with upstream how stable the library abi is (#480157)
+
+- would a fallback make sense? like when using any keyscript, try passphrase
+  in the case that it fails. if we implement that at all, never make it the
+  default, and warn about security issues in README.Debian. even explain that
+  backup passphrase keyslots thwart the extra security of keyfiles/keyscripts.
+  (#438481, #471729)
+
+- implement something like 'ignore-if-no-device' to mount (/etc/fstab), and
+  thus support several situations where cryptsetup fails to setup a device:
+  -> the device is not attached at all
+  -> wrong passphrase/no keyfile available
+  -> timeouts arise
+  (#474120)
+
+- reimplement timeout support in a cleaner way?
