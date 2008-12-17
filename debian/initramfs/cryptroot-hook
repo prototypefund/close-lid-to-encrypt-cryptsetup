@@ -137,7 +137,7 @@ get_lvm_deps() {
 	for dep in $deps; do
 		maj=${dep%,*}
 		min=${dep#*,}
-		depnode=$(dmsetup ls | sed -n "s/\\([^ ]*\\) *($maj, $min)/\\1/p")
+		depnode=$(dmsetup ls | sed -n "s/\\([^ ]*\\) *($maj, $min)/\\1/p" | sed -e "s/[ \t]*$//")
 		if [ -z "$depnode" ]; then
 			continue
 		fi

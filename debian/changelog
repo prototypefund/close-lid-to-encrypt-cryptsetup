@@ -40,7 +40,7 @@ cryptsetup (2:1.0.6-7) unstable; urgency=medium
     Hutchings and Yves-Alexis Perez for help with debugging. (closes: #507721)
   * urgency=medium due to several important fixes.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 16 Dec 2008 18:36:42 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 17 Dec 2008 21:25:45 +0100
 
 cryptsetup (2:1.0.6-6) unstable; urgency=high
 
