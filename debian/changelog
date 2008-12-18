@@ -1,3 +1,10 @@
+cryptsetup (2:1.0.6-8) unstable; urgency=low
+
+  * NOT RELEASED YET
+  * Actually fix watchfile to work with code.google.com.
+
+ -- Jonas Meurer <mejo@debian.org>  Thu, 18 Dec 2008 01:01:39 +0100
+
 cryptsetup (2:1.0.6-7) unstable; urgency=medium
 
   * Add patches/01_gettext_package.patch: Remove -luks from GETTEXT_PACKAGE
