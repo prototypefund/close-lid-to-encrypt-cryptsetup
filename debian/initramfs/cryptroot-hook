@@ -224,7 +224,7 @@ get_device_opts() {
 					return 1
 				fi
 				KEYSCRIPT="$opt"
-				OPTIONS="$OPTIONS,keyscript=/keyscripts/$(basename "$opt")"
+				OPTIONS="$OPTIONS,keyscript=/lib/cryptsetup/scripts/$(basename "$opt")"
 				;;
 			tries=*)
 				OPTIONS="$OPTIONS,$opt"
@@ -355,14 +355,14 @@ add_device() {
 
 		# If we have a keyscript, make sure it is included
 		if [ -n "$KEYSCRIPT" ]; then
-			if [ ! -d "$DESTDIR/keyscripts" ]; then
-				mkdir "$DESTDIR/keyscripts"
+			if [ ! -d "$DESTDIR/lib/cryptsetup/scripts" ]; then
+				mkdir -p "$DESTDIR/lib/cryptsetup/scripts"
 			fi
 
 			if [ -e "/lib/cryptsetup/scripts/$KEYSCRIPT" ]; then
-				copy_exec "/lib/cryptsetup/scripts/$KEYSCRIPT" /keyscripts
+				copy_exec "/lib/cryptsetup/scripts/$KEYSCRIPT" /lib/cryptsetup/scripts
 			elif [ -e "$KEYSCRIPT" ]; then
-				copy_exec "$KEYSCRIPT" /keyscripts
+				copy_exec "$KEYSCRIPT" /lib/cryptsetup/scripts
 			else
 				echo "cryptsetup: WARNING: failed to find keyscript $KEYSCRIPT" >&2
 				continue

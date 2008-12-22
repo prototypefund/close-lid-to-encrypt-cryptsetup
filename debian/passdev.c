@@ -121,7 +121,7 @@ main(int argc, char **argv, char **envp)
 
 	/* We only take one argument */
 	if (argc != 2) {
-		fprintf(stderr, "Incorrect number of arguments");
+		fprintf(stderr, "Incorrect number of arguments\n");
 		goto error;
 	}
 
@@ -134,7 +134,7 @@ main(int argc, char **argv, char **envp)
 	devpath = argv[1];
 	filepath = strchr(devpath, ':');
 	if (!filepath || !(*filepath) || !(*(filepath + 1))) {
-		fprintf(stderr, "Invalid key path");
+		fprintf(stderr, "Invalid key path\n");
 		goto error;
 	}
 	*filepath = '\0';

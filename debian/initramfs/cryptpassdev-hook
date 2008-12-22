@@ -22,7 +22,7 @@ esac
 # keyscript is used
 
 # Check whether the passdev script has been included
-if [ ! -x "${DESTDIR}/keyscripts/passdev" ]; then
+if [ ! -x "${DESTDIR}/lib/cryptsetup/scripts/passdev" ]; then
 	exit 0
 fi
 

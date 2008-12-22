@@ -2,8 +2,13 @@ cryptsetup (2:1.0.6-8) unstable; urgency=low
 
   * NOT RELEASED YET
   * Actually fix watchfile to work with code.google.com.
+  * Add missing newlines to some error messages in passdev.c. Thanks to
+    Christoph Anton Mitterer for bugreport and patch. (closes: #509067)
+  * Move keyscripts in initramfs from /keyscripts to /lib/cryptsetup/scripts
+    for the sake of consistency between initramfs and normal system. Document
+    this change in NEWS.Debian. (closes: #509066)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 18 Dec 2008 01:01:39 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 23 Dec 2008 00:40:39 +0100
 
 cryptsetup (2:1.0.6-7) unstable; urgency=medium
 

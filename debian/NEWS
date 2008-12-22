@@ -1,3 +1,14 @@
+cryptsetup (2:1.0.6-8) unstable; urgency=low
+
+  Keyscripts inside the initramfs have been moved from /keyscripts to
+  /lib/cryptsetup/scripts. This way they're now available at the same location
+  as on the normal system.
+  In most cases no manual action is required. Only if you reference a keyscript
+  by path in some script that is included in the initramfs, then you need to
+  update that reference by updating the path.
+
+ -- Jonas Meurer <mejo@debian.org>  Tue, 23 Dec 2008 00:43:10 +0100
+
 cryptsetup (2:1.0.6-7) unstable; urgency=medium
 
   Support for the timeout option has been removed from cryptdisks initscripts
@@ -125,3 +136,20 @@ cryptsetup (2:1.0.2+1.0.3-rc2-1) unstable; urgency=low
     invoked. See man crypttab(5) or README.Debian for more information.
 
  -- Jonas Meurer <mejo@debian.org>  Fri,  3 Feb 2006 13:41:35 +0100
+cryptsetup (2:1.0.6-8) unstable; urgency=medium
+
+  Support for the timeout option has been removed from cryptdisks initscripts
+  in order to support splash screens and remote shells in boot process.
+  The implementation had been unclean and produced many anyway.
+  If you used the timeout option on headless systems without physical access,
+  then it's a much cleaner solution anyway, to use the 'noauto' option in
+  /etc/crypttab, and start the encrypted devices manually with
+  '/etc/init.d/cryptdisks force-start'.
+  Another approach is to start a minimal ssh-server in the initramfs and unlock
+  the encrypted devices after connecting to it. This even supports encrypted
+  root filesystems for headless server systems.
+  For more information, please see /usr/share/docs/cryptsetup/README.Debian.gz
+
+  
+
+ -- Jonas Meurer <mejo@debian.org>  Tue, 23 Dec 2008 00:43:10 +0100
