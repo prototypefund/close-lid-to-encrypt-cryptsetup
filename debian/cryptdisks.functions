@@ -4,7 +4,7 @@
 # and should not be executed directly.
 
 PATH="/sbin:/bin"
-TABFILE=/etc/crypttab
+TABFILE="/etc/crypttab"
 CRYPTDISKS_ENABLE="Yes"
 
 #set -x
@@ -21,13 +21,14 @@ fi
 
 MOUNT="$CRYPTDISKS_MOUNT"
 
+LOUD=""
+
 # Parses the option field from the crypttab file
 parse_opts () {
 	local opts opt IFS PARAM VALUE
 
 	# Strip comments - https://bugs.launchpad.net/bugs/185380
 	opts=$(echo -n $1 | sed 's/ *#.*//')
-	LOUD=""
 	PARAMS=""
 	CHECK=""
 	CHECKARGS=""

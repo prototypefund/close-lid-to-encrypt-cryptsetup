@@ -7,8 +7,12 @@ cryptsetup (2:1.0.6-8) unstable; urgency=low
   * Move keyscripts in initramfs from /keyscripts to /lib/cryptsetup/scripts
     for the sake of consistency between initramfs and normal system. Document
     this change in NEWS.Debian. (closes: #509066)
+  * Fix $LOUD in cryptdisks.init and cryptdisks.functions to take effect. Add
+    LOUD="yes" to cryptdisks_start. (closes: #513149)
+  * cryptdisks_{start,stop}: print error message if no entry is found in
+    crypttab for the given name.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 23 Dec 2008 00:40:39 +0100
+ -- Jonas Meurer <mejo@debian.org>  Fri, 06 Feb 2009 03:15:52 +0100
 
 cryptsetup (2:1.0.6-7) unstable; urgency=medium
 

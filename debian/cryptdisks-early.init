@@ -14,14 +14,14 @@
 
 set -e
 
-INITSTATE="early"
-LOUD=""
-
 if [ -r /lib/cryptsetup/cryptdisks.functions ]; then
 	. /lib/cryptsetup/cryptdisks.functions
 else
 	exit 0
 fi
+
+INITSTATE="early"
+LOUD=""
 
 case "$CRYPTDISKS_ENABLE" in
 [Nn]*)
