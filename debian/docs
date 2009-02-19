@@ -1,3 +1,4 @@
 AUTHORS
 debian/README.initramfs
 debian/README.openct
+debian/doc/LUKS-on-disk-format.pdf
