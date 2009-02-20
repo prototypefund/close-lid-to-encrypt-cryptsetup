@@ -45,6 +45,7 @@ configure-stamp: $(QUILT_STAMPFN)
 	# mini autogen.sh
 	rm -f ltmain.sh
 	cp /usr/share/libtool/ltmain.sh ltmain.sh
+	./setup-gettext
 	libtoolize --force --copy
 	aclocal-1.9
 	autoheader
