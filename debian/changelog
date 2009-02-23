@@ -25,8 +25,11 @@ cryptsetup (2:1.0.6+20090116.svn47-1) unstable; urgency=low
     crypttab for the given name.
   * Actually fix watchfile to work with code.google.com.
   * Update Homepage field to code.google.com URL. (closes: #516236)
+  * Taken from ubuntu:
+    - debian/checks/un_vol_id: dynamically build the "unknown volume type"
+      string, to allow for encrypted swap, LP: #316607
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 20 Feb 2009 03:01:12 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 23 Feb 2009 22:32:02 +0100
 
 cryptsetup (2:1.0.6-7) unstable; urgency=medium
 
@@ -1072,3 +1075,4 @@ cryptsetup-luks (0.992-1) unstable; urgency=low
   * "integrated LUKS" support (very messy hack)
 
  -- Michael Gebetsroither <michael.geb@gmx.at>  Thu, 10 Feb 2005 18:16:21 +0100
+

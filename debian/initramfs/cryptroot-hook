@@ -280,7 +280,7 @@ get_device_modules() {
 }
 
 canonical_device() {
-	local dev altdev
+	local dev altdev original
 	dev="$1"
 
 	altdev="${dev#LABEL=}"
@@ -293,6 +293,7 @@ canonical_device() {
 		dev="/dev/disk/by-uuid/$altdev"
 	fi
 
+	original="$dev"
 	if [ -h "$dev" ]; then
 		dev=$(readlink -e "$dev")
 	fi
