@@ -26,7 +26,7 @@ cryptsetup (2:1.0.6+20090116.svn47-1) unstable; urgency=low
   * Actually fix watchfile to work with code.google.com.
   * Update Homepage field to code.google.com URL. (closes: #516236)
   * fix location of ltmain.sh, build-depend on versioned libtool.
-    (closes: #521673)
+    (closes: #521673, #522338)
   * some minor changes to make lintian happy:
     - use set -e instead of /bin/sh -e in preinst.
     - link to GPL v2 in debian/copyright
@@ -36,7 +36,7 @@ cryptsetup (2:1.0.6+20090116.svn47-1) unstable; urgency=low
       string, to allow for encrypted swap, (closes: #521789, #521469)
     - disable error message 'failed to setup lvm device' (LP 151532).
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 02 Apr 2009 12:23:20 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 02 Apr 2009 23:53:21 +0200
 
 cryptsetup (2:1.0.6-7) unstable; urgency=medium
 
