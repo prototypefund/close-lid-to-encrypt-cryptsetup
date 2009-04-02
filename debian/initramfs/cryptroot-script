@@ -249,7 +249,8 @@ setup_mapping()
 				message "cryptsetup: lvm fs found but no lvm configured"
 				return 1
 			elif ! activate_vg "/dev/mapper/$cryptlvm"; then
-				message "cryptsetup: failed to setup lvm device"
+				# disable error message, LP: #151532
+				#message "cryptsetup: failed to setup lvm device"
 				return 1
 			fi
 
