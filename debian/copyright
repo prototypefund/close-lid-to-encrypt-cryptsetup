@@ -1,7 +1,8 @@
 Format-Specification: http://wiki.debian.org/Proposals/CopyrightFormat
+Upstream-Maintainer: Clemens Fruhwirth <clemens@endorphin.org>
+Upstream-Source: http://clemens.endorphin.org/LUKS
 Debianized-By: Milan Kocian <milon@wq.cz>
 Debianized-Date: Thu, 18 Mar 2004 09:28:18 +0100.
-Original-Source: http://clemens.endorphin.org/LUKS
 
 Files: debian/askpass.c, debian/passdev.c
 Copyright: © 2008 David Härdeman <david@hardeman.nu>
@@ -28,7 +29,7 @@ License: GPL-2+
 
 Files: luks/sha/*
 Copyright: © 2002 Dr Brian Gladman, Worcester, UK
-License: GPL-any
+License: GPL
 
 Files: *
 Copyright: © 2004      Christophe Saout <christophe@saout.de>
@@ -48,5 +49,5 @@ License: GPL-2+
  along with this package; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
  .
- On Debian systems, the complete text of the GNU General
- Public License can be found in `/usr/share/common-licenses/GPL'.
+ On Debian systems, the complete text of the GNU General Public
+ License v2 can be found in `/usr/share/common-licenses/GPL-2'.

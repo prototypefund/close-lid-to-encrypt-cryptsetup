@@ -1,4 +1,6 @@
-#! /bin/sh -e
+#! /bin/sh
+
+set -e
 
 create_etc_keys() {
 	[ -d /etc/keys/ ] || mkdir -p /etc/keys/
