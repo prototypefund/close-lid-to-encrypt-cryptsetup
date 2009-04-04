@@ -22,7 +22,7 @@ fs=$2
 vol_id="$(/lib/udev/vol_id -t $dev 2>&1)"
 
 # vol_id output if $dev has an unknown filesystem
-pattern="$(echo $dev | sed 's/\//\\\\\//g')"
+pattern="$(echo $dev | sed 's/\//\\\//g')"
 unknown="$(/lib/udev/vol_id -t /dev/null 2>&1 | sed "s/\/dev\/null/$pattern/g")"
 
 if [ "$vol_id" = "$unknown" ] && [ -z "$fs" ]; then
