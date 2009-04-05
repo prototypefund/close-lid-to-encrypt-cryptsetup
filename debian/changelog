@@ -1,4 +1,4 @@
-cryptsetup (2:1.0.6+20090116.svn47-1) unstable; urgency=low
+cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 
   * NOT RELEASED YET
   * New upstream svn snapshot. Highlights include:
