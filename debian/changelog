@@ -1,6 +1,5 @@
 cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 
-  * NOT RELEASED YET
   * New upstream svn snapshot. Highlights include:
     - Uses remapping to error target instead of calling udevsettle for
       temporary crypt device. (closes: #514729, #498964, #521547)
@@ -38,7 +37,7 @@ cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
       sed to replace '/' with '\/' instead of '\\/' in device names.
     - disable error message 'failed to setup lvm device' (LP 151532).
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 04 Apr 2009 18:57:32 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 06 Apr 2009 08:49:14 +0200
 
 cryptsetup (2:1.0.6-7) unstable; urgency=medium
 
