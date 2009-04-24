@@ -1,6 +1,8 @@
 #!/bin/sh
 #thanks Martin Steigerwald <ms@teamix.de>
 
+PATH="/usr/sbin:/usr/bin:/sbin:/bin"
+
 ulimit -c 0
 if /usr/sbin/xfs_admin -l $1 2>/dev/null 1>&2; then
   exit 0

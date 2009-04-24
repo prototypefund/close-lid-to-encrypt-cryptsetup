@@ -1,3 +1,11 @@
+cryptsetup (2:1.0.6+20090405.svn49-2) unstable; urgency=low
+
+  * NOT RELEASED YET
+  * Set $PATH in checks/xfs. Required to make /usr/sbin/xfs_admin work at early
+    boot stage. Thanks to Stefan Bender. (closes: #525118)
+
+ -- Jonas Meurer <mejo@debian.org>  Fri, 24 Apr 2009 04:17:01 +0200
+
 cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 
   * New upstream svn snapshot. Highlights include:
