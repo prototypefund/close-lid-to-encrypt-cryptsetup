@@ -3,8 +3,11 @@ cryptsetup (2:1.0.6+20090405.svn49-2) unstable; urgency=low
   * NOT RELEASED YET
   * Set $PATH in checks/xfs. Required to make /usr/sbin/xfs_admin work at early
     boot stage. Thanks to Stefan Bender. (closes: #525118)
+  * Update path to docbook-xsl stylesheet in debian/rules to
+    /usr/share/xml/docbook/stylesheet/docbook-xsl/. Add versioned build-depends
+    to docbook-xsl (>= 1.74.3+dfsg) for that reason.
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 24 Apr 2009 04:17:01 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 26 Apr 2009 16:29:11 +0200
 
 cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 

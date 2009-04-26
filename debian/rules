@@ -66,7 +66,7 @@ build-stamp: configure-stamp
 	sed 's/VERSION/$(DEB_VERSION)/;s/DATE/$(DEB_DATE)/' \
 		debian/doc/variables.xml.in > debian/doc/variables.xml
 	xsltproc --nonet --xinclude -o debian/doc/ \
-		/usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xsl \
+		/usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl \
 		debian/doc/manpages.xml
 	pod2man --section=8 --center="Administrative commands" --release="" debian/scripts/luksformat \
 		debian/luksformat.8
