@@ -280,7 +280,7 @@ get_device_modules() {
 }
 
 canonical_device() {
-	local dev altdev
+	local dev altdev original
 	dev="$1"
 
 	altdev="${dev#LABEL=}"
@@ -293,6 +293,7 @@ canonical_device() {
 		dev="/dev/disk/by-uuid/$altdev"
 	fi
 
+	original="$dev"
 	if [ -h "$dev" ]; then
 		dev=$(readlink -e "$dev")
 	fi
@@ -300,6 +301,11 @@ canonical_device() {
 	altdev="${dev#/dev/mapper/}"
 	if [ "$altdev" != "$dev" ]; then
 		echo "$altdev"
+		return 0
+	elif [ "x${original%/dev/disk/by-*/*}" = "x" ]; then
+		# support crypttab UUID/LABEL entries
+		# this is a /dev/disk/by-*/ path so return just the 'basename'
+		echo "${original##/dev/disk/by-*/}"
 		return 0
 	fi
 
