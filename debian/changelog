@@ -6,8 +6,10 @@ cryptsetup (2:1.0.6+20090405.svn49-2) unstable; urgency=low
   * Update path to docbook-xsl stylesheet in debian/rules to
     /usr/share/xml/docbook/stylesheet/docbook-xsl/. Add versioned build-depends
     to docbook-xsl (>= 1.74.3+dfsg) for that reason.
+  * Fix bashisms in scripts/decrypt_opensc, thanks to Raphael Geissert.
+    (closes: #530060)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 26 Apr 2009 16:29:11 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 25 May 2009 16:30:25 +0200
 
 cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 
