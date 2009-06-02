@@ -42,15 +42,15 @@ configure: configure-stamp
 configure-stamp: $(QUILT_STAMPFN)
 	dh_testdir
 	find -xtype f ! -name manifest > manifest
-	# mini autogen.sh
 	rm -f ltmain.sh
 	cp /usr/share/libtool/config/ltmain.sh ltmain.sh
 	./setup-gettext
-	libtoolize --force --copy
-	aclocal-1.9
-	autoheader
-	automake-1.9 --add-missing --gnu
-	autoconf
+	autoreconf --force --install
+	#libtoolize --force --copy
+	#aclocal-1.9
+	#autoheader
+	#automake-1.9 --add-missing --gnu
+	#autoconf
 	CFLAGS="$(CFLAGS)" ./configure $(confflags) \
 		--prefix=/usr \
 		--sbindir=/sbin \

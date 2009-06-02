@@ -10,8 +10,15 @@ cryptsetup (2:1.0.6+20090405.svn49-2) unstable; urgency=low
     (closes: #530060)
   * Fix UUID and LABEL handling for cryptroot, thanks to Kees Cook and ubuntu.
     (closes: #522041)
+  * Add ROOT=$NEWROOT to /conf/param.conf in cryptroot initramfs script. This
+    is required for lilo to find the correct root device. Thanks to Pyotr
+    Berezhkov and Christian Schaarschmidt. (closes: #511840)
+  * Replace mini autogen.sh with autoreconf in debian/rules. Thanks to Bastian
+    Kleineidam. (closes: #522798)
+  * Support escaped newlines in askpass.c, thanks to Kees Cook and ubuntu.
+    (closes: #528133)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 25 May 2009 16:38:25 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 02 Jun 2009 19:07:52 +0200
 
 cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 

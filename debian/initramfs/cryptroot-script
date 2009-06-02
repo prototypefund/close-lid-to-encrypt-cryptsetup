@@ -225,7 +225,7 @@ setup_mapping()
 
 		if [ -z "$cryptkeyscript" ]; then
 			cryptkeyscript="/lib/cryptsetup/askpass"
-			cryptkey="Enter passphrase to unlock the disk $cryptsource ($crypttarget): "
+			cryptkey="Unlocking the disk $cryptsource ($crypttarget)\nEnter passphrase: "
 		fi
 
 
@@ -265,6 +265,8 @@ setup_mapping()
 		fi
 
 		message "cryptsetup: $crypttarget setup successfully"
+		# required for lilo to find the root device
+		echo "ROOT=$NEWROOT" >> /conf/param.conf
 		break
 	done
 
