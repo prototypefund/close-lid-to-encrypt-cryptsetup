@@ -1,16 +1,29 @@
-## 02_manpage.patch
-## by Martin Pitt <martin.pitt@ubuntu.com> and others
-##
-## several documentation and typo fixes.
-
---- a/man/cryptsetup.8
-+++ b/man/cryptsetup.8
+--- ../upstream/cryptsetup/man/cryptsetup.8	2008-12-23 01:17:06.000000000 +0100
++++ cryptsetup.8	2009-06-02 21:47:18.000000000 +0200
 @@ -1,4 +1,4 @@
 -.TH CRYPTSETUP "8" "March 2005" "cryptsetup 1.0.3" "Maintainance Commands"
 +.TH CRYPTSETUP "8" "March 2005" "cryptsetup 1.0.6" "Maintenance Commands"
  .SH NAME
  cryptsetup - setup cryptographic volumes for dm-crypt (including LUKS extension)
  .SH SYNOPSIS
+@@ -32,7 +32,7 @@
+ .br
+ .SH LUKS EXTENSION
+ 
+-LUKS, Linux Unified Key Setup, is a standard for hard disk encryption. It standardizes a partition header, as well as the format of the bulk data. LUKS can manage multiple passwords, that can be revoked effectively and that are protected against dictionary attacks with PBKDF2. 
++LUKS, Linux Unified Key Setup, is a standard for hard disk encryption. It standardizes a partition header, as well as the format of the bulk data. LUKS can manage multiple passwords, that can be revoked effectively and that are protected against dictionary attacks with PBKDF2.
+ 
+ These are valid LUKS actions:
+ 
+@@ -79,7 +79,7 @@
+ dumps the header information of a LUKS partition. No options.
+ .PP
+ 
+-For more information about LUKS, see \fBhttp://luks.endorphin.org\fR
++For more information about LUKS, see \fBhttp://code.google.com/p/cryptsetup/\fR
+ 
+ .SH OPTIONS
+ .TP
 @@ -87,7 +87,7 @@
  specifies hash to use for password hashing. This option is only relevant for the "create" action. The hash string is passed to libgcrypt, so all hashes accepted by gcrypt are supported. Default is "ripemd160".
  .TP
@@ -41,12 +54,23 @@
  Instead, it will be zero padded (if shorter than the keysize) or truncated (if longer than the keysize) and used directly as the key. No warning will be given if the amount of data read from stdin is less than the keysize.
  
  \fIFrom a key file\fR: It will be cropped to the size given by \-s. If there is insufficient key material in the key file, cryptsetup will quit with an error.
-@@ -156,7 +156,7 @@
+@@ -155,8 +155,10 @@
+ Therefore, no options can be given to luksOpen. 
  For any password creation action (luksAddKey, or luksFormat), the user may specify how much the time the password processing should consume.
  Increasing the time will lead to a more secure password, but also will take luksOpen longer to complete. The default setting of one second is sufficient for good security.
++.SH INCOHERENT BEHAVIOUR WITH INVALID PASSWORDS/KEYS
++LUKS checks for a valid password or key when an encrypted partition is unlocked. Thus the luksOpen action fails with an invalid passoword or key, contrary to the plain dm-crypt create action.
  .SH NOTES ON PASSWORDS
 -Mathematic can't be bribed. Make sure you keep your passwords safe. There are a few nice tricks for constructing a fallback, when suddenly out of (or after being) blue, your brain refuses to cooperate. These fallbacks are possible with LUKS, as it's only possible with LUKS to have multiple passwords.
 +Mathematics can't be bribed. Make sure you keep your passwords safe. There are a few nice tricks for constructing a fallback, when suddenly out of (or after being) blue, your brain refuses to cooperate. These fallbacks are possible with LUKS, as it's only possible with LUKS to have multiple passwords.
  .SH AUTHORS
  cryptsetup is written by Christophe Saout <christophe@saout.de>
  .br
+@@ -205,6 +207,6 @@
+ 
+ dm-crypt website, \fBhttp://www.saout.de/misc/dm-crypt/\fR
+ 
+-LUKS website, \fBhttp://luks.endorphin.org\fR
++LUKS website, \fBhttp://code.google.com/p/cryptsetup/\fR
+ 
+ dm-crypt TWiki, \fBhttp://www.saout.de/tikiwiki/tiki-index.php\fR

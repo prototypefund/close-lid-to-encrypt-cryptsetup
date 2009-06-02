@@ -1,6 +1,6 @@
 Format-Specification: http://wiki.debian.org/Proposals/CopyrightFormat
 Upstream-Maintainer: Clemens Fruhwirth <clemens@endorphin.org>
-Upstream-Source: http://clemens.endorphin.org/LUKS
+Upstream-Source: http://code.google.com/p/cryptsetup
 Debianized-By: Milan Kocian <milon@wq.cz>
 Debianized-Date: Thu, 18 Mar 2004 09:28:18 +0100.
 
@@ -24,7 +24,7 @@ Files: debian/*
 Copyright: © 2004-2005 Wesley W. Terpstra <terpstra@debian.org>
            © 2005-2006 Michael Gebetsroither <michael.geb@gmx.at>
            © 2006-2008 David Härdeman <david@hardeman.nu>
-           © 2005-2008 Jonas Meurer <jonas@freesources.org>
+           © 2005-2009 Jonas Meurer <jonas@freesources.org>
 License: GPL-2+
 
 Files: luks/sha/*

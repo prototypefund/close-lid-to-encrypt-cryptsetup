@@ -17,8 +17,11 @@ cryptsetup (2:1.0.6+20090405.svn49-2) unstable; urgency=low
     Kleineidam. (closes: #522798)
   * Support escaped newlines in askpass.c, thanks to Kees Cook and ubuntu.
     (closes: #528133)
+  * Mention the incoherent behaviour of cryptsetup create/luksOpen with invalid
+    passwords/keys in cryptsetup manpage. (closes: #529359)
+  * Update LUKS homepage in cryptsetup manpage to code.google.com/p/cryptsetup.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 02 Jun 2009 19:07:52 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 02 Jun 2009 21:49:01 +0200
 
 cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 
