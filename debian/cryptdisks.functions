@@ -280,7 +280,7 @@ do_luks () {
 		key="-"
 	elif [ -z "$key" ]; then
 		# no keyscript, no key => password
-		keyscriptarg="Unlocking the disk $cryptsource ($crypttarget)\nEnter passphrase: "
+		keyscriptarg="Unlocking the disk $src ($dst)\nEnter passphrase: "
 		key="-"
 		KEYSCRIPT="/lib/cryptsetup/askpass"
 	elif [ "$key" != "${key%/dev/*}" ]; then
