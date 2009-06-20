@@ -20,7 +20,7 @@ cryptsetup (2:1.0.6+20090405.svn49-2) unstable; urgency=low
   * Mention the incoherent behaviour of cryptsetup create/luksOpen with invalid
     passwords/keys in cryptsetup manpage. (closes: #529359)
   * Update LUKS homepage in cryptsetup manpage to code.google.com/p/cryptsetup.
-  * add serveral patches from upstream svn:
+  * add several patches from upstream svn:
     - 03_device_doesnt_exist.patch (better error msg if device doesn't exist)
       (closes: #492926)
     - 04_device_size_error_hint.patch (device size and error hint for xts)
@@ -28,8 +28,9 @@ cryptsetup (2:1.0.6+20090405.svn49-2) unstable; urgency=low
     - 05_display_device_name.patch (display device name at password prompt)
     - 06_retain_readahead.patch (retain readahead of underlying device)
     - 07_uuid_in_devmapper.patch (set UUID in device-mapper for LUKS devices)
+  * bump standards-version to 3.8.2, no changes required.
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 20 Jun 2009 23:03:51 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 20 Jun 2009 23:33:49 +0200
 
 cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 
