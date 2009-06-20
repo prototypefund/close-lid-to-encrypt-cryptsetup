@@ -1,6 +1,5 @@
 cryptsetup (2:1.0.6+20090405.svn49-2) unstable; urgency=low
 
-  * NOT RELEASED YET
   * Set $PATH in checks/xfs. Required to make /usr/sbin/xfs_admin work at early
     boot stage. Thanks to Stefan Bender. (closes: #525118)
   * Update path to docbook-xsl stylesheet in debian/rules to
@@ -21,8 +20,16 @@ cryptsetup (2:1.0.6+20090405.svn49-2) unstable; urgency=low
   * Mention the incoherent behaviour of cryptsetup create/luksOpen with invalid
     passwords/keys in cryptsetup manpage. (closes: #529359)
   * Update LUKS homepage in cryptsetup manpage to code.google.com/p/cryptsetup.
+  * add serveral patches from upstream svn:
+    - 03_device_doesnt_exist.patch (better error msg if device doesn't exist)
+      (closes: #492926)
+    - 04_device_size_error_hint.patch (device size and error hint for xts)
+      (closes: #494584)
+    - 05_display_device_name.patch (display device name at password prompt)
+    - 06_retain_readahead.patch (retain readahead of underlying device)
+    - 07_uuid_in_devmapper.patch (set UUID in device-mapper for LUKS devices)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 04 Jun 2009 11:54:58 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 20 Jun 2009 22:58:12 +0200
 
 cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 

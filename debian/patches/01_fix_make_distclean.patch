@@ -3,20 +3,9 @@
 ##
 ## Fix `make distcheck`
 
---- a/luks/Makefile.am
-+++ b/luks/Makefile.am
-@@ -2,7 +2,7 @@ moduledir = $(libdir)/cryptsetup
- 
- noinst_LTLIBRARIES = libluks.la
- 
--libluks_la_CFLAGS = -I sha -Wall
-+libluks_la_CFLAGS = -I $(top_srcdir)/luks/sha -Wall
- 
- libluks_la_SOURCES = \
- 	af.c \
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -15,7 +15,7 @@ cryptsetup_SOURCES = \
+--- src/Makefile.am	(revision 49)
++++ src/Makefile.am	(revision 50)
+@@ -15,7 +15,7 @@
  
  cryptsetup_LDADD = \
  	@POPT_LIBS@				\
@@ -25,3 +14,14 @@
  
  if STATIC_CRYPTSETUP
  _STATIC_FLAGS = -all-static
+--- luks/Makefile.am	(revision 49)
++++ luks/Makefile.am	(revision 50)
+@@ -2,7 +2,7 @@
+ 
+ noinst_LTLIBRARIES = libluks.la
+ 
+-libluks_la_CFLAGS = -I sha -Wall
++libluks_la_CFLAGS = -I $(top_srcdir)/luks/sha -Wall
+ 
+ libluks_la_SOURCES = \
+ 	af.c \

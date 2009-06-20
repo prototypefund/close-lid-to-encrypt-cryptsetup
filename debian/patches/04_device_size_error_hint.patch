@@ -1,0 +1,171 @@
+## 04_device_size_error_hint.patch
+## by gmazyland
+##
+## Check device size when loading LUKS header.
+## (And remove misleading error message later.)
+##
+## Because kernel and libdevmapper does not provide
+## better error message then "invalid parameters"
+## add some error hint if dm-crypt mapping failed.
+## (Key size and kernel version check for XTS and LRW mode
+## for now.)
+
+--- lib/libdevmapper.c	(revision 51)
++++ lib/libdevmapper.c	(revision 52)
+@@ -233,6 +233,7 @@
+ 	struct dm_task *dmt_query = NULL;
+ 	struct dm_info dmi;
+ 	char *params = NULL;
++	char *error = NULL;
+ 	int r = -EINVAL;
+ 
+ 	params = get_params(options, key);
+@@ -268,17 +269,15 @@
+ 	r = 0;
+ out:
+ 	if (r < 0 && !reload) {
+-		char *error = (char *)get_error();
+-		if (error)
+-			error = strdup(error);
+-
+-		if (!_dm_remove(options, 0))
+-			goto out_restore_error;
+-
+-out_restore_error:
+-		set_error("%s", error);
+-		if (error)
++		if (get_error())
++			error = strdup(get_error());
++
++		_dm_remove(options, 0);
++
++		if (error) {
++			set_error(error);
+ 			free(error);
++		}
+ 	}
+ 
+ out_no_removal:
+--- luks/keymanage.c	(revision 51)
++++ luks/keymanage.c	(revision 52)
+@@ -20,6 +20,8 @@
+ 
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#include <sys/ioctl.h>
++#include <linux/fs.h>
+ #include <fcntl.h>
+ #include <errno.h>
+ #include <unistd.h>
+@@ -79,11 +81,11 @@
+ 
+ int LUKS_read_phdr(const char *device, struct luks_phdr *hdr)
+ {
+-	int devfd = 0; 
++	int devfd = 0, r = 0; 
+ 	unsigned int i; 
+-	int r = 0;
++	uint64_t size;
+ 	char luksMagic[] = LUKS_MAGIC;
+-	
++
+ 	devfd = open(device,O_RDONLY | O_DIRECT | O_SYNC);
+ 	if(-1 == devfd) {
+ 		set_error(_("Can't open device: %s\n"), device);
+@@ -114,7 +116,15 @@
+ 		}
+ 	}
+ 
++#ifdef BLKGETSIZE64
++	if (ioctl(devfd, BLKGETSIZE64, &size) < 0 ||
++	    size < (uint64_t)hdr->payloadOffset) {
++		set_error(_("LUKS header detected but device %s is too small.\n"), device);
++		r = -EINVAL;
++	}
++#endif
+ 	close(devfd);
++
+ 	return r;
+ }
+ 
+--- luks/keyencryption.c	(revision 51)
++++ luks/keyencryption.c	(revision 52)
+@@ -20,11 +20,13 @@
+ #include <string.h>
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <ctype.h>
+ #include <inttypes.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/ioctl.h>
+ #include <sys/mman.h>
++#include <sys/utsname.h>
+ #include <fcntl.h>
+ #include <unistd.h>
+ #include <errno.h>
+@@ -85,10 +87,9 @@
+ 		options->flags |= CRYPT_FLAG_READONLY;
+ 	}
+ 
+-	r = backend->create(0, options, key);
++	set_error(NULL);
+ 
+-	if (r <= 0)
+-		set_error(NULL);
++	r = backend->create(0, options, key);
+ 
+ 	return r;
+ }
+@@ -112,6 +113,35 @@
+         kill(getpid(), SIGINT);
+ }
+ 
++static char *_error_hint(char *cipherName, char *cipherMode, size_t keyLength)
++{
++	char *hint = "";
++#ifdef __linux__
++	char c, tmp[4] = {0};
++	struct utsname uts;
++	int i = 0, kernel_minor;
++
++	/* Nothing to suggest here */
++	if (uname(&uts) || strncmp(uts.release, "2.6.", 4))
++		return hint;
++
++	/* Get kernel minor without suffixes */
++	while (i < 3 && (c = uts.release[i + 4]))
++		tmp[i++] = isdigit(c) ? c : '\0';
++	kernel_minor = atoi(tmp);
++
++	if (!strncmp(cipherMode, "xts", 3) && (keyLength != 256 && keyLength != 512))
++		hint = "Key size in XTS mode must be 256 or 512 bits.";
++	else if (!strncmp(cipherMode, "xts", 3) && kernel_minor < 24)
++		hint = "Block mode XTS is available since kernel 2.6.24.";
++	if (!strncmp(cipherMode, "lrw", 3) && (keyLength != 256 && keyLength != 512))
++		hint = "Key size in LRW mode must be 256 or 512 bits.";
++	else if (!strncmp(cipherMode, "lrw", 3) && kernel_minor < 20)
++		hint = "Block mode LRW is available since kernel 2.6.20.";
++#endif
++	return hint;
++}
++
+ /* This function is not reentrant safe, as it installs a signal
+    handler and global vars for cleaning */
+ static int LUKS_endec_template(char *src, size_t srcLength, 
+@@ -145,11 +175,10 @@
+ 
+ 	r = setup_mapping(dmCipherSpec,name,device,hdr->payloadOffset,key,keyLength,sector,srcLength,backend,mode);
+ 	if(r < 0) {
+-		if(!get_error())
+-			set_error("Failed to setup dm-crypt key mapping.\nCheck kernel for support for the %s cipher spec and verify that %s contains at least %d sectors",
+-			dmCipherSpec, 
+-			device, 
+-			sector + div_round_up(srcLength,SECTOR_SIZE));
++		set_error("Failed to setup dm-crypt key mapping for device %s.\n"
++			  "Check that kernel supports %s cipher (check syslog for more info).\n%s",
++			  device, dmCipherSpec,
++			  _error_hint(hdr->cipherName, hdr->cipherMode, keyLength * 8));
+ 		r = -EIO;
+ 		goto out1;
+ 	}
