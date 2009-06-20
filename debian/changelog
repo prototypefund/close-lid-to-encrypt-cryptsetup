@@ -11,7 +11,7 @@ cryptsetup (2:1.0.6+20090405.svn49-2) unstable; urgency=low
     (closes: #522041)
   * Add ROOT=$NEWROOT to /conf/param.conf in cryptroot initramfs script. This
     is required for lilo to find the correct root device. Thanks to Pyotr
-    Berezhkov and Christian Schaarschmidt. (closes: #511840)
+    Berezhkov and Christian Schaarschmidt. (closes: #511447,#511840)
   * Replace mini autogen.sh with autoreconf in debian/rules. Thanks to Bastian
     Kleineidam. (closes: #522798)
   * Support escaped newlines in askpass.c, thanks to Kees Cook and ubuntu.
@@ -29,7 +29,7 @@ cryptsetup (2:1.0.6+20090405.svn49-2) unstable; urgency=low
     - 06_retain_readahead.patch (retain readahead of underlying device)
     - 07_uuid_in_devmapper.patch (set UUID in device-mapper for LUKS devices)
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 20 Jun 2009 22:58:12 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 20 Jun 2009 23:03:51 +0200
 
 cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 
