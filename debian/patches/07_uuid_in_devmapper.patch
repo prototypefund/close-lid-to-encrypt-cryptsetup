@@ -8,8 +8,8 @@
 ##
 ## cryptsetup now uses CRYPT prefix for uuid.
 
---- lib/setup.c	(revision 54)
-+++ lib/setup.c	(revision 55)
+--- a/lib/setup.c
++++ b/lib/setup.c
 @@ -350,9 +350,9 @@
  			set_error("Key processing error");
  		return -ENOENT;
@@ -43,8 +43,8 @@
  
   out2:
  	free(dmCipherSpec);
---- lib/internal.h	(revision 54)
-+++ lib/internal.h	(revision 55)
+--- a/lib/internal.h
++++ b/lib/internal.h
 @@ -37,7 +37,7 @@
  	int		(*init)(void);
  	void		(*exit)(void);
@@ -54,8 +54,8 @@
  	int		(*status)(int details, struct crypt_options *options,
  			          char **key);
  	int		(*remove)(int force, struct crypt_options *options);
---- lib/libdevmapper.c	(revision 54)
-+++ lib/libdevmapper.c	(revision 55)
+--- a/lib/libdevmapper.c
++++ b/lib/libdevmapper.c
 @@ -18,7 +18,7 @@
  #include "internal.h"
  
@@ -113,8 +113,8 @@
  		if (!dm_task_run(dmt))
  			goto out;
  	}
---- luks/keyencryption.c	(revision 54)
-+++ luks/keyencryption.c	(revision 55)
+--- a/luks/keyencryption.c
++++ b/luks/keyencryption.c
 @@ -89,7 +89,7 @@
  
  	set_error(NULL);

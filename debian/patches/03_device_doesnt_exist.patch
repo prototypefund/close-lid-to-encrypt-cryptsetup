@@ -4,8 +4,8 @@
 ## Use better error messages if device doesn't exist
 ## or is already used by other mapping.
 
---- lib/setup.c	(revision 50)
-+++ lib/setup.c	(revision 51)
+--- a/lib/setup.c
++++ b/lib/setup.c
 @@ -299,7 +299,7 @@
  			return r;
  	} else {
@@ -74,8 +74,8 @@
  
  	if(supply_it) {
  	    get_key("Enter LUKS passphrase to be deleted: ",&password,&passwordLen, 0, options->new_key_file, options->passphrase_fd, options->timeout, options->flags);
---- luks/keymanage.c	(revision 50)
-+++ luks/keymanage.c	(revision 51)
+--- a/luks/keymanage.c
++++ b/luks/keymanage.c
 @@ -487,13 +487,24 @@
  
  int LUKS_device_ready(const char *device, int mode)

@@ -10,8 +10,8 @@
 ## (Key size and kernel version check for XTS and LRW mode
 ## for now.)
 
---- lib/libdevmapper.c	(revision 51)
-+++ lib/libdevmapper.c	(revision 52)
+--- a/lib/libdevmapper.c
++++ b/lib/libdevmapper.c
 @@ -233,6 +233,7 @@
  	struct dm_task *dmt_query = NULL;
  	struct dm_info dmi;
@@ -46,8 +46,8 @@
  	}
  
  out_no_removal:
---- luks/keymanage.c	(revision 51)
-+++ luks/keymanage.c	(revision 52)
+--- a/luks/keymanage.c
++++ b/luks/keymanage.c
 @@ -20,6 +20,8 @@
  
  #include <sys/types.h>
@@ -88,8 +88,8 @@
  	return r;
  }
  
---- luks/keyencryption.c	(revision 51)
-+++ luks/keyencryption.c	(revision 52)
+--- a/luks/keyencryption.c
++++ b/luks/keyencryption.c
 @@ -20,11 +20,13 @@
  #include <string.h>
  #include <stdio.h>

@@ -1,10 +1,10 @@
-## 01_fix_make_distclean.patch
+# 01_fix_make_distclean.patch
 ## by Mike Kelly <pioto@pioto.org>
 ##
 ## Fix `make distcheck`
 
---- src/Makefile.am	(revision 49)
-+++ src/Makefile.am	(revision 50)
+--- a/src/Makefile.am
++++ b/src/Makefile.am
 @@ -15,7 +15,7 @@
  
  cryptsetup_LDADD = \
@@ -14,8 +14,8 @@
  
  if STATIC_CRYPTSETUP
  _STATIC_FLAGS = -all-static
---- luks/Makefile.am	(revision 49)
-+++ luks/Makefile.am	(revision 50)
+--- a/luks/Makefile.am
++++ b/luks/Makefile.am
 @@ -2,7 +2,7 @@
  
  noinst_LTLIBRARIES = libluks.la

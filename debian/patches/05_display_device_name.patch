@@ -3,8 +3,8 @@
 ##
 ## Display device name when asking for password.
 
---- lib/setup.c	(revision 52)
-+++ lib/setup.c	(revision 53)
+--- a/lib/setup.c
++++ b/lib/setup.c
 @@ -507,6 +507,7 @@
  {
  	struct luks_masterkey *mk=NULL;
