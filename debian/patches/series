@@ -1,7 +1,1 @@
-01_fix_make_distclean.patch
 02_manpage.patch
-03_device_doesnt_exist.patch
-04_device_size_error_hint.patch
-05_display_device_name.patch
-06_retain_readahead.patch
-07_uuid_in_devmapper.patch

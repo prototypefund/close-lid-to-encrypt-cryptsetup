@@ -1,5 +1,18 @@
-cryptsetup (2:1.0.6+20090405.svn49-2) unstable; urgency=low
+cryptsetup (2:1.0.7~rc1-1) unstable; urgency=low
 
+  * New upstream release candidate, highlights include:
+    - use better error messages if device doesn't exist or is already used by
+      other mapping (closes: #492926)
+    - check device size when loading LUKS header
+    - add some error hint if dm-crypt mapping failed (key size and kernel
+      version check for XTS and LRW mode for now) (closes: #494584)
+    - display device name when asking for password
+    - retain readahead of underlying device, if devmapper version supports it
+    - set UUID in device-mapper for LUKS devices
+    - define device-mapper crypt UUID maximal length and check for its size
+    - add some checks for error codes, fixes warning: ignoring return value...
+  * patches/01_fix_make_distclean.patch: removed, incorporated upstream
+  * patches/02_manpage.patch: updated, partly incorporated upstream
   * Set $PATH in checks/xfs. Required to make /usr/sbin/xfs_admin work at early
     boot stage. Thanks to Stefan Bender. (closes: #525118)
   * Update path to docbook-xsl stylesheet in debian/rules to
@@ -20,17 +33,10 @@ cryptsetup (2:1.0.6+20090405.svn49-2) unstable; urgency=low
   * Mention the incoherent behaviour of cryptsetup create/luksOpen with invalid
     passwords/keys in cryptsetup manpage. (closes: #529359)
   * Update LUKS homepage in cryptsetup manpage to code.google.com/p/cryptsetup.
-  * add several patches from upstream svn:
-    - 03_device_doesnt_exist.patch (better error msg if device doesn't exist)
-      (closes: #492926)
-    - 04_device_size_error_hint.patch (device size and error hint for xts)
-      (closes: #494584)
-    - 05_display_device_name.patch (display device name at password prompt)
-    - 06_retain_readahead.patch (retain readahead of underlying device)
-    - 07_uuid_in_devmapper.patch (set UUID in device-mapper for LUKS devices)
   * bump standards-version to 3.8.2, no changes required.
+  * add 'X-Interactive: true' LSB-header to initscripts.
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 20 Jun 2009 23:33:49 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 30 Jun 2009 02:58:55 +0200
 
 cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 

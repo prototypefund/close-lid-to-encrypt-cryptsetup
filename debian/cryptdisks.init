@@ -6,6 +6,7 @@
 # Should-Start:      udev devfsd raid2 mdadm lvm2 evms
 # Should-Stop:       udev devfsd raid2 mdadm lvm2 evms
 # X-Start-Before:    checkfs
+# X-Interactive:     true
 # Default-Start:     S
 # Default-Stop:      0 6
 # Short-Description: Setup remaining encrypted block devices.
