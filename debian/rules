@@ -44,7 +44,7 @@ configure-stamp: $(QUILT_STAMPFN)
 	find -xtype f ! -name manifest > manifest
 	rm -f ltmain.sh
 	cp /usr/share/libtool/config/ltmain.sh ltmain.sh
-	./setup-gettext
+	#./setup-gettext
 	autoreconf --force --install
 	#libtoolize --force --copy
 	#aclocal-1.9

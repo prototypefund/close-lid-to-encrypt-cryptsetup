@@ -13,6 +13,7 @@ cryptsetup (2:1.0.7~rc1-1) unstable; urgency=low
     - add some checks for error codes, fixes warning: ignoring return value...
   * patches/01_fix_make_distclean.patch: removed, incorporated upstream
   * patches/02_manpage.patch: updated, mostly incorporated upstream
+  * remove invokation of ./setup-gettext.sh from debian/rules.
   * Set $PATH in checks/xfs. Required to make /usr/sbin/xfs_admin work at early
     boot stage. Thanks to Stefan Bender. (closes: #525118)
   * Update path to docbook-xsl stylesheet in debian/rules to
@@ -36,7 +37,7 @@ cryptsetup (2:1.0.7~rc1-1) unstable; urgency=low
   * bump standards-version to 3.8.2, no changes required.
   * add 'X-Interactive: true' LSB-header to initscripts.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 30 Jun 2009 03:18:11 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 30 Jun 2009 03:27:27 +0200
 
 cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 
