@@ -5,60 +5,6 @@
 
 --- a/man/cryptsetup.8
 +++ b/man/cryptsetup.8
-@@ -1,4 +1,4 @@
--.TH CRYPTSETUP "8" "March 2005" "cryptsetup 1.0.3" "Maintainance Commands"
-+.TH CRYPTSETUP "8" "March 2005" "cryptsetup 1.0.6" "Maintenance Commands"
- .SH NAME
- cryptsetup - setup cryptographic volumes for dm-crypt (including LUKS extension)
- .SH SYNOPSIS
-@@ -32,7 +32,7 @@
- .br
- .SH LUKS EXTENSION
- 
--LUKS, Linux Unified Key Setup, is a standard for hard disk encryption. It standardizes a partition header, as well as the format of the bulk data. LUKS can manage multiple passwords, that can be revoked effectively and that are protected against dictionary attacks with PBKDF2. 
-+LUKS, Linux Unified Key Setup, is a standard for hard disk encryption. It standardizes a partition header, as well as the format of the bulk data. LUKS can manage multiple passwords, that can be revoked effectively and that are protected against dictionary attacks with PBKDF2.
- 
- These are valid LUKS actions:
- 
-@@ -79,7 +79,7 @@
- dumps the header information of a LUKS partition. No options.
- .PP
- 
--For more information about LUKS, see \fBhttp://luks.endorphin.org\fR
-+For more information about LUKS, see \fBhttp://code.google.com/p/cryptsetup/\fR
- 
- .SH OPTIONS
- .TP
-@@ -87,7 +87,7 @@
- specifies hash to use for password hashing. This option is only relevant for the "create" action. The hash string is passed to libgcrypt, so all hashes accepted by gcrypt are supported. Default is "ripemd160".
- .TP
- .B "\-\-cipher, \-c"
--set cipher specification string. Usually, this is "aes-cbc-plain". For pre-2.6.10 kernels, use "aes-plain" as they don't understand the new cipher spec strings. To use ESSIV, use "aes-cbc-essiv:sha256".
-+set cipher specification string. For plain dm-crypt mappings, the default is "aes-cbc-plain", for LUKS mappings it's "aes-cbc-essiv:sha256". For pre-2.6.10 kernels, use "aes-plain" as they don't understand the new cipher spec strings. To use ESSIV, use "aes-cbc-essiv:sha256".
- .TP
- .B "\-\-verify-passphrase, \-y"
- query for passwords twice. Useful when creating a (regular) mapping for the first time, or when running \fIluksFormat\fR.
-@@ -101,7 +101,7 @@
- For LUKS operations that add key material, this options allows to you specify which key slot is selected for the new key. This option can be used for luksFormat and luksAddKey.
- .TP
- .B "\-\-key-size, \-s"
--set key size in bits. Has to be a multiple of 8 bits. The key size is limited by the used cipher. See output of /proc/crypto for more information. Can be used for \fIcreate\fR or \fIluksFormat\fR, all other LUKS actions will ignore this flag, as the key-size is specified by the partition header. Default is 128.
-+set key size in bits. Has to be a multiple of 8 bits. The key size is limited by the used cipher. See output of /proc/crypto for more information. Can be used for \fIcreate\fR or \fIluksFormat\fR, all other LUKS actions will ignore this flag, as the key-size is specified by the partition header. Default is 128 for \fIluksFormat\fR and 256 for \fIcreate\fR.
- .TP
- .B "\-\-size, \-b"
- force the size of the underlying device in sectors.
-@@ -136,9 +136,9 @@
- Show the version.
- 
- .SH NOTES ON PASSWORD PROCESSING
--\fIFrom a file descriptor or a terminal\fR: Password processing is new-line sensitive, meaning the reading will stop after encountering \\n. It will process the read material (without newline) with the default hash or the hash given by \-\-hash. After hashing, it will be cropped to the key size given by \-s (default 256 bits).
-+\fIFrom a file descriptor or a terminal\fR: Password processing is new-line sensitive, meaning the reading will stop after encountering \\n. It will process the read material (without newline) with the default hash or the hash given by \-\-hash. After hashing, it will be cropped to the key size given by \-s.
- 
--\fIFrom stdin\fR: Reading will continue until EOF (so using e.g. /dev/random as stdin will not work), with the trailing newline stripped. After that the read data will be hashed with the default hash or the hash given by \-\-hash and the result will be cropped to the keysize given by \-s (default 256 bits). If "plain" is used as an argument to the hash option, the input data will not be hashed.
-+\fIFrom stdin\fR: Reading will continue until EOF (so using e.g. /dev/random as stdin will not work), with the trailing newline stripped. After that the read data will be hashed with the default hash or the hash given by \-\-hash and the result will be cropped to the keysize given by \-s. If "plain" is used as an argument to the hash option, the input data will not be hashed.
- Instead, it will be zero padded (if shorter than the keysize) or truncated (if longer than the keysize) and used directly as the key. No warning will be given if the amount of data read from stdin is less than the keysize.
- 
- \fIFrom a key file\fR: It will be cropped to the size given by \-s. If there is insufficient key material in the key file, cryptsetup will quit with an error.
 @@ -155,8 +155,10 @@
  Therefore, no options can be given to luksOpen. 
  For any password creation action (luksAddKey, or luksFormat), the user may specify how much the time the password processing should consume.
@@ -66,16 +12,5 @@
 +.SH INCOHERENT BEHAVIOUR WITH INVALID PASSWORDS/KEYS
 +LUKS checks for a valid password or key when an encrypted partition is unlocked. Thus the luksOpen action fails with an invalid passoword or key, contrary to the plain dm-crypt create action.
  .SH NOTES ON PASSWORDS
--Mathematic can't be bribed. Make sure you keep your passwords safe. There are a few nice tricks for constructing a fallback, when suddenly out of (or after being) blue, your brain refuses to cooperate. These fallbacks are possible with LUKS, as it's only possible with LUKS to have multiple passwords.
-+Mathematics can't be bribed. Make sure you keep your passwords safe. There are a few nice tricks for constructing a fallback, when suddenly out of (or after being) blue, your brain refuses to cooperate. These fallbacks are possible with LUKS, as it's only possible with LUKS to have multiple passwords.
+Mathematics can't be bribed. Make sure you keep your passwords safe. There are a few nice tricks for constructing a fallback, when suddenly out of (or after being) blue, your brain refuses to cooperate. These fallbacks are possible with LUKS, as it's only possible with LUKS to have multiple passwords.
  .SH AUTHORS
- cryptsetup is written by Christophe Saout <christophe@saout.de>
- .br
-@@ -205,6 +207,6 @@
- 
- dm-crypt website, \fBhttp://www.saout.de/misc/dm-crypt/\fR
- 
--LUKS website, \fBhttp://luks.endorphin.org\fR
-+LUKS website, \fBhttp://code.google.com/p/cryptsetup/\fR
- 
- dm-crypt TWiki, \fBhttp://www.saout.de/tikiwiki/tiki-index.php\fR
