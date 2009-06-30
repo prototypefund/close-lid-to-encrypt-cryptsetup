@@ -5,12 +5,12 @@
 
 --- a/man/cryptsetup.8
 +++ b/man/cryptsetup.8
-@@ -155,8 +155,10 @@
+@@ -157,6 +157,8 @@
  Therefore, no options can be given to luksOpen. 
  For any password creation action (luksAddKey, or luksFormat), the user may specify how much the time the password processing should consume.
  Increasing the time will lead to a more secure password, but also will take luksOpen longer to complete. The default setting of one second is sufficient for good security.
 +.SH INCOHERENT BEHAVIOUR WITH INVALID PASSWORDS/KEYS
 +LUKS checks for a valid password or key when an encrypted partition is unlocked. Thus the luksOpen action fails with an invalid passoword or key, contrary to the plain dm-crypt create action.
  .SH NOTES ON PASSWORDS
-Mathematics can't be bribed. Make sure you keep your passwords safe. There are a few nice tricks for constructing a fallback, when suddenly out of (or after being) blue, your brain refuses to cooperate. These fallbacks are possible with LUKS, as it's only possible with LUKS to have multiple passwords.
+ Mathematics can't be bribed. Make sure you keep your passwords safe. There are a few nice tricks for constructing a fallback, when suddenly out of (or after being) blue, your brain refuses to cooperate. These fallbacks are possible with LUKS, as it's only possible with LUKS to have multiple passwords.
  .SH AUTHORS
