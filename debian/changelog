@@ -1,6 +1,6 @@
 cryptsetup (2:1.0.7~rc1-1) unstable; urgency=low
 
-  * New upstream release candidate, highlights include:
+  * new upstream release candidate, highlights include:
     - use better error messages if device doesn't exist or is already used by
       other mapping (closes: #492926)
     - check device size when loading LUKS header
@@ -11,33 +11,35 @@ cryptsetup (2:1.0.7~rc1-1) unstable; urgency=low
     - set UUID in device-mapper for LUKS devices
     - define device-mapper crypt UUID maximal length and check for its size
     - add some checks for error codes, fixes warning: ignoring return value...
+    - update LUKS homepage in manpage to code.google.com/p/cryptsetup
   * patches/01_fix_make_distclean.patch: removed, incorporated upstream
   * patches/02_manpage.patch: updated, mostly incorporated upstream
   * remove invokation of ./setup-gettext.sh from debian/rules.
-  * Set $PATH in checks/xfs. Required to make /usr/sbin/xfs_admin work at early
+  * set $PATH in checks/xfs. Required to make /usr/sbin/xfs_admin work at early
     boot stage. Thanks to Stefan Bender. (closes: #525118)
-  * Update path to docbook-xsl stylesheet in debian/rules to
+  * update path to docbook-xsl stylesheet in debian/rules to
     /usr/share/xml/docbook/stylesheet/docbook-xsl/. Add versioned build-depends
     to docbook-xsl (>= 1.74.3+dfsg) for that reason.
-  * Fix bashisms in scripts/decrypt_opensc, thanks to Raphael Geissert.
+  * fix bashisms in scripts/decrypt_opensc, thanks to Raphael Geissert.
     (closes: #530060)
-  * Fix UUID and LABEL handling for cryptroot, thanks to Kees Cook and ubuntu.
+  * fix UUID and LABEL handling for cryptroot, thanks to Kees Cook and ubuntu.
     (closes: #522041)
-  * Add ROOT=$NEWROOT to /conf/param.conf in cryptroot initramfs script. This
+  * add ROOT=$NEWROOT to /conf/param.conf in cryptroot initramfs script. This
     is required for lilo to find the correct root device. Thanks to Pyotr
     Berezhkov and Christian Schaarschmidt. (closes: #511447,#511840)
-  * Replace mini autogen.sh with autoreconf in debian/rules. Thanks to Bastian
+  * replace mini autogen.sh with autoreconf in debian/rules. Thanks to Bastian
     Kleineidam. (closes: #522798)
-  * Support escaped newlines in askpass.c, thanks to Kees Cook and ubuntu.
+  * support escaped newlines in askpass.c, thanks to Kees Cook and ubuntu.
     (closes: #528133)
-  * Use the same passphrase prompt in init script and initramfs script.
-  * Mention the incoherent behaviour of cryptsetup create/luksOpen with invalid
+  * use the same passphrase prompt in init script and initramfs script
+  * mention the incoherent behaviour of cryptsetup create/luksOpen with invalid
     passwords/keys in cryptsetup manpage. (closes: #529359)
-  * Update LUKS homepage in cryptsetup manpage to code.google.com/p/cryptsetup.
   * bump standards-version to 3.8.2, no changes required.
   * add 'X-Interactive: true' LSB-header to initscripts.
+  * fix bash_completion script to use 'command ls'. that way it now works with
+    aliased ls as well. thanks to Daniel Dehennin. (closes: #535351)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 30 Jun 2009 03:27:27 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 02 Jul 2009 02:21:45 +0200
 
 cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 
