@@ -26,7 +26,7 @@ cryptsetup (2:1.0.7~rc1-1) unstable; urgency=low
     (closes: #522041)
   * add ROOT=$NEWROOT to /conf/param.conf in cryptroot initramfs script. This
     is required for lilo to find the correct root device. Thanks to Pyotr
-    Berezhkov and Christian Schaarschmidt. (closes: #511447,#511840)
+    Berezhkov and Christian Schaarschmidt. (closes: #511447, #511840)
   * replace mini autogen.sh with autoreconf in debian/rules. Thanks to Bastian
     Kleineidam. (closes: #522798)
   * support escaped newlines in askpass.c, thanks to Kees Cook and ubuntu.
@@ -39,7 +39,7 @@ cryptsetup (2:1.0.7~rc1-1) unstable; urgency=low
   * fix bash_completion script to use 'command ls'. that way it now works with
     aliased ls as well. thanks to Daniel Dehennin. (closes: #535351)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 02 Jul 2009 02:21:45 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 04 Jul 2009 15:52:06 +0200
 
 cryptsetup (2:1.0.6+20090405.svn49-1) unstable; urgency=low
 
