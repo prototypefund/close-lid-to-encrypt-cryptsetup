@@ -1,3 +1,12 @@
+cryptsetup (2:1.0.7~rc1-2) unstable; urgency=low
+
+  * flag the root device with rootdev option at /conf/conf.d/cryptroot in
+    initramfs hook, check for that flag before adding ROOT=$NEWROOT to
+    /conf/param.conf in initramfs script. that should prevent the initramfs
+    script from adding ROOT=$NEWROOT for resume devices. (closes: #535801)
+
+ -- Jonas Meurer <mejo@debian.org>  Wed, 08 Jul 2009 02:09:57 +0200
+
 cryptsetup (2:1.0.7~rc1-1) unstable; urgency=low
 
   * new upstream release candidate, highlights include:

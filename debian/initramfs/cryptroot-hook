@@ -353,6 +353,11 @@ add_device() {
 			fi
 		fi
 
+		# Flag root device
+		if [ "$node" = "$rootdev" ]; then
+			opts="$opts,rootdev"
+		fi
+
 		# Get crypttab root options
 		if ! get_device_opts "$node" "$opts"; then
 			continue

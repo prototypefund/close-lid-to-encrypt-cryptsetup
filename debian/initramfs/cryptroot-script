@@ -108,6 +108,10 @@ parse_options()
 				;;
 			esac
 			;;
+		rootdev)
+			# required for lilo to find the root device
+			echo "ROOT=$NEWROOT" >> /conf/param.conf
+			;;
 		esac
 	done
 
@@ -265,8 +269,6 @@ setup_mapping()
 		fi
 
 		message "cryptsetup: $crypttarget setup successfully"
-		# required for lilo to find the root device
-		echo "ROOT=$NEWROOT" >> /conf/param.conf
 		break
 	done
 
