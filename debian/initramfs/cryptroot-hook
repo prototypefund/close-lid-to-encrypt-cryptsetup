@@ -326,7 +326,7 @@ add_device() {
 	fi
 
 	# Flag root device
-	if [ "$node" = "$rootdev" ]; then
+	if [ "$nodes" = "$rootdev" ]; then
 		if [ -z "$opts" ]; then
 			opts="rootdev"
 		else
