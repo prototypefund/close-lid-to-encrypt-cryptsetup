@@ -229,6 +229,9 @@ get_device_opts() {
 			tries=*)
 				OPTIONS="$OPTIONS,$opt"
 				;;
+			rootdev)
+				OPTIONS="$OPTIONS,$opt"
+				;;
 			luks)
 				LUKS_FOUND=1
 				;;
@@ -322,6 +325,11 @@ add_device() {
 		return 0
 	fi
 
+	# Flag root device
+	if [ "$node" = "$rootdev" ]; then
+		opts="$opts,rootdev"
+	fi
+
 	# Check that it is a node under /dev/mapper/
 	nodes=$(canonical_device "$nodes") || return 0
 
@@ -351,11 +359,6 @@ add_device() {
 			else
 				opts="$opts,$lastopts"
 			fi
-		fi
-
-		# Flag root device
-		if [ "$node" = "$rootdev" ]; then
-			opts="$opts,rootdev"
 		fi
 
 		# Get crypttab root options
