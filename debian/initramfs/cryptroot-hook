@@ -327,7 +327,11 @@ add_device() {
 
 	# Flag root device
 	if [ "$node" = "$rootdev" ]; then
-		opts="$opts,rootdev"
+		if [ -z "$opts" ]; then
+			opts="rootdev"
+		else
+			opts="$opts,rootdev"
+		fi
 	fi
 
 	# Check that it is a node under /dev/mapper/
@@ -356,7 +360,7 @@ add_device() {
 		if [ $i -eq $count ]; then
 			if [ -z "$opts" ]; then
 				opts="$lastopts"
-			else
+			elif [ -n "$lastopts" ]; then
 				opts="$opts,$lastopts"
 			fi
 		fi
