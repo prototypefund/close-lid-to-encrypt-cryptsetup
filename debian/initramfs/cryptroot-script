@@ -259,7 +259,7 @@ setup_mapping()
 			fi
 
 			NEWROOT="/dev/mapper/$cryptlvm"
-			if [ "$rootdev" = "yes" ];
+			if [ "$rootdev" = "yes" ] then;
 				# required for lilo to find the root device
 				echo "ROOT=$NEWROOT" >> /conf/param.conf
 			fi
