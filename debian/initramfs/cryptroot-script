@@ -65,7 +65,7 @@ parse_options()
 	cryptkeyscript=""
 	cryptkey="" # This is only used as an argument to an eventual keyscript
 	crypttries=3
-	rootdev=""
+	cryptrootdev=""
 
 	local IFS=" ,"
 	for x in $cryptopts; do
@@ -110,7 +110,7 @@ parse_options()
 			esac
 			;;
 		rootdev)
-			rootdev="yes"
+			cryptrootdev="yes"
 			;;
 		esac
 	done
@@ -259,7 +259,7 @@ setup_mapping()
 			fi
 
 			NEWROOT="/dev/mapper/$cryptlvm"
-			if [ "$rootdev" = "yes" ] then;
+			if [ "$cryptrootdev" = "yes" ]; then
 				# required for lilo to find the root device
 				echo "ROOT=$NEWROOT" >> /conf/param.conf
 			fi
