@@ -1,3 +1,14 @@
+cryptsetup (2:1.0.7~rc1-3) unstable; urgency=low
+
+  * NOT RELEASED YET
+  * make passdev accept a timeout option, thanks to Evgeni Golov for the patch.
+    (closes: #502598)
+  * finally add the cryptsource delay implementation from ubuntu, as it seems to
+    workaround some issues where appearence of the root device takes longer than
+    expected. (closes: #488271)
+
+ -- Jonas Meurer <mejo@debian.org>  Wed, 15 Jul 2009 12:22:18 +0200
+
 cryptsetup (2:1.0.7~rc1-2) unstable; urgency=low
 
   * flag the root device with rootdev option at /conf/conf.d/cryptroot in

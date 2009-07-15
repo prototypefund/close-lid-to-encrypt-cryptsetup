@@ -118,6 +118,9 @@ main(int argc, char **argv, char **envp)
 	size_t towrite;
 	size_t byteswritten;
 	ssize_t bytes;
+	char *to;
+	int timeout;
+	bool do_timeout = false;
 
 	/* We only take one argument */
 	if (argc != 2) {
@@ -130,7 +133,7 @@ main(int argc, char **argv, char **envp)
 	if (debugval && atoi(debugval) > 0)
 		do_debug = true;
 
-	/* Split string into device and path */
+	/* Split string into device and path (and timeout) */
 	devpath = argv[1];
 	filepath = strchr(devpath, ':');
 	if (!filepath || !(*filepath) || !(*(filepath + 1))) {
@@ -139,13 +142,29 @@ main(int argc, char **argv, char **envp)
 	}
 	*filepath = '\0';
 	filepath++;
+	to = strchr(filepath, ':');
+	if (to && (*to) && (*(to + 1))) {
+		*to = '\0';
+		to++;
+		timeout = atoi(to);
+		if (timeout > 0)
+			do_timeout = true;
+	}
 	debug("Path is %p and filepath is %p\n", devpath, filepath);
+	if (do_timeout)
+		debug("Timeout is %i\n",timeout);
 
 	/* Wait until device is available */
 	if (access(devpath, F_OK)) {
 		debug("Waiting for %s\n", devpath);
-		while(access(devpath, F_OK))
+		while(access(devpath, F_OK)) {
 			sleep(1);
+			if (do_timeout) {
+				if (timeout <= 0)
+					break;
+				timeout--;
+			}
+		}
 	}
 
 	/* Make sure device is a blockdev */

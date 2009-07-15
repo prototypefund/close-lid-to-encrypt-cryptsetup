@@ -180,8 +180,8 @@ If you have a keyfile on a removable device (e.g. a USB-key), you can use the
 passdev keyscript. It will wait for the device to appear, mount it read-only,
 read the key and then unmount the device.
 
-The "key" part of /etc/crypttab will be interpreted as <device>:<path>, it is
-strongly recommended that you use one of the persistent device names from
+The "key" part of /etc/crypttab will be interpreted as <device>:<path>[:<timeout>],
+it is strongly recommended that you use one of the persistent device names from
 /dev/disk/*, e.g. /dev/disk/by-label/myusbkey.
 
 This is an example of a suitable line in cryptsetup:
@@ -190,5 +190,7 @@ cryptroot /dev/hda2 /dev/disk/by-label/myusbkey:/keys/root.key cipher=aes-cbc-es
 The above line would cause the boot to pause until /dev/disk/by-label/myusbkey
 appears in the fs, then mount that device and use the file /keys/root.key
 on the device as the key (without any hashing) as the key for the fs.
+
+The timeout option has to be in seconds.
 
 -- David Härdeman <david@hardeman.nu>
