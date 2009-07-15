@@ -5,7 +5,7 @@ cryptsetup (2:1.0.7~rc1-2) unstable; urgency=low
     /conf/param.conf in initramfs script. that should prevent the initramfs
     script from adding ROOT=$NEWROOT for resume devices. (closes: #535801)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 08 Jul 2009 02:09:57 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 15 Jul 2009 11:44:45 +0200
 
 cryptsetup (2:1.0.7~rc1-1) unstable; urgency=low
 
