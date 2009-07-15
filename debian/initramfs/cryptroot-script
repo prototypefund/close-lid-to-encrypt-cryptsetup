@@ -263,7 +263,7 @@ setup_mapping()
 		count=$(( $count + 1 ))
 
 		if [ $count -gt 1 ]; then
-			sleep 3
+			/bin/sleep 3
 		fi
 
 		if [ $crypttries -gt 0 ] && [ $count -gt $crypttries ]; then
@@ -312,7 +312,12 @@ setup_mapping()
 
 		if [ -z "$FSTYPE" ] || [ "$FSTYPE" = "unknown" ]; then
 			message "cryptsetup: unknown fstype, bad password or options?"
-			$cryptremove
+			rm_count=0
+			while [ -e "/dev/mapper/${crypttarget}" ] && [ "$rm_count" -lt 3 ]; do
+				rm_count=$(( $rm_count + 1 ))
+				$cryptremove 2>/dev/null
+				/bin/sleep 0.5
+			done
 			continue
 		fi
 
