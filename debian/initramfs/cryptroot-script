@@ -312,12 +312,8 @@ setup_mapping()
 
 		if [ -z "$FSTYPE" ] || [ "$FSTYPE" = "unknown" ]; then
 			message "cryptsetup: unknown fstype, bad password or options?"
-			rm_count=0
-			while [ -e "/dev/mapper/${crypttarget}" ] && [ "$rm_count" -lt 3 ]; do
-				rm_count=$(( $rm_count + 1 ))
-				$cryptremove 2>/dev/null
-				/bin/sleep 0.5
-			done
+			udev_settle
+			$cryptremove
 			continue
 		fi
 

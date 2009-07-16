@@ -6,13 +6,13 @@ cryptsetup (2:1.0.7~rc1-3) unstable; urgency=low
   * finally add the cryptsource delay implementation from ubuntu, as it seems
     to workaround some issues where appearence of the root device takes longer
     than expected. (closes: #488271)
-  * execute $cryptremove up to three times with a sleep of 0.5 seconds in
-    between if $cryptcreate fails at setup_mapping() in the initramfs cryptroot
-    script. it seems like a short sleep is needed in between of 'cryptsetup
-    create' and 'cryptsetup remove'. thanks to Gernot Schilling for the
-    bugreport. (closes: #529527)
+  * execute udev_settle before $cryptremove if $cryptcreate fails at
+    setup_mapping() in the initramfs cryptroot script. it seems like a short
+    delay and/or udev_settly is needed in between of 'cryptsetup create' and
+    'cryptsetup remove'. thanks to Gernot Schilling for the bugreport.
+    (closes: #529527)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 15 Jul 2009 13:38:36 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 16 Jul 2009 02:25:33 +0200
 
 cryptsetup (2:1.0.7~rc1-2) unstable; urgency=low
 
