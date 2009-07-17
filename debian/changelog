@@ -11,8 +11,10 @@ cryptsetup (2:1.0.7~rc1-3) unstable; urgency=low
     delay and/or udev_settly is needed in between of 'cryptsetup create' and
     'cryptsetup remove'. thanks to Gernot Schilling for the bugreport.
     (closes: #529527)
+  * talk about /dev/urandom instead of /dev/random in crypttab manpage.
+    (closes: #537344)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 16 Jul 2009 02:25:33 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 17 Jul 2009 12:59:39 +0200
 
 cryptsetup (2:1.0.7~rc1-2) unstable; urgency=low
 
