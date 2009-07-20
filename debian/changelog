@@ -13,8 +13,16 @@ cryptsetup (2:1.0.7~rc1-3) unstable; urgency=low
     (closes: #529527)
   * talk about /dev/urandom instead of /dev/random in crypttab manpage.
     (closes: #537344)
+  * check for $IGNORE before check_key() in handle_crypttab_line_start()
+  * rewrite error code handling:
+    - return 1 for errors in handle_crypttab_line_{start|stop}
+    - handle_crypttab_line_... || true needed due to set -e in initscript
+    - don't set -e in cryptdisks_{start|stop} anymore, instead check for
+      and exit with error code. (closes: #524173)
+  * add a counter to the while loop in cryptdisks_{start|stop}, in order to
+    detect if $dst was not found in crypttab. (closes: #524485)
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 17 Jul 2009 12:59:39 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 20 Jul 2009 02:13:42 +0200
 
 cryptsetup (2:1.0.7~rc1-2) unstable; urgency=low
 

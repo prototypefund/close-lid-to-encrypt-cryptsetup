@@ -8,7 +8,7 @@
 # License: GNU General Public License, v2 or any later
 # (http://www.gnu.org/copyleft/gpl.html)
 
-set -e
+# don't set -e, check exit status instead
 
 if [ $# -lt 1 ]; then
 	echo "usage: $0 <name>" >&2
@@ -27,17 +27,19 @@ LOUD="yes"
 
 log_action_begin_msg "Stopping crypto disk"
 
-found="no"
+count=0
+tablen="$(egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | /usr/bin/wc -l)"
 egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
+	count=$(( $count + 1 ))
 	if [ "$1" = "$dst" ]; then
-		found="yes"
 		handle_crypttab_line_stop "$dst" "$src" "$key" "$opts" <&3
-		exit 0
+		exit $?
+	fi
+	if [ $count -ge $tablen ]; then
+		device_msg "$1" "failed, not found in crypttab"
+		exit 1
 	fi
 done 3<&1
+ret=$?
 
-if [ "$found" = "no" ]; then
-	device_msg "$1" "failed, not found in crypttab"
-fi
-
-log_action_end_msg 0
+log_action_end_msg $ret
