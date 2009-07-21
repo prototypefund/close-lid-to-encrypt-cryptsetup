@@ -34,9 +34,9 @@ egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
 	if [ "$1" = "$dst" ]; then
 		ret=0
 		handle_crypttab_line_stop "$dst" "$src" "$key" "$opts" <&3 || ret=$?
-		log_action_end_msg $ret
 	elif [ $count -ge $tablen ]; then
+		ret=1
 		device_msg "$1" "failed, not found in crypttab"
-		log_action_end_msg 1
 	fi
+	log_action_end_msg $ret
 done 3<&1
