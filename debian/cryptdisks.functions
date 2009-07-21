@@ -501,7 +501,7 @@ handle_crypttab_line_start () {
 	# Ignore noauto devices
 	if [ "$IGNORE" = "yes" ] && [ -z "$FORCE_START" ]; then
 		device_msg "$dst" "ignored"
-		continue
+		return 0
 	fi
 
 	if ! check_key; then
@@ -523,7 +523,7 @@ handle_crypttab_line_start () {
 	# Make sure that target device doesn't exist
 	if [ -b "/dev/mapper/$dst" ]; then
 		device_msg "$dst" "running"
-		continue
+		return 0
 	fi
 
 	# All checks passed, do the real setup
@@ -557,7 +557,7 @@ handle_crypttab_line_stop () {
 
 	if [ ! -b "/dev/mapper/$dst" ]; then
 		device_msg "$dst" "stopped"
-		continue
+		return 0
 	fi
 
 	opencount=$(dmsetup info -c --noheadings -o open "$dst" 2> /dev/null || true)
@@ -566,7 +566,7 @@ handle_crypttab_line_stop () {
 		return 1
 	elif [ "$opencount" != "0" ]; then
 		device_msg "$dst" "busy"
-		continue
+		return 0
 	fi
 
 	#major=$(dmsetup info -c --noheadings -o major "$dst" 2> /dev/null || true)
