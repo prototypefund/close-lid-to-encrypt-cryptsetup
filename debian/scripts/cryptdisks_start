@@ -7,7 +7,7 @@
 # License: GNU General Public License, v2 or any later
 # (http://www.gnu.org/copyleft/gpl.html)
 
-# don't set -e, check exit status instead
+set -e
 
 if [ $# -lt 1 ]; then
 	echo "usage: $0 <name>" >&2
@@ -32,15 +32,13 @@ tablen="$(egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | /usr/bin/wc -l)"
 egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
 	count=$(( $count + 1 ))
 	if [ "$1" = "$dst" ]; then
-		handle_crypttab_line_start "$dst" "$src" "$key" "$opts" <&3
-		exit $?
-	fi
-	if [ $count -ge $tablen ]; then
+		ret=0
+		handle_crypttab_line_start "$dst" "$src" "$key" "$opts" <&3 || ret=$?
+		umount_fs
+		log_action_end_msg $ret
+	elif [ $count -ge $tablen ]; then
 		device_msg "$1" "failed, not found in crypttab"
-		exit 1
+		umount_fs
+		log_action_end_msg 1
 	fi
 done 3<&1
-ret=$?
-
-umount_fs
-log_action_end_msg $ret

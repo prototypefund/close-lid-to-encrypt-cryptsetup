@@ -17,12 +17,12 @@ cryptsetup (2:1.0.7~rc1-3) unstable; urgency=low
   * rewrite error code handling:
     - return 1 for errors in handle_crypttab_line_{start|stop}
     - handle_crypttab_line_... || true needed due to set -e in initscript
-    - don't set -e in cryptdisks_{start|stop} anymore, instead check for
-      and exit with error code. (closes: #524173)
+    - check for exit code of handle_crypttab_line_{start<stop} in
+      cryptdisks_{start|stop}, exit with proper status code (closes: #524173)
   * add a counter to the while loop in cryptdisks_{start|stop}, in order to
     detect if $dst was not found in crypttab. (closes: #524485)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 20 Jul 2009 02:13:42 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 21 Jul 2009 03:34:24 +0200
 
 cryptsetup (2:1.0.7~rc1-2) unstable; urgency=low
 
