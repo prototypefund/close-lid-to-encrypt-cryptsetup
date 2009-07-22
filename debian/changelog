@@ -1,6 +1,8 @@
 cryptsetup (2:1.0.7-1) unstable; urgency=low
 
-  * new upstream release, similar to 1.0.7~rc1.
+  * new upstream release, highlights include (diff from ~rc1):
+    - allow removal of last slot in luksRemoveKey and luksKillSlot
+    - eject unsupported --offset and --skip options for luksFormat
   * make passdev accept a timeout option, thanks to Evgeni Golov for the patch.
     (closes: #502598)
   * finally add the cryptsource delay implementation from ubuntu, as it seems
@@ -22,8 +24,9 @@ cryptsetup (2:1.0.7-1) unstable; urgency=low
   * add a counter to the while loop in cryptdisks_{start|stop}, in order to
     detect if $dst was not found in crypttab. (closes: #524485)
   * check for keyscript in the new location in initramfs/cryptopensc-hook.
+  * 
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 22 Jul 2009 14:01:00 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 22 Jul 2009 14:11:06 +0200
 
 cryptsetup (2:1.0.7~rc1-2) unstable; urgency=low
 
