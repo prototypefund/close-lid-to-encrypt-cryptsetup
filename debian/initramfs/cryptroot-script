@@ -237,10 +237,6 @@ setup_mapping()
  	fi
 	udev_settle
 
-		message "cryptsetup: source device $cryptsource not found"
-		return 1
-	fi
-
 	# We've given up, but we'll let the user fix matters if they can
 	while [ ! -e "${cryptsource}" ]; do
 		echo "	Check cryptopts=source= bootarg cat /proc/cmdline"

@@ -4,7 +4,7 @@ cryptsetup (2:1.0.7-1) unstable; urgency=low
   * make passdev accept a timeout option, thanks to Evgeni Golov for the patch.
     (closes: #502598)
   * finally add the cryptsource delay implementation from ubuntu, as it seems
-    to workaround some issues where appearence of the root device takes longer
+    to workaround some issues where appearance of the root device takes longer
     than expected. (closes: #488271)
   * execute udev_settle before $cryptremove if $cryptcreate fails at
     setup_mapping() in the initramfs cryptroot script. it seems like a short
@@ -23,7 +23,7 @@ cryptsetup (2:1.0.7-1) unstable; urgency=low
     detect if $dst was not found in crypttab. (closes: #524485)
   * check for keyscript in the new location in initramfs/cryptopensc-hook.
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 22 Jul 2009 13:44:46 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 22 Jul 2009 14:01:00 +0200
 
 cryptsetup (2:1.0.7~rc1-2) unstable; urgency=low
 
