@@ -21,7 +21,7 @@ esac
 # Hooks for loading smartcard reading software into the initramfs
 
 # Check whether cryptroot hook has installed decrypt_opensc script 
-if [ ! -x ${DESTDIR}/keyscripts/decrypt_opensc ] ; then
+if [ ! -x ${DESTDIR}/lib/cryptsetup/scripts/decrypt_opensc ] ; then
     exit 0
 fi
 

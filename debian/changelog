@@ -21,8 +21,9 @@ cryptsetup (2:1.0.7~rc1-3) unstable; urgency=low
       cryptdisks_{start|stop}, exit with proper status code (closes: #524173)
   * add a counter to the while loop in cryptdisks_{start|stop}, in order to
     detect if $dst was not found in crypttab. (closes: #524485)
+  * check for keyscript in the new location in initramfs/cryptopensc-hook.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 21 Jul 2009 03:34:24 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 22 Jul 2009 11:59:46 +0200
 
 cryptsetup (2:1.0.7~rc1-2) unstable; urgency=low
 
