@@ -26,10 +26,11 @@ cryptsetup (2:1.0.7-1) unstable; urgency=low
   * check for keyscript in the new location in initramfs/cryptopensc-hook.
   * add README.opensc to docs, thanks to Benjamin Kiessling for writing it.
     (closes: #514538)
-  * [add patches/03_rework_read.patch:
-    		rework write_blockwise() and read_blockwise()]
+  * add patches/03_rework_read.patch [rework write_blockwise() and
+    read_blockwise()], but don't apply it yet as it's still experimental.
+    applying it will increase the speed of luksOpen.
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 27 Jul 2009 00:38:12 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 27 Jul 2009 00:40:07 +0200
 
 cryptsetup (2:1.0.7~rc1-2) unstable; urgency=low
 
