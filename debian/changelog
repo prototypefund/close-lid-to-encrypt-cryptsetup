@@ -24,9 +24,12 @@ cryptsetup (2:1.0.7-1) unstable; urgency=low
   * add a counter to the while loop in cryptdisks_{start|stop}, in order to
     detect if $dst was not found in crypttab. (closes: #524485)
   * check for keyscript in the new location in initramfs/cryptopensc-hook.
-  * 
+  * add README.opensc to docs, thanks to Benjamin Kiessling for writing it.
+    (closes: #514538)
+  * [add patches/03_rework_read.patch:
+    		rework write_blockwise() and read_blockwise()]
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 22 Jul 2009 14:11:06 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 27 Jul 2009 00:38:12 +0200
 
 cryptsetup (2:1.0.7~rc1-2) unstable; urgency=low
 

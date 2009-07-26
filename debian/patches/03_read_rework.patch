@@ -10,7 +10,7 @@
 ## read()/write() plus an optional fixup in case the request is not modulo block
 ## size.
 ##
-## [FIX mbroz: added compatibility with old systems, autoconf]
+## [FIX mbroz: added compatibility with old systems, autoconf, fixed bugs]
 
 --- a/configure.in
 +++ b/configure.in
@@ -22,11 +22,12 @@
  
  AM_CONFIG_HEADER([config.h:config.h.in])
  AM_INIT_AUTOMAKE(dist-bzip2)
-@@ -117,6 +118,7 @@ MODULE_HELPER(libdevmapper,
+@@ -117,6 +118,8 @@ MODULE_HELPER(libdevmapper,
  AM_CONDITIONAL(BUILD_LIBDEVMAPPER, test x$build_static = xyes)
  AM_CONDITIONAL(SHARED_LIBDEVMAPPER, test x$build_shared = xyes)
  
-+AC_CHECK_FUNC([posix_memalign], AC_DEFINE(HAVE_POSIX_MEMALIGN, 1, [Define to 1 if posix_memalign is available]))
++#AC_CHECK_FUNC([posix_memalign], [AC_DEFINE(HAVE_POSIX_MEMALIGN, 1, [Define to 1 if posix_memalign is available])])
++AC_CHECK_FUNCS([posix_memalign])
  dnl ==========================================================================
  
  AM_CONDITIONAL(STATIC_CRYPTSETUP, test x$enable_static = xyes)
@@ -136,7 +137,7 @@
 -		lseek(fd,-bsize,SEEK_CUR);
 -		memcpy(padbuf,buf,hangover);
 +		r = lseek(fd, -bsize, SEEK_CUR);
-+		if (r)
++		if (r < 0)
 +			goto out;
 +		memcpy(hangover_buf, buf + solid, hangover);
  
@@ -214,10 +215,45 @@
 -	free(padbuf_base); 
 -	return (buf-(char *)orig_buf)?(buf-(char *)orig_buf):r;
 +	if (buf != orig_buf) {
-+		memcpy(orig_buf, buf, solid);
++		memcpy(orig_buf, buf, count);
 +		free(buf_base);
 +	}
 +	return ret;
  }
  
  /* 
+--- a/luks/keymanage.c
++++ b/luks/keymanage.c
+@@ -142,6 +142,7 @@ int LUKS_write_phdr(const char *device, struct luks_phdr *hdr)
+ 	}
+ 
+ 	memcpy(&convHdr, hdr, sizeof(struct luks_phdr));
++	memset(&convHdr._padding, 0, sizeof(convHdr._padding));
+ 
+ 	/* Convert every uint16/32_t item to network byte order */
+ 	convHdr.version            = htons(hdr->version);
+--- a/luks/luks.h
++++ b/luks/luks.h
+@@ -63,15 +63,18 @@ struct luks_phdr {
+ 
+ 	struct {
+ 		uint32_t active;
+-	
++
+ 		/* parameters used for password processing */
+ 		uint32_t passwordIterations;
+ 		char     passwordSalt[LUKS_SALTSIZE];
+-		
+-		/* parameters used for AF store/load */		
++
++		/* parameters used for AF store/load */
+ 		uint32_t keyMaterialOffset;
+-		uint32_t stripes;		
++		uint32_t stripes;
+ 	} keyblock[LUKS_NUMKEYS];
++
++	/* Align it to 512 sector size */
++	char		_padding[432];
+ };
+ 
+ struct luks_masterkey {
