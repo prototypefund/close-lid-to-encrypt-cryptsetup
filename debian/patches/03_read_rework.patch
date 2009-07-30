@@ -22,28 +22,28 @@
  
  AM_CONFIG_HEADER([config.h:config.h.in])
  AM_INIT_AUTOMAKE(dist-bzip2)
-@@ -117,6 +118,8 @@ MODULE_HELPER(libdevmapper,
+@@ -117,6 +118,7 @@
  AM_CONDITIONAL(BUILD_LIBDEVMAPPER, test x$build_static = xyes)
  AM_CONDITIONAL(SHARED_LIBDEVMAPPER, test x$build_shared = xyes)
  
-+#AC_CHECK_FUNC([posix_memalign], [AC_DEFINE(HAVE_POSIX_MEMALIGN, 1, [Define to 1 if posix_memalign is available])])
 +AC_CHECK_FUNCS([posix_memalign])
  dnl ==========================================================================
  
  AM_CONDITIONAL(STATIC_CRYPTSETUP, test x$enable_static = xyes)
---- a/lib/internal.h
-+++ b/lib/internal.h
-@@ -11,6 +11,7 @@
- 
- #define SECTOR_SHIFT		9
- #define SECTOR_SIZE		(1 << SECTOR_SHIFT)
-+#define DEFAULT_ALIGNMENT	4096
- 
- /* private struct crypt_options flags */
- 
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,3 +1,8 @@
++2009-07-28  Milan Broz  <mbroz@redhat.com>
++	* Pad luks header to 512 sector size.
++	* Rework read/write blockwise to not split operation to many pieces.
++	* Use posix_memalign if available.
++
+ 2009-07-22  Milan Broz  <mbroz@redhat.com>
+ 	* Fix segfault if provided slot in luksKillslot is invalid.
+ 	* Remove unneeded timeout when remove of temporary device succeeded.
 --- a/lib/utils.c
 +++ b/lib/utils.c
-@@ -116,10 +116,24 @@ char *safe_strdup(const char *s)
+@@ -116,10 +116,24 @@
  	return strcpy(s2, s);
  }
  
@@ -51,7 +51,8 @@
 +static int get_alignment(int fd)
 +{
 +	int alignment = DEFAULT_ALIGNMENT;
-+
+ 
+-static void *aligned_malloc(char **base, int size, int alignment) 
 +#ifdef _PC_REC_XFER_ALIGN
 +	alignment = fpathconf(fd, _PC_REC_XFER_ALIGN);
 +	if (alignment < 0)
@@ -59,8 +60,7 @@
 +#endif
 +	return alignment;
 +}
- 
--static void *aligned_malloc(char **base, int size, int alignment) 
++
 +static void *aligned_malloc(void **base, int size, int alignment)
  {
 +#ifdef HAVE_POSIX_MEMALIGN
@@ -70,7 +70,7 @@
  	char *ptr;
  
  	ptr  = malloc(size + alignment);
-@@ -130,8 +144,8 @@ static void *aligned_malloc(char **base, int size, int alignment)
+@@ -130,8 +144,8 @@
  		ptr += alignment - ((long)(ptr) & (alignment - 1));
  	}
  	return ptr;
@@ -80,7 +80,7 @@
  static int sector_size(int fd) 
  {
  	int bsize;
-@@ -152,74 +166,100 @@ int sector_size_for_device(const char *device)
+@@ -152,74 +166,100 @@
  	return r;
  }
  
@@ -102,7 +102,9 @@
  	hangover = count % bsize;
  	solid = count - hangover;
 +	alignment = get_alignment(fd);
-+
+ 
+-	padbuf = aligned_malloc(&padbuf_base, bsize, bsize);
+-	if(padbuf == NULL) return -ENOMEM;
 +	if ((long)orig_buf & (alignment - 1)) {
 +		buf = aligned_malloc(&buf_base, count, alignment);
 +		if (!buf)
@@ -111,26 +113,24 @@
 +	} else
 +		buf = (void *)orig_buf;
  
--	padbuf = aligned_malloc(&padbuf_base, bsize, bsize);
--	if(padbuf == NULL) return -ENOMEM;
-+	r = write(fd, buf, solid);
-+	if (r < 0 || r != solid)
-+		goto out;
- 
 -	while(solid) {
 -		memcpy(padbuf, buf, bsize);
 -		r = write(fd, padbuf, bsize);
 -		if(r < 0 || r != bsize) goto out;
-+	if (hangover) {
-+		hangover_buf = aligned_malloc(&hangover_buf_base, bsize, alignment);
-+		if (!hangover_buf)
-+			goto out;
++	r = write(fd, buf, solid);
++	if (r < 0 || r != solid)
++		goto out;
  
 -		solid -= bsize;
 -		buf += bsize;
 -	}
 -	if(hangover) {
 -		r = read(fd,padbuf,bsize);
++	if (hangover) {
++		hangover_buf = aligned_malloc(&hangover_buf_base, bsize, alignment);
++		if (!hangover_buf)
++			goto out;
++
 +		r = read(fd, hangover_buf, bsize);
  		if(r < 0 || r != bsize) goto out;
  
@@ -222,9 +222,19 @@
  }
  
  /* 
+--- a/lib/internal.h
++++ b/lib/internal.h
+@@ -11,6 +11,7 @@
+ 
+ #define SECTOR_SHIFT		9
+ #define SECTOR_SIZE		(1 << SECTOR_SHIFT)
++#define DEFAULT_ALIGNMENT	4096
+ 
+ /* private struct crypt_options flags */
+ 
 --- a/luks/keymanage.c
 +++ b/luks/keymanage.c
-@@ -142,6 +142,7 @@ int LUKS_write_phdr(const char *device, struct luks_phdr *hdr)
+@@ -142,6 +142,7 @@
  	}
  
  	memcpy(&convHdr, hdr, sizeof(struct luks_phdr));
@@ -234,7 +244,7 @@
  	convHdr.version            = htons(hdr->version);
 --- a/luks/luks.h
 +++ b/luks/luks.h
-@@ -63,15 +63,18 @@ struct luks_phdr {
+@@ -63,15 +63,18 @@
  
  	struct {
  		uint32_t active;
