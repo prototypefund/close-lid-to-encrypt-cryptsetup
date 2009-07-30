@@ -30,7 +30,7 @@ cryptsetup (2:1.0.7-1) unstable; urgency=low
     read_blockwise()], but don't apply it yet as it's still experimental.
     applying it will increase the speed of luksOpen.
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 27 Jul 2009 00:40:07 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 30 Jul 2009 17:41:16 +0200
 
 cryptsetup (2:1.0.7~rc1-2) unstable; urgency=low
 
