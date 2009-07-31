@@ -1,16 +1,18 @@
 ## 02_manpage.patch
-## by Martin Pitt <martin.pitt@ubuntu.com> and Jonas Meurer <mejo@debian.org>
+## by Jonas Meurer <mejo@debian.org>
 ##
-## several documentation and typo fixes.
+## improve the cryptsetup manpage.
 
 --- a/man/cryptsetup.8
 +++ b/man/cryptsetup.8
-@@ -160,6 +160,8 @@
+@@ -160,6 +160,10 @@
  Therefore, no options can be given to luksOpen. 
  For any password creation action (luksAddKey, or luksFormat), the user may specify how much the time the password processing should consume.
  Increasing the time will lead to a more secure password, but also will take luksOpen longer to complete. The default setting of one second is sufficient for good security.
-+.SH INCOHERENT BEHAVIOUR WITH INVALID PASSWORDS/KEYS
++.SH INCOHERENT BEHAVIOUR FOR INVALID PASSWORDS/KEYS
 +LUKS checks for a valid password or key when an encrypted partition is unlocked. Thus the luksOpen action fails with an invalid passoword or key, contrary to the plain dm-crypt create action.
++.SH NOTES ON SUPPORTED CIPHERS, MODES, HASHS AND KEY SIZES
++The supported combinations of ciphers, modes, hashs and key sizes depends on the available kernel modules. See /proc/crypto for a list of available options. You might need to load additional kernel crypto modules in order to support more combinations.
  .SH NOTES ON PASSWORDS
  Mathematics can't be bribed. Make sure you keep your passwords safe. There are a few nice tricks for constructing a fallback, when suddenly out of (or after being) blue, your brain refuses to cooperate. These fallbacks are possible with LUKS, as it's only possible with LUKS to have multiple passwords.
  .SH AUTHORS
