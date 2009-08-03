@@ -4,8 +4,10 @@ cryptsetup (2:1.0.7-2) unstable; urgency=low
   * add a paragraph to the cryptsetup manpage that mentions /proc/crypto as
     source for available crypto ciphers, modes, hashs, keysizes, etc.
     (closes: #518266)
+  * fix luksformat to check for mkfs.$fs both in /sbin and /usr/sbin. thanks
+    to Jon Dowland. (closes: #539734)
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 31 Jul 2009 02:15:57 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 03 Aug 2009 13:05:21 +0200
 
 cryptsetup (2:1.0.7-1) unstable; urgency=low
 
