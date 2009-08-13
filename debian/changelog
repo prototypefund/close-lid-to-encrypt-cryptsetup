@@ -6,8 +6,10 @@ cryptsetup (2:1.0.7-2) unstable; urgency=low
     (closes: #518266)
   * fix luksformat to check for mkfs.$fs both in /sbin and /usr/sbin. thanks
     to Jon Dowland. (closes: #539734)
+  * mention era eriksson as author of the typo fixes for manpage (submitted as
+    bug #476624) in changelog of cryptsetup 2:1.0.6-3. (closes: #541344)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 03 Aug 2009 13:05:21 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 13 Aug 2009 20:23:46 +0200
 
 cryptsetup (2:1.0.7-1) unstable; urgency=low
 
@@ -251,9 +253,11 @@ cryptsetup (2:1.0.6-3) unstable; urgency=low
   [ Jonas Meurer ]
   * Fix cryptdisks.functions to actually recognize the noauto option. Thanks
     to Christian Pernegger <pernegger@gmail.com> (closes: #483882)
-  * Update patches/02_manpage.patch to fix two more typos, thanks to Bruno
-    Barrera Yever <bbyever@gmail.com> (closes: #476624) and to remove a
-    duplicate sentence.
+  * Update patches/02_manpage.patch:
+    - fixes two more typos, thanks to and Era Eriksson <era@iki.fi> for the
+      patch, and Bruno Barrera Yever <bbyever@gmail.com> for forwarding it
+      to the bts (closes: #476624)
+    - removes a duplicate sentence
   * Rephrase "Enter password for $crypttarget" to "Enter password to unlock
     the disk $cryptsource ($crypttarget)" in initramfs/cryptroot.script.
   * Bump Standards-Version to 3.8.0:
