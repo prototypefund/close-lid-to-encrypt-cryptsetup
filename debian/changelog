@@ -8,8 +8,9 @@ cryptsetup (2:1.0.7-2) unstable; urgency=low
     to Jon Dowland. (closes: #539734)
   * mention era eriksson as author of the typo fixes for manpage (submitted as
     bug #476624) in changelog of cryptsetup 2:1.0.6-3. (closes: #541344)
+  * bump standards-version to 3.8.3. no changes needed.
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 13 Aug 2009 20:23:46 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 16 Aug 2009 20:30:43 +0200
 
 cryptsetup (2:1.0.7-1) unstable; urgency=low
 
