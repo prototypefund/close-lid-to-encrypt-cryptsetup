@@ -1,2 +1,3 @@
 02_manpage.patch
 #03_read_rework.patch
+04_no_stderr_success.patch
