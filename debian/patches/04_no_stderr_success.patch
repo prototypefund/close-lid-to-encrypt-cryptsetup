@@ -27,7 +27,15 @@
  
 --- a/src/cryptsetup.c
 +++ b/src/cryptsetup.c
-@@ -126,7 +126,8 @@
+@@ -32,6 +32,7 @@
+ static int opt_tries = 3;
+ static int opt_align_payload = 0;
+ static int opt_non_exclusive = 0;
++static int opt_no_stderr_success = 0;
+ 
+ static const char **action_argv;
+ static int action_argc;
+@@ -126,7 +127,8 @@
  	char error[256];
  
  	if(!errcode) {
@@ -37,7 +45,7 @@
                  return;
  	}
  
-@@ -461,19 +462,19 @@
+@@ -461,19 +463,19 @@
  		{ "verify-passphrase", 'y',  POPT_ARG_NONE,                               &opt_verify_passphrase, 0, N_("Verifies the passphrase by asking for it twice"),                  NULL },
  		{ "key-file",          'd',  POPT_ARG_STRING,                             &opt_key_file,          0, N_("Read the key from a file (can be /dev/random)"),                   NULL },
  		{ "key-size",          's',  POPT_ARG_INT    | POPT_ARGFLAG_SHOW_DEFAULT, &opt_key_size,          0, N_("The size of the encryption key"),                                  N_("BITS") },
