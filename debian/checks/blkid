@@ -1,0 +1,34 @@
+#!/bin/sh
+# this script depends on /sbin/blkid from the util-linux package
+
+# usage: blkid <device> <fs_type>
+# <device> may be any device that should be checked.
+# if no <fs_type> is given, the check fails if no valid filesystem is found.
+# if <fs_type> is given, the check fails when no filesystem type <fs_type>
+# is found on the device. if <fs_type> is 'none', the check fails if any
+# know filesystem is found.
+
+# note that the 'minix' fs is filtered out if checking for any valid fs,
+# as it has been reported that this fs my be detected erroneously by blkid.
+
+if test ! -x "/sbin/blkid"; then
+  echo " - WARNING: blkid from util-linux is not available, impossible to run checks."
+  exit 0
+fi
+
+dev=$1
+fs=$2
+
+blkid="$(/sbin/blkid -p $dev | sed -e 's/^.*TYPE="\(.*\)" USAGE.*$/\1/g')"
+
+# blkid output is empty if $dev has an unknown filesystem
+if [ -z "$blkid" ] && [ -z "$fs" ]; then
+  echo " - The device $dev does not contain a known filesystem."
+  exit 1
+elif [ -n "$blkid" ] && [ "$blkid" != "minix" ] && [ "$fs" = "none" ]; then
+  echo " - The device $dev contains a valid filesystem type $blkid."
+  exit 1
+elif [ -n "$fs" ] && [ "$blkid" != "$fs" ]; then
+  echo " - The device $dev does not contain a filesystem type $fs."
+  exit 1
+fi

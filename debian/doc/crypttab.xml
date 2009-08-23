@@ -186,7 +186,7 @@
       first argument, and the value of the checkargs option as the second
       argument. Cryptdisks searches for the given program in
       <filename class="directory">/lib/cryptsetup/checks/</filename>.
-      Default is <filename>vol_id</filename>.
+      Default is <filename>blkid</filename>.
      </simpara>
     </listitem>
    </varlistentry>
@@ -259,26 +259,36 @@
   <title>CHECKSCRIPTS</title>
   <variablelist>
    <varlistentry>
-    <term><emphasis>vol_id</emphasis></term>
+    <term><emphasis>blkid</emphasis></term>
     <listitem>
      <simpara>Checks for any known filesystem. Supports a filesystem type as
-      argument via&lt;checkargs&gt;:no checkargs - succeeds if any valid
-      filesystem is found on the device."none" - succeeds if no valid
-      filesystem is found on the device."ext3" [or any other filesystem type
-      like xfs, swap, crypto_LUKS, whatever] - succeedsif an ext3 [or another
-      given] filesystem type is found on the device.
+      argument via &lt;checkargs&gt;:
+      <listitem>
+	no checkargs - succeeds if any valid filesystem is found on the device.
+      </listitem>
+      <listitem>
+	"none" - succeeds if no valid filesystem is found on the device.
+      </listitem>
+      <listitem>
+	"ext3" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
+	succeeds if ext3 filesystem is found on the device.
+      </listitem>
      </simpara>
     </listitem>
    </varlistentry>
 
    <varlistentry>
-    <term><emphasis>un_vol_id</emphasis></term>
+    <term><emphasis>un_blkid</emphasis></term>
     <listitem>
      <simpara>Checks for no known filesystem. Supports a filesystem type as
-      argument via&lt;checkargs&gt;:no checkargs - succeeds if no valid
-      filesystem is found on the device."ext3" [or any other filesystem type
-      like xfs, swap, crypto_LUKS, whatever] - succeedsif no ext3 [or another
-      given] filesystem type is found on the device.
+      argument via &lt;checkargs&gt;:
+      <listitem>
+	no checkargs - succeeds if no valid filesystem is found on the device.
+      </listitem>
+      <listitem>
+	"ext3" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
+	succeeds if no ext3 filesystem is found on the device.
+      </listitem>
      </simpara>
     </listitem>
    </varlistentry>

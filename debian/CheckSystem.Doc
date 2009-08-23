@@ -30,7 +30,7 @@ swap checks
      fail in case. [default]
    - does the target device contain a swap filesystem [not default, corner
      cases exist. i.e. when a random key is used].
-     use options "check=vol_id, checkargs=swap" for enabling this.
+     use options "check=blkid, checkargs=swap" for enabling this.
 
 note to swap: You may destroy data whenever setting the 'swap' flag. The
               source partition, logical volume, whatever may contain data which

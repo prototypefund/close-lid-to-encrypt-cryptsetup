@@ -11,8 +11,11 @@ cryptsetup (2:1.0.7-2) unstable; urgency=low
   * bump standards-version to 3.8.3. no changes needed.
   * add 04_no_stderr_success.patch, which adds an option to suppress success
     messages to stderr. (closes: #541805)
+  * add checkscripts blkid and un_blkid for the reason that vol_id will be
+    removed from udev soon. advertise the new scripts at all places that
+    mentioned vol_id or un_vol_id before.
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 17 Aug 2009 21:23:03 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 23 Aug 2009 23:22:57 +0200
 
 cryptsetup (2:1.0.7-1) unstable; urgency=low
 

@@ -11,7 +11,7 @@
 # as it has been reported that this fs my be detected erroneously by vol_id.
 
 if test ! -x "/lib/udev/vol_id"; then
-  echo " - WARNING: vol_id from udev is not available, impossible to run checks."
+  echo " - WARNING: vol_id is not available, impossible to run checks."
   exit 0
 fi
 

@@ -131,8 +131,8 @@ case, so that it runs asynchronously.
 
  The 'check' option in crypttab allows to configure checks to be run against
 the target device after cryptsetup has been invoked.
-The default check 'vol_id' can check for any known filesystem type, as it uses
-vol_id from udev. you can check for a particular filesystem by giving for
+The default check 'blkid' can check for any known filesystem type, as it uses
+blkid from util-linux. you can check for a particular filesystem by giving for
 example 'checkargs=ext2' or 'checkargs=swap' as an option in /etc/crypttab.
 
  The 'precheck' option is for configuring checks to be run against the source

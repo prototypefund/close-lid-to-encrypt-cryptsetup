@@ -130,7 +130,7 @@ parse_opts () {
 			;;
 		swap)
 			MAKESWAP="yes"
-			SWCHECK="/lib/cryptsetup/checks/un_vol_id"
+			SWCHECK="/lib/cryptsetup/checks/un_blkid"
 			SWCHECKARGS="swap"
 			;;
 		tmp)
@@ -330,12 +330,12 @@ do_noluks () {
 	keyscriptarg=""
 
 	if [ -z "$PRECHECK" ]; then
-		PRECHECK="/lib/cryptsetup/checks/un_vol_id"
+		PRECHECK="/lib/cryptsetup/checks/un_blkid"
 	fi
 
 	if ! pre_out=$("$PRECHECK" "$src" 2> /dev/null) && \
 	   [ "$MAKESWAP" != "yes" ] && \
-	   ! /lib/cryptsetup/checks/vol_id "$src" swap >/dev/null; then
+	   ! /lib/cryptsetup/checks/blkid "$src" swap >/dev/null; then
 		log_warning_msg "$dst: the precheck for '$src' failed: $pre_out"
 		return 1
 	fi
@@ -410,8 +410,8 @@ do_swap () {
 		return 0
 	fi
 
-	if swap_out=$(/lib/cryptsetup/checks/un_vol_id "/dev/mapper/$dst" 2> /dev/null) || \
-	   /lib/cryptsetup/checks/vol_id "/dev/mapper/$dst" swap > /dev/null 2>&1; then
+	if swap_out=$(/lib/cryptsetup/checks/un_blkid "/dev/mapper/$dst" 2> /dev/null) || \
+	   /lib/cryptsetup/checks/blkid "/dev/mapper/$dst" swap > /dev/null 2>&1; then
 		mkswap "/dev/mapper/$dst" > /dev/null 2>&1
 	else
 		log_warning_msg "$dst: the check for '/dev/mapper/$dst' failed. /dev/mapper/$dst contains data: $swap_out"
