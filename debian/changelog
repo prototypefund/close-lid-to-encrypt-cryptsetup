@@ -1,6 +1,5 @@
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
-  * NOT RELEASED YET
   * add a paragraph to the cryptsetup manpage that mentions /proc/crypto as
     source for available crypto ciphers, modes, hashs, keysizes, etc.
     (closes: #518266)
@@ -15,7 +14,7 @@ cryptsetup (2:1.0.7-2) unstable; urgency=low
     removed from udev soon. advertise the new scripts at all places that
     mentioned vol_id or un_vol_id before.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 23 Aug 2009 23:22:57 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 24 Aug 2009 10:14:09 +0200
 
 cryptsetup (2:1.0.7-1) unstable; urgency=low
 

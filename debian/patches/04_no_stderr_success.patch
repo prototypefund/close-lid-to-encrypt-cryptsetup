@@ -6,7 +6,7 @@
 
 --- a/man/cryptsetup.8
 +++ b/man/cryptsetup.8
-@@ -133,7 +133,7 @@
+@@ -124,7 +124,7 @@
  The number of milliseconds to spend with PBKDF2 password processing. This option is only relevant to the LUKS operations as \fIluksFormat\fR or \fIluksAddKey\fR.
  .TP
  .B "\-\-batch-mode, \-q"
@@ -15,7 +15,7 @@
  .TP
  .B "\-\-timeout, \-t"
  The number of seconds to wait before timeout. This option is relevant every time a password is asked, like \fIcreate\fR, \fIluksOpen\fR, \fIluksFormat\fR or \fIluksAddKey\fR. It has no effect if used in conjunction with \-\-key-file.
-@@ -146,6 +146,9 @@
+@@ -137,6 +137,9 @@
  useful to align the filesystem at full stripe boundaries so it can take advantage of the RAID's geometry.  See for instance the sunit and swidth options
  in the mkfs.xfs manual page. By default, the payload is aligned at an 8 sector (4096 byte) boundary.
  .TP
@@ -35,7 +35,7 @@
  
  static const char **action_argv;
  static int action_argc;
-@@ -126,7 +127,8 @@
+@@ -122,7 +123,8 @@
  	char error[256];
  
  	if(!errcode) {
@@ -45,7 +45,7 @@
                  return;
  	}
  
-@@ -461,19 +463,19 @@
+@@ -455,19 +457,19 @@
  		{ "verify-passphrase", 'y',  POPT_ARG_NONE,                               &opt_verify_passphrase, 0, N_("Verifies the passphrase by asking for it twice"),                  NULL },
  		{ "key-file",          'd',  POPT_ARG_STRING,                             &opt_key_file,          0, N_("Read the key from a file (can be /dev/random)"),                   NULL },
  		{ "key-size",          's',  POPT_ARG_INT    | POPT_ARGFLAG_SHOW_DEFAULT, &opt_key_size,          0, N_("The size of the encryption key"),                                  N_("BITS") },
