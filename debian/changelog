@@ -13,8 +13,14 @@ cryptsetup (2:1.0.7-2) unstable; urgency=low
   * add checkscripts blkid and un_blkid for the reason that vol_id will be
     removed from udev soon. advertise the new scripts at all places that
     mentioned vol_id or un_vol_id before.
+  * add /usr/share/bug/cryptsetup which adds /proc/cmdline, /etc/crypttab,
+    /etc/fstab and output of 'lsmod' to bugs against cryptsetup.
+  * add debian/README.remote, which describes how to setup a cryptroot system
+    with support for remote unlocking via ssh login into the initramfs. Thanks
+    to debian@x.ray.net for writing it down.
+  * update debian/copyright for current format from dep.debian.net/deps/dep5
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 24 Aug 2009 10:14:09 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 01 Sep 2009 01:45:15 +0200
 
 cryptsetup (2:1.0.7-1) unstable; urgency=low
 

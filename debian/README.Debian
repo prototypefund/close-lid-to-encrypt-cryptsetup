@@ -199,6 +199,9 @@ $ ssh -i remote_rsa -l root remote.system.com
  That's it. Now that the encrypted root device is unlocked, the remote system
 should continue with the boot process.
 
+ /usr/share/doc/cryptsetup/README.remote.gz is a documentation with more
+details on the setup of an initramfs with suppurt to remotely unlock the
+encrypted rootfs.
 
 8. Credits
 ----------
