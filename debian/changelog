@@ -19,8 +19,10 @@ cryptsetup (2:1.0.7-2) unstable; urgency=low
     with support for remote unlocking via ssh login into the initramfs. Thanks
     to debian@x.ray.net for writing it down.
   * update debian/copyright for current format from dep.debian.net/deps/dep5
+  * add chainiv, cryptomgr and krng to standard list of modules in initramfs
+    cryptroot hook. (closes: #541835)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 01 Sep 2009 01:45:15 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 01 Sep 2009 02:50:11 +0200
 
 cryptsetup (2:1.0.7-1) unstable; urgency=low
 

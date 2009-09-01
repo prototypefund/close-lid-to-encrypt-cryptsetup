@@ -486,7 +486,7 @@ done
 
 # With large initramfs, we always add a basic subset of modules
 if [ "$MODULES" != "dep" ]; then
-	for mod in aes sha256 cbc; do
+	for mod in aes cbc chainiv cryptomgr krng sha256; do
 		add_crypto_modules $mod
 	done
 fi
