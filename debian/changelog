@@ -9,7 +9,9 @@ cryptsetup (2:1.0.7-2) unstable; urgency=low
     bug #476624) in changelog of cryptsetup 2:1.0.6-3. (closes: #541344)
   * bump standards-version to 3.8.3. no changes needed.
   * add 04_no_stderr_success.patch, which adds an option to suppress success
-    messages to stderr. (closes: #541805)
+    messages to stderr. don't apply the patch as this already has been fixed
+    upstream in another way. next cryptsetup release will print the command
+    successfull message to stdout only if opt_verbose is set.
   * add checkscripts blkid and un_blkid for the reason that vol_id will be
     removed from udev soon. advertise the new scripts at all places that
     mentioned vol_id or un_vol_id before.
@@ -21,8 +23,11 @@ cryptsetup (2:1.0.7-2) unstable; urgency=low
   * update debian/copyright for current format from dep.debian.net/deps/dep5
   * add chainiv, cryptomgr and krng to standard list of modules in initramfs
     cryptroot hook. (closes: #541835)
+  * add a section describing LUKS header backups and related security
+    implications to README.Debian. a tool to automate this task should not be
+    distributed at all. (closes: #432150)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 01 Sep 2009 02:50:11 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 01 Sep 2009 12:38:02 +0200
 
 cryptsetup (2:1.0.7-1) unstable; urgency=low
 

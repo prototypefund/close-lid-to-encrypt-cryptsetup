@@ -17,7 +17,9 @@ Cryptsetup for Debian
 
    7. Remotely unlock encrypted rootfs
 
-   8. Credits
+   8. Backup the LUKS header
+
+   9. Credits
 
 
 1. Introduction into Cryptsetup for Debian
@@ -203,7 +205,49 @@ should continue with the boot process.
 details on the setup of an initramfs with suppurt to remotely unlock the
 encrypted rootfs.
 
-8. Credits
+
+8. Backup the LUKS header
+-------------------------
+
+ The LUKS header is located at the beginning of every LUKS encrypted device.
+It stores information such as used cipher, hash, etc. But most importantly,
+the header contains eight keyslots, which do keep an encrypted version of the
+LUKS masterkey. the data on an encrypted LUKS partition is encrypted with this
+masterkey. thus, there's no way to restore the data once the masterkey is
+lost. For that reason, one might want to backup the LUKS header in order to
+prevent accidential data loss.
+
+ On the other hand keeping a backup of the LUKS header isn't recommended for
+security reasons. The reason is, that LUKS was designed with key revocation in
+mind. Once the LUKS header is copied to a backup, revoking a (possibly
+compromised) passphrase or keyfile from the keyslot isn't enough anymore. the
+revoked passphrase/keyfile can easily be reactived by writing back the header
+backup to the device.
+
+ If you still want to store a backup of your LUKS header with these drawbacks
+in mind, at least do it the following way:
+
+ Search for the 'Payload offset' in the output of
+
+# cryptsetup luksDump <luks-device>
+
+ Prepare a ramdisk to store the backup temporarely. You should do that in order
+to prevent any hardware caching functions or filesystem jounals to copy the
+backup around to places you cannot control. If you want to store the backup
+permanently, write it to a read-only medium like CD immediately from ramdisk,
+without your burning program writing an intermediate image to some temp dir.
+
+ To actually backup the header, use the following command:
+
+# dd if=<luks-device> of=<destination-on-ramdisk> count=<payload-offset>
+
+ That's it. But once again, keep in mind all the security implications when
+doing LUKS header backups. In general it's better to backup the data from
+encrypted LUKS devices to another encrypted LUKS device. That way you can
+manage the keyslots for both original and backup device independently.
+
+
+9. Credits
 ----------
 
  People who contributed to documentation for the Debian cryptsetup package:
@@ -213,4 +257,4 @@ David Härdeman <david@hardeman.nu>
 Bastian Kleineidam <calvin@debian.org>
 Michael Gebetsroither <michael.geb@gmx.at>
 
- -- Jonas Meurer <mejo@debian.org>, Sun, 27 Jul 2008 17:02:56 +0200
+ -- Jonas Meurer <mejo@debian.org>, Tue, 01 Sep 2009 12:20:51 +0200
