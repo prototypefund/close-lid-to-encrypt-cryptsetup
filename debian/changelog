@@ -1,3 +1,10 @@
+cryptsetup (2:1.0.7-3) unstable; urgency=low
+
+  * NOT RELEASED YET
+  * remove 04_no_stderr_success.patch again.
+
+ -- Jonas Meurer <mejo@debian.org>  Thu, 17 Sep 2009 16:40:18 +0200
+
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
   * add a paragraph to the cryptsetup manpage that mentions /proc/crypto as

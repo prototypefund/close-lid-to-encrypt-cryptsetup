@@ -1,7 +1,5 @@
-## 02_manpage.patch
-## by Jonas Meurer <mejo@debian.org>
-##
-## improve the cryptsetup manpage.
+Description: improve the cryptsetup manpage
+Author: Jonas Meurer <mejo@debian.org>
 
 --- a/man/cryptsetup.8
 +++ b/man/cryptsetup.8
