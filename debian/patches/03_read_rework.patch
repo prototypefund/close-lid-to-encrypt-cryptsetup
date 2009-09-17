@@ -1,16 +1,16 @@
-## 03_read_rework.patch
-## by Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
-##
-## rework write_blockwise() and read_blockwise()
-## The buffer has to be aligned due to the O_DIRECT in open(). Currently a small
-## blocksize buffer is allocated and everything is read in multiple reads and
-## copied back to the original buffer. In my case AFEKSize gets computed to 64000
-## which results in 125 reads with 512 bytes each.
-## This patch changes this behavior to a single operation where the majority is
-## read()/write() plus an optional fixup in case the request is not modulo block
-## size.
-##
-## [FIX mbroz: added compatibility with old systems, autoconf, fixed bugs]
+Description: rework write_blockwise() and read_blockwise()
+ The buffer has to be aligned due to the O_DIRECT in open(). Currently a small
+ blocksize buffer is allocated and everything is read in multiple reads and
+ copied back to the original buffer. In my case AFEKSize gets computed to 64000
+ which results in 125 reads with 512 bytes each.
+ This patch changes this behavior to a single operation where the majority is
+ read()/write() plus an optional fixup in case the request is not modulo block
+ size.
+Origin: upstream, http://code.google.com/p/cryptsetup/source/detail?r=74
+Bug: http://code.google.com/p/cryptsetup/issues/detail?id=25
+Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=536415
+Author: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+Reviewed-by: Milan Broz <mbroz@redhat.com>
 
 --- a/configure.in
 +++ b/configure.in
