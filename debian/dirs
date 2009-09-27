@@ -1,6 +1,7 @@
 /etc/bash_completion.d
 /etc/default
 /etc/init.d
+/etc/initramfs-tools/conf.d
 /lib/cryptsetup/checks
 /lib/cryptsetup/scripts
 /sbin

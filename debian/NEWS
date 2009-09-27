@@ -5,9 +5,9 @@ cryptsetup (2:1.0.7-3) unstable; urgency=low
   tried to detect required modules instead.
   This change should fix any issues with crypto modules missing from the
   initramfs. To restore old detecting behaviour simply set CRYPTO_MODULES
-  to dep in /usr/share/initramfs-tools/conf-hooks.d/cryptsetup.
+  to dep in /etc/initramfs-tools/conf.d/cryptroot.conf.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 27 Sep 2009 13:43:15 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 27 Sep 2009 14:53:39 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
