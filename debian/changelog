@@ -15,12 +15,10 @@ cryptsetup (2:1.0.7-3) unstable; urgency=low
     all available crypto modules into the initramfs. this change should fix
     any problems with cryto modules missing from the initramfs. announce the
     change in NEWS.Debian. (closes: #547597)
-  * introduce /etc/initramfs-tools/conf.d/cryptroot.conf for configuration
-    options for the initramfs cryptroot hook.
   * add error messages to lvm detecting code in initramfs/cryptroot-script
     in order to make debugging easier. (closes: #541248)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 27 Sep 2009 14:53:59 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 27 Sep 2009 16:33:57 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
