@@ -1,3 +1,14 @@
+cryptsetup (2:1.0.7-3) unstable; urgency=low
+
+  The cryptroot initramsfs hook script has been changed to include all
+  available crypto kernel modules by default. In the past the hook script
+  tried to detect required modules instead.
+  This change should fix any issues with crypto modules missing from the
+  initramfs. To restore old detecting behaviour simply set CRYPTO_MODULES
+  to dep in /usr/share/initramfs-tools/conf-hooks.d/cryptsetup.
+
+ -- Jonas Meurer <mejo@debian.org>  Sun, 27 Sep 2009 13:43:15 +0200
+
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
   Checkscripts vol_id and un_vol_id have been replaced by blkid and un_blkid.

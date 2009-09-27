@@ -11,8 +11,14 @@ cryptsetup (2:1.0.7-3) unstable; urgency=low
     /dev/dm-* devices as well. (closes: #532579, #544487, #544773)
   * fix initscript dependencies both for cryptdisks and cryptdisks-early.
     thanks to Petter Reinholdtsen for bugreport and patch. (closes: #548356)
+  * finally change default behaviour of initscripts/cryptroot-hook to include
+    all available crypto modules into the initramfs. this change should fix
+    any problems with cryto modules missing from the initramfs. announce the
+    change in NEWS.Debian. (closes: #547597)
+  * add error messages to lvm detecting code in initramfs/cryptroot-script
+    in order to make debugging easier. (closes: #541248)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 27 Sep 2009 12:16:30 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 27 Sep 2009 14:01:18 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 

@@ -131,12 +131,17 @@ activate_vg()
 	vg="${1#/dev/mapper/}"
 
 	# Sanity checks
-	if [ ! -x /sbin/lvm ] || [ "$vg" = "$1" ]; then
+	if [ ! -x /sbin/lvm ]; then
+		message "cryptsetup: lvm is not available"
+		return 1
+ 	elif [ "$vg" = "$1" ]; then
+		message "cryptsetup: lvm device name ($vg) does not begin with /dev/mapper/"
 		return 1
 	fi
 
 	# Make sure that the device contains at least one dash
 	if [ "${vg%%-*}" = "$vg" ]; then
+		message "cryptsetup: lvm device name ($vg) does not contain a dash"
 		return 1
 	fi
 

@@ -4,3 +4,9 @@ KEYMAP=y
 
 # force busybox on initramfs
 BUSYBOX=y
+
+# CRYPTO_MODULES: [ all | dep ]
+# all - Include all available crypto modules
+# dep - Try to detect required crypto modules
+
+CRYPTO_MODULES="all"

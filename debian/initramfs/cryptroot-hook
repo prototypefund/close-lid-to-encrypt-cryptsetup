@@ -486,16 +486,24 @@ for dev in $rootdev $resumedevs; do
 		echo "cryptsetup: FAILURE: could not determine configuration for $dev" >&2
 		continue
 	fi
-
 	setup="yes"
-	for mod in $modules; do
-		add_crypto_modules $mod
-	done
+
+	if [ "$CRYPTO_MODULES" = "all" ]; then
+		archcrypto="$(find "$MODULESDIR/kernel/arch" -type d -name "crypto")"
+		copy_modules_dir "${archcrypto##*${MODULESDIR}/}"
+		copy_modules_dir "kernel/crypto"
+	elif [ "$CRYPTO_MODULES" = "dep" ]; then
+		for mod in $modules; do
+			add_crypto_modules $mod
+		done
+	else
+		echo "cryptsetup: WARNING: unsupported value $CRYPTO_MODULES for \$CRYPTO_MODULES" >&2
+	fi
 done
 
 # With large initramfs, we always add a basic subset of modules
-if [ "$MODULES" != "dep" ]; then
-	for mod in aes cbc chainiv cryptomgr krng sha256; do
+if [ "$MODULES" != "dep" ] && [ "$CRYPTO_MODULES" = "dep" ]; then
+	for mod in aes cbc chainiv cryptomgr krng sha256 xts; do
 		add_crypto_modules $mod
 	done
 fi
