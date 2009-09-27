@@ -3,8 +3,8 @@
 # Provides:          cryptdisks
 # Required-Start:    checkroot cryptdisks-early
 # Required-Stop:     umountroot cryptdisks-early
-# Should-Start:      udev devfsd raid2 mdadm lvm2 evms
-# Should-Stop:       udev devfsd raid2 mdadm lvm2 evms
+# Should-Start:      udev mdadm-raid lvm2
+# Should-Stop:       udev mdadm-raid lvm2
 # X-Start-Before:    checkfs
 # X-Interactive:     true
 # Default-Start:     S

@@ -3,8 +3,16 @@ cryptsetup (2:1.0.7-3) unstable; urgency=low
   * NOT RELEASED YET
   * remove 04_no_stderr_success.patch again.
   * update patches to comply with DEP-3 (http://dep.debian.net/deps/dep3/)
+  * fix initramfs/cryptroot-hook to support setups where /dev/mapper/ contains
+    symlinks to devices at /dev/dm-*. the lvm2/device-mapper packages had
+    defaults changed to this temporary. it has been fixed in a subsequent 
+    upload of lvm2 in the meantime, but still it's not a bad idea to be
+    prepared for such setups in the future. that way cryproot now supports
+    /dev/dm-* devices as well. (closes: #532579, #544487, #544773)
+  * fix initscript dependencies both for cryptdisks and cryptdisks-early.
+    thanks to Petter Reinholdtsen for bugreport and patch. (closes: #548356)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 17 Sep 2009 16:53:01 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 27 Sep 2009 12:16:30 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
