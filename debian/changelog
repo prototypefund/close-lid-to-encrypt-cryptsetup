@@ -1,4 +1,4 @@
-cryptsetup (2:1.0.7-3) unstable; urgency=low
+cryptsetup (2:1.0.7-3~unreleased) unstable; urgency=low
 
   * NOT RELEASED YET
   * remove 04_no_stderr_success.patch again.
@@ -17,8 +17,12 @@ cryptsetup (2:1.0.7-3) unstable; urgency=low
     change in NEWS.Debian. (closes: #547597)
   * add error messages to lvm detecting code in initramfs/cryptroot-script
     in order to make debugging easier. (closes: #541248)
+  * implement detection of devices which are required by decrypt_derived
+    keyscript in initscripts/cryptroot-hook. that way setups where encrypted
+    swap has the key derived from non-root partitions should support suspend/
+    resume as well. (closes: #475838)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 27 Sep 2009 16:33:57 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 28 Sep 2009 12:56:53 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 

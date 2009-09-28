@@ -81,6 +81,16 @@ get_resume_devices() {
 			continue
 		fi
 
+		# Detect devices required by decrypt_derived
+		derived="$(grep "^${device#/dev/mapper/}.*decrypt_derived" /etc/crypttab 2>/dev/null | awk '{print $3}')"
+		if [ -n "$derived" ]; then
+			if grep -q "^$derived" /etc/crypttab; then
+				candidates="$candidates /dev/mapper/$derived"
+			else
+				echo "cryptsetup: WARNING: decrypt_derived device $derived not found in crypttab" >&2
+			fi
+		fi
+
 		# Weed out duplicates
 		dupe=0
 		for opt in $devices; do
