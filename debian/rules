@@ -42,8 +42,6 @@ configure: configure-stamp
 configure-stamp: $(QUILT_STAMPFN)
 	dh_testdir
 	find -xtype f ! -name manifest > manifest
-	rm -f ltmain.sh
-	cp /usr/share/libtool/config/ltmain.sh ltmain.sh
 	autoreconf --force --install
 	CFLAGS="$(CFLAGS)" ./configure $(confflags) \
 		--prefix=/usr \
@@ -98,16 +96,18 @@ install-stamp: build-stamp
 	cp src/cryptsetup.static $(CURDIR)/debian/cryptsetup/sbin/cryptsetup
 
 	# Copy library files to library packages
-	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.so.1* \
-		$(CURDIR)/debian/libcryptsetup1/usr/lib/
-	cp -a $(CURDIR)/debian/cryptsetup/usr/include/libcryptsetup.h \
+	cp -a $(CURDIR)/lib/libcryptsetup.la \
+		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
+	cp -a $(CURDIR)/lib/.libs/libcryptsetup.a \
+		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
+	cp -a $(CURDIR)/lib/.libs/libcryptsetup.so \
+		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
+	cp -a $(CURDIR)/lib/libcryptsetup.h \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/include/
-	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.a \
-		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
-	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.so \
-		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
-	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/pkgconfig/libcryptsetup.pc \
+	cp -a $(CURDIR)/lib/libcryptsetup.pc \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/pkgconfig/
+	cp -a $(CURDIR)/lib/.libs/libcryptsetup.so.1* \
+		$(CURDIR)/debian/libcryptsetup1/usr/lib/
 
 	# Remove libraries from cryptsetup package, they're shiped in seperate library packags
 	rm -rf $(CURDIR)/debian/cryptsetup/usr/include
@@ -162,7 +162,7 @@ binary-arch: build install
 	dh_installman debian/doc/crypttab.5 debian/doc/cryptdisks_start.8 debian/doc/cryptdisks_stop.8 debian/luksformat.8
 	dh_compress
 	dh_fixperms
-	dh_strip --dbg-package=libcryptsetup-dbg
+	dh_strip
 	dh_makeshlibs
 	dh_shlibdeps 
 	dh_gencontrol

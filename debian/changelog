@@ -36,12 +36,11 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
     CheckSystem.Doc
   * stop creating /etc/keys in postinst maintainer script.
   * update build system to include library files again: (closes: #480157)
-    - remove libcryptsetup.la file
     - split into three packages: cryptsetup, libcryptsetup1, libcryptsetup-dev
     - rename preinst to cryptsetup.preinst, copy code to create /etc/crypttab
       skeleton into cryptsetup-udeb.preinst.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 29 Sep 2009 22:40:17 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 29 Sep 2009 23:09:37 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
