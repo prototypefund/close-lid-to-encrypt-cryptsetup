@@ -44,7 +44,7 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
   * add debian/cryptsetup.lintian-override for two false positives
   * raise build-depends on debhelper and debian/compat for that reason
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 30 Sep 2009 00:58:45 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 30 Sep 2009 01:22:24 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
