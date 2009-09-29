@@ -166,7 +166,7 @@ binary-arch: build install
 	dh_compress -a
 	dh_fixperms -a
 	dh_strip -a
-	dh_makeshlibs -a -plibcryptsetup1 -V'libcryptsetup1 (>= 2:1.1.0)'
+	dh_makeshlibs -a
 	dh_shlibdeps -a
 	dh_gencontrol -a
 	dh_installdeb -a
