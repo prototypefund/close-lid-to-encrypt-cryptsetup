@@ -144,8 +144,10 @@ install-stamp: build-stamp
 	cp -a $(CURDIR)/debian/cryptsetup/sbin $(CURDIR)/debian/cryptsetup-udeb/
 
 	# Install files which aren't needed for cryptsetup-udeb package
-	install -m 0644 debian/bash_completion $(CURDIR)/debian/cryptsetup/etc/bash_completion.d/cryptsetup
-	install -m 0755 debian/reportbug-script $(CURDIR)/debian/cryptsetup/usr/share/bug/cryptsetup
+	install -m 0644 debian/cryptsetup.bash_completion \
+		$(CURDIR)/debian/cryptsetup/etc/bash_completion.d/cryptsetup
+	install -m 0755 debian/cryptsetup.reportbug-script \
+		$(CURDIR)/debian/cryptsetup/usr/share/bug/cryptsetup
 	touch $@
 
 binary-indep: build install
