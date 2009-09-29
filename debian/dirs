@@ -4,6 +4,7 @@
 /lib/cryptsetup/checks
 /lib/cryptsetup/scripts
 /sbin
+/usr/lib
 /usr/sbin
 /usr/share/bug
 /usr/share/initramfs-tools/hooks

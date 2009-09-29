@@ -44,13 +44,7 @@ configure-stamp: $(QUILT_STAMPFN)
 	find -xtype f ! -name manifest > manifest
 	rm -f ltmain.sh
 	cp /usr/share/libtool/config/ltmain.sh ltmain.sh
-	#./setup-gettext
 	autoreconf --force --install
-	#libtoolize --force --copy
-	#aclocal-1.9
-	#autoheader
-	#automake-1.9 --add-missing --gnu
-	#autoconf
 	CFLAGS="$(CFLAGS)" ./configure $(confflags) \
 		--prefix=/usr \
 		--sbindir=/sbin \
@@ -72,6 +66,7 @@ build-stamp: configure-stamp
 		debian/luksformat.8
 	$(MAKE)
 	# cannot depend on libraries in /usr !
+	# We instead statically link the relevant code into the cryptsetup executable
 	gcc lib/.libs/*.o src/*.o luks/.libs/*.o -o src/cryptsetup.static \
 		-lpopt -ldevmapper -luuid /usr/lib/libgcrypt.a /usr/lib/libgpg-error.a
 	gcc -Wall -pedantic -std=c99 debian/askpass.c -o debian/askpass
@@ -127,7 +122,6 @@ install-stamp: build-stamp
 	install -m 0644 debian/bash_completion $(CURDIR)/debian/cryptsetup/etc/bash_completion.d/cryptsetup
 	install -m 0755 debian/reportbug-script $(CURDIR)/debian/cryptsetup/usr/share/bug/cryptsetup
 	install -m 0755 debian/askpass $(CURDIR)/debian/cryptsetup/lib/cryptsetup/askpass
-	rmdir $(CURDIR)/debian/cryptsetup/usr/lib/cryptsetup
 	touch $@
 
 binary-indep: build install
@@ -145,10 +139,8 @@ binary-arch: build install
 	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/sbin $(CURDIR)/debian/cryptsetup-udeb/
-	# Get rid of libcryptsetup.so since it has no stable API.
-	# We instead statically link the relevant code
-	# into the cryptsetup executable, so the .so is not needed.
-	rm -rf $(CURDIR)/debian/cryptsetup/usr/lib
+	# Remove libcryptsetup.la
+	rm -rf $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.la
 	dh_strip -a
 	dh_compress -a
 	dh_fixperms -a
