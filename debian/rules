@@ -46,8 +46,8 @@ configure-stamp: $(QUILT_STAMPFN)
 	CFLAGS="$(CFLAGS)" ./configure $(confflags) \
 		--prefix=/usr \
 		--sbindir=/sbin \
-		--mandir=/usr/share/man
-		#--enable-static \
+		--mandir=/usr/share/man \
+		--enable-static
 	find -xtype f > manifest.new
 	diff manifest manifest.new | grep '>' | cut -b3- > config.mess
 	touch $@
@@ -96,17 +96,17 @@ install-stamp: build-stamp
 	cp src/cryptsetup.static $(CURDIR)/debian/cryptsetup/sbin/cryptsetup
 
 	# Copy library files to library packages
-	cp -a $(CURDIR)/lib/libcryptsetup.la \
+	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.la \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
-	cp -a $(CURDIR)/lib/.libs/libcryptsetup.a \
+	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.a \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
-	cp -a $(CURDIR)/lib/.libs/libcryptsetup.so \
+	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.so \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
-	cp -a $(CURDIR)/lib/libcryptsetup.h \
-		$(CURDIR)/debian/libcryptsetup-dev/usr/include/
-	cp -a $(CURDIR)/lib/libcryptsetup.pc \
+	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/pkgconfig/libcryptsetup.pc \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/pkgconfig/
-	cp -a $(CURDIR)/lib/.libs/libcryptsetup.so.1* \
+	cp -a $(CURDIR)/debian/cryptsetup/usr/include/libcryptsetup.h \
+		$(CURDIR)/debian/libcryptsetup-dev/usr/include/
+	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.so.1* \
 		$(CURDIR)/debian/libcryptsetup1/usr/lib/
 
 	# Remove libraries from cryptsetup package, they're shiped in seperate library packags

@@ -39,8 +39,9 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
     - split into three packages: cryptsetup, libcryptsetup1, libcryptsetup-dev
     - rename preinst to cryptsetup.preinst, copy code to create /etc/crypttab
       skeleton into cryptsetup-udeb.preinst.
+    - build with --enable-static in order to have libcryptsetup.a available
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 29 Sep 2009 23:09:37 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 30 Sep 2009 00:24:52 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
