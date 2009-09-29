@@ -11,8 +11,9 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
     - command successful messages moved to verbose level (closes: #541805)
     - several code changes to improve speed of luksOpen (closes: #536415)
     - luksSuspend and luksResume commands
-  * remove 04_no_stderr_success.patch again.
-  * update patches to comply with DEP-3 (http://dep.debian.net/deps/dep3/)
+  * remove unneeded patches 03_read_rework and 04_no_stderr_success, update
+    02_manpage for new upstream release candidate.
+  * update patch to comply with DEP-3 (http://dep.debian.net/deps/dep3/)
   * fix initramfs/cryptroot-hook to support setups where /dev/mapper/ contains
     symlinks to devices at /dev/dm-*. the lvm2/device-mapper packages had
     defaults changed to this temporary. it has been fixed in a subsequent 
@@ -32,7 +33,7 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
     swap has the key derived from non-root partitions should support suspend/
     resume as well. (closes: #475838)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 29 Sep 2009 16:05:46 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 29 Sep 2009 16:18:42 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 

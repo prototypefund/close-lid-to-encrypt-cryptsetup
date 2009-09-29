@@ -1,9 +1,10 @@
 Description: improve the cryptsetup manpage
 Author: Jonas Meurer <mejo@debian.org>
+Last-Update: 2009-09-26
 
 --- a/man/cryptsetup.8
 +++ b/man/cryptsetup.8
-@@ -160,6 +160,10 @@
+@@ -205,6 +205,10 @@
  Therefore, no options can be given to luksOpen. 
  For any password creation action (luksAddKey, or luksFormat), the user may specify how much the time the password processing should consume.
  Increasing the time will lead to a more secure password, but also will take luksOpen longer to complete. The default setting of one second is sufficient for good security.
