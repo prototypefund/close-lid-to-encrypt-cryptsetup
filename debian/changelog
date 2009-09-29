@@ -1,6 +1,16 @@
-cryptsetup (2:1.0.7-3~unreleased) unstable; urgency=low
+cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
 
   * NOT RELEASED YET
+  * new upstream release candidate (1.1.0~rc1), highlights include:
+    - new libcryptsetup API (documented in libcryptsetup.h) (closes: #480157)
+    - luksHeaderBackup and luksHeaderRestore commands (closes: #533643)
+    - use libgcrypt, enables all gcrypt hash algorithms for LUKS through
+      -h luksFormat option (closes: #387159, #537385)
+    - new --master-key-file option for luksFormat and luksAddKey
+    - use dm-uuid for all crypt devices, contains device type and name now
+    - command successful messages moved to verbose level (closes: #541805)
+    - several code changes to improve speed of luksOpen (closes: #536415)
+    - luksSuspend and luksResume commands
   * remove 04_no_stderr_success.patch again.
   * update patches to comply with DEP-3 (http://dep.debian.net/deps/dep3/)
   * fix initramfs/cryptroot-hook to support setups where /dev/mapper/ contains
@@ -22,7 +32,7 @@ cryptsetup (2:1.0.7-3~unreleased) unstable; urgency=low
     swap has the key derived from non-root partitions should support suspend/
     resume as well. (closes: #475838)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 28 Sep 2009 12:56:53 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 29 Sep 2009 16:05:46 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
