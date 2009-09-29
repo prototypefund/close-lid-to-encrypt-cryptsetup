@@ -2,12 +2,8 @@
 
 set -e
 
-create_etc_keys() {
-	[ -d /etc/keys/ ] || mkdir -p /etc/keys/
-}
-
 create_crypttab() {
-	if [ ! -f /etc/crypttab ]; then
+	if [ ! -f "/etc/crypttab" ]; then
 		cat <<-EOC >/etc/crypttab
 		# <target name>	<source device>		<key file>	<options>
 		EOC
@@ -35,7 +31,6 @@ rm_conffile() {
 LASTVERSION="2:1.0.6-5"
 case "$1" in
 	install)
-		create_etc_keys
 		create_crypttab
 		if dpkg --compare-versions "$2" le "$LASTVERSION"; then
 			rm_conffile cryptsetup "/etc/udev/rules.d/z60_cryptsetup.rules"

@@ -41,3 +41,25 @@ Description: configures encrypted block devices
  automatically configuring encrypted devices at boot time via the config
  file /etc/crypttab. Additional features are cryptoroot support through
  initramfs-tools and several supported ways to read a passphrase or key.
+
+Package: libcryptsetup1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: libcryptsetup shared library
+ Cryptsetup provides a command-line interface for configuring encrypted
+ devices. This is done using the Linux kernel device mapper target
+ dm-crypt. This version of cryptsetup has integrated support for LUKS.
+ .
+ This package provides the libcryptsetup shared library.
+
+Package: libcryptsetup-dev
+Section: libdevel
+Architecture: any
+Depends: libcryptsetup1 (= ${binary:Version})
+Description: libcryptsetup development files
+ Cryptsetup provides a command-line interface for configuring encrypted
+ devices. This is done using the Linux kernel device mapper target
+ dm-crypt. This version of cryptsetup has integrated support for LUKS.
+ .
+ This package provides the libcryptsetup development files.

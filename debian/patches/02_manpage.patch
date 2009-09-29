@@ -4,7 +4,25 @@ Last-Update: 2009-09-26
 
 --- a/man/cryptsetup.8
 +++ b/man/cryptsetup.8
-@@ -151,8 +151,6 @@
+@@ -92,7 +92,7 @@
+ .IP
+ dumps the header information of a LUKS partition. No options.
+ .PP
+-\fIluksHeaderBackup\fR <device> --header-backup-file <file>
++\fIluksHeaderBackup\fR <device> \-\-header-backup-file <file>
+ .IP
+ Stores binary backup of LUKS header and keyslot areas.
+ 
+@@ -100,7 +100,7 @@
+ 
+ Also note that anti-forensic splitter is not used during manipulation with backup file.
+ .PP
+-\fIluksHeaderRestore\fR <device> --header-backup-file <file>
++\fIluksHeaderRestore\fR <device> \-\-header-backup-file <file>
+ .IP
+ 
+ Restores binary backup of LUKS header and keyslot areas from specified file.
+@@ -196,8 +196,6 @@
  If \-\-key-file=- is used for reading the key from stdin, no trailing newline is stripped from the input. Without that option, cryptsetup strips trailing newlines from stdin input.
  .SH NOTES ON PASSWORD PROCESSING FOR LUKS
  LUKS uses PBKDF2 to protect against dictionary attacks (see RFC 2898). 
@@ -13,7 +31,7 @@ Last-Update: 2009-09-26
  
  LUKS will always do an exhaustive password reading. Hence, password can not be read from /dev/random, /dev/zero or any other stream that does not terminate.
  
-@@ -160,6 +158,10 @@
+@@ -205,6 +203,10 @@
  Therefore, no options can be given to luksOpen. 
  For any password creation action (luksAddKey, or luksFormat), the user may specify how much the time the password processing should consume.
  Increasing the time will lead to a more secure password, but also will take luksOpen longer to complete. The default setting of one second is sufficient for good security.

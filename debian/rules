@@ -96,6 +96,23 @@ install-stamp: build-stamp
 	mkdir -p $(CURDIR)/debian/cryptsetup-udeb/
 	$(MAKE) DESTDIR=$(CURDIR)/debian/cryptsetup install
 	cp src/cryptsetup.static $(CURDIR)/debian/cryptsetup/sbin/cryptsetup
+
+	# Copy library files to library packages
+	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.so.1* \
+		$(CURDIR)/debian/cryptsetup1/usr/lib/
+	cp -a $(CURDIR)/debian/cryptsetup/usr/include/libcryptsetup.h \
+		$(CURDIR)/debian/cryptsetup-dev/usr/include/
+	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.a \
+		$(CURDIR)/debian/cryptsetup-dev/usr/lib/
+	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.so \
+		$(CURDIR)/debian/cryptsetup-dev/usr/lib/
+	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/pkgconfig/libcryptsetup.pc \
+		$(CURDIR)/debian/cryptsetup-dev/usr/lib/pkgconfig/
+
+	# Remove libraries from cryptsetup package, they're shiped in seperate library packags
+	rm -rf $(CURDIR)/debian/cryptsetup/usr/include
+	rm -rf $(CURDIR)/debian/cryptsetup/usr/lib
+
 	install -m 0644 debian/cryptdisks.functions $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
 	install -m 0755 debian/checks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/checks/
 	install -m 0755 debian/scripts/luksformat $(CURDIR)/debian/cryptsetup/usr/sbin/
@@ -103,6 +120,7 @@ install-stamp: build-stamp
 	install -m 0755 debian/scripts/cryptdisks_stop $(CURDIR)/debian/cryptsetup/usr/sbin/
 	install -m 0755 debian/scripts/decrypt_* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
 	install -m 0755 debian/scripts/passdev $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
+	install -m 0755 debian/askpass $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
 	install -m 0755 debian/initramfs/cryptpassdev-hook \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptpassdev
 	install -m 0755 debian/initramfs/cryptroot-hook \
@@ -119,9 +137,15 @@ install-stamp: build-stamp
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-top/cryptopensc
 	install -m 0755 debian/initramfs/cryptopensc-script-local-bottom \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-bottom/cryptopensc
+
+	# Copy relevant parts to cryptsetup-udeb package
+	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
+	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
+	cp -a $(CURDIR)/debian/cryptsetup/sbin $(CURDIR)/debian/cryptsetup-udeb/
+
+	# Install files which aren't needed for cryptsetup-udeb package
 	install -m 0644 debian/bash_completion $(CURDIR)/debian/cryptsetup/etc/bash_completion.d/cryptsetup
 	install -m 0755 debian/reportbug-script $(CURDIR)/debian/cryptsetup/usr/share/bug/cryptsetup
-	install -m 0755 debian/askpass $(CURDIR)/debian/cryptsetup/lib/cryptsetup/askpass
 	touch $@
 
 binary-indep: build install
@@ -131,25 +155,20 @@ binary-arch: build install
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs -a ChangeLog
-	dh_installdocs -a
+	dh_installdocs 
 	dh_installexamples -a debian/scripts/gen-ssl-key
-	dh_installinit -a --no-start --name=cryptdisks-early --update-rcd-params="start 26 S . start 59 0 6 ."
-	dh_installinit -a --no-start --name=cryptdisks --update-rcd-params="start 28 S . start 48 0 6 ."
-	dh_installman -a debian/doc/crypttab.5 debian/doc/cryptdisks_start.8 debian/doc/cryptdisks_stop.8 debian/luksformat.8
-	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
-	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
-	cp -a $(CURDIR)/debian/cryptsetup/sbin $(CURDIR)/debian/cryptsetup-udeb/
-	# Remove libcryptsetup.la
-	rm -rf $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.la
-	dh_strip -a
-	dh_compress -a
-	dh_fixperms -a
-	dh_makeshlibs -a
-	dh_installdeb -a
-	dh_shlibdeps -a
-	dh_gencontrol -a
-	dh_md5sums -a
-	dh_builddeb -a
+	dh_installinit --no-start --name=cryptdisks-early --update-rcd-params="start 26 S . start 59 0 6 ."
+	dh_installinit --no-start --name=cryptdisks --update-rcd-params="start 28 S . start 48 0 6 ."
+	dh_installman debian/doc/crypttab.5 debian/doc/cryptdisks_start.8 debian/doc/cryptdisks_stop.8 debian/luksformat.8
+	dh_compress
+	dh_fixperms
+	dh_strip --dbg-package=libcryptsetup-dbg
+	dh_makeshlibs
+	dh_shlibdeps 
+	dh_gencontrol
+	dh_installdeb
+	dh_md5sums
+	dh_builddeb
 
 binary: binary-indep binary-arch
 .PHONY: configure build clean install binary-indep binary-arch binary patch unpatch

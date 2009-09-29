@@ -2,7 +2,7 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
 
   * NOT RELEASED YET
   * new upstream release candidate (1.1.0~rc1), highlights include:
-    - new libcryptsetup API (documented in libcryptsetup.h) (closes: #480157)
+    - new libcryptsetup API (documented in libcryptsetup.h)
     - luksHeaderBackup and luksHeaderRestore commands (closes: #533643)
     - use libgcrypt, enables all gcrypt hash algorithms for LUKS through
       -h luksFormat option (closes: #387159, #537385)
@@ -14,7 +14,6 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
   * remove unneeded patches 03_read_rework and 04_no_stderr_success, update
     02_manpage for new upstream release candidate.
   * update patch to comply with DEP-3 (http://dep.debian.net/deps/dep3/)
-  * update build system to include library files again, remove .la file
   * fix initramfs/cryptroot-hook to support setups where /dev/mapper/ contains
     symlinks to devices at /dev/dm-*. the lvm2/device-mapper packages had
     defaults changed to this temporary. it has been fixed in a subsequent 
@@ -35,8 +34,14 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
     resume as well. (closes: #475838)
   * remove outdated documentation from the source package: CryptoRoot.HowTo,
     CheckSystem.Doc
+  * stop creating /etc/keys in postinst maintainer script.
+  * update build system to include library files again: (closes: #480157)
+    - remove libcryptsetup.la file
+    - split into three packages: cryptsetup, libcryptsetup1, libcryptsetup-dev
+    - rename preinst to cryptsetup.preinst, copy code to create /etc/crypttab
+      skeleton into cryptsetup-udeb.preinst.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 29 Sep 2009 17:18:25 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 29 Sep 2009 22:40:17 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
