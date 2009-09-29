@@ -99,15 +99,15 @@ install-stamp: build-stamp
 
 	# Copy library files to library packages
 	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.so.1* \
-		$(CURDIR)/debian/cryptsetup1/usr/lib/
+		$(CURDIR)/debian/libcryptsetup1/usr/lib/
 	cp -a $(CURDIR)/debian/cryptsetup/usr/include/libcryptsetup.h \
-		$(CURDIR)/debian/cryptsetup-dev/usr/include/
+		$(CURDIR)/debian/libcryptsetup-dev/usr/include/
 	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.a \
-		$(CURDIR)/debian/cryptsetup-dev/usr/lib/
+		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
 	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.so \
-		$(CURDIR)/debian/cryptsetup-dev/usr/lib/
+		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
 	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/pkgconfig/libcryptsetup.pc \
-		$(CURDIR)/debian/cryptsetup-dev/usr/lib/pkgconfig/
+		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/pkgconfig/
 
 	# Remove libraries from cryptsetup package, they're shiped in seperate library packags
 	rm -rf $(CURDIR)/debian/cryptsetup/usr/include
