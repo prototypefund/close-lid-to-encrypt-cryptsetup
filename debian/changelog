@@ -40,8 +40,9 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
     - rename preinst to cryptsetup.preinst, copy code to create /etc/crypttab
       skeleton into cryptsetup-udeb.preinst.
     - build with --enable-static in order to have libcryptsetup.a available
+    - create debian/libcryptsetup1.symbols with help of dpkg-gensymbols
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 30 Sep 2009 00:24:52 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 30 Sep 2009 00:32:13 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
