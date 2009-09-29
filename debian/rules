@@ -155,21 +155,21 @@ binary-arch: build install
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs -a ChangeLog
-	dh_installdocs 
+	dh_installdocs -a
 	dh_installexamples -a debian/scripts/gen-ssl-key
-	dh_installinit --no-start --name=cryptdisks-early --update-rcd-params="start 26 S . start 59 0 6 ."
-	dh_installinit --no-start --name=cryptdisks --update-rcd-params="start 28 S . start 48 0 6 ."
-	dh_installman debian/doc/crypttab.5 debian/doc/cryptdisks_start.8 debian/doc/cryptdisks_stop.8 debian/luksformat.8
-	dh_lintian
-	dh_compress
-	dh_fixperms
-	dh_strip
-	dh_makeshlibs -plibcryptsetup1 -V'libcryptsetup1 (>= 2:1.1.0)'
-	dh_shlibdeps
-	dh_gencontrol
-	dh_installdeb
-	dh_md5sums
-	dh_builddeb
+	dh_installinit -a --no-start --name=cryptdisks-early --update-rcd-params="start 26 S . start 59 0 6 ."
+	dh_installinit -a --no-start --name=cryptdisks --update-rcd-params="start 28 S . start 48 0 6 ."
+	dh_installman -a debian/doc/crypttab.5 debian/doc/cryptdisks_start.8 debian/doc/cryptdisks_stop.8 debian/luksformat.8
+	dh_lintian -a
+	dh_compress -a
+	dh_fixperms -a
+	dh_strip -a
+	dh_makeshlibs -a -plibcryptsetup1 -V'libcryptsetup1 (>= 2:1.1.0)'
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_installdeb -a
+	dh_md5sums -a
+	dh_builddeb -a
 
 binary: binary-indep binary-arch
 .PHONY: configure build clean install binary-indep binary-arch binary patch unpatch
