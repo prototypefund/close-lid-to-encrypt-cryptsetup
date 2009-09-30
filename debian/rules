@@ -47,6 +47,7 @@ configure-stamp: $(QUILT_STAMPFN)
 		--prefix=/usr \
 		--sbindir=/sbin \
 		--mandir=/usr/share/man \
+		--enable-shared \
 		--enable-static
 	find -xtype f > manifest.new
 	diff manifest manifest.new | grep '>' | cut -b3- > config.mess

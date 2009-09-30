@@ -41,12 +41,12 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
     - split into three packages: cryptsetup, libcryptsetup1, libcryptsetup-dev
     - rename preinst to cryptsetup.preinst, copy code to create /etc/crypttab
       skeleton into cryptsetup-udeb.preinst.
-    - build with --enable-static in order to have libcryptsetup.a available
+    - build with --enable-shared and --enable-static for libcryptsetup.a
     - create debian/libcryptsetup1.symbols with help of dpkg-gensymbols
   * add debian/cryptsetup.lintian-override for two false positives
   * raise build-depends on debhelper and debian/compat for that reason
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 30 Sep 2009 15:18:09 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 30 Sep 2009 15:50:29 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
