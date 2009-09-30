@@ -8,6 +8,7 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
       -h luksFormat option (closes: #387159, #537385)
     - new --master-key-file option for luksFormat and luksAddKey
     - use dm-uuid for all crypt devices, contains device type and name now
+      (closes: #548988)
     - command successful messages moved to verbose level (closes: #541805)
     - several code changes to improve speed of luksOpen (closes: #536415)
     - luksSuspend and luksResume commands
@@ -34,6 +35,7 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
     resume as well. (closes: #475838)
   * remove outdated documentation from the source package: CryptoRoot.HowTo,
     CheckSystem.Doc
+  * mention in README.initramfs that busybox is required for cryptroot to work
   * stop creating /etc/keys in postinst maintainer script.
   * update build system to include library files again: (closes: #480157)
     - split into three packages: cryptsetup, libcryptsetup1, libcryptsetup-dev
@@ -44,7 +46,7 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
   * add debian/cryptsetup.lintian-override for two false positives
   * raise build-depends on debhelper and debian/compat for that reason
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 30 Sep 2009 01:22:24 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 30 Sep 2009 15:18:09 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 

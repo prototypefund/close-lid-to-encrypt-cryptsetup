@@ -33,7 +33,7 @@ To do so, you need two partitions:
 - an unencrypted /boot partition
 - an encrypted / partition
 
-In addition, you need to have initramfs-tools installed.
+In addition, you need to have both initramfs-tools and busybox installed.
 
 NOTE: You should make sure that your swap partition is either encrypted, or
 that you are using a swap file on an encrypted partition, as crypto keys and
