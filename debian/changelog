@@ -1,7 +1,7 @@
-cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
+cryptsetup (2:1.1.0~rc2-1~unreleased) unstable; urgency=low
 
   * NOT RELEASED YET
-  * new upstream release candidate (1.1.0~rc1), highlights include:
+  * new upstream release candidate (1.1.0-rc2), highlights include:
     - new libcryptsetup API (documented in libcryptsetup.h)
     - luksHeaderBackup and luksHeaderRestore commands (closes: #533643)
     - use libgcrypt, enables all gcrypt hash algorithms for LUKS through
@@ -46,7 +46,7 @@ cryptsetup (2:1.1.0~rc1-1~unreleased) unstable; urgency=low
   * add debian/cryptsetup.lintian-override for two false positives
   * raise build-depends on debhelper and debian/compat for that reason
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 30 Sep 2009 15:50:29 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 01 Oct 2009 20:07:57 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
