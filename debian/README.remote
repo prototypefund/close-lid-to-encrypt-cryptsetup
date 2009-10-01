@@ -27,13 +27,15 @@ automatically. Following are the commands to create them manually:
 # dropbearkey -t dss -f /etc/initramfs-tools/etc/dropbear/dropbear_dss_host_key
 # dropbearkey -t rsa -f /etc/initramfs-tools/etc/dropbear/dropbear_rsa_host_key
 
-As the initramfs will not be encrypted, publickey authentication is assumed. The
-key used for that will be taken from /etc/initramfs-tools/root/.ssh/id_rsa.pub.
-
-If it doesn't exist when the initramfs is compiled, it will be created and you
-will find the matching private key which you will later need to log in to the
-initramfs under /etc/initramfs-tools/root/.ssh/id_rsa (or id_rsa.dropbear in
-case you need it in dropbear format). Following are the commands to do the
+As the initramfs will not be encrypted, publickey authentication is assumed.
+The key(s) used for that will be taken from
+/etc/initramfs-tools/root/.ssh/authorized_keys.
+If this file doesn't exist when the initramfs is compiled, it will be created
+and /etc/initramfs-tools/root/.ssh/id_rsa.pub will be added to it.
+If the latter file doesn't exist either, it will be generated automatically -
+you will find the matching private key which you will later need to log in to
+the initramfs under /etc/initramfs-tools/root/.ssh/id_rsa (or id_rsa.dropbear
+in case you need it in dropbear format). Following are the commands to do the
 respective steps manually:
 
 To create a key (in dropbear format):
@@ -50,6 +52,10 @@ To extract the public key:
 
 # dropbearkey -y -f /etc/initramfs-tools/root/.ssh/id_rsa.dropbear | \
 	grep "^ssh-rsa " > /etc/initramfs-tools/root/.ssh/id_rsa.pub
+
+To add the public key to the authorized_keys file:
+
+# cat /etc/initramfs-tools/root/.ssh/id_rsa.pub >> /etc/initramfs-tools/root/.ssh/authorized_keys
 
 In case you want some interface to get configured using dhcp, setting DEVICE= in
 /etc/initramfs-tools/initramfs.conf should be sufficient.  The initramfs should
@@ -87,4 +93,4 @@ that you have a file "~/id_rsa.initramfs" which holds the authorized-key for
 the cryptroot system, that the cryptroot system's name is
 "initramfshost.example.com", and that the cryptroot passphrase is "secret"
 
--- <debian@x.ray.net>, Mon, 31 Aug 2009
+-- <debian@x.ray.net>, Wed, 30 Sep 2009

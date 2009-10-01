@@ -45,8 +45,10 @@ cryptsetup (2:1.1.0~rc2-1~unreleased) unstable; urgency=low
     - create debian/libcryptsetup1.symbols with help of dpkg-gensymbols
   * add debian/cryptsetup.lintian-override for two false positives
   * raise build-depends on debhelper and debian/compat for that reason
+  * update README.remote to work with latest dropbear package. thanks to
+    debian@x.ray.net.
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 01 Oct 2009 20:07:57 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 01 Oct 2009 20:19:41 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
