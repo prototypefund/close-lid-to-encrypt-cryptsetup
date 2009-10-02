@@ -97,8 +97,8 @@ install-stamp: build-stamp
 	cp src/cryptsetup.static $(CURDIR)/debian/cryptsetup/sbin/cryptsetup
 
 	# Copy library files to library packages
-	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.la \
-		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
+	#cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.la \
+	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
 	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.a \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
 	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.so \
