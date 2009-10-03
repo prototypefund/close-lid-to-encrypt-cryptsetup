@@ -39,6 +39,7 @@ parse_opts () {
 	USELUKS=""
 	KEYSCRIPT=""
 	IGNORE=""
+	CRYPTTAB_OPTIONS=""
 
 	# Parse the options field, convert to cryptsetup parameters
 	# and construct the command line
@@ -173,7 +174,12 @@ parse_opts () {
 			fi
 			;;
 		esac
+
+		CRYPTTAB_OPTIONS="$CRYPTTAB_OPTIONS $PARAM"
+		[ -z "$VALUE" ] && VALUE="1"
+		eval export CRYPTTAB_OPTION_$PARAM="\"$VALUE\""
 	done
+	export CRYPTTAB_OPTIONS
 
 	return 0
 }

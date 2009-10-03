@@ -250,6 +250,13 @@
       self-contained (i.e. an executable which does not rely on any external
       program which is not present in the initramfs environment).
      </simpara>
+     <simpara>
+      All crypttab options are available to the keyscript as exported
+      environment variables. A list of exported options is available as
+      $CRYPTTAB_OPTIONS, the options themselves are available as
+      $CRYPTTAB_OPTIONS_&lt;option&gt;, with value set to 1 in case it is
+      a flag.
+     </simpara>
     </listitem>
    </varlistentry>
   </variablelist>
@@ -263,16 +270,20 @@
     <listitem>
      <simpara>Checks for any known filesystem. Supports a filesystem type as
       argument via &lt;checkargs&gt;:
-      <listitem>
-	no checkargs - succeeds if any valid filesystem is found on the device.
-      </listitem>
-      <listitem>
-	"none" - succeeds if no valid filesystem is found on the device.
-      </listitem>
-      <listitem>
-	"ext3" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
-	succeeds if ext3 filesystem is found on the device.
-      </listitem>
+      <variablelist>
+       <varlistentry>
+        <listitem>
+	 no checkargs - succeeds if any valid filesystem is found on the device.
+        </listitem>
+        <listitem>
+	 "none" - succeeds if no valid filesystem is found on the device.
+        </listitem>
+        <listitem>
+	 "ext3" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
+	 succeeds if ext3 filesystem is found on the device.
+        </listitem>
+       </varlistentry>
+      </variablelist>
      </simpara>
     </listitem>
    </varlistentry>
@@ -282,13 +293,17 @@
     <listitem>
      <simpara>Checks for no known filesystem. Supports a filesystem type as
       argument via &lt;checkargs&gt;:
-      <listitem>
-	no checkargs - succeeds if no valid filesystem is found on the device.
-      </listitem>
-      <listitem>
-	"ext3" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
-	succeeds if no ext3 filesystem is found on the device.
-      </listitem>
+      <variablelist>
+       <varlistentry>
+        <listitem>
+	 no checkargs - succeeds if no valid filesystem is found on the device.
+        </listitem>
+        <listitem>
+	 "ext3" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
+	 succeeds if no ext3 filesystem is found on the device.
+        </listitem>
+       </varlistentry>
+      </variablelist>
      </simpara>
     </listitem>
    </varlistentry>
