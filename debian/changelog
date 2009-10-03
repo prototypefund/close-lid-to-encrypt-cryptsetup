@@ -52,8 +52,9 @@ cryptsetup (2:1.1.0~rc2-1~unreleased) unstable; urgency=low
     option is a flag without value. export a list of exported options as
     $CRYPTTAB_OPTIONS. thanks to ludwig nussel from suse for idea and
     implmentation. document this in crypttab(5) manpage.
+  * fix formatting errors in crypttab(5) manpage.
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 03 Oct 2009 21:19:10 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 03 Oct 2009 21:20:23 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
