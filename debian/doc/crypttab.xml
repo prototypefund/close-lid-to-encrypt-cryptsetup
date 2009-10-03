@@ -270,21 +270,19 @@
     <listitem>
      <simpara>Checks for any known filesystem. Supports a filesystem type as
       argument via &lt;checkargs&gt;:
-      <variablelist>
-       <varlistentry>
-        <listitem>
-	 no checkargs - succeeds if any valid filesystem is found on the device.
-        </listitem>
-        <listitem>
-	 "none" - succeeds if no valid filesystem is found on the device.
-        </listitem>
-        <listitem>
-	 "ext3" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
-	 succeeds if ext3 filesystem is found on the device.
-        </listitem>
-       </varlistentry>
-      </variablelist>
      </simpara>
+     <itemizedlist>
+      <listitem><para>
+       no checkargs - succeeds if any valid filesystem is found on the device.
+      </para></listitem>
+      <listitem><para>
+       "none" - succeeds if no valid filesystem is found on the device.
+      </para></listitem>
+      <listitem><para>
+       "ext3" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
+       succeeds if ext3 filesystem is found on the device.
+      </para></listitem>
+     </itemizedlist>
     </listitem>
    </varlistentry>
 
@@ -293,18 +291,16 @@
     <listitem>
      <simpara>Checks for no known filesystem. Supports a filesystem type as
       argument via &lt;checkargs&gt;:
-      <variablelist>
-       <varlistentry>
-        <listitem>
-	 no checkargs - succeeds if no valid filesystem is found on the device.
-        </listitem>
-        <listitem>
-	 "ext3" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
-	 succeeds if no ext3 filesystem is found on the device.
-        </listitem>
-       </varlistentry>
-      </variablelist>
      </simpara>
+     <itemizedlist>
+      <listitem><para>
+       no checkargs - succeeds if no valid filesystem is found on the device.
+      </para></listitem>
+      <listitem><para>
+       "ext3" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
+       succeeds if no ext3 filesystem is found on the device.
+      </para></listitem>
+     </itemizedlist>
     </listitem>
    </varlistentry>
 
