@@ -49,10 +49,11 @@ cryptsetup (2:1.1.0~rc2-1~unreleased) unstable; urgency=low
     debian@x.ray.net.
   * make all crypttab fields available to keyscripts as environment variables.
     thanks to ludwig nussel from suse for idea and implmentation. document
-    this in crypttab(5) manpage.
+    this in crypttab(5) manpage. impelement the same environment variables in
+    initramfs cryptroot script.
   * fix formatting errors in crypttab(5) manpage.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 06 Oct 2009 11:44:16 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 06 Oct 2009 22:36:30 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 

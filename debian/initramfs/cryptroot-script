@@ -69,6 +69,7 @@ parse_options()
 	cryptkey="" # This is only used as an argument to an eventual keyscript
 	crypttries=3
 	cryptrootdev=""
+	CRYPTTAB_OPTIONS=""
 
 	local IFS=" ,"
 	for x in $cryptopts; do
@@ -84,6 +85,7 @@ parse_options()
 			;;
 		target=*)
 			crypttarget=${x#target=}
+			export CRYPTTAB_NAME="$crypttarget"
 			;;
 		source=*)
 			cryptsource=${x#source=}
@@ -92,6 +94,7 @@ parse_options()
 			elif [ ${cryptsource#LABEL=} != $cryptsource ]; then
 				cryptsource="/dev/disk/by-label/${cryptsource#LABEL=}"
 			fi
+			export CRYPTTAB_SOURCE="$cryptsource"
 			;;
 		lvm=*)
 			cryptlvm=${x#lvm=}
@@ -103,6 +106,7 @@ parse_options()
 			if [ "${x#key=}" != "none" ]; then
 				cryptkey=${x#key=}
 			fi
+			export CRYPTTAB_KEY="$cryptkey"
 			;;
 		tries=*)
 			crypttries="${x#tries=}"
@@ -116,7 +120,16 @@ parse_options()
 			cryptrootdev="yes"
 			;;
 		esac
+		PARAM="${x%=*}"
+		if [ "$PARAM" = "$x" ]; then
+			VALUE="yes"
+		else
+			VALUE="${x#*=}"
+		fi
+		CRYPTTAB_OPTIONS="$CRYPTTAB_OPTIONS $PARAM"
+		eval export CRYPTTAB_OPTION_$PARAM="\"$VALUE\""
 	done
+	export CRYPTTAB_OPTIONS
 
 	if [ -z "$cryptsource" ]; then
 		message "cryptsetup: source parameter missing"
