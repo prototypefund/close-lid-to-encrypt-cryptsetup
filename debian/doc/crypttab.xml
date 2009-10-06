@@ -250,13 +250,43 @@
       self-contained (i.e. an executable which does not rely on any external
       program which is not present in the initramfs environment).
      </simpara>
-     <simpara>
-      All crypttab options are available to the keyscript as exported
-      environment variables. A list of exported options is available as
-      $CRYPTTAB_OPTIONS, the options themselves are available as
-      $CRYPTTAB_OPTIONS_&lt;option&gt;, with value set to 1 in case it is
-      a flag.
-     </simpara>
+     <para>
+      All fields of the appropriate crypttab entry are available to the keyscript
+      as exported environment variables:
+      <variablelist>
+       <varlistentry>
+        <term>CRYPTTAB_NAME</term>
+        <listitem><para>
+	 The target name
+        </para></listitem>
+       </varlistentry>
+       <varlistentry>
+        <term>CRYPTTAB_SOURCE</term>
+        <listitem><para>
+	 The source device
+        </para></listitem>
+       </varlistentry>
+       <varlistentry>
+        <term>CRYPTTAB_KEY</term>
+        <listitem><para>
+	 The key file
+        </para></listitem>
+       </varlistentry>
+       <varlistentry>
+        <term>CRYPTTAB_OPTIONS</term>
+        <listitem><para>
+	 A list of exported crypttab options
+        </para></listitem>
+       </varlistentry>
+       <varlistentry>
+        <term>CRYPTTAB_OPTION_&lt;option&gt;</term>
+        <listitem><para>
+	 The value of the appropriate crypttab option, with value set to 'yes'
+         in case the option is merely a flag.
+        </para></listitem>
+       </varlistentry>
+      </variablelist>
+     </para>
     </listitem>
    </varlistentry>
   </variablelist>

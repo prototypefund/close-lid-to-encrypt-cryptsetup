@@ -47,14 +47,12 @@ cryptsetup (2:1.1.0~rc2-1~unreleased) unstable; urgency=low
   * raise build-depends on debhelper and debian/compat for that reason
   * update README.remote to work with latest dropbear package. thanks to
     debian@x.ray.net.
-  * make all crypttab options available to keyscripts: export them as
-    $CRYPTTAB_OPTION_$PARAM with value set to $VALUE, or to 1 in case the
-    option is a flag without value. export a list of exported options as
-    $CRYPTTAB_OPTIONS. thanks to ludwig nussel from suse for idea and
-    implmentation. document this in crypttab(5) manpage.
+  * make all crypttab fields available to keyscripts as environment variables.
+    thanks to ludwig nussel from suse for idea and implmentation. document
+    this in crypttab(5) manpage.
   * fix formatting errors in crypttab(5) manpage.
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 03 Oct 2009 21:20:23 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 06 Oct 2009 11:44:16 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 

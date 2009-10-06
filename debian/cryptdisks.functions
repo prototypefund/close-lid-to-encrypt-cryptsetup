@@ -176,7 +176,7 @@ parse_opts () {
 		esac
 
 		CRYPTTAB_OPTIONS="$CRYPTTAB_OPTIONS $PARAM"
-		[ -z "$VALUE" ] && VALUE="1"
+		[ -z "$VALUE" ] && VALUE="yes"
 		eval export CRYPTTAB_OPTION_$PARAM="\"$VALUE\""
 	done
 	export CRYPTTAB_OPTIONS
@@ -497,12 +497,16 @@ handle_crypttab_line_start () {
 		src="/dev/disk/by-label/${src#LABEL=}"
 	fi
 
+	# Export crypttab fields as environment variables
+	export CRYPTTAB_NAME="$dst"
+	export CRYPTTAB_SOURCE="$src"
+	export CRYPTTAB_KEY="$key"
+
 	# Do the preparatory steps
 	if ! parse_opts "$opts"; then
 		device_msg "$dst" "invalid opts"
 		return 1
 	fi
-
 
 	# Ignore noauto devices
 	if [ "$IGNORE" = "yes" ] && [ -z "$FORCE_START" ]; then
@@ -584,6 +588,11 @@ handle_crypttab_line_stop () {
 		device_msg "$dst" "error"
 		return 1
 	fi
+	
+	# Export crypttab fields as environment variables
+	export CRYPTTAB_NAME="$dst"
+	export CRYPTTAB_SOURCE="$src"
+	export CRYPTTAB_KEY="$key"
 
 	do_close
 
