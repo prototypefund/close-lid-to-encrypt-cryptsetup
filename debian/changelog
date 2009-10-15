@@ -1,4 +1,4 @@
-cryptsetup (2:1.1.0~rc2-1~unreleased) unstable; urgency=low
+cryptsetup (2:1.1.0~rc2-1) unstable; urgency=low
 
   * new upstream release candidate (1.1.0-rc2), highlights include:
     - new libcryptsetup API (documented in libcryptsetup.h)
@@ -52,7 +52,7 @@ cryptsetup (2:1.1.0~rc2-1~unreleased) unstable; urgency=low
     initramfs cryptroot script.
   * fix formatting errors in crypttab(5) manpage.
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 15 Oct 2009 19:09:19 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 15 Oct 2009 19:26:14 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
