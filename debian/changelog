@@ -1,6 +1,5 @@
 cryptsetup (2:1.1.0~rc2-1~unreleased) unstable; urgency=low
 
-  * NOT RELEASED YET
   * new upstream release candidate (1.1.0-rc2), highlights include:
     - new libcryptsetup API (documented in libcryptsetup.h)
     - luksHeaderBackup and luksHeaderRestore commands (closes: #533643)
@@ -8,7 +7,7 @@ cryptsetup (2:1.1.0~rc2-1~unreleased) unstable; urgency=low
       -h luksFormat option (closes: #387159, #537385)
     - new --master-key-file option for luksFormat and luksAddKey
     - use dm-uuid for all crypt devices, contains device type and name now
-      (closes: #548988)
+      (closes: #548988, #549870)
     - command successful messages moved to verbose level (closes: #541805)
     - several code changes to improve speed of luksOpen (closes: #536415)
     - luksSuspend and luksResume commands
@@ -53,7 +52,7 @@ cryptsetup (2:1.1.0~rc2-1~unreleased) unstable; urgency=low
     initramfs cryptroot script.
   * fix formatting errors in crypttab(5) manpage.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 06 Oct 2009 22:36:30 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 15 Oct 2009 19:09:19 +0200
 
 cryptsetup (2:1.0.7-2) unstable; urgency=low
 
