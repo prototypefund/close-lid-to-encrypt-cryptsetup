@@ -53,7 +53,7 @@ do_mount(const char *device, const char *dir)
 	pid_t pid;
 	pid_t wpid;
 	int status;
-	char *fstypes[] = { "ext3", "ext2", "vfat", "reiserfs", "xfs", "isofs", "udf" };
+	char *fstypes[] = { "ext4", "ext3", "ext2", "vfat", "btrfs", "reiserfs", "xfs", "jfs", "ntfs", "iso9660", "udf" };
 	int fsindex;
 
 	if (!device || !dir)
@@ -88,7 +88,7 @@ do_mount(const char *device, const char *dir)
 			open("/dev/null", O_WRONLY, 0);
 			execl("/bin/mount", "/bin/mount", "-n", "-t",
 			      fstypes[fsindex],
-			      /*"ext3,ext2,vfat,reiserfs,xfs,isofs,udf",*/
+			      /*"ext4,ext3,ext2,vfat,btrfs,reiserfs,xfs,jfs,ntfs,iso9660,udf",*/
 			      "-o", "noatime,nodiratime,nodev,noexec,nosuid,ro",
 			      device, dir, (char *)NULL);
 

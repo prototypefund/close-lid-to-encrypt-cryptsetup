@@ -1,3 +1,11 @@
+cryptsetup (2:1.1.0~rc2-2) unstable; urgency=low
+
+  * NOT RELEASED YET
+  * add more supported filesystems to passdev.c, isofs->iso9660. thanks to
+    Christoph Anton Mitterer. (closes: #557405)
+
+ -- Jonas Meurer <mejo@debian.org>  Sun, 13 Dec 2009 16:11:32 +0100
+
 cryptsetup (2:1.1.0~rc2-1) unstable; urgency=low
 
   * new upstream release candidate (1.1.0-rc2), highlights include:
