@@ -1,3 +1,13 @@
+cryptsetup (2:1.1.0-1) unstable; urgency=low
+
+  The default key size for LUKS was changed from 128 to 256 bits, and default
+  plain mode changed to aes-cbc-essiv:sha256.
+  In case that you use plain mode encryption and don't have set cipher and hash
+  in /etc/crypttab, you should do so now. The new defaults are not backwards
+  compatible. See the manpage for crypttab(5) for further information.
+
+ -- Jonas Meurer <mejo@debian.org>  Thu, 04 Feb 2010 19:27:29 +0100
+
 cryptsetup (2:1.0.7-3) unstable; urgency=low
 
   The cryptroot initramfs hook script has been changed to include all
