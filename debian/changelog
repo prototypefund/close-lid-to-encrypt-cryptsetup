@@ -6,11 +6,12 @@ cryptsetup (2:1.1.0-1) unstable; urgency=low
     - default plain mode changed to aes-cbc-essiv:sha256
     - key slot and key diggest iteration minimum set to 1000
     - convert hash name to lower case in header
-  * remove patch 02_manpage, has been incorporated upstream
+  * update patch 02_manpage
   * add more supported filesystems to passdev.c, isofs->iso9660. thanks to
     Christoph Anton Mitterer. (closes: #557405)
+  * update to standards-version 3.8.4, no changes needed
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 04 Feb 2010 23:06:53 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 04 Feb 2010 23:32:58 +0100
 
 cryptsetup (2:1.1.0~rc2-1) unstable; urgency=low
 

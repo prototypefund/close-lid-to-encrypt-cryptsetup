@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Debian Cryptsetup Team <pkg-cryptsetup-devel@lists.alioth.debian.org>
 Uploaders: Jonas Meurer <mejo@debian.org>
 Build-Depends: debhelper (>= 6.0.7~), libgcrypt11-dev, libdevmapper-dev (>= 2:1.02.24-4), libpopt-dev, uuid-dev, libselinux1-dev, libsepol1-dev, gettext, cvs, libtool (>= 2.2), autoconf, automake1.9, quilt (>= 0.40), xsltproc, docbook-xml, docbook-xsl (>= 1.74.3+dfsg)
-Standards-Version: 3.8.3
+Standards-Version: 3.8.4
 Homepage: http://code.google.com/p/cryptsetup/
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-cryptsetup/cryptsetup/trunk
 Vcs-Svn: svn://svn.debian.org/svn/pkg-cryptsetup/cryptsetup/trunk
