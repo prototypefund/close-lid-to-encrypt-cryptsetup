@@ -3,7 +3,7 @@
 #    . /lib/cryptsetup/cryptdisks.functions
 # and should not be executed directly.
 
-PATH="/sbin:/bin"
+PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 TABFILE="/etc/crypttab"
 CRYPTDISKS_ENABLE="Yes"
 

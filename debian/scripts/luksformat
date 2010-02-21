@@ -8,7 +8,7 @@
 # License: GNU General Public License, v2 or any later
 # (http://www.gnu.org/copyleft/gpl.html)
 
-use Getopt::Long;
+use Getopt::Long qw(:config pass_through);
 
 sub help() {
     print "luksformat - Create and format an encrypted LUKS device
@@ -27,7 +27,7 @@ if ($> != 0) {
     exit 1;
 }
 
-$device = $ARGV[0];
+$device = shift(@ARGV);
 
 open(MOUNTS, "/proc/mounts");
 while (<MOUNTS>) {
@@ -69,7 +69,7 @@ if ((system 'cryptsetup', 'luksOpen', $device, $name) != 0) {
     exit 1;
 }
 
-$result = system $mkfs, "/dev/mapper/$name";
+$result = system $mkfs, "/dev/mapper/$name", @ARGV;
 print "\n";
 system 'cryptsetup', 'luksClose', $name;
 
@@ -83,7 +83,7 @@ luksformat - Create and format an encrypted LUKS device
 
 =head1 SYNOPSIS
 
-B<luksformat> [B<-t> I<fstype>] I<device>
+B<luksformat> [B<-t> I<fstype>] I<device> [ mkfs options ]
 
 =head1 DESCRIPTION
 

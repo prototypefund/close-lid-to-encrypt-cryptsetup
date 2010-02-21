@@ -11,8 +11,14 @@ cryptsetup (2:1.1.0-1) unstable; urgency=low
     Christoph Anton Mitterer. (closes: #557405)
   * update to standards-version 3.8.4, no changes needed
   * accept spaces in $opts at postinst script. (closes: #559184)
+  * set extended $PATH in cryptdisks.functions. thanks to christoph anton
+    mitterer. (closes: #557329)
+  * fix huge initramfs for archs which don't have kernel/arch directory.
+    thanks to martin michlmayr for bugreport and patch. (closes: #559510)
+  * support commandline options to mkfs in luksformat. thanks to eduard
+    bloch for bugreport and patch. (closes: #563975)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 17 Feb 2010 12:44:24 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 21 Feb 2010 12:51:25 +0100
 
 cryptsetup (2:1.1.0~rc2-1) unstable; urgency=low
 
