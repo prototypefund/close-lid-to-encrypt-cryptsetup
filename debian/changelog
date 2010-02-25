@@ -17,8 +17,13 @@ cryptsetup (2:1.1.0-1) unstable; urgency=low
     thanks to martin michlmayr for bugreport and patch. (closes: #559510)
   * support commandline options to mkfs in luksformat. thanks to eduard
     bloch for bugreport and patch. (closes: #563975)
+  * extend error messages for evms setup in cryptroot-script
+  * add 03_luksAddKey.patch, to not verify unlocking passphrase in luksAddKey
+    command. (closes: #570418)
+  * add 04_crypto_init.patch, to properly initialise crypto backend in header
+    backup/restore commands.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 21 Feb 2010 12:51:25 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 25 Feb 2010 17:17:26 +0100
 
 cryptsetup (2:1.1.0~rc2-1) unstable; urgency=low
 
