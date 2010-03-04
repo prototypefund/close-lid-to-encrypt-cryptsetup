@@ -22,8 +22,9 @@ cryptsetup (2:1.1.0-1) unstable; urgency=low
     command. (closes: #570418)
   * add 04_crypto_init.patch, to properly initialise crypto backend in header
     backup/restore commands.
+  * change build-dependency on cvs to new autopoint package.
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 25 Feb 2010 17:17:26 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 04 Mar 2010 13:00:19 +0100
 
 cryptsetup (2:1.1.0~rc2-1) unstable; urgency=low
 
