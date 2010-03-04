@@ -122,22 +122,24 @@ install-stamp: build-stamp
 	install -m 0755 debian/scripts/decrypt_* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
 	install -m 0755 debian/scripts/passdev $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
 	install -m 0755 debian/askpass $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
+	install -m 0755 debian/initramfs/cryptgnupg-hook \
+		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptgnupg
 	install -m 0755 debian/initramfs/cryptpassdev-hook \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptpassdev
+	install -m 0755 debian/initramfs/cryptopensc-hook \
+		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptopensc
+	install -m 0755 debian/initramfs/cryptopensc-script-local-bottom \
+		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-bottom/cryptopensc
+	install -m 0755 debian/initramfs/cryptopensc-script-local-top \
+		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-top/cryptopensc
+	install -m 0755 debian/initramfs/cryptopenct-hook \
+		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptopenct
 	install -m 0755 debian/initramfs/cryptroot-hook \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptroot
 	install -m 0755 debian/initramfs/cryptroot-script \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-top/cryptroot
 	install -m 0644 debian/initramfs/cryptroot-conf \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/conf-hooks.d/cryptsetup
-	install -m 0755 debian/initramfs/cryptopenct-hook \
-		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptopenct
-	install -m 0755 debian/initramfs/cryptopensc-hook \
-		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptopensc
-	install -m 0755 debian/initramfs/cryptopensc-script-local-top \
-		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-top/cryptopensc
-	install -m 0755 debian/initramfs/cryptopensc-script-local-bottom \
-		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-bottom/cryptopensc
 
 	install -m 0644 debian/cryptsetup.bash_completion \
 		$(CURDIR)/debian/cryptsetup/etc/bash_completion.d/cryptsetup

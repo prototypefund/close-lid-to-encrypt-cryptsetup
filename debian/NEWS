@@ -6,7 +6,12 @@ cryptsetup (2:1.1.0-1) unstable; urgency=low
   in /etc/crypttab, you should do so now. The new defaults are not backwards
   compatible. See the manpage for crypttab(5) for further information.
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 04 Feb 2010 19:27:29 +0100
+  Additionally, the keyscript decrypt_gpg, which was disabled by default up to
+  now, has been rewritten and renamed to decrypt_gnupg. If you use a customized
+  version of the decrypt_gpg keyscript, please backup it before upgrading the
+  package.
+
+ -- Jonas Meurer <mejo@debian.org>  Thu, 04 Mar 2010 17:31:40 +0100
 
 cryptsetup (2:1.0.7-3) unstable; urgency=low
 

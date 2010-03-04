@@ -22,9 +22,13 @@ cryptsetup (2:1.1.0-1) unstable; urgency=low
     command. (closes: #570418)
   * add 04_crypto_init.patch, to properly initialise crypto backend in header
     backup/restore commands.
-  * change build-dependency on cvs to new autopoint package.
+  * change build-dependency on cvs to new autopoint package (closes: #572463)
+  * rename decrypt_gpg keyscript to decrypt_gnupg, improve it based on ideas
+    by Christoph Anton Mitterer, mention the keyscript rename in NEWS.Debian.
+    Also, provide a initramfs cryptgnupg hook script. Thanks to Christoph
+    Anton Mitterer for bugreport and ideas. (closes: #560034)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 04 Mar 2010 13:00:19 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 04 Mar 2010 17:33:22 +0100
 
 cryptsetup (2:1.1.0~rc2-1) unstable; urgency=low
 
