@@ -25,6 +25,11 @@ fi
 
 LOUD="yes"
 
+if [ "$(/usr/bin/whoami)" != "root" ]; then
+	log_warning_msg "$0 needs root privileges"
+	exit 1
+fi
+
 log_action_begin_msg "Stopping crypto disk"
 
 count=0
