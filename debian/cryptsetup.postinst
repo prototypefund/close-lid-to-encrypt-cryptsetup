@@ -18,6 +18,7 @@ case "$1" in
 	fi
 
 	# Do a number of checks on the currently installed crypttab
+	
 	egrep -v "^[[:space:]]*(#|$)" /etc/crypttab | while read dst src key opts; do
 		if [ -z "$dst" ]; then
 			continue
@@ -38,6 +39,7 @@ case "$1" in
 					echo "WARNING: $dst in /etc/crypttab uses the deprecated gpg option, see man crypttab(5)." >&2
 				fi
 			done
+			unset IFS
 		fi
 
 	done
