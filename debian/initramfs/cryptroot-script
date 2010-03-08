@@ -174,7 +174,7 @@ activate_evms()
 	dev="${1#/dev/evms/}"
 
 	# Sanity checks
-	if [ ! -x /sbin/evms_activate ]; 
+	if [ ! -x /sbin/evms_activate ]; then
 		message "cryptsetup: evmc_activate is not available"
 		return 1
 	elif [ "$dev" = "$1" ]; then
