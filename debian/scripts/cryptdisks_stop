@@ -25,7 +25,7 @@ fi
 
 LOUD="yes"
 
-if [ "$(/usr/bin/whoami)" != "root" ]; then
+if [ "$EUID" != "0" ]; then
 	log_warning_msg "$0 needs root privileges"
 	exit 1
 fi
