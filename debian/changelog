@@ -2,12 +2,12 @@ cryptsetup (2:1.1.0-2) UNRELEASED; urgency=low
 
   * fix version in NEWS.Debian: 2:1.1.0~rc2-1 instead of 2:1.0.7-3.
   * remove 'NOT RELEASED YET' from 2:1.1.0-1 changelog
+  * capitalize names in changelog
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 08 Mar 2010 20:39:31 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 09 Mar 2010 00:07:54 +0100
 
 cryptsetup (2:1.1.0-1) unstable; urgency=low
 
-  * NOT RELEASED YET
   * new upstream stable release (1.1.0), notable changes since rc2:
     - default key size for LUKS changed from 128 to 256 bits
     - default plain mode changed to aes-cbc-essiv:sha256
@@ -18,12 +18,12 @@ cryptsetup (2:1.1.0-1) unstable; urgency=low
     Christoph Anton Mitterer. (closes: #557405)
   * update to standards-version 3.8.4, no changes needed
   * accept spaces in $opts at postinst script. (closes: #559184)
-  * set extended $PATH in cryptdisks.functions. thanks to christoph anton
-    mitterer. (closes: #557329)
+  * set extended $PATH in cryptdisks.functions. thanks to Christoph Anton
+    Mitterer. (closes: #557329)
   * fix huge initramfs for archs which don't have kernel/arch directory.
     thanks to martin michlmayr for bugreport and patch. (closes: #559510)
-  * support commandline options to mkfs in luksformat. thanks to eduard
-    bloch for bugreport and patch. (closes: #563975)
+  * support commandline options to mkfs in luksformat. thanks to Eduard
+    Bloch for bugreport and patch. (closes: #563975)
   * extend error messages for evms setup in cryptroot-script
   * add 03_luksAddKey.patch, to not verify unlocking passphrase in luksAddKey
     command. (closes: #570418)
