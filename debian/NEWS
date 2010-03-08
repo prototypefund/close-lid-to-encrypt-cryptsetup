@@ -13,7 +13,7 @@ cryptsetup (2:1.1.0-1) unstable; urgency=low
 
  -- Jonas Meurer <mejo@debian.org>  Thu, 04 Mar 2010 17:31:40 +0100
 
-cryptsetup (2:1.0.7-3) unstable; urgency=low
+cryptsetup (2:1.1.0~rc2-1) unstable; urgency=low
 
   The cryptroot initramfs hook script has been changed to include all
   available crypto kernel modules in case that initramfs-tools is configured
