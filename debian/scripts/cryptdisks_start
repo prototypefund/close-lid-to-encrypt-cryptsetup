@@ -24,7 +24,7 @@ fi
 
 LOUD="yes"
 
-if [ "$EUID" != "0" ]; then
+if [ "$USER" != "root" ]; then
 	log_warning_msg "$0 needs root privileges"
 	exit 1
 fi
