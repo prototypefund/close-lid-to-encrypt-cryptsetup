@@ -29,10 +29,10 @@ case "$1" in
 		else
 			# Strip comments - https://bugs.launchpad.net/bugs/185380
 			opts=$(echo -n $opts | sed 's/ *#.*//')
+			plainopts="0"
 			IFS=','
 			for opt in $opts; do
 				PARAM=$(echo "$opt" | sed 's/=.*//')
-				plainopts="0"
 				case "$PARAM" in
 				# Some options are deprecated
 				gpg)
