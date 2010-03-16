@@ -31,14 +31,27 @@ case "$1" in
 			opts=$(echo -n $opts | sed 's/ *#.*//')
 			IFS=','
 			for opt in $opts; do
-				opt=$(echo "$opt" | sed 's/=.*//')
+				PARAM=$(echo "$opt" | sed 's/=.*//')
+				plainopts="0"
+				case "$PARAM" in
 				# Some options are deprecated
-				if [ "$opt" = "ssl" ]; then
-					echo "WARNING: $dst in /etc/crypttab uses the deprecated ssl option, see man crypttab(5)." >&2
-				elif [ "$opt" = "gpg" ]; then
+				gpg)
 					echo "WARNING: $dst in /etc/crypttab uses the deprecated gpg option, see man crypttab(5)." >&2
-				fi
+					;;
+				ssl)
+					echo "WARNING: $dst in /etc/crypttab uses the deprecated ssl option, see man crypttab(5)." >&2
+					;;
+				luks)
+					plainopts="3"
+					;;
+				cipher|hash|size)
+					plainopts="$(($plainopts+1))"
+					;;
+				esac
 			done
+			if [ "$plainopts" -lt "3" ]; then
+				echo "WARNING: you need to set all of cipher, hash and size for the plain dm-crypt mapping $dst in /etc/crypttab." >&2
+			fi
 			unset IFS
 		fi
 

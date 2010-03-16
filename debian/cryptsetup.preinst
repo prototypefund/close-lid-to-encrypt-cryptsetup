@@ -28,17 +28,17 @@ rm_conffile() {
 	fi
 }
 
-LASTVERSION="2:1.0.6-5"
+VERSION_UDEV="2:1.0.6-5"
 case "$1" in
 	install)
 		create_crypttab
-		if dpkg --compare-versions "$2" le "$LASTVERSION"; then
+		if dpkg --compare-versions "$2" le "$VERSION_UDEV"; then
 			rm_conffile cryptsetup "/etc/udev/rules.d/z60_cryptsetup.rules"
 		fi
 	;;
 
 	upgrade)
-		if dpkg --compare-versions "$2" le "$LASTVERSION"; then
+		if dpkg --compare-versions "$2" le "$VERSION_UDEV"; then
 			rm_conffile cryptsetup "/etc/udev/rules.d/z60_cryptsetup.rules"
 		fi
 	;;

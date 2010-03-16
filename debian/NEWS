@@ -1,10 +1,11 @@
 cryptsetup (2:1.1.0-1) unstable; urgency=low
 
   The default key size for LUKS was changed from 128 to 256 bits, and default
-  plain mode changed to aes-cbc-essiv:sha256.
+  plain mode changed from aes-cbc-plain to aes-cbc-essiv:sha256.
   In case that you use plain mode encryption and don't have set cipher and hash
   in /etc/crypttab, you should do so now. The new defaults are not backwards
-  compatible. See the manpage for crypttab(5) for further information.
+  compatible. See the manpage for crypttab(5) for further information. If your
+  dm-crypt setup was done by debian-installer, you can ignore that warning.
 
   Additionally, the keyscript decrypt_gpg, which was disabled by default up to
   now, has been rewritten and renamed to decrypt_gnupg. If you use a customized
@@ -189,3 +190,19 @@ cryptsetup (2:1.0.6-8) unstable; urgency=medium
   
 
  -- Jonas Meurer <mejo@debian.org>  Tue, 23 Dec 2008 00:43:10 +0100
+cryptsetup (2:1.1.0-2) unstable; urgency=low
+
+  The default key size for LUKS was changed from 128 to 256 bits, and default
+  plain mode changed to aes-cbc-essiv:sha256.
+  In case that you use plain mode encryption and don't have set cipher and hash
+  in /etc/crypttab, you should do so now. The new defaults are not backwards
+  compatible. See the manpage for crypttab(5) for further information.
+
+  Additionally, the keyscript decrypt_gpg, which was disabled by default up to
+  now, has been rewritten and renamed to decrypt_gnupg. If you use a customized
+  version of the decrypt_gpg keyscript, please backup it before upgrading the
+  package.
+
+  
+
+ -- Jonas Meurer <mejo@debian.org>  Tue, 16 Mar 2010 13:06:26 +0100
