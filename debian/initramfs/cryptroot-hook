@@ -397,9 +397,9 @@ add_device() {
 			fi
 
 			if [ -e "/lib/cryptsetup/scripts/$KEYSCRIPT" ]; then
-				copy_exec "/lib/cryptsetup/scripts/$KEYSCRIPT" /lib/cryptsetup/scripts
+				copy_exec "/lib/cryptsetup/scripts/$KEYSCRIPT" /lib/cryptsetup/scripts >&2
 			elif [ -e "$KEYSCRIPT" ]; then
-				copy_exec "$KEYSCRIPT" /lib/cryptsetup/scripts
+				copy_exec "$KEYSCRIPT" /lib/cryptsetup/scripts >&2
 			else
 				echo "cryptsetup: WARNING: failed to find keyscript $KEYSCRIPT" >&2
 				continue

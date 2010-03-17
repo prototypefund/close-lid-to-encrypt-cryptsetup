@@ -1,3 +1,11 @@
+cryptsetup (2:1.1.0-3) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+  * redirect output of copy_exec in add_device() from initramfs cryptroot
+    hook to stderr. fixes verbose run of mkinitramfs. (closes: #574163)
+
+ -- Jonas Meurer <mejo@debian.org>  Thu, 18 Mar 2010 00:06:05 +0100
+
 cryptsetup (2:1.1.0-2) unstable; urgency=low
 
   * fix version in NEWS.Debian: 2:1.1.0~rc2-1 instead of 2:1.0.7-3.
