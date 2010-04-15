@@ -3,8 +3,21 @@ cryptsetup (2:1.1.0-3) UNRELEASED; urgency=low
   * NOT RELEASED YET
   * redirect output of copy_exec in add_device() from initramfs cryptroot
     hook to stderr. fixes verbose run of mkinitramfs. (closes: #574163)
+  * acknowledge NMU. thanks to maximilian attems. (closes: #576488)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 18 Mar 2010 00:06:05 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 15 Apr 2010 17:22:56 +0200
+
+cryptsetup (2:1.1.0-2.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+
+  [ Martin Pitt ]
+   * debian/initramfs/cryptroot-script: (closes: #576488)
+     - Source /scripts/functions after checking for prerequisites.
+     - prereqs(): Do not assume we are running within initramfs, and calculate
+       relative path correctly.
+
+ -- maximilian attems <maks@debian.org>  Thu, 08 Apr 2010 01:37:17 +0200
 
 cryptsetup (2:1.1.0-2) unstable; urgency=low
 
