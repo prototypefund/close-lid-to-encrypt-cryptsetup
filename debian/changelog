@@ -11,8 +11,12 @@ cryptsetup (2:1.1.1~rc1-1) UNRELEASED; urgency=low
   * acknowledge NMU. thanks to maximilian attems. (closes: #576488)
   * change default for random key from /dev/random to /dev/urandom in
     README.Debian, extend explanation. (closes: #579932)
+  * add comment to crypttab manpage about how to disable (pre)checks.
+    (closes: #574948)
+  * fix cryptdisks.functions to print cryptsource and crypttarget again at
+    the passphrase prompt. (closes: #578428)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 03 May 2010 00:36:45 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 03 May 2010 01:36:49 +0200
 
 cryptsetup (2:1.1.0-2.1) unstable; urgency=low
 

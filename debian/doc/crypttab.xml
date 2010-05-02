@@ -172,7 +172,10 @@
     <listitem>
      <simpara>Check the source device by suitable program; if the check fails,
       the device is not created; &lt;precheck&gt; is a script to check the
-      source device. The sourcedevice is given as an argument to the script.
+      source device. The source device is given as an argument to the script.
+      Precheck has no effect for LUKS devices, as these are checked with isLUKS
+      anyway.
+      Set to "/bin/true" in order to completely disable prechecks.
      </simpara>
     </listitem>
    </varlistentry>
@@ -187,6 +190,7 @@
       argument. Cryptdisks searches for the given program in
       <filename class="directory">/lib/cryptsetup/checks/</filename>.
       Default is <filename>blkid</filename>.
+      Set to "/bin/true" in order to completely disable checks.
      </simpara>
     </listitem>
    </varlistentry>
