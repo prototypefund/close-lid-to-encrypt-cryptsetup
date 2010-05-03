@@ -15,8 +15,11 @@ cryptsetup (2:1.1.1~rc1-1) UNRELEASED; urgency=low
   * fix cryptdisks.functions to print cryptsource and crypttarget again at
     the passphrase prompt. (closes: #578428)
   * reorder build-depends, add pkg-config, change automake1.9 to automake
+  * add new lintian overrides
+  * switch to new dpkg source format "3.0 (quilt)"
+  * add ${misc:Depends} to depends for libcryptsetup-dev
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 03 May 2010 15:40:59 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 03 May 2010 15:57:05 +0200
 
 cryptsetup (2:1.1.0-2.1) unstable; urgency=low
 

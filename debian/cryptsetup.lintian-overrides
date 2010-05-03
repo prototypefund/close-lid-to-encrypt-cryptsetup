@@ -1,2 +1,8 @@
 cryptsetup: init.d-script-possible-missing-stop /etc/init.d/cryptdisks 1
 cryptsetup: init.d-script-possible-missing-stop /etc/init.d/cryptdisks-early 1
+cryptsetup: init.d-script-missing-dependency-on-remote_fs /etc/init.d/cryptdisks: required-start
+cryptsetup: init.d-script-missing-dependency-on-remote_fs /etc/init.d/cryptdisks: required-stop
+cryptsetup: init.d-script-missing-dependency-on-remote_fs /etc/init.d/cryptdisks-early: required-start
+cryptsetup: init.d-script-missing-dependency-on-remote_fs /etc/init.d/cryptdisks-early: required-stop
+cryptsetup: init.d-script-should-depend-on-virtual-facility /etc/init.d/cryptdisks checkroot -> $local_fs
+cryptsetup: init.d-script-should-depend-on-virtual-facility /etc/init.d/cryptdisks-early checkroot -> $local_fs
