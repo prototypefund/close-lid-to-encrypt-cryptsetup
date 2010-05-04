@@ -18,8 +18,10 @@ cryptsetup (2:1.1.1~rc2-1) UNRELEASED; urgency=low
   * add new lintian overrides
   * switch to new dpkg source format "3.0 (quilt)"
   * add ${misc:Depends} to depends for libcryptsetup-dev
+  * remove UID checks from initscripts, as these aren't meant to be invoked by
+    users anyway, and the UID checks introduced dependency on /usr filesystem.
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 03 May 2010 17:53:13 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 05 May 2010 00:10:03 +0200
 
 cryptsetup (2:1.1.0-2.1) unstable; urgency=low
 
