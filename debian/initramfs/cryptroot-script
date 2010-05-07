@@ -175,7 +175,7 @@ activate_evms()
 
 	# Sanity checks
 	if [ ! -x /sbin/evms_activate ]; then
-		message "cryptsetup: evmc_activate is not available"
+		message "cryptsetup: evms_activate is not available"
 		return 1
 	elif [ "$dev" = "$1" ]; then
 		message "cryptsetup: evms device name ($vg) does not begin with /dev/evms/"
