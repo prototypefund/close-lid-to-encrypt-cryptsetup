@@ -193,4 +193,9 @@ on the device as the key (without any hashing) as the key for the fs.
 
 The timeout option has to be in seconds.
 
+If any modules are required in order to mount the filesystem on the removable
+device, then initramfs-tools needs to be configured to add these modules to
+the initramfs. This can be done by listing the required modules in
+/etc/initramfs-tools/modules.
+
 -- David Härdeman <david@hardeman.nu>
