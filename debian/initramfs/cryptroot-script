@@ -335,7 +335,7 @@ setup_mapping()
 			continue
 		fi
 
-		message "cryptsetup: $crypttarget setup successfully"
+		message "cryptsetup: $crypttarget set up successfully"
 		break
 	done
 
