@@ -25,8 +25,9 @@ cryptsetup (2:1.1.1~rc2-1) UNRELEASED; urgency=low
     in README.initramfs (closes: #580898)
   * merged from ubuntu:
     - Fix grammar error in debian/initramfs/cryptroot-script (closes: #581973)
+  * add busybox to suggests, thanks to martin michlmayr. (closes: #582914)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 17 May 2010 15:56:15 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 25 May 2010 12:05:18 +0200
 
 cryptsetup (2:1.1.0-2.1) unstable; urgency=low
 

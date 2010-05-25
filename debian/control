@@ -12,7 +12,7 @@ Vcs-Svn: svn://svn.debian.org/svn/pkg-cryptsetup/cryptsetup/trunk
 Package: cryptsetup
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, dmsetup
-Suggests: udev, initramfs-tools (>= 0.91) | linux-initramfs-tool, dosfstools
+Suggests: udev, initramfs-tools (>= 0.91) | linux-initramfs-tool, busybox, dosfstools
 Conflicts: cryptsetup-luks (<= 1.0.1-8), hashalot (<= 0.3-1)
 Replaces: cryptsetup-luks (<= 1.0.1-8)
 Description: configures encrypted block devices
