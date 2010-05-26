@@ -1,4 +1,4 @@
-cryptsetup (2:1.1.1-1) UNRELEASED; urgency=low
+cryptsetup (2:1.1.1-1) unstable; urgency=low
 
   * new upstream release, changes include:
     - detects and uses device-mapper udev support if available
@@ -17,7 +17,7 @@ cryptsetup (2:1.1.1-1) UNRELEASED; urgency=low
     the passphrase prompt. (closes: #578428)
   * reorder build-depends, add pkg-config, change automake1.9 to automake
   * add new lintian overrides
-  * switch to new dpkg source format "3.0 (quilt)"
+  * switch to new dpkg source format "3.0 (quilt)", use upstream bzip tarball
   * add ${misc:Depends} to depends for libcryptsetup-dev
   * remove UID checks from initscripts, as these aren't meant to be invoked by
     users anyway, and the UID checks introduced dependency on /usr filesystem.
@@ -28,7 +28,7 @@ cryptsetup (2:1.1.1-1) UNRELEASED; urgency=low
     - Fix grammar error in debian/initramfs/cryptroot-script (closes: #581973)
   * add busybox to suggests, thanks to martin michlmayr. (closes: #582914)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 26 May 2010 23:17:31 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 26 May 2010 23:38:01 +0200
 
 cryptsetup (2:1.1.0-2.1) unstable; urgency=low
 
