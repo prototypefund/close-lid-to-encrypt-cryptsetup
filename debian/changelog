@@ -1,9 +1,10 @@
-cryptsetup (2:1.1.1~rc2-1) UNRELEASED; urgency=low
+cryptsetup (2:1.1.1-1) UNRELEASED; urgency=low
 
-  * new upstream release candidate, changes include:
+  * new upstream release, changes include:
     - detects and uses device-mapper udev support if available
     - fix luksOpen reading of passphrase on stdin if "-" keyfile specified
     - fix isLuks to initialise crypto backend (closes: #578979)
+    - fix luksClose operation for stacked DM devices
   * remove all patches, they have all been merged upstream
   * redirect output of copy_exec in add_device() from initramfs cryptroot
     hook to stderr. fixes verbose run of mkinitramfs. (closes: #574163)
@@ -27,7 +28,7 @@ cryptsetup (2:1.1.1~rc2-1) UNRELEASED; urgency=low
     - Fix grammar error in debian/initramfs/cryptroot-script (closes: #581973)
   * add busybox to suggests, thanks to martin michlmayr. (closes: #582914)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 25 May 2010 12:05:18 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 26 May 2010 23:17:31 +0200
 
 cryptsetup (2:1.1.0-2.1) unstable; urgency=low
 
