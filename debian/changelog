@@ -12,8 +12,9 @@ cryptsetup (2:1.1.1-2) UNRELEASED; urgency=low
     - debian/initramfs/cryptroot-script: Don't leak /conf/conf.d/cryptroot
       file descriptor to subprocesses.
   * sync list of supported filesystems in passdev.c and cryptpassdev-hook
+  * fix debian/watch file to work with updated code.google.com download page
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 27 May 2010 15:00:27 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 27 May 2010 15:14:12 +0200
 
 cryptsetup (2:1.1.1-1) unstable; urgency=low
 
