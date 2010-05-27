@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# source for log_*_msg() functions, see LP: #272301
-. /scripts/functions
 
 #
 # Standard initramfs preamble
@@ -9,7 +7,7 @@
 prereqs()
 {
 	# Make sure that cryptroot is run last in local-top
-	for req in /scripts/local-top/*; do
+	for req in $(dirname $0)/*; do
 		script=${req##*/}
 		if [ $script != cryptroot ]; then
 			echo $script
@@ -24,6 +22,8 @@ prereqs)
 	;;
 esac
 
+# source for log_*_msg() functions, see LP: #272301
+. /scripts/functions
 
 #
 # Helper functions
@@ -175,7 +175,7 @@ activate_evms()
 
 	# Sanity checks
 	if [ ! -x /sbin/evms_activate ]; then
-		message "cryptsetup: evmc_activate is not available"
+		message "cryptsetup: evms_activate is not available"
 		return 1
 	elif [ "$dev" = "$1" ]; then
 		message "cryptsetup: evms device name ($vg) does not begin with /dev/evms/"
@@ -335,7 +335,7 @@ setup_mapping()
 			continue
 		fi
 
-		message "cryptsetup: $crypttarget setup successfully"
+		message "cryptsetup: $crypttarget set up successfully"
 		break
 	done
 

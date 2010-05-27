@@ -1,10 +1,46 @@
-cryptsetup (2:1.1.0-3) UNRELEASED; urgency=low
+cryptsetup (2:1.1.1-1) unstable; urgency=low
 
-  * NOT RELEASED YET
+  * new upstream release, changes include:
+    - detects and uses device-mapper udev support if available
+    - fix luksOpen reading of passphrase on stdin if "-" keyfile specified
+    - fix isLuks to initialise crypto backend (closes: #578979)
+    - fix luksClose operation for stacked DM devices
+  * remove all patches, they have all been merged upstream
   * redirect output of copy_exec in add_device() from initramfs cryptroot
     hook to stderr. fixes verbose run of mkinitramfs. (closes: #574163)
+  * acknowledge NMU. thanks to maximilian attems. (closes: #576488)
+  * change default for random key from /dev/random to /dev/urandom in
+    README.Debian, extend explanation. (closes: #579932)
+  * add comment to crypttab manpage about how to disable (pre)checks.
+    (closes: #574948)
+  * fix cryptdisks.functions to print cryptsource and crypttarget again at
+    the passphrase prompt. (closes: #578428)
+  * reorder build-depends, add pkg-config, change automake1.9 to automake
+  * add new lintian overrides
+  * switch to new dpkg source format "3.0 (quilt)", use upstream bzip tarball
+  * add ${misc:Depends} to depends for libcryptsetup-dev
+  * remove UID checks from initscripts, as these aren't meant to be invoked by
+    users anyway, and the UID checks introduced dependency on /usr filesystem.
+  * use grep -s for /etc/fstab in initramfs/cryptroot-hook. (closes: #580756)
+  * note that fs modules fore passdev devices need to be added to initramfs
+    in README.initramfs (closes: #580898)
+  * merged from ubuntu:
+    - Fix grammar error in debian/initramfs/cryptroot-script (closes: #581973)
+  * add busybox to suggests, thanks to martin michlmayr. (closes: #582914)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 18 Mar 2010 00:06:05 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 26 May 2010 23:38:01 +0200
+
+cryptsetup (2:1.1.0-2.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+
+  [ Martin Pitt ]
+   * debian/initramfs/cryptroot-script: (closes: #576488)
+     - Source /scripts/functions after checking for prerequisites.
+     - prereqs(): Do not assume we are running within initramfs, and calculate
+       relative path correctly.
+
+ -- maximilian attems <maks@debian.org>  Thu, 08 Apr 2010 01:37:17 +0200
 
 cryptsetup (2:1.1.0-2) unstable; urgency=low
 

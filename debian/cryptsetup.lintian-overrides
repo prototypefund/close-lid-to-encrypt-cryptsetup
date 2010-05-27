@@ -1,2 +1,4 @@
 cryptsetup: init.d-script-possible-missing-stop /etc/init.d/cryptdisks 1
 cryptsetup: init.d-script-possible-missing-stop /etc/init.d/cryptdisks-early 1
+cryptsetup: init.d-script-should-depend-on-virtual-facility /etc/init.d/cryptdisks checkroot -> $local_fs
+cryptsetup: init.d-script-should-depend-on-virtual-facility /etc/init.d/cryptdisks-early checkroot -> $local_fs

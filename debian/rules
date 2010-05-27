@@ -35,11 +35,8 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 	MAKEFLAGS += -j$(NUMJOBS)
 endif
 
-# Include quilt stuff.
-include /usr/share/quilt/quilt.make
-
 configure: configure-stamp
-configure-stamp: $(QUILT_STAMPFN)
+configure-stamp:
 	dh_testdir
 	find -xtype f ! -name manifest > manifest
 	autoreconf --force --install
@@ -72,7 +69,7 @@ build-stamp: configure-stamp
 	gcc -Wall -pedantic -std=c99 debian/passdev.c -o debian/scripts/passdev
 	touch $@
 
-clean: unpatch
+clean:
 	dh_testdir
 	dh_testroot
 	if test -f Makefile; then $(MAKE) clean; fi
@@ -177,4 +174,4 @@ binary-arch: build install
 	dh_builddeb -a
 
 binary: binary-indep binary-arch
-.PHONY: configure build clean install binary-indep binary-arch binary patch unpatch
+.PHONY: configure build clean install binary-indep binary-arch binary

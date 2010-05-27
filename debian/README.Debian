@@ -59,7 +59,7 @@ swapoff -a
  You'll have to add an entry for every swap partition in /etc/crypttab. Be
 sure toeplace the source device (here /dev/hda9) with your swap devices:
 # <target name> <source device>	<key file>	<options>
-cswap1		/dev/hda9	/dev/random	swap,cipher=aes-cbc-essiv:sha256,size=256,hash=sha256
+cswap1		/dev/hda9	/dev/urandom	swap,cipher=aes-cbc-essiv:sha256,size=256,hash=sha256
 
  Now you need to change the swap devices in /etc/fstab to the encrypted swap
 device names (/dev/mapper/cswap1 in this example).
@@ -78,9 +78,11 @@ becomes
 /etc/init.d/cryptdisks start
 swapon -a
 
- That's it! You have a crypted swap device. Note that /dev/random as source
-for your keyfile in /etc/crypttab might not generate enough random bytes.
-If you're in doubt, you can use the (less secure) device /dev/urandom instead.
+ That's it! You have a crypted swap device. Note that /dev/urandom provides
+only pseudo-random entropy. So if you're paranoid rather use /dev/random as
+source for random data. Be aware though that /dev/random might not provide
+enough random bytes for your key, causing your system to hang at boot, waiting
+for more entropy. Moving mouse and keyboard typing might help in this case.
 
  Read the crypttab(5) manpage for more information, for example options to use
 a different encryption algorithm than the default.

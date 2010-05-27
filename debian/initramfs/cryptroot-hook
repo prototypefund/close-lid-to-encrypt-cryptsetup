@@ -23,7 +23,7 @@ get_root_device() {
 		return 1
 	fi
 
-	grep '^[^#]' /etc/fstab | \
+	grep -s '^[^#]' /etc/fstab | \
 	while read device mount type options dump pass; do
 		if [ "$mount" = "/" ]; then
 			echo "$device"
