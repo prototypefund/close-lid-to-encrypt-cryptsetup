@@ -1,6 +1,5 @@
 cryptsetup (2:1.1.1-2) UNRELEASED; urgency=low
 
-  * NOT RELEASED YET
   * merged from ubuntu:
     - if plymouth is present in the initramfs, use this directly, bypassing
       the cryptsetup askpass script
@@ -13,8 +12,9 @@ cryptsetup (2:1.1.1-2) UNRELEASED; urgency=low
       file descriptor to subprocesses.
   * sync list of supported filesystems in passdev.c and cryptpassdev-hook
   * fix debian/watch file to work with updated code.google.com download page
+  * stop building and shipping static libs (closes: #583387, #583471)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 27 May 2010 15:14:12 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 28 May 2010 00:42:29 +0200
 
 cryptsetup (2:1.1.1-1) unstable; urgency=low
 

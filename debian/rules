@@ -44,8 +44,8 @@ configure-stamp:
 		--prefix=/usr \
 		--sbindir=/sbin \
 		--mandir=/usr/share/man \
-		--enable-shared \
-		--enable-static
+		--enable-shared
+		#--enable-static
 	find -xtype f > manifest.new
 	diff manifest manifest.new | grep '>' | cut -b3- > config.mess
 	touch $@
@@ -96,8 +96,8 @@ install-stamp: build-stamp
 	# Copy library files to library packages
 	#cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.la \
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
-	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.a \
-		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
+	#cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.a \
+	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
 	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.so \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
 	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/pkgconfig/libcryptsetup.pc \
