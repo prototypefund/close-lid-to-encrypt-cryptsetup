@@ -30,7 +30,9 @@ esac
 #
 message()
 {
-	if [ -p /dev/.initramfs/usplash_outfifo ] && [ -x /sbin/usplash_write ]; then
+	if [ -x /bin/plymouth ] && plymouth --ping; then
+		plymouth message --text="$@"
+	elif [ -p /dev/.initramfs/usplash_outfifo ] && [ -x /sbin/usplash_write ]; then
 		usplash_write "TEXT-URGENT $@"
 	else
 		echo "$@" >&2
@@ -290,8 +292,13 @@ setup_mapping()
 		fi
 
 		if [ -z "$cryptkeyscript" ]; then
-			cryptkeyscript="/lib/cryptsetup/askpass"
 			cryptkey="Unlocking the disk $cryptsource ($crypttarget)\nEnter passphrase: "
+			if [ -x /bin/plymouth ] && plymouth --ping; then
+				cryptkeyscript="plymouth ask-for-password --prompt"
+				cryptkey=$(echo -e "$cryptkey")
+			else
+				cryptkeyscript="/lib/cryptsetup/askpass"
+			fi
 		fi
 
 
@@ -365,7 +372,7 @@ fi
 # Do we have any settings from the /conf/conf.d/cryptroot file?
 if [ -r /conf/conf.d/cryptroot ]; then
 	while read mapping <&3; do
-		setup_mapping "$mapping"
+		setup_mapping "$mapping" 3<&-
 	done 3< /conf/conf.d/cryptroot
 fi
 

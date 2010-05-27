@@ -1,3 +1,20 @@
+cryptsetup (2:1.1.1-2) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+  * merged from ubuntu:
+    - if plymouth is present in the initramfs, use this directly, bypassing
+      the cryptsetup askpass script
+    - start usplash in initramfs, since we need it for fancy passphrase input
+    - Set FRAMEBUFFER=y in cryptroot-conf, to pull plymouth into the initramfs
+    - debian/initramfs/cryptroot-hook: Properly anchor our regexps when 
+      grepping /etc/crypttab so that we don't incorrectly match device names
+      that are substrings of one another.
+    - debian/initramfs/cryptroot-script: Don't leak /conf/conf.d/cryptroot
+      file descriptor to subprocesses.
+  * sync list of supported filesystems in passdev.c and cryptpassdev-hook
+
+ -- Jonas Meurer <mejo@debian.org>  Thu, 27 May 2010 15:00:27 +0200
+
 cryptsetup (2:1.1.1-1) unstable; urgency=low
 
   * new upstream release, changes include:

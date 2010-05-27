@@ -288,7 +288,12 @@ do_luks () {
 		# no keyscript, no key => password
 		keyscriptarg="Unlocking the disk $src ($dst)\nEnter passphrase: "
 		key="-"
-		KEYSCRIPT="/lib/cryptsetup/askpass"
+		if [ -x /bin/plymouth ] && plymouth --ping; then
+			KEYSCRIPT="plymouth ask-for-password --prompt"
+			keyscriptarg=$(printf "$keyscriptarg")
+		else
+			KEYSCRIPT="/lib/cryptsetup/askpass"
+		fi
 	elif [ "$key" != "${key%/dev/*}" ]; then
 		# no keyscript, device key => special treatment
 		keyscriptarg=""
@@ -354,7 +359,12 @@ do_noluks () {
 		# no keyscript, no key => password
 		keyscriptarg="Unlocking the disk $src ($dst)\nEnter passphrase: "
 		key="-"
-		KEYSCRIPT="/lib/cryptsetup/askpass"
+		if [ -x /bin/plymouth ] && plymouth --ping; then
+			KEYSCRIPT="plymouth ask-for-password --prompt"
+			keyscriptarg=$(printf "$keyscriptarg")
+		else
+			KEYSCRIPT="/lib/cryptsetup/askpass"
+		fi
 	else
 		# no keyscript, key => file input
 		keyscriptarg=""

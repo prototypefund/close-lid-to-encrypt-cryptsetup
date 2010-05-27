@@ -82,7 +82,7 @@ get_resume_devices() {
 		fi
 
 		# Detect devices required by decrypt_derived
-		derived="$(grep "^${device#/dev/mapper/}.*decrypt_derived" /etc/crypttab 2>/dev/null | awk '{print $3}')"
+		derived="$(grep "^${device#/dev/mapper/}\b.*decrypt_derived" /etc/crypttab 2>/dev/null | awk '{print $3}')"
 		if [ -n "$derived" ]; then
 			if grep -q "^$derived" /etc/crypttab; then
 				candidates="$candidates /dev/mapper/$derived"
@@ -125,7 +125,7 @@ node_is_in_crypttab() {
 	local node
 	node="$1"
 
-	grep -q ^$node /etc/crypttab
+	grep -q "^$node\b" /etc/crypttab
 	return $?
 }
 
@@ -173,7 +173,7 @@ get_device_opts() {
 		return 1
 	fi
 
-	opt=$( grep ^$target /etc/crypttab | head -1 | sed 's/[[:space:]]\+/ /g' )
+	opt=$( grep "^$target\b" /etc/crypttab | head -1 | sed 's/[[:space:]]\+/ /g' )
 	source=$( echo $opt | cut -d " " -f2 )
 	key=$( echo $opt | cut -d " " -f3 )
 	rootopts=$( echo $opt | cut -d " " -f4- )
