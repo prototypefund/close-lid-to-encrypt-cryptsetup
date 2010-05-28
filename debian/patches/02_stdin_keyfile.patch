@@ -23,10 +23,8 @@ Last-Update: 2010-05-28
  	if(asprintf(&msg, _("This will overwrite data on %s irrevocably."), action_argv[0]) == -1) {
  		log_err(_("memory allocation error in action_luksFormat"));
  		return -ENOMEM;
-Index: ChangeLog
-===================================================================
---- ChangeLog	(revision 236)
-+++ ChangeLog	(revision 237)
+--- a/ChangeLog
++++ b/ChangeLog
 @@ -1,3 +1,6 @@
 +2010-05-27  Milan Broz  <mbroz@redhat.com>
 +	* Fix luksFormat/luksOpen reading passphrase from stdin and "-" keyfile.
@@ -34,10 +32,8 @@ Index: ChangeLog
  2010-05-23  Milan Broz  <mbroz@redhat.com>
  	* Fix luksClose operation for stacked DM devices.
  	* Version 1.1.1.
-Index: tests/compat-test
-===================================================================
---- tests/compat-test	(revision 236)
-+++ tests/compat-test	(revision 237)
+--- a/tests/compat-test
++++ b/tests/compat-test
 @@ -145,5 +145,20 @@
  $CRYPTSETUP -q luksClose  $DEV_NAME2 || fail
  $CRYPTSETUP -q luksClose  $DEV_NAME || fail
