@@ -1,4 +1,4 @@
-cryptsetup (2:1.1.1-2) UNRELEASED; urgency=low
+cryptsetup (2:1.1.1-2~unreleased) UNRELEASED; urgency=low
 
   * merged from ubuntu:
     - if plymouth is present in the initramfs, use this directly, bypassing
@@ -14,12 +14,12 @@ cryptsetup (2:1.1.1-2) UNRELEASED; urgency=low
   * fix debian/watch file to work with updated code.google.com download page
   * stop building and shipping static libs (closes: #583387, #583471)
   * add upstream patches:
-    - 01_get_key.patch: Try to make get_key() paramater more obvious...
+    - 01_get_key.patch: Try to make get_key() parameter more obvious...
     - 02_stdin_keyfile.patch: Fix luksFormat/luksOpen reading passphrase from
       stdin and "-" keyfile.
     - 03_verbose_level.patch: Add verbose log level, move unlocking messages
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 28 May 2010 11:26:14 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 28 May 2010 11:30:02 +0200
 
 cryptsetup (2:1.1.1-1) unstable; urgency=low
 
