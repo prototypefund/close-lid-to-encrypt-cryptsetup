@@ -18,8 +18,9 @@ cryptsetup (2:1.1.1-2~unreleased) UNRELEASED; urgency=low
     - 02_stdin_keyfile.patch: Fix luksFormat/luksOpen reading passphrase from
       stdin and "-" keyfile.
     - 03_verbose_level.patch: Add verbose log level, move unlocking messages
+  * improve documentation on (pre)checks in manpage. (closes: #583568, #583567)
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 28 May 2010 11:30:02 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 28 May 2010 13:34:27 +0200
 
 cryptsetup (2:1.1.1-1) unstable; urgency=low
 

@@ -170,11 +170,12 @@
    <varlistentry>
     <term><emphasis>precheck</emphasis>=&lt;precheck&gt;</term>
     <listitem>
-     <simpara>Check the source device by suitable program; if the check fails,
-      the device is not created; &lt;precheck&gt; is a script to check the
-      source device. The source device is given as an argument to the script.
-      Precheck has no effect for LUKS devices, as these are checked with isLUKS
-      anyway.
+     <simpara>Check the source device by a suitable program; if the check fails,
+      the device is not created. If a program is provided as an argument, it is
+      run, giving the source device as argument. Cryptdisks searches for the given
+      progam in <filename class="directory">/lib/cryptsetup/checks/</filename>.
+      Prechecks aren't invoked for LUKS devices, as these are checked with isLUKS
+      anyway. Default for plain dm-crypt devices is <filename>un_blkid</filename>.
       Set to "/bin/true" in order to completely disable prechecks.
      </simpara>
     </listitem>
@@ -185,9 +186,9 @@
     <listitem>
      <simpara>Check the content of the device by a suitable program; if the
       check fails, the device is removed. If a program is provided as an
-      argument, it is run, giving the decrypted volume (target device) as the
-      first argument, and the value of the checkargs option as the second
-      argument. Cryptdisks searches for the given program in
+      argument, it is run, giving the decrypted volume (target device) as
+      first argument, and the value of the checkargs option as second argument.
+      Cryptdisks searches for the given program in
       <filename class="directory">/lib/cryptsetup/checks/</filename>.
       Default is <filename>blkid</filename>.
       Set to "/bin/true" in order to completely disable checks.
