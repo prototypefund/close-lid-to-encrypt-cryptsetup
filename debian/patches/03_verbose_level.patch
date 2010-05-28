@@ -1,0 +1,135 @@
+Description: Add verbose log level and move unlocking keyslot messages there.
+Author: Milan Broz <mbroz@redhat.com>
+Last-Update: 2010-05-28
+
+--- a/src/cryptsetup.c
++++ b/src/cryptsetup.c
+@@ -138,23 +138,27 @@
+ }
+ 
+ static void cmdLineLog(int level, char *msg) {
+-    switch(level) {
++	switch(level) {
+ 
+-    case CRYPT_LOG_NORMAL:
+-            fputs(msg, stdout);
+-            break;
+-    case CRYPT_LOG_ERROR:
+-            fputs(msg, stderr);
+-            break;
+-    default:
+-            fprintf(stderr, "Internal error on logging class for msg: %s", msg);
+-            break;
+-    }
++	case CRYPT_LOG_NORMAL:
++		fputs(msg, stdout);
++		break;
++	case CRYPT_LOG_VERBOSE:
++		if (opt_verbose)
++			fputs(msg, stdout);
++		break;
++	case CRYPT_LOG_ERROR:
++		fputs(msg, stderr);
++		break;
++	default:
++		fprintf(stderr, "Internal error on logging class for msg: %s", msg);
++		break;
++	}
+ }
+ 
+ static struct interface_callbacks cmd_icb = {
+-        .yesDialog = yesDialog,
+-        .log = cmdLineLog,
++	.yesDialog = yesDialog,
++	.log = cmdLineLog,
+ };
+ 
+ static void _log(int level, const char *msg, void *usrptr)
+--- a/src/cryptsetup.h
++++ b/src/cryptsetup.h
+@@ -13,6 +13,7 @@
+ 
+ #define log_dbg(x...) clogger(NULL, CRYPT_LOG_DEBUG, __FILE__, __LINE__, x)
+ #define log_std(x...) clogger(NULL, CRYPT_LOG_NORMAL, __FILE__, __LINE__, x)
++#define log_verbose(x...) clogger(NULL, CRYPT_LOG_VERBOSE, __FILE__, __LINE__, x)
+ #define log_err(x...) clogger(NULL, CRYPT_LOG_ERROR, __FILE__, __LINE__, x)
+ 
+ #endif /* CRYPTSETUP_H */
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1,5 +1,6 @@
+ 2010-05-27  Milan Broz  <mbroz@redhat.com>
+ 	* Fix luksFormat/luksOpen reading passphrase from stdin and "-" keyfile.
++	* Add verbose log level and move unlocking message there.
+ 
+ 2010-05-23  Milan Broz  <mbroz@redhat.com>
+ 	* Fix luksClose operation for stacked DM devices.
+--- a/lib/libcryptsetup.h
++++ b/lib/libcryptsetup.h
+@@ -42,6 +42,7 @@
+  */
+ #define CRYPT_LOG_NORMAL 0
+ #define CRYPT_LOG_ERROR  1
++#define CRYPT_LOG_VERBOSE  2
+ #define CRYPT_LOG_DEBUG -1 /* always on stdout */
+ void crypt_set_log_callback(struct crypt_device *cd,
+ 	void (*log)(int level, const char *msg, void *usrptr),
+--- a/lib/setup.c
++++ b/lib/setup.c
+@@ -220,7 +220,7 @@
+ 	if (openedIndex < 0)
+ 		return -EPERM;
+ 
+-	log_std(cd, _("Key slot %d verified.\n"), openedIndex);
++	log_verbose(cd, _("Key slot %d verified.\n"), openedIndex);
+ 	return 0;
+ }
+ 
+--- a/lib/internal.h
++++ b/lib/internal.h
+@@ -110,6 +110,7 @@
+ void logger(struct crypt_device *cd, int class, const char *file, int line, const char *format, ...);
+ #define log_dbg(x...) logger(NULL, CRYPT_LOG_DEBUG, __FILE__, __LINE__, x)
+ #define log_std(c, x...) logger(c, CRYPT_LOG_NORMAL, __FILE__, __LINE__, x)
++#define log_verbose(c, x...) logger(c, CRYPT_LOG_VERBOSE, __FILE__, __LINE__, x)
+ #define log_err(c, x...) do { \
+ 	logger(c, CRYPT_LOG_ERROR, __FILE__, __LINE__, x); \
+ 	set_error(x); } while(0)
+--- a/luks/keymanage.c
++++ b/luks/keymanage.c
+@@ -620,7 +620,7 @@
+ }
+ 
+ /* Try to open a particular key slot */
+-int LUKS_open_key(const char *device,
++static int LUKS_open_key(const char *device,
+ 		  unsigned int keyIndex,
+ 		  const char *password,
+ 		  size_t passwordLen,
+@@ -670,7 +670,7 @@
+ 
+ 	r = LUKS_verify_master_key(hdr, mk);
+ 	if (r >= 0)
+-		log_std(ctx, _("Key slot %d unlocked.\n"), keyIndex);
++		log_verbose(ctx, _("Key slot %d unlocked.\n"), keyIndex);
+ out:
+ 	free(AfKey);
+ 	return r;
+--- a/luks/luks.h
++++ b/luks/luks.h
+@@ -137,15 +137,6 @@
+ 	uint64_t *PBKDF2_per_sec,
+ 	struct crypt_device *ctx);
+ 
+-int LUKS_open_key(
+-	const char *device,
+-	unsigned int keyIndex,
+-	const char *password,
+-	size_t passwordLen,
+-	struct luks_phdr *hdr,
+-	struct luks_masterkey *mk,
+-	struct crypt_device *ctx);
+-
+ int LUKS_open_key_with_hdr(
+ 	const char *device,
+ 	int keyIndex,

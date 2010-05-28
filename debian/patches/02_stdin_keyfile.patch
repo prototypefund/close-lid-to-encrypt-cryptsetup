@@ -1,0 +1,72 @@
+Description: Fix luksFormat/luksOpen reading passphrase from stdin and "-" keyfile.
+Author: Milan Broz <mbroz@redhat.com>
+Last-Update: 2010-05-28
+
+--- a/src/cryptsetup.c
++++ b/src/cryptsetup.c
+@@ -299,7 +299,7 @@
+ 		.device = action_argv[0],
+ 		.cipher = opt_cipher ?: DEFAULT_CIPHER(LUKS1),
+ 		.hash = opt_hash ?: DEFAULT_LUKS1_HASH,
+-		.new_key_file = action_argc > 1 ? action_argv[1] : NULL,
++		.new_key_file = opt_key_file ?: (action_argc > 1 ? action_argv[1] : NULL),
+ 		.flags = opt_verify_passphrase ? CRYPT_FLAG_VERIFY : (!opt_batch_mode?CRYPT_FLAG_VERIFY_IF_POSSIBLE :  0),
+ 		.iteration_time = opt_iteration_time,
+ 		.timeout = opt_timeout,
+@@ -387,6 +387,9 @@
+ 		return -EINVAL;
+ 	}
+ 
++	if (action_argc > 1 && opt_key_file)
++		log_err(_("Option --key-file takes precedence over specified key file argument.\n"));
++
+ 	if(asprintf(&msg, _("This will overwrite data on %s irrevocably."), action_argv[0]) == -1) {
+ 		log_err(_("memory allocation error in action_luksFormat"));
+ 		return -ENOMEM;
+Index: ChangeLog
+===================================================================
+--- ChangeLog	(revision 236)
++++ ChangeLog	(revision 237)
+@@ -1,3 +1,6 @@
++2010-05-27  Milan Broz  <mbroz@redhat.com>
++	* Fix luksFormat/luksOpen reading passphrase from stdin and "-" keyfile.
++
+ 2010-05-23  Milan Broz  <mbroz@redhat.com>
+ 	* Fix luksClose operation for stacked DM devices.
+ 	* Version 1.1.1.
+Index: tests/compat-test
+===================================================================
+--- tests/compat-test	(revision 236)
++++ tests/compat-test	(revision 237)
+@@ -145,5 +145,20 @@
+ $CRYPTSETUP -q luksClose  $DEV_NAME2 || fail
+ $CRYPTSETUP -q luksClose  $DEV_NAME || fail
+ 
++prepare	"[14] format/open - passphrase on stdin & new line"
++# stdin defined by "-" must take even newline
++echo -n $'foo\nbar' | $CRYPTSETUP -q luksFormat $LOOPDEV - || fail
++echo -n $'foo\nbar' | $CRYPTSETUP -q --key-file=- luksOpen $LOOPDEV $DEV_NAME || fail
++$CRYPTSETUP -q luksClose  $DEV_NAME || fail
++echo -n $'foo\nbar' | $CRYPTSETUP -q luksOpen $LOOPDEV $DEV_NAME && fail
++# now also try --key-file
++echo -n $'foo\nbar' | $CRYPTSETUP -q luksFormat $LOOPDEV --key-file=- || fail
++echo -n $'foo\nbar' | $CRYPTSETUP -q --key-file=- luksOpen $LOOPDEV $DEV_NAME || fail
++$CRYPTSETUP -q luksClose  $DEV_NAME || fail
++# process newline if from stdin
++echo -n $'foo\nbar' | $CRYPTSETUP -q luksFormat $LOOPDEV || fail
++echo 'foo' | $CRYPTSETUP -q luksOpen $LOOPDEV $DEV_NAME || fail
++$CRYPTSETUP -q luksClose  $DEV_NAME || fail
++
+ remove_mapping
+ exit 0
+--- a/lib/setup.c
++++ b/lib/setup.c
+@@ -824,7 +824,7 @@
+ 	if (options->flags & CRYPT_FLAG_NON_EXCLUSIVE_ACCESS)
+ 		flags |= CRYPT_ACTIVATE_NO_UUID;
+ 
+-	if (options->key_file && strcmp(options->key_file, "-"))
++	if (options->key_file)
+ 		r = crypt_activate_by_keyfile(cd, options->name,
+ 			CRYPT_ANY_SLOT, options->key_file, options->key_size,
+ 			flags);

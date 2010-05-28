@@ -13,8 +13,14 @@ cryptsetup (2:1.1.1-2) UNRELEASED; urgency=low
   * sync list of supported filesystems in passdev.c and cryptpassdev-hook
   * fix debian/watch file to work with updated code.google.com download page
   * stop building and shipping static libs (closes: #583387, #583471)
+  * add upstream patches:
+    - 01_get_key.patch: Try to make get_key() paramater more obvious...
+    - 02_stdin_keyfile.patch: Fix luksFormat/luksOpen reading passphrase from
+      stdin and "-" keyfile.
+    - 03_verbose_level.patch: Add verbose log level, move unlocking messages
+    - 04_nl_po.patch: Update nl.po
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 28 May 2010 01:18:19 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 28 May 2010 11:14:12 +0200
 
 cryptsetup (2:1.1.1-1) unstable; urgency=low
 

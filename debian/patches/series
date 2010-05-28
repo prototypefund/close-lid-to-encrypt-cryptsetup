@@ -1,0 +1,5 @@
+# series
+01_get_key.patch
+02_stdin_keyfile.patch
+03_verbose_level.patch
+04_nl_po.patch
