@@ -1,5 +1,12 @@
-cryptsetup (2:1.1.1-2~unreleased) UNRELEASED; urgency=low
+cryptsetup (2:1.1.2-1~unreleased) unstable; urgency=low
 
+  * new upstream release, changes include:
+    - Fix luksFormat/luksOpen reading passphrase from stdin and "-" keyfile.
+      (closes: #583397)
+    - Add verbose log level and move unlocking message there.
+    - Remove device even if underlying device disappeared (remove, luksClose).
+      (closes: #554600, #574126)
+    - Fix (deprecated) reload device command to accept new device argument.
   * merged from ubuntu:
     - if plymouth is present in the initramfs, use this directly, bypassing
       the cryptsetup askpass script
@@ -13,16 +20,11 @@ cryptsetup (2:1.1.1-2~unreleased) UNRELEASED; urgency=low
   * sync list of supported filesystems in passdev.c and cryptpassdev-hook
   * fix debian/watch file to work with updated code.google.com download page
   * stop building and shipping static libs (closes: #583387, #583471)
-  * add upstream patches:
-    - 01_get_key.patch: Try to make get_key() parameter more obvious...
-    - 02_stdin_keyfile.patch: Fix luksFormat/luksOpen reading passphrase from
-      stdin and "-" keyfile. (closes: #583397)
-    - 03_verbose_level.patch: Add verbose log level, move unlocking messages
   * improve documentation on (pre)checks in manpage. (closes: #583568, #583567)
   * remove xfs and ext2 check scripts documentation from crypttab manpage,
     blkid script can be used. thanks Christoph Anton Mitterer (closes: #583570)
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 28 May 2010 23:34:03 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 31 May 2010 22:31:49 +0200
 
 cryptsetup (2:1.1.1-1) unstable; urgency=low
 
