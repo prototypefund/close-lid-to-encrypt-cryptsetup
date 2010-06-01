@@ -80,6 +80,7 @@
  <refsect1 id="crypttab.options">
   <title>OPTIONS</title>
   <variablelist>
+
    <varlistentry>
     <term><emphasis>cipher</emphasis>=&lt;cipher&gt;</term>
     <listitem>
@@ -170,11 +171,12 @@
    <varlistentry>
     <term><emphasis>precheck</emphasis>=&lt;precheck&gt;</term>
     <listitem>
-     <simpara>Check the source device by suitable program; if the check fails,
-      the device is not created; &lt;precheck&gt; is a script to check the
-      source device. The source device is given as an argument to the script.
-      Precheck has no effect for LUKS devices, as these are checked with isLUKS
-      anyway.
+     <simpara>Check the source device by a suitable program; if the check fails,
+      the device is not created. If a program is provided as an argument, it is
+      run, giving the source device as argument. Cryptdisks searches for the given
+      progam in <filename class="directory">/lib/cryptsetup/checks/</filename>.
+      Prechecks aren't invoked for LUKS devices, as these are checked with isLUKS
+      anyway. Default for plain dm-crypt devices is <filename>un_blkid</filename>.
       Set to "/bin/true" in order to completely disable prechecks.
      </simpara>
     </listitem>
@@ -185,9 +187,9 @@
     <listitem>
      <simpara>Check the content of the device by a suitable program; if the
       check fails, the device is removed. If a program is provided as an
-      argument, it is run, giving the decrypted volume (target device) as the
-      first argument, and the value of the checkargs option as the second
-      argument. Cryptdisks searches for the given program in
+      argument, it is run, giving the decrypted volume (target device) as
+      first argument, and the value of the checkargs option as second argument.
+      Cryptdisks searches for the given program in
       <filename class="directory">/lib/cryptsetup/checks/</filename>.
       Default is <filename>blkid</filename>.
       Set to "/bin/true" in order to completely disable checks.
@@ -258,6 +260,7 @@
       All fields of the appropriate crypttab entry are available to the keyscript
       as exported environment variables:
       <variablelist>
+
        <varlistentry>
         <term>CRYPTTAB_NAME</term>
         <listitem><para>
@@ -289,16 +292,19 @@
          in case the option is merely a flag.
         </para></listitem>
        </varlistentry>
+
       </variablelist>
      </para>
     </listitem>
    </varlistentry>
+
   </variablelist>
  </refsect1>
 
  <refsect1 id="crypttab.checkscripts">
   <title>CHECKSCRIPTS</title>
   <variablelist>
+
    <varlistentry>
     <term><emphasis>blkid</emphasis></term>
     <listitem>
@@ -338,19 +344,6 @@
     </listitem>
    </varlistentry>
 
-   <varlistentry>
-    <term><emphasis>ext2</emphasis></term>
-    <listitem>
-     <simpara>Checks for a valid ext2/ext3 filesystem.</simpara>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><emphasis>xfs</emphasis></term>
-    <listitem>
-     <simpara>Checks for a valid xfs filesystem.</simpara>
-    </listitem>
-   </varlistentry>
   </variablelist>
  </refsect1>
 
@@ -383,6 +376,7 @@ cdisk3 /dev/sda3 none cipher=twofish
  <refsect1 id="crypttab.environment">
   <title>ENVIRONMENT</title>
   <variablelist>
+
    <varlistentry>
     <term><emphasis>CRYPTDISKS_ENABLE</emphasis></term>
     <listitem>
@@ -424,6 +418,7 @@ cdisk3 /dev/sda3 none cipher=twofish
      </simpara>
     </listitem>
    </varlistentry>
+
   </variablelist>
  </refsect1>
 
