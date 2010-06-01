@@ -1,4 +1,4 @@
-cryptsetup (2:1.1.2-1~unreleased) unstable; urgency=low
+cryptsetup (2:1.1.2-1) unstable; urgency=low
 
   * new upstream release, changes include:
     - Fix luksFormat/luksOpen reading passphrase from stdin and "-" keyfile.
@@ -24,7 +24,7 @@ cryptsetup (2:1.1.2-1~unreleased) unstable; urgency=low
   * remove xfs and ext2 check scripts documentation from crypttab manpage,
     blkid script can be used. thanks Christoph Anton Mitterer (closes: #583570)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 31 May 2010 22:31:49 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 01 Jun 2010 15:37:50 +0200
 
 cryptsetup (2:1.1.1-1) unstable; urgency=low
 
