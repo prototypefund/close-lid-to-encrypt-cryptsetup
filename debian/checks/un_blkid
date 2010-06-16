@@ -12,10 +12,10 @@ if test ! -x "/sbin/blkid"; then
   exit 1
 fi
 
-dev=$1
-fs=$2
+dev="$1"
+fs="$2"
 
-blkid="$(/sbin/blkid -p $dev | sed -e 's/^.*TYPE="\(.*\)" USAGE.*$/\1/g')"
+blkid="$(/sbin/blkid -o value -s TYPE -p $dev)"
 
 # blkid output is empty if $dev has an unknown filesystem
 if [ -n "$blkid" ] && [ -z "$fs" ]; then

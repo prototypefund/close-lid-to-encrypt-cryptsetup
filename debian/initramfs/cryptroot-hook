@@ -26,6 +26,7 @@ get_root_device() {
 	grep -s '^[^#]' /etc/fstab | \
 	while read device mount type options dump pass; do
 		if [ "$mount" = "/" ]; then
+			device=$(canonical_device "$device") || return 0
 			echo "$device"
 			return
 		fi
@@ -90,6 +91,8 @@ get_resume_devices() {
 				echo "cryptsetup: WARNING: decrypt_derived device $derived not found in crypttab" >&2
 			fi
 		fi
+
+		device=$(canonical_device "$device") || return 0
 
 		# Weed out duplicates
 		dupe=0
@@ -354,7 +357,7 @@ add_device() {
 	fi
 
 	# Check that it is a node under /dev/mapper/
-	nodes=$(canonical_device "$nodes") || return 0
+	# nodes=$(canonical_device "$nodes") || return 0
 
 	# Can we find this node in crypttab
 	if ! node_is_in_crypttab "$nodes"; then

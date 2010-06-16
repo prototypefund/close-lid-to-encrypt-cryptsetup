@@ -30,8 +30,11 @@ cryptsetup (2:1.1.2-2) UNRELEASED; urgency=low
     - ext2, swap and xfs scripts are depreciated and invoke blkid script.
     - drop filtering of minix filesystem in blkid, util-linux 2.17.2 in debian
     - remove *vol_id check scripts, vol_id isn't available in debian any longer
+    - don't use sed in *blkid check scripts any longer
+  * fix initramfs/cryptroot-hook to canonicalize $device in get_resume_devices
+    function. this should really weed out all duplicates. (closes: #586122)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 16 Jun 2010 15:29:14 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 16 Jun 2010 20:50:27 +0200
 
 cryptsetup (2:1.1.2-1) unstable; urgency=low
 
