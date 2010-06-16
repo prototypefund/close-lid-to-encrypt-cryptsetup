@@ -24,8 +24,14 @@ cryptsetup (2:1.1.2-2) UNRELEASED; urgency=low
   * remove duplicates from debian/NEWS, thanks Steve Langasek (closes: 586019)
   * improve documentation on environment variables in cryptdisks.default and
     crypttab manpage. thanks Christoph Anton Mitterer. (closes: #585664)
+  * several improvements to (pre)check scripts, inspired by scripts from
+    Christoph Anton Mitterer (closes: #585418, #585496)
+    - checkscripts exit with error 1 if executables aren't available.
+    - ext2, swap and xfs scripts are depreciated and invoke blkid script.
+    - drop filtering of minix filesystem in blkid, util-linux 2.17.2 in debian
+    - remove *vol_id check scripts, vol_id isn't available in debian any longer
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 16 Jun 2010 15:16:58 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 16 Jun 2010 15:29:14 +0200
 
 cryptsetup (2:1.1.2-1) unstable; urgency=low
 

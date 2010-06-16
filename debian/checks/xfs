@@ -1,12 +1,5 @@
 #!/bin/sh
-#thanks Martin Steigerwald <ms@teamix.de>
 
-PATH="/usr/sbin:/usr/bin:/sbin:/bin"
+echo "WARNING: The check script $0 is depreciated. Please use check script blkid instead." >&2
 
-ulimit -c 0
-if /usr/sbin/xfs_admin -l $1 2>/dev/null 1>&2; then
-  exit 0
-else
-  echo " - The device $1 does not contain a valid XFS filesystem."
-  exit 1
-fi
+/lib/cryptsetup/checks/blkid "$1" "xfs"
