@@ -6,6 +6,7 @@
 # Should-Start:      udev mdadm-raid lvm2
 # Should-Stop:       udev mdadm-raid lvm2
 # X-Start-Before:    checkfs
+# X-Stop-After:      umountfs
 # X-Interactive:     true
 # Default-Start:     S
 # Default-Stop:      0 6

@@ -208,6 +208,10 @@ lo_setup () {
 }
 
 rm_lo_setup () {
+	if [ "x${src%/dev/loop[0-9]}" = "x" ]; then
+		src="$(losetup $src | sed -e 's/^.*(\(.*\))$/\1/g' || true)"
+	fi
+
 	if [ ! -f "$src" ]; then
 		return 0
 	fi
@@ -310,7 +314,7 @@ do_luks () {
 
 	while [ "$tried" -lt "$TRIES" ]; do
 		if [ -n "$KEYSCRIPT" ]; then
-			if "$KEYSCRIPT" "$keyscriptarg" | cryptsetup $PARAMS luksOpen "$src" "$dst"; then
+			if $KEYSCRIPT "$keyscriptarg" | cryptsetup $PARAMS luksOpen "$src" "$dst"; then
 				break
 			fi
 		else
@@ -376,16 +380,16 @@ do_noluks () {
 
 	while [ "$tried" -lt "$TRIES" ]; do
 		if [ -n "$KEYSCRIPT" ]; then
-			"$KEYSCRIPT" "$keyscriptarg" | cryptsetup $PARAMS create "$dst" "$src"
+			$KEYSCRIPT "$keyscriptarg" | cryptsetup $PARAMS create "${dst}_unformatted" "$src"
 		else
-			cryptsetup $PARAMS create "$dst" "$src"
+			cryptsetup $PARAMS create "${dst}_unformatted" "$src"
 		fi
 
-		if [ -z "$CHECK" ] || "$CHECK" "/dev/mapper/$dst" $CHECKARGS; then
+		if [ -z "$CHECK" ] || "$CHECK" "/dev/mapper/${dst}_unformatted" $CHECKARGS; then
 			break
 		else
 			log_warning_msg "$dst: the check for '/dev/mapper/$dst' failed - maybe the password is wrong"
-			cryptsetup remove "$dst"
+			cryptsetup remove "${dst}_unformatted"
 		fi
 
 		tried=$(( $tried + 1 ))
@@ -422,13 +426,13 @@ umount_fs () {
 do_swap () {
 	local swap_out
 
-	if [ "$MAKESWAP" != "yes" ] || [ ! -b "/dev/mapper/$dst" ]; then
+	if [ "$MAKESWAP" != "yes" ] || [ ! -b "/dev/mapper/${dst}_unformatted" ]; then
 		return 0
 	fi
 
-	if swap_out=$(/lib/cryptsetup/checks/un_blkid "/dev/mapper/$dst" 2> /dev/null) || \
-	   /lib/cryptsetup/checks/blkid "/dev/mapper/$dst" swap > /dev/null 2>&1; then
-		mkswap "/dev/mapper/$dst" > /dev/null 2>&1
+	if swap_out=$(/lib/cryptsetup/checks/un_blkid "/dev/mapper/${dst}_unformatted" 2> /dev/null) || \
+	   /lib/cryptsetup/checks/blkid "/dev/mapper/${dst}_unformatted" swap > /dev/null 2>&1; then
+		mkswap "/dev/mapper/${dst}_unformatted" > /dev/null 2>&1
 	else
 		log_warning_msg "$dst: the check for '/dev/mapper/$dst' failed. /dev/mapper/$dst contains data: $swap_out"
 		do_close
@@ -440,15 +444,22 @@ do_swap () {
 
 # Prepares tmp partitions using random keys
 do_tmp () {
-	if [ "x$TMPFS" = "x" ] || [ ! -b "/dev/mapper/$dst" ]; then
+	if [ "x$TMPFS" = "x" ] || [ ! -b "/dev/mapper/${dst}_unformatted" ]; then
 		return 0
 	fi
 
-	mkfs -t $TMPFS -q "/dev/mapper/$dst" > /dev/null 2>&1 || return 1
-	mount -t $TMPFS "/dev/mapper/$dst" /tmp || return 1
-	chmod 1777 /tmp
-	umount /tmp
+	mkfs -t $TMPFS -q "/dev/mapper/${dst}_unformatted" > /dev/null 2>&1 || return 1
+	mkdir -p "/var/run/cryptsetup/$dst"
+	mount -t $TMPFS "/dev/mapper/${dst}_unformatted" "/var/run/cryptsetup/$dst" || return 1
+	chmod 1777 "/var/run/cryptsetup/$dst"
+	umount "/var/run/cryptsetup/$dst"
 	return 0
+}
+
+# Rename the device from its temp name to its final name, which will
+# trigger mountall
+finalize_device () {
+	dmsetup rename "${dst}_unformatted" "$dst"
 }
 
 # Removes a mapping
@@ -540,7 +551,7 @@ handle_crypttab_line_start () {
 	fi
 
 	# Make sure that target device doesn't exist
-	if [ -b "/dev/mapper/$dst" ]; then
+	if [ -b "/dev/mapper/${dst}_unformatted" ] || [ -b "/dev/mapper/$dst" ]
 		device_msg "$dst" "running"
 		return 0
 	fi
@@ -562,6 +573,7 @@ handle_crypttab_line_start () {
 	else
 		do_swap
 		do_tmp
+		finalize_device
 		device_msg "$dst" "started"
 	fi
 

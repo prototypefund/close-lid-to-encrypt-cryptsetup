@@ -1,3 +1,30 @@
+cryptsetup (2:1.1.2-2) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+  * fix rm_lo_setup() in cryptdisks.functions for failed device setup. thanks
+    to Roger Pettersson. (closes: #581712)
+  * add X-Stop-After headers to cryptdisks(-early) initscripts. this fixes
+    shutdown process for system without encrypted rootfs at least. thanks to
+    Alfredo Finelli. (closes: #575652)
+  * more merges from ubuntu, thanks to and steve langasek (closes: #575024):
+    - debian/cryptdisk.functions: initially create the device under a temporary
+      name and rename it only at the end using 'dmsetup rename', to ensure that
+      upstart/mountall doesn't see our device before it's ready to go.
+      LP: #475936.
+    - cryptdisks.functions: do_tmp should mount under /var/run/cryptsetup for
+      changing the permissions of the filesystem root, not directly on /tmp,
+      since mounting on /tmp a) is racy, b) confuses mountall something fierce.
+      LP: #475936.
+  * fix manpage checkscripts documentation. clarify that both cryptdisks and
+    cryptroot invoke checkscripts. thanks Christoph Anton Mitterer.
+  * remove quotes from $KEYSCRIPT invokation, thanks Alexandre Rossi.
+    (closes: #585099)
+  * fix support for commandline options to mkfs in luksformat. thanks to Eduard
+    Bloch again for bugreport and patch. (closes: #585787)
+  * remove duplicates from debian/NEWS, thanks Steve Langasek (closes: 586019)
+
+ -- Jonas Meurer <mejo@debian.org>  Wed, 16 Jun 2010 14:46:53 +0200
+
 cryptsetup (2:1.1.2-1) unstable; urgency=low
 
   * new upstream release, changes include:
