@@ -175,10 +175,15 @@
       the check fails, the device is not created. If a program is provided as an
       argument, it is run, giving the source device as argument.
       Cryptdisks/cryptroot searches for the given progam in
-      <filename class="directory">/lib/cryptsetup/checks/</filename>.
+      <filename class="directory">/lib/cryptsetup/checks/</filename> first, but
+      full path to program is supported as well.
+     </simpara>
+     <simpara>
       Prechecks aren't invoked for LUKS devices, as these are checked with isLUKS
-      anyway. Default for plain dm-crypt devices is <filename>un_blkid</filename>.
-      Set to "/bin/true" in order to completely disable prechecks.
+      anyway. Default for plain dm-crypt devices is set in
+      <filename>/etc/default/cryptdisks</filename>, or <filename>un_blkid</filename>
+      otherwise. Set to <filename>/bin/true</filename> in order to disable
+      precheck for plain dm-crypt device.
      </simpara>
     </listitem>
    </varlistentry>
@@ -191,9 +196,12 @@
       argument, it is run, giving the decrypted volume (target device) as
       first argument, and the value of the checkargs option as second argument.
       Cryptdisks/cryptroot searches for the given program in
-      <filename class="directory">/lib/cryptsetup/checks/</filename>.
-      Default is <filename>blkid</filename>.
-      Set to "/bin/true" in order to completely disable checks.
+      <filename class="directory">/lib/cryptsetup/checks/</filename> first, but
+      full path to program is supported as well.
+     </simpara>
+     <simpara>
+      Default is set in <filename>/etc/default/cryptdisks</filename>
+      (<filename>blkid</filename>).
      </simpara>
     </listitem>
    </varlistentry>
@@ -382,8 +390,9 @@ cdisk3 /dev/sda3 none cipher=twofish
     <term><emphasis>CRYPTDISKS_ENABLE</emphasis></term>
     <listitem>
      <simpara>
-      Set to <emphasis>yes</emphasis> to run cryptdisks at startup. Set to
-      <emphasis>no</emphasis> to disable cryptdisks.
+      Set to <emphasis>yes</emphasis> to run cryptdisks initscripts at startup.
+      Set to <emphasis>no</emphasis> to disable cryptdisks initscripts. Default
+      is <emphasis>yes</emphasis>.
      </simpara>
     </listitem>
    </varlistentry>
@@ -392,8 +401,10 @@ cdisk3 /dev/sda3 none cipher=twofish
     <term><emphasis>CRYPTDISKS_MOUNT</emphasis></term>
     <listitem>
      <simpara>Specifies the mountpoints that are mounted before cryptdisks is
-      invoked. Useful for keys on removable devices, such as cdrom, usbstick,
-      flashcard, etc.
+      invoked. Takes mountpoints configured in /etc/fstab as arguments. Separate
+      mountpoints by space.
+      This is useful for keys on removable devices, such as cdrom, usbstick,
+      flashcard, etc. Default is unset.
      </simpara>
     </listitem>
    </varlistentry>
@@ -401,10 +412,12 @@ cdisk3 /dev/sda3 none cipher=twofish
    <varlistentry>
     <term><emphasis>CRYPTDISKS_CHECK</emphasis></term>
     <listitem>
-     <simpara>Specifies the checkscript to be run against the target device,
-      after cryptdisks has been invoked. The target device is passed as the
-      first and only argument to the checkscript. Takes effect if the
-      <emphasis>check</emphasis> option is given in crypttab with no value.
+     <simpara>Specifies the default checkscript to be run against the target
+      device, after cryptdisks has been invoked. The target device is passed as
+      the first and only argument to the checkscript. Takes effect if the
+      <emphasis>check</emphasis> option is given in crypttab with no value. See
+      documentation for <emphasis>check</emphasis> option above for more
+      information.
      </simpara>
     </listitem>
    </varlistentry>
@@ -412,10 +425,12 @@ cdisk3 /dev/sda3 none cipher=twofish
    <varlistentry>
     <term><emphasis>CRYPTDISKS_PRECHECK</emphasis></term>
     <listitem>
-     <simpara>Specifies the checkscript to be run against the source device,
-      before cryptdisks has been invoked. The source device is given as the
-      first and only argument to the checkscript. Takes effect if the
-      <emphasis>precheck</emphasis> option is given in crypttab with no value.
+     <simpara>Specifies the default checkscript to be run against the source
+      dm-crypt device, before cryptdisks has been invoked. The source device
+      is given as the first and only argument to the checkscript. Takes effect
+      if the <emphasis>precheck</emphasis> option is given in crypttab with no
+      value. See documentation for <emphasis>precheck</emphasis> option above
+      for more information.
      </simpara>
     </listitem>
    </varlistentry>

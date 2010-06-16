@@ -22,8 +22,10 @@ cryptsetup (2:1.1.2-2) UNRELEASED; urgency=low
   * fix support for commandline options to mkfs in luksformat. thanks to Eduard
     Bloch again for bugreport and patch. (closes: #585787)
   * remove duplicates from debian/NEWS, thanks Steve Langasek (closes: 586019)
+  * improve documentation on environment variables in cryptdisks.default and
+    crypttab manpage. thanks Christoph Anton Mitterer. (closes: #585664)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 16 Jun 2010 14:46:53 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 16 Jun 2010 15:16:58 +0200
 
 cryptsetup (2:1.1.2-1) unstable; urgency=low
 
