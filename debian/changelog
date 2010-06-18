@@ -33,8 +33,9 @@ cryptsetup (2:1.1.2-2) UNRELEASED; urgency=low
     - don't use sed in *blkid check scripts any longer
   * fix initramfs/cryptroot-hook to canonicalize $device in get_resume_devices
     function. this should really weed out all duplicates. (closes: #586122)
+  * bash-completion file now in pck bash-completion (closes: #586299, #586162)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 16 Jun 2010 20:50:27 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 18 Jun 2010 12:58:41 +0200
 
 cryptsetup (2:1.1.2-1) unstable; urgency=low
 

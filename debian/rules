@@ -138,8 +138,6 @@ install-stamp: build-stamp
 	install -m 0644 debian/initramfs/cryptroot-conf \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/conf-hooks.d/cryptsetup
 
-	install -m 0644 debian/cryptsetup.bash_completion \
-		$(CURDIR)/debian/cryptsetup/etc/bash_completion.d/cryptsetup
 	install -m 0755 debian/cryptsetup.reportbug-script \
 		$(CURDIR)/debian/cryptsetup/usr/share/bug/cryptsetup
 	touch $@
@@ -160,8 +158,6 @@ binary-arch: build install
 	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/sbin $(CURDIR)/debian/cryptsetup-udeb/
-	# Remove bash-completion script from cryptsetup-ueb package
-	rm -r $(CURDIR)/debian/cryptsetup-udeb/etc/bash_completion.d
 	dh_lintian -a
 	dh_compress -a
 	dh_fixperms -a
