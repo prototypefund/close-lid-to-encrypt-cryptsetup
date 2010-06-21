@@ -19,7 +19,9 @@ Cryptsetup for Debian
 
    8. Backup the LUKS header
 
-   9. Credits
+   9. Changing the boot order of cryptdisks init scripts
+
+   10. Credits
 
 
 1. Introduction into Cryptsetup for Debian
@@ -226,12 +228,9 @@ compromised) passphrase or keyfile from the keyslot isn't enough anymore. the
 revoked passphrase/keyfile can easily be reactived by writing back the header
 backup to the device.
 
- If you still want to store a backup of your LUKS header with these drawbacks
-in mind, at least do it the following way:
-
- Search for the 'Payload offset' in the output of
-
-# cryptsetup luksDump <luks-device>
+ Beginning with version 1.1.0, cryptsetup has support for the commands
+luksHeaderBackup and luksHeaderRestore. If you want to store a backup of your
+LUKS header with the mentioned drawbacks in mind, do the following:
 
  Prepare a ramdisk to store the backup temporarely. You should do that in order
 to prevent any hardware caching functions or filesystem jounals to copy the
@@ -241,16 +240,35 @@ without your burning program writing an intermediate image to some temp dir.
 
  To actually backup the header, use the following command:
 
-# dd if=<luks-device> of=<destination-on-ramdisk> count=<payload-offset>
+# cryptsetup luksHeaderBackup <luks-device> --header-backup-file <destination-on-ramdisk>
 
  That's it. But once again, keep in mind all the security implications when
 doing LUKS header backups. In general it's better to backup the data from
 encrypted LUKS devices to another encrypted LUKS device. That way you can
 manage the keyslots for both original and backup device independently.
 
+9. Changing the boot order of cryptdisks init scripts
+-----------------------------------------------------
 
-9. Credits
-----------
+ In order to support non-standard setups, it might be necessary to change the
+order of init scripts in the boot process. Cryptsetup already installs two
+init scripts, cryptdisks-early and cryptdisks, in order to support some complex
+setups. For example, both "lvm on luks" and "luks on lvm" are supported that
+way.
+
+ If your system isn't supported by the default order of init scripts in the
+boot process, you need to change the boot process on your own. In some cases
+it might be enough to change the LSB dependency headers at initscripts, see
+/etc/init.d/README for more information about that. For more complex setups,
+more intrusive changes are required. For example, adding a third cryptdisks
+init script might help. See the log of bugreport #576646[1] and discussion
+on debian-devel[2] for further information.
+
+[1] http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=576646
+[2] http://lists.debian.org/debian-devel/2010/06/msg00021.html
+
+10. Credits
+-----------
 
  People who contributed to documentation for the Debian cryptsetup package:
 
