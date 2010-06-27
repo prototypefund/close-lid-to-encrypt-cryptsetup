@@ -314,11 +314,11 @@ do_luks () {
 
 	while [ "$tried" -lt "$TRIES" ]; do
 		if [ -n "$KEYSCRIPT" ]; then
-			if $KEYSCRIPT "$keyscriptarg" | cryptsetup $PARAMS luksOpen "$src" "$dst"; then
+			if $KEYSCRIPT "$keyscriptarg" | cryptsetup $PARAMS luksOpen "$src" "${dst}_unformatted"; then
 				break
 			fi
 		else
-			if cryptsetup $PARAMS luksOpen "$src" "$dst"; then
+			if cryptsetup $PARAMS luksOpen "$src" "${dst}_unformatted"; then
 				break
 			fi
 		fi
@@ -329,9 +329,9 @@ do_luks () {
 		fi
 	done
 
-	if [ -n "$CHECK" ] && ! "$CHECK" "/dev/mapper/$dst" $CHECKARGS; then
+	if [ -n "$CHECK" ] && ! "$CHECK" "/dev/mapper/${dst}_unformatted" $CHECKARGS; then
 		log_warning_msg "$dst: the check for '/dev/mapper/$dst' failed"
-		cryptsetup luksClose "$dst"
+		cryptsetup luksClose "${dst}_unformatted"
 		return 1
 	fi
 
@@ -544,14 +544,15 @@ handle_crypttab_line_start () {
 
 	# Make sure source device exists
 	if [ ! -r "$src" ]; then
-		if [ "$LOUD" = "yes" ]; then
+		if [ "$LOUD" = "yes" ] || [ "$INITSTATE" != "early" ]; then
 			device_msg "$dst" "skipped, device $src does not exist"
+			return 1
 		fi
-		return 1
+		return 0
 	fi
 
 	# Make sure that target device doesn't exist
-	if [ -b "/dev/mapper/${dst}_unformatted" ] || [ -b "/dev/mapper/$dst" ]
+	if [ -b "/dev/mapper/${dst}_unformatted" ] || [ -b "/dev/mapper/$dst" ]; then
 		device_msg "$dst" "running"
 		return 0
 	fi
@@ -597,6 +598,9 @@ handle_crypttab_line_stop () {
 		return 1
 	elif [ "$opencount" != "0" ]; then
 		device_msg "$dst" "busy"
+		if [ "$INITSTATE" = "early" ]; then
+			return 1
+		fi
 		return 0
 	fi
 
@@ -636,7 +640,7 @@ do_start () {
 	mount_fs
 
 	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
-		handle_crypttab_line_start "$dst" "$src" "$key" "$opts" <&3 || true
+		handle_crypttab_line_start "$dst" "$src" "$key" "$opts" <&3 || log_action_end_msg $?
 	done 3<&1
 	umount_fs
 
@@ -652,7 +656,7 @@ do_stop () {
 	loopmajor=$(grep "[[:space:]]*loop$" /proc/devices | sed 's/^[[:space:]]*//;s/[[:space:]].*//')
 
 	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
-		handle_crypttab_line_stop "$dst" "$src" "$key" "$opts" <&3 || true
+		handle_crypttab_line_stop "$dst" "$src" "$key" "$opts" <&3 || log_action_end_msg $?
 	done 3<&1
 
 	log_action_end_msg 0

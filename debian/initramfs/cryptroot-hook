@@ -445,14 +445,12 @@ add_crypto_modules() {
 	#
 	#   d) /lib/modules/$VERSION/kernel/drivers/crypto/$specific-$mod.ko
 
-	if [ -e "$MODULESDIR/kernel/arch/" ]; then
-		for file in $(find "$MODULESDIR/kernel/arch/" -name "$mod-*.ko"); do
-			altmod="${file##*/}"
-			altmod="${altmod%.ko}"
-			manual_add_modules "$altmod"
-			found="yes"
-		done
-	fi
+	for file in $(find "$MODULESDIR/kernel/arch/" -name "$mod-*.ko"); do
+		altmod="${file##*/}"
+		altmod="${altmod%.ko}"
+		manual_add_modules "$altmod"
+		found="yes"
+	done
 
 	for file in $(find "$MODULESDIR/kernel/crypto/" -name "${mod}_generic.ko"); do
 		altmod="${file##*/}"
@@ -504,11 +502,9 @@ for dev in $rootdev $resumedevs; do
 	setup="yes"
 
 	if [ "$MODULES" = "most" ]; then
-		if [ -e "$MODULESDIR/kernel/arch" ]; then
-			archcrypto="$(find "$MODULESDIR/kernel/arch" -type d -name "crypto")"
-			if [ -n "$archcrypto" ]; then
-				copy_modules_dir "${archcrypto##*${MODULESDIR}/}"
-			fi
+		archcrypto="$(find "$MODULESDIR/kernel/arch" -type d -name "crypto")"
+		if [ -n "$archcrypto" ]; then
+			copy_modules_dir "${archcrypto##*${MODULESDIR}/}"
 		fi
 		copy_modules_dir "kernel/crypto"
 	else

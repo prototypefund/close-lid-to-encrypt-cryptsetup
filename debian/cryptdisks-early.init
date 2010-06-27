@@ -3,10 +3,10 @@
 # Provides:          cryptdisks-early
 # Required-Start:    checkroot
 # Required-Stop:     umountroot
-# Should-Start:      udev
-# Should-Stop:       udev
-# X-Start-Before:    mdadm-raid lvm2
-# X-Stop-After:      mdadm-raid lvm2
+# Should-Start:      udev mdadm-raid
+# Should-Stop:       udev mdadm-raid
+# X-Start-Before:    lvm2
+# X-Stop-After:      lvm2
 # X-Interactive:     true
 # Default-Start:     S
 # Default-Stop:      0 6
@@ -16,11 +16,7 @@
 
 set -e
 
-if [ -r /lib/cryptsetup/cryptdisks.functions ]; then
-	. /lib/cryptsetup/cryptdisks.functions
-else
-	exit 0
-fi
+. /lib/cryptsetup/cryptdisks.functions
 
 INITSTATE="early"
 LOUD=""

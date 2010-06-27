@@ -36,8 +36,16 @@ cryptsetup (2:1.1.2-2) UNRELEASED; urgency=low
   * bash-completion file now in pck bash-completion (closes: #586299, #586162)
   * add a paragraph about the boot order of init scripts to README.Debian,
     describing the current catch-22 situation. (closes: #576646)
+  * initscripts no longer silently quit in case that include file
+    /lib/cryptsetup/cryptdisks.functions is missing. (closes: #587220)
+  * fix cryptdisks-early LSB headers to restore legacy boot sequence order.
+    mdadm-raid was started before cryptdisks-early. (closes: #587224)
+  * cryptdisks initscript now raises a warning for failed started devices, and
+    cryptdisks-early initscript raises a warning for failed stopped devices.
+    this makes the initscript actions far more transparent to users. thanks
+    to Christoph Anton Mitterer. (closes: #587222)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 20 Jun 2010 15:28:35 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jun 2010 02:00:28 +0200
 
 cryptsetup (2:1.1.2-1) unstable; urgency=low
 
