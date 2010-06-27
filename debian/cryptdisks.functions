@@ -614,7 +614,7 @@ handle_crypttab_line_stop () {
 		return 1
 	fi
 	
-	do_close
+	do_close || return $?
 
 	# Detach loopback device, if attached
 	if [ "$src_major" = "7" ]; then
