@@ -44,8 +44,10 @@ cryptsetup (2:1.1.2-2) UNRELEASED; urgency=low
     cryptdisks-early initscript raises a warning for failed stopped devices.
     this makes the initscript actions far more transparent to users. thanks
     to Christoph Anton Mitterer. (closes: #587222)
+  * remove lintian overrides init.d-script-should-depend-on-virtual-facility
+    as lintian lintian 2.4.2 has fixed #580082.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jun 2010 02:00:28 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 28 Jun 2010 10:48:37 +0200
 
 cryptsetup (2:1.1.2-1) unstable; urgency=low
 
