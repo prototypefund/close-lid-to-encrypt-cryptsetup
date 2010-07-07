@@ -1,11 +1,11 @@
-cryptsetup (2:1.1.2-2) unstable; urgency=low
+cryptsetup (2:1.1.3-1~pre1) unstable; urgency=low
 
   Cryptdisks init scripts changed their behaviour for failures at starting and
   stopping encrypted devices. Cryptdisks init script now raises a warning for
   failures at starting encrypted devices, and cryptdisks-early warns about
   failures at stopping encrypted devices.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jun 2010 01:58:10 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 08 Jul 2010 00:47:50 +0200
 
 cryptsetup (2:1.1.0-1) unstable; urgency=low
 
@@ -199,3 +199,13 @@ cryptsetup (2:1.1.2-2) unstable; urgency=low
   
 
  -- Jonas Meurer <mejo@debian.org>  Sun, 27 Jun 2010 01:58:10 +0200
+cryptsetup (2:1.1.3-1~pre1) unstable; urgency=low
+
+  Cryptdisks init scripts changed their behaviour for failures at starting and
+  stopping encrypted devices. Cryptdisks init script now raises a warning for
+  failures at starting encrypted devices, and cryptdisks-early warns about
+  failures at stopping encrypted devices.
+
+  
+
+ -- Jonas Meurer <mejo@debian.org>  Thu, 08 Jul 2010 00:47:50 +0200
