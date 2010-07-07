@@ -46,8 +46,10 @@ cryptsetup (2:1.1.2-2) UNRELEASED; urgency=low
     to Christoph Anton Mitterer. (closes: #587222)
   * remove lintian overrides init.d-script-should-depend-on-virtual-facility
     as lintian lintian 2.4.2 has fixed #580082.
+  * bump standards-version to 3.9.0, no changes needed
+  * fix loads of typos, thanks to Christoph Anton Mitterer. (closes: #588068)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 28 Jun 2010 10:48:37 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 07 Jul 2010 19:16:52 +0200
 
 cryptsetup (2:1.1.2-1) unstable; urgency=low
 
