@@ -1,6 +1,9 @@
-cryptsetup (2:1.1.2-2) UNRELEASED; urgency=low
+cryptsetup (2:1.1.3-1) UNRELEASED; urgency=low
 
-  * NOT RELEASED YET
+  * new upstream release:
+    - fix device alignment ioctl calls parameters for archs like ppc64.
+    - fix activate_by_* API calls to handle NULL device name as documented
+    - fix udev support for old libdevmapper with not compatible definition 
   * fix rm_lo_setup() in cryptdisks.functions for failed device setup. thanks
     to Roger Pettersson. (closes: #581712)
   * add X-Stop-After headers to cryptdisks(-early) initscripts. this fixes
@@ -49,7 +52,7 @@ cryptsetup (2:1.1.2-2) UNRELEASED; urgency=low
   * bump standards-version to 3.9.0, no changes needed
   * fix loads of typos, thanks to Christoph Anton Mitterer. (closes: #588068)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 07 Jul 2010 20:06:34 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 07 Jul 2010 23:08:23 +0200
 
 cryptsetup (2:1.1.2-1) unstable; urgency=low
 
