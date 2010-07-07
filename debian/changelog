@@ -42,14 +42,14 @@ cryptsetup (2:1.1.2-2) UNRELEASED; urgency=low
     mdadm-raid was started before cryptdisks-early. (closes: #587224)
   * cryptdisks initscript now raises a warning for failed started devices, and
     cryptdisks-early initscript raises a warning for failed stopped devices.
-    this makes the initscript actions far more transparent to users. thanks
-    to Christoph Anton Mitterer. (closes: #587222)
+    this makes the initscript actions far more transparent to users. same holds
+    for cryptdisks_st*. thanks to Christoph Anton Mitterer. (closes: #587222)
   * remove lintian overrides init.d-script-should-depend-on-virtual-facility
     as lintian lintian 2.4.2 has fixed #580082.
   * bump standards-version to 3.9.0, no changes needed
   * fix loads of typos, thanks to Christoph Anton Mitterer. (closes: #588068)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 07 Jul 2010 19:16:52 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 07 Jul 2010 20:06:34 +0200
 
 cryptsetup (2:1.1.2-1) unstable; urgency=low
 

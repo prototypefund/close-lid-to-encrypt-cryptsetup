@@ -37,15 +37,13 @@ tablen="$(egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | /usr/bin/wc -l)"
 egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
 	count=$(( $count + 1 ))
 	if [ "$1" = "$dst" ]; then
-		ret=0
-		handle_crypttab_line_start "$dst" "$src" "$key" "$opts" <&3 || ret=$?
+		handle_crypttab_line_start "$dst" "$src" "$key" "$opts" <&3 || log_action_end_msg $?
 	elif [ $count -ge $tablen ]; then
-		ret=1
 		device_msg "$1" "failed, not found in crypttab"
+		log_action_end_msg 1
 	else
 		continue
 	fi
 	umount_fs
-	log_action_end_msg $ret
-	exit $ret
+	log_action_end_msg 0
 done 3<&1
