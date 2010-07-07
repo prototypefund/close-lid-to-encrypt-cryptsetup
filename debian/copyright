@@ -30,7 +30,7 @@ Files: debian/*
 Copyright: © 2004-2005 Wesley W. Terpstra <terpstra@debian.org>
            © 2005-2006 Michael Gebetsroither <michael.geb@gmx.at>
            © 2006-2008 David Härdeman <david@hardeman.nu>
-           © 2005-2009 Jonas Meurer <jonas@freesources.org>
+           © 2005-2010 Jonas Meurer <jonas@freesources.org>
 License: GPL-2+
 
 Files: luks/sha/*
@@ -40,6 +40,7 @@ License: GPL
 Files: *
 Copyright: © 2004      Christophe Saout <christophe@saout.de>
            © 2004-2008 Clemens Fruhwirth <clemens@endorphin.org>
+           © 2008-2010 Milan Broz <mbroz@redhat.com>
 License: GPL-2+
  This package is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

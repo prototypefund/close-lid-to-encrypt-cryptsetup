@@ -1,4 +1,4 @@
-cryptsetup (2:1.1.3-1) UNRELEASED; urgency=low
+cryptsetup (2:1.1.3-1~pre1) unstable; urgency=low
 
   * new upstream release:
     - fix device alignment ioctl calls parameters for archs like ppc64.
@@ -9,7 +9,7 @@ cryptsetup (2:1.1.3-1) UNRELEASED; urgency=low
   * add X-Stop-After headers to cryptdisks(-early) initscripts. this fixes
     shutdown process for system without encrypted rootfs at least. thanks to
     Alfredo Finelli. (closes: #575652)
-  * more merges from ubuntu, thanks to and steve langasek (closes: #575024):
+  * more merges from ubuntu, thanks to and Steve Langasek (closes: #575024):
     - debian/cryptdisk.functions: initially create the device under a temporary
       name and rename it only at the end using 'dmsetup rename', to ensure that
       upstart/mountall doesn't see our device before it's ready to go.
@@ -35,12 +35,13 @@ cryptsetup (2:1.1.3-1) UNRELEASED; urgency=low
     - remove *vol_id check scripts, vol_id isn't available in debian any longer
     - don't use sed in *blkid check scripts any longer
   * fix initramfs/cryptroot-hook to canonicalize $device in get_resume_devices
-    function. this should really weed out all duplicates. (closes: #586122)
+    function. this should really weed out all duplicates. (closes: #586122),
+    and catch all udev/device-mapper symlink setups as well (closes: #554506)
   * bash-completion file now in pck bash-completion (closes: #586299, #586162)
   * add a paragraph about the boot order of init scripts to README.Debian,
     describing the current catch-22 situation. (closes: #576646)
-  * initscripts no longer silently quit in case that include file
-    /lib/cryptsetup/cryptdisks.functions is missing. (closes: #587220)
+  * initscripts and cryptdisks_st* no longer silently quit in case that include
+    file /lib/cryptsetup/cryptdisks.functions is missing. (closes: #587220)
   * fix cryptdisks-early LSB headers to restore legacy boot sequence order.
     mdadm-raid was started before cryptdisks-early. (closes: #587224)
   * cryptdisks initscript now raises a warning for failed started devices, and
@@ -49,10 +50,13 @@ cryptsetup (2:1.1.3-1) UNRELEASED; urgency=low
     for cryptdisks_st*. thanks to Christoph Anton Mitterer. (closes: #587222)
   * remove lintian overrides init.d-script-should-depend-on-virtual-facility
     as lintian lintian 2.4.2 has fixed #580082.
-  * bump standards-version to 3.9.0, no changes needed
+  * bump standards-version to 3.9.0, remove version information from replaces/
+    provides/conflicts against cryptsetup-luks, change conflicts against
+    hashalot (<= 0.3-1) to breaks hashalot (<< 0.3-1) and add replaces.
   * fix loads of typos, thanks to Christoph Anton Mitterer. (closes: #588068)
+  * update copyright years and list Milan Broz in debian/copyright
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 07 Jul 2010 23:08:23 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 08 Jul 2010 00:37:16 +0200
 
 cryptsetup (2:1.1.2-1) unstable; urgency=low
 

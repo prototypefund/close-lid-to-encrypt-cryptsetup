@@ -16,11 +16,7 @@ if [ $# -lt 1 ]; then
 	exit 1
 fi
 
-if [ -r /lib/cryptsetup/cryptdisks.functions ]; then
-	. /lib/cryptsetup/cryptdisks.functions
-else
-	exit 0
-fi
+. /lib/cryptsetup/cryptdisks.functions
 
 INITSTATE="remaining"
 LOUD="yes"

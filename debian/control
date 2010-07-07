@@ -13,8 +13,10 @@ Package: cryptsetup
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, dmsetup
 Suggests: udev, initramfs-tools (>= 0.91) | linux-initramfs-tool, busybox, dosfstools
-Conflicts: cryptsetup-luks (<= 1.0.1-8), hashalot (<= 0.3-1)
-Replaces: cryptsetup-luks (<= 1.0.1-8)
+Provides: cryptsetup-luks
+Conflicts: cryptsetup-luks
+Replaces: cryptsetup-luks, hashalot (<< 0.3-2)
+Breaks: hashalot (<< 0.3-2)
 Description: configures encrypted block devices
  Cryptsetup provides a command-line interface for configuring encrypted
  devices. This is done using the Linux kernel device mapper target
