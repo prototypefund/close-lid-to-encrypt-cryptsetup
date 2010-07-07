@@ -1,3 +1,9 @@
+cryptsetup (2:1.1.2-2) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+
+ -- Jonas Meurer <mejo@debian.org>  Tue, 01 Jun 2010 15:44:10 +0200
+
 cryptsetup (2:1.1.2-1) unstable; urgency=low
 
   * new upstream release, changes include:
