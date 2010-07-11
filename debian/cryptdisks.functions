@@ -150,7 +150,7 @@ parse_opts () {
 			fi
 			;;
 		noauto)
-			if [ -n "$INITSTATE" ]; then
+			if [ -n "$INITSTATE" ] && [ "$INITSTATE" != "manual" ]; then
 				IGNORE="yes"
 			fi
 			;;
@@ -598,7 +598,7 @@ handle_crypttab_line_stop () {
 		return 1
 	elif [ "$opencount" != "0" ]; then
 		device_msg "$dst" "busy"
-		if [ "$INITSTATE" = "early" ]; then
+		if [ "$INITSTATE" = "early" ] || [ "$INITSTATE" = "manual" ]; then
 			return 1
 		fi
 		return 0

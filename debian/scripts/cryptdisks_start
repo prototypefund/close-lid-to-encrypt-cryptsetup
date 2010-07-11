@@ -18,7 +18,7 @@ fi
 
 . /lib/cryptsetup/cryptdisks.functions
 
-INITSTATE="remaining"
+INITSTATE="manual"
 LOUD="yes"
 
 if [ -x "/usr/bin/id" ] && [ "$(/usr/bin/id -u)"  != "0" ]; then
