@@ -250,7 +250,16 @@
    <varlistentry>
     <term><emphasis>loud</emphasis></term>
     <listitem>
-     <simpara>Be loud. Print warnings if a device does not exist.</simpara>
+     <simpara>Be loud. Print warnings if a device does not exist.
+     This option overwrites the option <emphasis>quiet</emphasis>.</simpara>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><emphasis>quiet</emphasis></term>
+    <listitem>
+     <simpara>Be quiet. Don't print warnings if a device does not exist.
+     This option overwrites the option <emphasis>loud</emphasis>.</simpara>
     </listitem>
    </varlistentry>
 

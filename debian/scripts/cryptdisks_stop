@@ -20,7 +20,7 @@ fi
 . /lib/cryptsetup/cryptdisks.functions
 
 INITSTATE="manual"
-LOUD="yes"
+DEFAULT_LOUD="yes"
 
 if [ -x "/usr/bin/id" ] && [ "$(/usr/bin/id -u)"  != "0" ]; then
 	log_warning_msg "$0 needs root privileges"

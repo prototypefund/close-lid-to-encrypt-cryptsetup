@@ -40,6 +40,8 @@ parse_opts () {
 	KEYSCRIPT=""
 	IGNORE=""
 	CRYPTTAB_OPTIONS=""
+	LOUD="$DEFAULT_LOUD"
+	QUIET=""
 
 	# Parse the options field, convert to cryptsetup parameters
 	# and construct the command line
@@ -156,6 +158,9 @@ parse_opts () {
 			;;
 		loud)
 			LOUD="yes"
+			;;
+		quiet)
+			LOUD=""
 			;;
 		keyscript)
 			if [ -n "$KEYSCRIPT" ]; then
