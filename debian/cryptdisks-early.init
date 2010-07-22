@@ -19,7 +19,7 @@ set -e
 . /lib/cryptsetup/cryptdisks.functions
 
 INITSTATE="early"
-LOUD=""
+DEFAULT_LOUD=""
 
 case "$CRYPTDISKS_ENABLE" in
 [Nn]*)

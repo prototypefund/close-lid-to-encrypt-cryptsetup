@@ -21,8 +21,6 @@ fi
 
 MOUNT="$CRYPTDISKS_MOUNT"
 
-LOUD=""
-
 # Parses the option field from the crypttab file
 parse_opts () {
 	local opts opt IFS PARAM VALUE
@@ -41,7 +39,6 @@ parse_opts () {
 	IGNORE=""
 	CRYPTTAB_OPTIONS=""
 	LOUD="$DEFAULT_LOUD"
-	QUIET=""
 
 	# Parse the options field, convert to cryptsetup parameters
 	# and construct the command line
@@ -152,7 +149,7 @@ parse_opts () {
 			fi
 			;;
 		noauto)
-			if [ -n "$INITSTATE" ] && [ "$INITSTATE" != "manual" ]; then
+			if [ "$INITSTATE" != "manual" ]; then
 				IGNORE="yes"
 			fi
 			;;
@@ -549,7 +546,7 @@ handle_crypttab_line_start () {
 
 	# Make sure source device exists
 	if [ ! -r "$src" ]; then
-		if [ "$LOUD" = "yes" ] || [ "$INITSTATE" != "early" ]; then
+		if [ "$LOUD" = "yes" ]; then
 			device_msg "$dst" "skipped, device $src does not exist"
 			return 1
 		fi
