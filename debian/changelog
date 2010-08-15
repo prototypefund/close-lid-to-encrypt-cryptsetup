@@ -2,8 +2,10 @@ cryptsetup (2:1.1.3-4) UNRELEASED; urgency=low
 
   * NOT RELEASED YET
   * bump standards-version to 3.9.1, no changes required
+  * add patches/01_manpage_units: mention units (512b sectors) for -o option
+    in man page. (closes: #584174)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 26 Jul 2010 15:00:15 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sun, 15 Aug 2010 15:48:51 +0200
 
 cryptsetup (2:1.1.3-3) unstable; urgency=low
 
