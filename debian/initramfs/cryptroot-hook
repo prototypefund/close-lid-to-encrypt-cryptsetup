@@ -334,6 +334,7 @@ canonical_device() {
 		return 0
 	fi
 
+	echo "cryptsetup: WARNING: failed to detect canonical device of $original" >&2
 	return 1
 }
 

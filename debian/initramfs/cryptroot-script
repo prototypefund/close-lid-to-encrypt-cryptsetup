@@ -165,7 +165,7 @@ activate_vg()
 	# Reduce padded --'s to -'s
 	vg=$(echo ${vg} | sed -e 's#--#-#g')
 
-	lvm vgchange -ay ${vg}
+	/sbin/lvm vgchange -ay ${vg}
 	return $?
 }
 

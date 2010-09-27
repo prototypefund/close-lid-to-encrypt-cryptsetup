@@ -114,8 +114,10 @@ install-stamp: build-stamp
 	install -m 0644 debian/cryptdisks.functions $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
 	install -m 0755 debian/checks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/checks/
 	install -m 0755 debian/scripts/luksformat $(CURDIR)/debian/cryptsetup/usr/sbin/
-	install -m 0755 debian/scripts/cryptdisks_start $(CURDIR)/debian/cryptsetup/usr/sbin/
-	install -m 0755 debian/scripts/cryptdisks_stop $(CURDIR)/debian/cryptsetup/usr/sbin/
+	install -m 0755 debian/scripts/cryptdisks_start $(CURDIR)/debian/cryptsetup/sbin/
+	install -m 0755 debian/scripts/cryptdisks_stop $(CURDIR)/debian/cryptsetup/sbin/
+	dh_link -pcryptsetup sbin/cryptdisks_start usr/sbin/cryptdisks_start
+	dh_link -pcryptsetup sbin/cryptdisks_stop usr/sbin/cryptdisks_stop
 	install -m 0755 debian/scripts/decrypt_* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
 	install -m 0755 debian/scripts/passdev $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
 	install -m 0755 debian/askpass $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
@@ -157,7 +159,8 @@ binary-arch: build install
 	# Copy relevant parts to cryptsetup-udeb package
 	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
-	cp -a $(CURDIR)/debian/cryptsetup/sbin $(CURDIR)/debian/cryptsetup-udeb/
+	mkdir $(CURDIR)/debian/cryptsetup-udeb/sbin/
+	cp -a $(CURDIR)/debian/cryptsetup/sbin/cryptsetup $(CURDIR)/debian/cryptsetup-udeb/sbin/
 	dh_lintian -a
 	dh_compress -a
 	dh_fixperms -a
