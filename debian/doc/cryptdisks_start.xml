@@ -17,7 +17,7 @@
 
  <refnamediv>
   <refname>cryptdisks_start</refname>
-  <refpurpose>wrapper around cryptsetup which parses /etc/crypttab.</refpurpose>
+  <refpurpose>wrapper around cryptsetup that parses /etc/crypttab.</refpurpose>
  </refnamediv>
 
  <refsynopsisdiv>
@@ -31,16 +31,22 @@
   <title>DESCRIPTION</title>
   <simpara>
    <emphasis role="strong">cryptdisks_start</emphasis> is a wrapper around
-   <emphasis role="strong">cryptsetup</emphasis> which parses
+   <emphasis role="strong">cryptsetup</emphasis> that parses
    <emphasis role="strong">/etc/crypttab</emphasis> just like the initscript
-   /etc/init.d/cryptdisks does, and starts the dm-crypt mapping which
+   /etc/init.d/cryptdisks does and starts the dm-crypt mapping that
    corresponds to <emphasis>&lt;name&gt;</emphasis>.
+  </simpara>
+  <simpara>
+   Note that this wrapper passes <option>--key-file=-</option> to
+   <command moreinfo="refentry">cryptsetup</command>, so the passphase
+   in any referenced key file must not be followed by a newline character.
   </simpara>
  </refsect1>
 
  <refsect1 id="cryptdisks_start.see_also">
   <title>SEE ALSO</title>
   <simpara>
+   <emphasis>cryptdisks_stop</emphasis>(8), 
    <emphasis>cryptsetup</emphasis>(8), <emphasis>crypttab</emphasis>(5)
   </simpara>
  </refsect1>
