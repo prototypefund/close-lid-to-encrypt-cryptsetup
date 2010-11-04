@@ -148,8 +148,8 @@ get_lvm_deps() {
 
 	# We should now have a list of major,minor pairs, e.g. "3,2 3,3"
 	for dep in $deps; do
-		maj=${dep%,*}
-		min=${dep#*,}
+		maj=$(echo ${dep%,*} | sed -e "s/^[ \t]*//g")
+		min=$(echo ${dep#*,} | sed -e "s/[ \t]*$//g")
 		depnode=$(dmsetup ls | sed -n "s/\\([^ ]*\\) *($maj, $min)/\\1/p" | sed -e "s/[ \t]*$//")
 		if [ -z "$depnode" ]; then
 			continue

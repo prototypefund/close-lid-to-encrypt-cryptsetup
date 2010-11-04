@@ -25,7 +25,10 @@
   <simpara>
    The file <filename>/etc/crypttab</filename> contains descriptive
    information about encrypted filesystems. <filename>crypttab</filename>
-   is only read by programs, and not written; it is the duty of the system
+   is only read by programs (e.g.
+   <command moreinfo="refentry">cryptdisks_start</command> and
+   <command moreinfo="refentry">cryptdisks_stop</command>),
+   and not written; it is the duty of the system
    administrator to properly create and maintain this file. Each filesystem is
    described on a separate line; fields on each line are separated by tabs or
    spaces. Lines starting with <quote>#</quote> are comments, empty lines are 
@@ -49,6 +52,11 @@
   <simpara>
    The third field, <emphasis>key file</emphasis>, describes the file to use
    as a key for decrypting the data of the <emphasis>source device</emphasis>.
+   Note that the <emphasis>entire</emphasis> key file will be used as the
+   passphase; the passphase must <emphasis>not</emphasis> be
+   followed by a newline character.
+  </simpara>
+  <simpara>
    It can also be a device name (e.g.
    <filename class="devicefile">/dev/urandom</filename>), note however that
    LUKS requires a persistent key and therefore does <emphasis>not</emphasis>
@@ -62,7 +70,7 @@
   <simpara>
    The fourth field, <emphasis>options</emphasis>, describes the cryptsetup
    options associated with the encryption process. At minimum, the field should
-   contain the string <emphasis>luks</emphasis> or the
+   contain either the string <emphasis>luks</emphasis> or the
    <emphasis>cipher</emphasis>, <emphasis>hash</emphasis> and
    <emphasis>size</emphasis> options.
   </simpara>
@@ -451,7 +459,8 @@ cdisk3 /dev/sda3 none cipher=twofish
   <title>SEE ALSO</title>
   <simplelist type="inline">
    <member><command moreinfo="refentry">cryptsetup</command>(8)</member>
-   <member><filename>/etc/crypttab</filename></member>
+   <member><command moreinfo="refentry">cryptdisks_start</command>(8)</member>
+   <member><command moreinfo="refentry">cryptdisks_stop</command>(8)</member>
   </simplelist>
  </refsect1>
 

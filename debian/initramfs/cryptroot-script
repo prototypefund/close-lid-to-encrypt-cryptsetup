@@ -141,45 +141,25 @@ parse_options()
 
 activate_vg()
 {
-	local vg
-	vg="${1#/dev/mapper/}"
-
 	# Sanity checks
 	if [ ! -x /sbin/lvm ]; then
 		message "cryptsetup: lvm is not available"
 		return 1
- 	elif [ "$vg" = "$1" ]; then
-		message "cryptsetup: lvm device name ($vg) does not begin with /dev/mapper/"
-		return 1
 	fi
 
-	# Make sure that the device contains at least one dash
-	if [ "${vg%%-*}" = "$vg" ]; then
-		message "cryptsetup: lvm device name ($vg) does not contain a dash"
-		return 1
-	fi
-
-	# Split volume group from logical volume.
-	vg=$(echo ${vg} | sed -e 's#\(.*\)\([^-]\)-[^-].*#\1\2#')
-
-	# Reduce padded --'s to -'s
-	vg=$(echo ${vg} | sed -e 's#--#-#g')
-
-	/sbin/lvm vgchange -ay ${vg}
+	# Detect and activate available volume groups
+	/sbin/lvm vgscan
+	/sbin/lvm vgchange -ay
 	return $?
 }
 
 activate_evms()
 {
 	local dev module
-	dev="${1#/dev/evms/}"
 
 	# Sanity checks
 	if [ ! -x /sbin/evms_activate ]; then
 		message "cryptsetup: evms_activate is not available"
-		return 1
-	elif [ "$dev" = "$1" ]; then
-		message "cryptsetup: evms device name ($vg) does not begin with /dev/evms/"
 		return 1
 	fi
 
@@ -219,8 +199,8 @@ setup_mapping()
 
 	# Make sure the cryptsource device is available
 	if [ ! -e $cryptsource ]; then
-		activate_vg $cryptsource
-		activate_evms $cryptsource
+		activate_vg
+		activate_evms
 	fi
 
 	# If the encrypted source device hasn't shown up yet, give it a
@@ -320,7 +300,7 @@ setup_mapping()
 			if [ -z "$cryptlvm" ]; then
 				message "cryptsetup: lvm fs found but no lvm configured"
 				return 1
-			elif ! activate_vg "/dev/mapper/$cryptlvm"; then
+			elif ! activate_vg; then
 				# disable error message, LP: #151532
 				#message "cryptsetup: failed to setup lvm device"
 				return 1

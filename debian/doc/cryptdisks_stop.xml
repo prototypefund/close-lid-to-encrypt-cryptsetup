@@ -17,7 +17,7 @@
 
  <refnamediv>
   <refname>cryptdisks_stop</refname>
-  <refpurpose>wrapper around cryptsetup which parses /etc/crypttab.</refpurpose>
+  <refpurpose>wrapper around cryptsetup that parses /etc/crypttab.</refpurpose>
  </refnamediv>
 
  <refsynopsisdiv>
@@ -31,9 +31,9 @@
   <title>DESCRIPTION</title>
   <simpara>
    <emphasis role="strong">cryptdisks_stop</emphasis> is a wrapper around
-   <emphasis role="strong">cryptsetup</emphasis> which parses
+   <emphasis role="strong">cryptsetup</emphasis> that parses
    <emphasis role="strong">/etc/crypttab</emphasis> just like the initscript
-   /etc/init.d/cryptdisks does, and stops the dm-crypt mapping which corresponds
+   /etc/init.d/cryptdisks does and stops the dm-crypt mapping that corresponds
    to <emphasis>&lt;name&gt;</emphasis>.
   </simpara>
  </refsect1>
@@ -41,6 +41,7 @@
  <refsect1 id="cryptdisks_stop.see_also">
   <title>SEE ALSO</title>
   <simpara>
+   <emphasis>cryptdisks_start</emphasis>(8),
    <emphasis>cryptsetup</emphasis>(8), <emphasis>crypttab</emphasis>(5)
   </simpara>
  </refsect1>
