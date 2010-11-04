@@ -147,13 +147,8 @@ activate_vg()
 		return 1
 	fi
 
-	# Detect available volume groups
-	vgs=$(lvm vgs --noheadings -o vg_name | sed -e "s/^[ \t]*\(.*\)[ \t]*$/\1/g")
-	if [ -z "$vgs" ]; then
-		message "cryptsetup: no lvm volume groups found"
-		return 1
-	fi
-
+	# Detect and activate available volume groups
+	/sbin/lvm vgscan
 	/sbin/lvm vgchange -ay
 	return $?
 }
