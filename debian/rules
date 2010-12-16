@@ -63,7 +63,7 @@ build-stamp: configure-stamp
 		debian/luksformat.8
 	$(MAKE)
 	# We link dynamically now that all required libraries are in /lib
-	gcc lib/.libs/*.o src/*.o luks/.libs/*.o -o src/cryptsetup.shared \
+	gcc lib/.libs/*.o src/*.o lib/luks1/.libs/*.o -o src/cryptsetup.shared \
 		-lpopt -ldevmapper -luuid -lgcrypt -lgpg-error
 	gcc -Wall -pedantic -std=c99 debian/askpass.c -o debian/askpass
 	gcc -Wall -pedantic -std=c99 debian/passdev.c -o debian/scripts/passdev
@@ -94,20 +94,21 @@ install-stamp: build-stamp
 	cp src/cryptsetup.shared $(CURDIR)/debian/cryptsetup/sbin/cryptsetup
 
 	# Copy library files to library packages
-	#cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.la \
+	#cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.la \
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
-	#cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.a \
+	#cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.a \
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
-	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.so \
+	cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.so \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
-	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/pkgconfig/libcryptsetup.pc \
+	cp -a $(CURDIR)/debian/cryptsetup/lib/pkgconfig/libcryptsetup.pc \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/pkgconfig/
 	cp -a $(CURDIR)/debian/cryptsetup/usr/include/libcryptsetup.h \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/include/
-	cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.so.1* \
-		$(CURDIR)/debian/libcryptsetup1/usr/lib/
+	cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.so.1* \
+		$(CURDIR)/debian/libcryptsetup1/lib/
 
 	# Remove libraries from cryptsetup package, they're shiped in seperate library packags
+	rm -rf $(CURDIR)/debian/cryptsetup/lib
 	rm -rf $(CURDIR)/debian/cryptsetup/usr/include
 	rm -rf $(CURDIR)/debian/cryptsetup/usr/lib
 
