@@ -1,16 +1,27 @@
-cryptsetup (2:1.2.0-1) UNRELEASED; urgency=low
+cryptsetup (2:1.2.0~rc1-1) experimental; urgency=low
 
   * NOT RELEASED YET
-  * new upstream release:
-    FIXME: - all important changes
-  * FIXME: build with shared linking, install libraries to /lib
-  * PROBLEM: with --prefix=/, what happens with usr/share/locale?
+  * new major upstream release (closes: #603804)
+    - adds text version of FAQ
+    - adds new options --use-random and --use-urandom for MK generation
+    - fixes luksRemoveKey to not ask for remaining keyslot passphrase
+    - no longer supports luksDelKey command (replaced by luksKillSlot)
+    - no longer supports reload command, dmsetup reload should be used instead
+    - adds support to change the UUID later (with --uuid cmd option)
+    - adds --dump-master-key option for luksDump command
+    - no longer supports luksOpen, luksFormat and create for open devices
+    - and many more changes, see upstream changelog for further information
   * invoke update-initramfs at cryptsetup removal in order to not leave behind
     a broken initramfs. thanks to ubuntu for the hint.
-  * link dynamically against libgcrypt11, now that the library has been moved
-    to /lib. add versioned build-depends on libgcrypt >= 1.4.6-2.
+  * link dynamically against libgcrypt11 and libgpg-error0 now that the
+    libraries have been moved to /lib. add versioned build-depends on
+    (libgcrypt >= 1.4.6-2) and libgpg-error0 (>= 1.10-0.1).
+  * debian/cryptdisks.functions:
+    + fix check for ownership and permissions of $key to work with slighly
+      different output of 'ls -l' with selinux enabled. (closes: #600522)
+    + fix $TRIES implementation to support TRIES=0 again. (closes: #602501)
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 11 Dec 2010 14:42:04 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 16 Dec 2010 17:49:50 +0100
 
 cryptsetup (2:1.1.3-4) unstable; urgency=high
 

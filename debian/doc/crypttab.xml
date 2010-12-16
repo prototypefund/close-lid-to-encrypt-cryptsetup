@@ -228,8 +228,8 @@
     <listitem>
      <simpara>The input of the passphrase is tried &lt;num&gt; times in case
       of failure. If you want to disable retries, pass <quote>tries=1</quote>.
-      Default is 3. For the root device, <quote>tries=0</quote> enables
-      infinitive retries due to a special case in the initramfs scripts.
+      Default is 3. Setting <quote>tries=0</quote> will ask for the passphrase
+      until a correct one has been submitted (infinitive retries).
      </simpara>
     </listitem>
    </varlistentry>

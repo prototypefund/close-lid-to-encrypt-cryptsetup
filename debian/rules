@@ -42,6 +42,7 @@ configure-stamp:
 	autoreconf --force --install
 	CFLAGS="$(CFLAGS)" ./configure $(confflags) \
 		--prefix=/usr \
+		--libdir=/lib \
 		--sbindir=/sbin \
 		--mandir=/usr/share/man \
 		--enable-shared
@@ -61,10 +62,9 @@ build-stamp: configure-stamp
 	pod2man --section=8 --center="Administrative commands" --release="" debian/scripts/luksformat \
 		debian/luksformat.8
 	$(MAKE)
-	# cannot depend on libraries in /usr !
-	# We instead statically link the relevant code into the cryptsetup executable
-	gcc lib/.libs/*.o src/*.o luks/.libs/*.o -o src/cryptsetup.static \
-		-lpopt -ldevmapper -luuid -lgcrypt /usr/lib/libgpg-error.a
+	# We link dynamically now that all required libraries are in /lib
+	gcc lib/.libs/*.o src/*.o luks/.libs/*.o -o src/cryptsetup.shared \
+		-lpopt -ldevmapper -luuid -lgcrypt -lgpg-error
 	gcc -Wall -pedantic -std=c99 debian/askpass.c -o debian/askpass
 	gcc -Wall -pedantic -std=c99 debian/passdev.c -o debian/scripts/passdev
 	touch $@
@@ -80,7 +80,7 @@ clean:
 	rm -f debian/askpass
 	rm -f config.mess
 	rm -rf autom4te.cache 
-	rm -f src/cryptsetup.static
+	rm -f src/cryptsetup.shared
 	dh_clean configure-stamp build-stamp install-stamp
 
 install: install-stamp
@@ -91,7 +91,7 @@ install-stamp: build-stamp
 	dh_installdirs
 	mkdir -p $(CURDIR)/debian/cryptsetup-udeb/
 	$(MAKE) DESTDIR=$(CURDIR)/debian/cryptsetup install
-	cp src/cryptsetup.static $(CURDIR)/debian/cryptsetup/sbin/cryptsetup
+	cp src/cryptsetup.shared $(CURDIR)/debian/cryptsetup/sbin/cryptsetup
 
 	# Copy library files to library packages
 	#cp -a $(CURDIR)/debian/cryptsetup/usr/lib/libcryptsetup.la \

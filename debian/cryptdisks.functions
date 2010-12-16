@@ -122,7 +122,7 @@ parse_opts () {
 			fi
 			;;
 		tries)
-			if echo "$VALUE" | grep -q "^[[:digit:]]\+$" && [ "$VALUE" -gt 0 ]; then
+			if echo "$VALUE" | grep -q "^[[:digit:]]\+$" && [ "$VALUE" -ge 0 ]; then
 				TRIES="$VALUE"
 			else
 				log_warning_msg "$dst: option tries used with an incorrect argument - forced to $TRIES"
@@ -244,20 +244,14 @@ check_key () {
 		return 1
 	fi
 
-	# stat is unfortunately in /usr/bin...
-	OMODE=$(ls -l "$key" | sed 's/[[:space:]].*//;s/^.\{7\}//')
-	GMODE=$(ls -l "$key" | sed 's/[[:space:]].*//;s/^.\{4\}\(.\{3\}\).*/\1/')
-	GROUP=$(ls -l "$key" | sed 's/^.\{11\}[^[:space:]]* [^[:space:]]* \([^[:space:]]*\).*/\1/')
-	# regex needs to work if keyfile has xattrs - https://launchpad.net/bugs/231339
-	OWNER=$(ls -l "$key" | sed 's/^.\{10\}[+]\?.[^[:space:]]* \([^[:space:]]*\).*/\1/')
-
 	# LUKS requires a persistent key, /dev/*random is not supported
 	if [ "$USELUKS" = "yes" ] && [ "$key" != "${key%random}" ]; then
 		log_warning_msg "$dst: LUKS does not work with random data as key"
 		return 1
 	fi
 
-	# Check owner
+	# Check ownership of $key
+	OWNER=$(ls -l "$key" | sed 's/^.\{10\}[+\.]\?.[^[:space:]]* \([^[:space:]]*\).*/\1/')
 	if [ "$OWNER" != "root" ]; then
 		log_warning_msg "$dst: INSECURE OWNER FOR $key, see /usr/share/doc/cryptsetup/README.Debian."
 	fi
@@ -267,8 +261,16 @@ check_key () {
 		return 0
 	fi
 
+	# Check owner group of $key
+	GROUP=$(ls -l "$key" | sed 's/^.\{10\}[+\.]\?.[^[:space:]]* \([^[:space:]]*\).*/\1/')
+	if [ "$GROUP" != "root" ]; then
+		log_warning_msg "$dst: INSECURE OWNER GROUP FOR $key, see /usr/share/doc/cryptsetup/README.Debian."
+	fi
+
 	# Check group and other permissions
-	if [ "$OMODE" != "---" ] || [ "$GROUP" != "root" ] && [ "$GMODE" != "---" ]; then
+	GMODE=$(ls -l "$key" | sed 's/[[:space:]].*//;s/^.\{4\}\(.\{3\}\).*/\1/')
+	OMODE=$(ls -l "$key" | sed 's/[[:space:]].*//;s/^.\{7\}\(.\{3\}\).*/\1/')
+	if [ "$GMODE" != "---" ] && [ "$OMODE" != "---" ]; then
 		log_warning_msg "$dst: INSECURE MODE FOR $key, see /usr/share/doc/cryptsetup/README.Debian."
 	fi
 
@@ -314,7 +316,7 @@ do_luks () {
 
 	PARAMS="$PARAMS --key-file=$key"
 
-	while [ "$tried" -lt "$TRIES" ]; do
+	while [ "$tried" -lt "$TRIES" ] || [ "$TRIES" -eq "0" ]; do
 		if [ -n "$KEYSCRIPT" ]; then
 			if $KEYSCRIPT "$keyscriptarg" | cryptsetup $PARAMS luksOpen "$src" "${dst}_unformatted"; then
 				break
@@ -326,7 +328,7 @@ do_luks () {
 		fi
 
 		tried=$(( $tried + 1 ))
-		if [ "$tried" -ge "$TRIES" ]; then
+		if [ "$tried" -ge "$TRIES" ] && [ "$TRIES" -ne "0" ]; then
 			return 1
 		fi
 	done
