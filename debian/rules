@@ -108,9 +108,9 @@ install-stamp: build-stamp
 		$(CURDIR)/debian/libcryptsetup1/lib/
 
 	# Remove libraries from cryptsetup package, they're shiped in seperate library packags
-	rm -rf $(CURDIR)/debian/cryptsetup/lib
+	rm -rf $(CURDIR)/debian/cryptsetup/lib/libcryptsetup*
+	rm -rf $(CURDIR)/debian/cryptsetup/lib/pkgconfig
 	rm -rf $(CURDIR)/debian/cryptsetup/usr/include
-	rm -rf $(CURDIR)/debian/cryptsetup/usr/lib
 
 	install -m 0644 debian/cryptdisks.functions $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
 	install -m 0755 debian/checks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/checks/
