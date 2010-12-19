@@ -46,7 +46,6 @@ configure-stamp:
 		--sbindir=/sbin \
 		--mandir=/usr/share/man \
 		--enable-shared
-		#--enable-static
 	find -xtype f > manifest.new
 	diff manifest manifest.new | grep '>' | cut -b3- > config.mess
 	touch $@
@@ -62,26 +61,9 @@ build-stamp: configure-stamp
 	pod2man --section=8 --center="Administrative commands" --release="" debian/scripts/luksformat \
 		debian/luksformat.8
 	$(MAKE)
-	# We link dynamically now that all required libraries are in /lib
-	gcc lib/.libs/*.o src/*.o lib/luks1/.libs/*.o -o src/cryptsetup.shared \
-		-lpopt -ldevmapper -luuid -lgcrypt -lgpg-error
 	gcc -Wall -pedantic -std=c99 debian/askpass.c -o debian/askpass
 	gcc -Wall -pedantic -std=c99 debian/passdev.c -o debian/scripts/passdev
 	touch $@
-
-clean:
-	dh_testdir
-	dh_testroot
-	if test -f Makefile; then $(MAKE) clean; fi
-	if test -f config.mess; then rm -f `cat config.mess`; fi
-	rm -f debian/luksformat.8
-	rm -f debian/doc/*.[0-9] debian/doc/variables.xml
-	rm -f debian/scripts/passdev
-	rm -f debian/askpass
-	rm -f config.mess
-	rm -rf autom4te.cache 
-	rm -f src/cryptsetup.shared
-	dh_clean configure-stamp build-stamp install-stamp
 
 install: install-stamp
 install-stamp: build-stamp
@@ -91,7 +73,6 @@ install-stamp: build-stamp
 	dh_installdirs
 	mkdir -p $(CURDIR)/debian/cryptsetup-udeb/
 	$(MAKE) DESTDIR=$(CURDIR)/debian/cryptsetup install
-	cp src/cryptsetup.shared $(CURDIR)/debian/cryptsetup/sbin/cryptsetup
 
 	# Copy library files to library packages
 	#cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.la \
@@ -140,7 +121,6 @@ install-stamp: build-stamp
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-top/cryptroot
 	install -m 0644 debian/initramfs/cryptroot-conf \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/conf-hooks.d/cryptsetup
-
 	install -m 0755 debian/cryptsetup.reportbug-script \
 		$(CURDIR)/debian/cryptsetup/usr/share/bug/cryptsetup
 	touch $@
@@ -174,4 +154,21 @@ binary-arch: build install
 	dh_builddeb -a
 
 binary: binary-indep binary-arch
-.PHONY: configure build clean install binary-indep binary-arch binary
+
+clean:
+	dh_testdir
+	dh_testroot
+	# clean up the source directory
+	if test -f Makefile; then $(MAKE) distclean; fi
+	rm -f autom4te.cache
+	rm -f manifest manifest.new
+	rm -f debian/luksformat.8
+	rm -f debian/doc/*.[0-9] debian/doc/variables.xml
+	rm -f debian/scripts/passdev
+	rm -f debian/askpass
+	# clean up leftovers which where forgotten
+	if test -f config.mess; then rm -f `cat config.mess`; fi
+	rm -f config.mess
+	dh_clean configure-stamp build-stamp install-stamp
+
+.PHONY: configure build install binary-indep binary-arch binary clean
