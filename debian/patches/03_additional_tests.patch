@@ -1,0 +1,208 @@
+Description: Add password hash test for create command and simple checksum test
+Author: Milan Broz <milan.broz@redhat.com>
+Last-Update: 2010-12-19
+
+--- a/tests/password-hash-test	(revision 0)
++++ b/tests/password-hash-test	(revision 402)
+@@ -0,0 +1,84 @@
++#!/bin/bash
++
++# check hash processing in create command
++
++CRYPTSETUP=../src/cryptsetup
++DEV_NAME=dmc_test
++KEY_FILE=keyfile
++
++DEV2=$DEV_NAME"_x"
++
++cleanup() {
++	[ -b /dev/mapper/$DEV2 ] && dmsetup remove $DEV2
++	udevadm settle 2>/dev/null 2>&1
++	[ -b /dev/mapper/$DEV_NAME ] && dmsetup remove $DEV_NAME
++	rm -f $KEY_FILE
++	exit $1
++}
++
++crypt_key() # hash keysize pwd/file name outkey
++{
++	DEV2=$DEV_NAME"_x"
++	MODE=aes-cbc-essiv:sha256
++	[ $2 -gt 256 ] && MODE=aes-xts-plain
++
++	case "$3" in
++	pwd)
++		echo -e -n "$4" | $CRYPTSETUP create -c $MODE -h $1 -s $2 $DEV2 /dev/mapper/$DEV_NAME
++		;;
++	stdin)
++		echo -e -n "$4" | $CRYPTSETUP create -c $MODE -d "-" -h $1 -s $2 $DEV2 /dev/mapper/$DEV_NAME
++		;;
++	file)
++		$CRYPTSETUP create -c $MODE -d $4 -h $1 -s $2 $DEV2 /dev/mapper/$DEV_NAME
++		;;
++	*)
++		fail
++		;;
++	esac
++
++	VKEY=$(dmsetup table $DEV2 --showkeys 2>/dev/null | cut -d' '  -f 5)
++	echo -n "HASH: $1 KSIZE: $2 / $3"
++	if [ "$VKEY" != "$5" ] ; then
++		echo " [FAILED]"
++		echo "expected: $5"
++		echo "real key: $VKEY"
++		cleanup 100
++	fi
++	echo " [OK]"
++	dmsetup remove $DEV2
++}
++
++if [ $(id -u) != 0 ]; then
++	echo "WARNING: You must be root to run this test, test skipped."
++	exit 0
++fi
++
++dmsetup create $DEV_NAME --table "0 10240 zero" >/dev/null 2>&1
++
++crypt_key ripemd160   0 pwd "xxx" aeb26d1f69eb6dddfb9381eed4d7299f091e99aa5d3ff06866d4ce9f620f7aca
++crypt_key ripemd160 256 pwd "xxx" aeb26d1f69eb6dddfb9381eed4d7299f091e99aa5d3ff06866d4ce9f620f7aca
++crypt_key ripemd160 128 pwd "xxx" aeb26d1f69eb6dddfb9381eed4d7299f
++crypt_key sha1      256 pwd "xxx" b60d121b438a380c343d5ec3c2037564b82ffef30b1e0a6ad9af7a73aa91c197
++crypt_key sha1      128 pwd "xxx" b60d121b438a380c343d5ec3c2037564
++crypt_key sha256    256 pwd "xxx" cd2eb0837c9b4c962c22d2ff8b5441b7b45805887f051d39bf133b583baf6860
++crypt_key sha256    128 pwd "xxx" cd2eb0837c9b4c962c22d2ff8b5441b7
++
++crypt_key ripemd160   0 stdin "xxx"   aeb26d1f69eb6dddfb9381eed4d7299f091e99aa5d3ff06866d4ce9f620f7aca
++crypt_key ripemd160 256 stdin "xxx\n" 625ce2a8dbdf08f1de400dba7ab9fab246f2a55ad6136e6cafd6703732dab8cf
++
++# with keyfile, hash is ignored
++crypt_key ripemd160 256 file /dev/zero 0000000000000000000000000000000000000000000000000000000000000000
++crypt_key sha256    256 file /dev/zero 0000000000000000000000000000000000000000000000000000000000000000
++
++# key file, 80 chars
++echo -n -e "0123456789abcdef\n\x01\x00\x03\xff\xff\r\xff\xff\n\r" \
++	   "2352j3rkjhadcfasc823rqaw7e1 3dq sdq3d 2dkjqw3h2=====" >$KEY_FILE
++KEY_FILE_HEX="303132333435363738396162636465660a010003ffff0dffff0a0d20323335326a33726b6a686164636661736338323372716177376531203364712073647133"
++
++crypt_key ripemd160 256 file $KEY_FILE ${KEY_FILE_HEX:0:64}
++crypt_key sha256    256 file $KEY_FILE ${KEY_FILE_HEX:0:64}
++crypt_key sha256    128 file $KEY_FILE ${KEY_FILE_HEX:0:32}
++crypt_key sha256    512 file $KEY_FILE $KEY_FILE_HEX
++
++cleanup 0
+
+Property changes on: tests/password-hash-test
+___________________________________________________________________
+Added: svn:executable
+   + *
+
+--- a/tests/mode-test	(revision 400)
++++ b/tests/mode-test	(revision 402)
+@@ -1,11 +1,7 @@
+ #!/bin/bash
+-
+ #
+ # Test mode compatibility, check input + kernel and cryptsetup cipher status
+ #
+-# FIXME: add checkum test of data
+-#
+-
+ CRYPTSETUP=../src/cryptsetup
+ DEV_NAME=dmc_test
+ LOOPDEV=/dev/loop5
+@@ -46,46 +42,74 @@
+ {
+ 	X=$(dmsetup table $1 2>/dev/null | cut -d' '  -f 4)
+ 	if [ $X = $2 ] ; then
+-		echo -n "OK]"
++		echo -n "[table OK]"
+ 	else
+-		echo -n "FAIL]"
++		echo "[table FAIL]"
+ 		echo " Expecting $2 got $X."
+ 		fail
+ 	fi
+ 
+ 	X=$($CRYPTSETUP status $1 | grep cipher | sed s/\.\*cipher:\\s*//)
+ 	if [ $X = $2 ] ; then
+-		echo " [OK]"
++		echo -n "[status OK]"
+ 	else
+-		echo " [FAIL]"
++		echo "[status FAIL]"
+ 		echo " Expecting $2 got $X."
+ 		fail
+ 	fi
++
++	dmsetup remove $1 >/dev/null 2>&1
+ }
+ 
++dmcrypt_check_sum() # cipher device outstring
++{
++	EXPSUM="c036cbb7553a909f8b8877d4461924307f27ecb66cff928eeeafd569c3887e29"
++	# Fill device with zeroes and reopen it
++	dd if=/dev/zero of=/dev/mapper/$2 bs=1M count=6 >/dev/null 2>&1
++	sync
++	dmsetup remove $2
++	echo $PASSWORD | $CRYPTSETUP create -c $1 -s 256 $2 /dev/mapper/$DEV_NAME >/dev/null 2>&1
++	ret=$?
++	VSUM=$(sha256sum /dev/mapper/$2 | cut -d' ' -f 1)
++	if [ $ret -eq 0 -a "$VSUM" = "$EXPSUM" ] ; then
++		echo -n "[OK]"
++	else
++		echo "[FAIL]"
++		echo " Expecting $EXPSUM got $VSUM."
++		fail
++	fi
++
++	dmsetup remove $2 >/dev/null 2>&1
++}
++
+ dmcrypt()
+ {
+ 	OUT=$2
+ 	[ -z "$OUT" ] && OUT=$1
++	printf "%-25s" "$1"
+ 
+-	echo -n -e "TESTING(PLAIN): $1 ["
+ 	echo $PASSWORD | $CRYPTSETUP create -c $1 -s 256 "$DEV_NAME"_"$1" /dev/mapper/$DEV_NAME >/dev/null 2>&1
+ 	if [ $? -eq 0 ] ; then
++		echo -n -e "PLAIN:"
+ 		dmcrypt_check "$DEV_NAME"_"$1" $OUT
+-		dmsetup remove "$DEV_NAME"_"$1" >/dev/null 2>&1
+ 	else
+-		echo "SKIPPED]"
++		echo -n "[n/a]"
+ 	fi
+ 
+-	echo -n -e "TESTING(LUKS): $1 ["
+ 	echo $PASSWORD | $CRYPTSETUP luksFormat -i 1 -c $1 -s 256 /dev/mapper/$DEV_NAME >/dev/null 2>&1
+ 	if [ $? -eq 0 ] ; then
++		echo -n -e " LUKS:"
+ 		echo $PASSWORD | $CRYPTSETUP luksOpen /dev/mapper/$DEV_NAME "$DEV_NAME"_"$1" >/dev/null 2>&1
+ 		dmcrypt_check "$DEV_NAME"_"$1" $OUT
+-		dmsetup remove "$DEV_NAME"_"$1" >/dev/null 2>&1
+-	else
+-		echo "SKIPPED]"
+ 	fi
++
++	# repeated device creation must return the same checksum
++	echo $PASSWORD | $CRYPTSETUP create -c $1 -s 256 "$DEV_NAME"_"$1" /dev/mapper/$DEV_NAME >/dev/null 2>&1
++	if [ $? -eq 0 ] ; then
++		echo -n -e " CHECKSUM:"
++		dmcrypt_check_sum "$1" "$DEV_NAME"_"$1"
++	fi
++	echo
+ }
+ 
+ if [ $(id -u) != 0 ]; then
+--- a/tests/Makefile.am	(revision 400)
++++ b/tests/Makefile.am	(revision 402)
+@@ -1,6 +1,6 @@
+-TESTS = api-test compat-test align-test mode-test
++TESTS = api-test compat-test align-test mode-test password-hash-test
+ 
+-EXTRA_DIST = compatimage.img.bz2 align-test compat-test mode-test
++EXTRA_DIST = compatimage.img.bz2 align-test compat-test mode-test password-hash-test
+ 
+ differ_SOURCES = differ.c
+ differ_CFLAGS = -Wall -O2
