@@ -9,7 +9,7 @@ cryptsetup (2:1.2.0-1) experimental; urgency=low
     - no longer supports reload command, dmsetup reload should be used instead
     - adds support to change the UUID later (with --uuid cmd option)
     - adds --dump-master-key option for luksDump command
-    - no longer supports luksOpen, luksFormat and create for open devices
+    - no luksOpen, luksFormat and create for open devices (closes: #600208)
     - remove debian/patches/01_manpage.patch, incorporated upstream
     - and many more changes, see upstream changelog for further information
     - update debian/libcryptsetup1.symbols 
@@ -18,12 +18,15 @@ cryptsetup (2:1.2.0-1) experimental; urgency=low
   * link dynamically against libgcrypt11 and libgpg-error0 now that the
     libraries have been moved to /lib. add versioned build-depends on
     (libgcrypt >= 1.4.6-2) and libgpg-error0 (>= 1.10-0.1).
+  * debian/initramfs/cryptroot-script: prereq 'cryptroot-prepare' added in
+    order to support cryptroot to depend on custom initramfs scripts. thanks
+    to Marc Haber for the suggestion. (closes: #601311)
   * debian/cryptdisks.functions:
     + fix check for ownership and permissions of $key to work with slighly
       different output of 'ls -l' with selinux enabled. (closes: #600522)
     + fix $TRIES implementation to support TRIES=0 again. (closes: #602501)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 20 Dec 2010 21:30:17 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 21 Dec 2010 14:57:14 +0100
 
 cryptsetup (2:1.1.3-4) unstable; urgency=high
 

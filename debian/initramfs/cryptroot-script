@@ -1,5 +1,7 @@
 #!/bin/sh
 
+PREREQ="cryptroot-prepare"
+
 #
 # Standard initramfs preamble
 #
