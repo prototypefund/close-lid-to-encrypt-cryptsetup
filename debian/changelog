@@ -16,8 +16,8 @@ cryptsetup (2:1.2.0-1) experimental; urgency=low
   * invoke update-initramfs at cryptsetup removal in order to not leave behind
     a broken initramfs. thanks to ubuntu for the hint.
   * link dynamically against libgcrypt11 and libgpg-error0 now that the
-    libraries have been moved to /lib. add versioned build-depends on
-    (libgcrypt >= 1.4.6-2) and libgpg-error0 (>= 1.10-0.1).
+    libraries have been moved to /lib. add versioned depends for libcryptsetup1
+    on (libgcrypt >= 1.4.6-2) and libgpg-error0 (>= 1.10-0.1).
   * debian/initramfs/cryptroot-script: prereq 'cryptroot-prepare' added in
     order to support cryptroot to depend on custom initramfs scripts. thanks
     to Marc Haber for the suggestion. (closes: #601311)
@@ -26,7 +26,7 @@ cryptsetup (2:1.2.0-1) experimental; urgency=low
       different output of 'ls -l' with selinux enabled. (closes: #600522)
     + fix $TRIES implementation to support TRIES=0 again. (closes: #602501)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 21 Dec 2010 14:57:14 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 26 Dec 2010 14:43:59 +0100
 
 cryptsetup (2:1.1.3-4) unstable; urgency=high
 

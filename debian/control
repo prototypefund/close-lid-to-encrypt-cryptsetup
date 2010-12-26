@@ -3,7 +3,7 @@ Section: admin
 Priority: optional
 Maintainer: Debian Cryptsetup Team <pkg-cryptsetup-devel@lists.alioth.debian.org>
 Uploaders: Jonas Meurer <mejo@debian.org>
-Build-Depends: libgcrypt11-dev (>= 1.4.6-2), libgpg-error-dev (>= 1.10-0.1), libdevmapper-dev (>= 2:1.02.24-4), libpopt-dev, uuid-dev, libselinux1-dev, libsepol1-dev, libtool (>= 2.2), autoconf, automake, pkg-config, autopoint, gettext, debhelper (>= 6.0.7~), xsltproc, docbook-xml, docbook-xsl (>= 1.74.3+dfsg)
+Build-Depends: libgcrypt11-dev, libdevmapper-dev (>= 2:1.02.24-4), libpopt-dev, uuid-dev, libselinux1-dev, libsepol1-dev, libtool (>= 2.2), autoconf, automake, pkg-config, autopoint, gettext, debhelper (>= 6.0.7~), xsltproc, docbook-xml, docbook-xsl (>= 1.74.3+dfsg)
 Standards-Version: 3.9.1
 Homepage: http://code.google.com/p/cryptsetup/
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-cryptsetup/cryptsetup/trunk
@@ -32,7 +32,7 @@ Package: cryptsetup-udeb
 Section: debian-installer
 XC-Package-Type: udeb
 Architecture: any
-Depends: ${shlibs:Depends}, dmsetup-udeb
+Depends: ${shlibs:Depends}, ${misc:Depends}, dmsetup-udeb
 Description: configures encrypted block devices
  Cryptsetup provides a command-line interface for configuring encrypted
  devices. This is done using the Linux kernel device mapper target
@@ -47,7 +47,7 @@ Description: configures encrypted block devices
 Package: libcryptsetup1
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, libgpg-error0 (>= 1.10-0.1), libgcrypt11 (>= 1.4.6-2)
 Description: libcryptsetup shared library
  Cryptsetup provides a command-line interface for configuring encrypted
  devices. This is done using the Linux kernel device mapper target
