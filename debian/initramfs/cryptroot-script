@@ -276,7 +276,7 @@ setup_mapping()
 			cryptkey="Unlocking the disk $cryptsource ($crypttarget)\nEnter passphrase: "
 			if [ -x /bin/plymouth ] && plymouth --ping; then
 				cryptkeyscript="plymouth ask-for-password --prompt"
-				cryptkey=$(echo -e "$cryptkey")
+				cryptkey=$(printf "$cryptkey")
 			else
 				cryptkeyscript="/lib/cryptsetup/askpass"
 			fi
