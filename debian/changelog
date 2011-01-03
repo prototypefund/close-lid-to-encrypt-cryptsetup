@@ -1,7 +1,6 @@
 cryptsetup (2:1.2.0-1) experimental; urgency=low
 
   * NOT RELEASED YET
-  * TODO: libcryptsetup1-udeb or not ??????????????????????????????????????????????????????????????????????????????
   * new major upstream release (closes: #603804)
     - adds text version of FAQ
     - adds new options --use-random and --use-urandom for MK generation
@@ -26,10 +25,12 @@ cryptsetup (2:1.2.0-1) experimental; urgency=low
     + fix check for ownership and permissions of $key to work with slighly
       different output of 'ls -l' with selinux enabled. (closes: #600522)
     + fix $TRIES implementation to support TRIES=0 again. (closes: #602501)
-  * change 'echo -e' to 'printf' in debian/initramfs/cryptroot-script. Thanks
+  * change 'echo -e' to 'printf' in debian/initramfs/cryptroot-script. thanks
     to checkbashisms script devscripts for spotting that bashism.
+  * add a libcryptsetup1-udeb library package for debian-installer in order to
+    satisfy cryptsetup-udeb dependencies with dynamically linked binary.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 02 Jan 2011 14:53:00 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 03 Jan 2011 01:48:08 +0100
 
 cryptsetup (2:1.1.3-4) unstable; urgency=high
 

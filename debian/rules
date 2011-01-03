@@ -74,18 +74,18 @@ install-stamp: build-stamp
 	$(MAKE) DESTDIR=$(CURDIR)/debian/cryptsetup install
 
 	# Copy library files to library packages
+	cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.so.* \
+		$(CURDIR)/debian/libcryptsetup1/lib/
 	#cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.la \
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
 	#cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.a \
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
-	cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.so \
-		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
 	cp -a $(CURDIR)/debian/cryptsetup/lib/pkgconfig/libcryptsetup.pc \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/pkgconfig/
 	cp -a $(CURDIR)/debian/cryptsetup/usr/include/libcryptsetup.h \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/include/
-	cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.so.* \
-		$(CURDIR)/debian/libcryptsetup1/lib/
+	#cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.so \
+	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
 	dh_link -plibcryptsetup-dev lib/libcryptsetup.so.1 usr/lib/libcryptsetup.so
 
 	# Remove libraries from cryptsetup package, they're shiped in seperate library packags
@@ -151,7 +151,7 @@ binary-arch: build install
 	dh_compress -a
 	dh_fixperms -a
 	dh_strip -a
-	dh_makeshlibs -a
+	dh_makeshlibs -a -V --add-udeb=libcryptsetup1-udeb
 	dh_shlibdeps -a
 	dh_gencontrol -a
 	dh_installdeb -a
