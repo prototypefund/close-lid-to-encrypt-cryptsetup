@@ -125,16 +125,6 @@ install-stamp: build-stamp
 		$(CURDIR)/debian/cryptsetup/usr/share/bug/cryptsetup
 	touch $@
 
-	# Copy relevant parts to cryptsetup-udeb package
-	mkdir -p $(CURDIR)/debian/cryptsetup-udeb/
-	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
-	mkdir $(CURDIR)/debian/cryptsetup-udeb/sbin/
-	cp -a $(CURDIR)/debian/cryptsetup/sbin/cryptsetup $(CURDIR)/debian/cryptsetup-udeb/sbin/
-
-	# Copy relevant parts to libcryptsetup1-udeb package
-	mkdir -p $(CURDIR)/debian/libcryptsetup1-udeb/
-	cp -a $(CURDIR)/debian/libcryptsetup1/lib $(CURDIR)/debian/libcryptsetup1-udeb/
-
 binary-indep: build install
 # We have nothing to do by default.
 
@@ -147,6 +137,14 @@ binary-arch: build install
 	dh_installinit -a --no-start --name=cryptdisks-early --update-rcd-params="start 26 S . start 59 0 6 ."
 	dh_installinit -a --no-start --name=cryptdisks --update-rcd-params="start 28 S . start 48 0 6 ."
 	dh_installman -a debian/doc/crypttab.5 debian/doc/cryptdisks_start.8 debian/doc/cryptdisks_stop.8 debian/luksformat.8
+	# Copy relevant parts to cryptsetup-udeb package
+	mkdir -p $(CURDIR)/debian/cryptsetup-udeb/
+	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
+	mkdir $(CURDIR)/debian/cryptsetup-udeb/sbin/
+	cp -a $(CURDIR)/debian/cryptsetup/sbin/cryptsetup $(CURDIR)/debian/cryptsetup-udeb/sbin/
+	# Copy relevant parts to libcryptsetup1-udeb package
+	mkdir -p $(CURDIR)/debian/libcryptsetup1-udeb/
+	cp -a $(CURDIR)/debian/libcryptsetup1/lib $(CURDIR)/debian/libcryptsetup1-udeb/
 	dh_lintian -a
 	dh_compress -a
 	dh_fixperms -a
