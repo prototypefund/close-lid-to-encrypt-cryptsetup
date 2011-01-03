@@ -70,7 +70,7 @@ Package: libcryptsetup1-udeb
 Section: debian-installer
 Package-Type: udeb
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libgpg-error0-udeb (>= 1.10-0.2), libgcrypt11-udeb (>= 1.4.6-3)
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: configures encrypted block devices
  Cryptsetup provides a command-line interface for configuring encrypted
  devices. This is done using the Linux kernel device mapper target
