@@ -71,7 +71,7 @@ Section: debian-installer
 Package-Type: udeb
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: configures encrypted block devices
+Description: libcryptsetup shared library
  Cryptsetup provides a command-line interface for configuring encrypted
  devices. This is done using the Linux kernel device mapper target
  dm-crypt. This version of cryptsetup has integrated support for LUKS.
