@@ -52,7 +52,7 @@ Description: libcryptsetup development files
 
 Package: cryptsetup-udeb
 Section: debian-installer
-XC-Package-Type: udeb
+Package-Type: udeb
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, dmsetup-udeb
 Description: configures encrypted block devices
@@ -68,7 +68,7 @@ Description: configures encrypted block devices
 
 Package: libcryptsetup1-udeb
 Section: debian-installer
-XC-Package-Type: udeb
+Package-Type: udeb
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libgpg-error0-udeb (>= 1.10-0.2), libgcrypt11-udeb (>= 1.4.6-3)
 Description: configures encrypted block devices
