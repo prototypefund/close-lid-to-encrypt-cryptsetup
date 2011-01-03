@@ -71,6 +71,8 @@ install-stamp: build-stamp
 	dh_testroot
 	dh_clean
 	dh_installdirs
+	mkdir -p $(CURDIR)/debian/cryptsetup-udeb
+	mkdir -p $(CURDIR)/debian/libcryptsetup1-udeb
 	$(MAKE) DESTDIR=$(CURDIR)/debian/cryptsetup install
 
 	# Copy library files to library packages
@@ -138,12 +140,11 @@ binary-arch: build install
 	dh_installinit -a --no-start --name=cryptdisks --update-rcd-params="start 28 S . start 48 0 6 ."
 	dh_installman -a debian/doc/crypttab.5 debian/doc/cryptdisks_start.8 debian/doc/cryptdisks_stop.8 debian/luksformat.8
 	# Copy relevant parts to cryptsetup-udeb package
-	mkdir -p $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
-	mkdir $(CURDIR)/debian/cryptsetup-udeb/sbin/
+	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
+	mkdir $(CURDIR)/debian/cryptsetup-udeb/sbin
 	cp -a $(CURDIR)/debian/cryptsetup/sbin/cryptsetup $(CURDIR)/debian/cryptsetup-udeb/sbin/
 	# Copy relevant parts to libcryptsetup1-udeb package
-	mkdir -p $(CURDIR)/debian/libcryptsetup1-udeb/
 	cp -a $(CURDIR)/debian/libcryptsetup1/lib $(CURDIR)/debian/libcryptsetup1-udeb/
 	dh_lintian -a
 	dh_compress -a
