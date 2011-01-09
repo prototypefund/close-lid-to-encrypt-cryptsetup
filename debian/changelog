@@ -31,8 +31,9 @@ cryptsetup (2:1.2.0-1) experimental; urgency=low
     satisfy cryptsetup-udeb dependencies with dynamically linked binary.
   * change 'XC-Package-Type: udeb' to 'Package-Type: udeb' in debian/control
   * add debian/cryptsetup.apport from Ubuntu, install only for dist=Ubuntu.
+    build-depends on dpkg-dev (>= 1.15.1) is required for this to work.
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 06 Jan 2011 11:23:26 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 06 Jan 2011 11:34:05 +0100
 
 cryptsetup (2:1.1.3-4) unstable; urgency=high
 
