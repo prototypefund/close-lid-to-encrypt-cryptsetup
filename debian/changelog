@@ -1,6 +1,5 @@
 cryptsetup (2:1.2.0-1) experimental; urgency=low
 
-  * NOT RELEASED YET
   * new major upstream release (closes: #603804)
     - adds text version of FAQ
     - adds new options --use-random and --use-urandom for MK generation
@@ -34,9 +33,8 @@ cryptsetup (2:1.2.0-1) experimental; urgency=low
   * change 'XC-Package-Type: udeb' to 'Package-Type: udeb' in debian/control
   * add debian/cryptsetup.apport from Ubuntu, install only for dist=Ubuntu.
     build-depends on dpkg-dev (>= 1.15.1) is required for this to work.
-  * 
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 13 Jan 2011 23:51:42 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 16 Jan 2011 01:01:03 +0100
 
 cryptsetup (2:1.1.3-4) unstable; urgency=high
 
