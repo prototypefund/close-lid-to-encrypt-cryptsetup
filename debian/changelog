@@ -1,3 +1,16 @@
+cryptsetup (2:1.2.0-2) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+  * install cryptkeyctl initramfs hook, needed for keyctl keyscript in
+    initramfs, thanks to Maik Zumstrull (closes: #610750)
+  * use 'egrep -c' instead of wc in cryptdisks_st* scripts, wc might not be
+    available as it's located at /usr/bin. Thanks to Mario 'BitKoenig' Holbe
+    for bugreport and patch. (closes: #611747)
+  * add debian/patches/01_luksAddKey_return_code.patch, fixes the luksAddKey
+    return code when the master key is used. (closes: #610366)
+
+ -- Jonas Meurer <mejo@debian.org>  Tue, 01 Feb 2011 22:51:53 +0100
+
 cryptsetup (2:1.2.0-1) experimental; urgency=low
 
   * new major upstream release (closes: #603804)
