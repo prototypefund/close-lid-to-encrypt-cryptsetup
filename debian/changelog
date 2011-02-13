@@ -8,8 +8,9 @@ cryptsetup (2:1.2.0-2) UNRELEASED; urgency=low
     for bugreport and patch. (closes: #611747)
   * add debian/patches/01_luksAddKey_return_code.patch, fixes the luksAddKey
     return code when the master key is used. (closes: #610366)
+  * fix luksformat script to invoke usage() with --help. (closes: #612947)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 01 Feb 2011 22:51:53 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 13 Feb 2011 14:24:02 +0100
 
 cryptsetup (2:1.2.0-1) experimental; urgency=low
 
