@@ -187,7 +187,7 @@
       full path to program is supported as well.
      </simpara>
      <simpara>
-      Prechecks aren't invoked for LUKS devices, as these are checked with isLUKS
+      Prechecks aren't invoked for LUKS devices, as these are checked with isLuks
       anyway. Default for plain dm-crypt devices is set in
       <filename>/etc/default/cryptdisks</filename>, or <filename>un_blkid</filename>
       otherwise. Set to <filename>/bin/true</filename> in order to disable
@@ -378,23 +378,23 @@
   <para>
    <screen>
 # Encrypted swap device
-cswap /dev/sda6 /dev/urandom swap
+cswap /dev/sda6 /dev/urandom cipher=aes-cbc-essiv:sha256,hash=ripemd160,size=256,swap
     
 # Encrypted luks disk with interactive password
 cdisk0 /dev/hda1 none luks
     
 # Encrypted ext2 disk with interactive password
 # - retry 5 times if the check fails
-cdisk1 /dev/sda2 none checkargs=ext2,tries=5
+cdisk1 /dev/sda2 none cipher=aes-cbc-essiv:sha256,hash=ripemd160,size=256,checkargs=ext2,tries=5
 
 # Encrypted disk with interactive password
 # - use a nondefault check script
 # - no retries
-cdisk2 /dev/hdc1 none check=customscript,tries=1
+cdisk2 /dev/hdc1 none cipher=aes-cbc-essiv:sha256,hash=ripemd160,size=256,check=customscript,tries=1
 
 # Encrypted disk with interactive password
 # - twofish as the cipher
-cdisk3 /dev/sda3 none cipher=twofish
+cdisk3 /dev/sda3 none cipher=twofish,hash=ripemd160,size=256
    </screen>
   </para>
  </refsect1>
@@ -453,6 +453,24 @@ cdisk3 /dev/sda3 none cipher=twofish
    </varlistentry>
 
   </variablelist>
+ </refsect1>
+
+ <refsect1 id="crypttab.known_upgrade_issues">
+  <title>KNOWN UPGRADE ISSUES</title>
+  <simpara>
+   The upstream defaults for encryption cipher, hash and keysize have changed
+   several times in the past, and they're expected to change again in future,
+   for example if security issues arise.
+
+   On LUKS devices, the used settings are stored in the LUKS header, and thus
+   don't need to be configured in <filename>/etc/crypttab</filename>. For plain
+   dm-crypt devices, no information about used cipher, hash and keysize are
+   available at all.
+
+   Therefore we strongly suggest to configure the cipher, hash and keysize in
+   <filename>/etc/crypttab</filename> for plain dm-crypt devices, even if they
+   match the current default.
+  </simpara>
  </refsect1>
 
  <refsect1 id="crypttab.see_also">

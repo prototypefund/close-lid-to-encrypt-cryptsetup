@@ -9,8 +9,13 @@ cryptsetup (2:1.2.0-2) UNRELEASED; urgency=low
   * add debian/patches/01_luksAddKey_return_code.patch, fixes the luksAddKey
     return code when the master key is used. (closes: #610366)
   * fix luksformat script to invoke usage() with --help. (closes: #612947)
+  * add a paragraph about known upgrade issues to the crypttab manpage. this
+    paragraph strongly suggests to configure cipher, hash and keysize for
+    plain dm-crypt devices. (closes: #612452)
+  * fix examples in crypttab manpage, cipher, hash and keysize should be
+    configured for plain dm-crypt devices.
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 13 Feb 2011 14:24:02 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 17 Feb 2011 21:24:59 +0100
 
 cryptsetup (2:1.2.0-1) experimental; urgency=low
 

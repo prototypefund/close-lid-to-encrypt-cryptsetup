@@ -170,8 +170,7 @@ password dialog for the encrypted root filesystem works.
  It seems like splashy freezes for any input dialog in initscripts while
 input dialogs at initramfs stage seem to work. This leads to the assumption
 that the bug is somewhere in splashy and neither in cryptsetups initscripts
-nor in askpass, the keyscript that is responsible for cryptsetups passphrase
-input dialogs.
+nor in askpass.
 
 
 7. Remotely unlock encrypted rootfs
@@ -247,6 +246,7 @@ doing LUKS header backups. In general it's better to backup the data from
 encrypted LUKS devices to another encrypted LUKS device. That way you can
 manage the keyslots for both original and backup device independently.
 
+
 9. Changing the boot order of cryptdisks init scripts
 -----------------------------------------------------
 
@@ -267,14 +267,15 @@ on debian-devel[2] for further information.
 [1] http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=576646
 [2] http://lists.debian.org/debian-devel/2010/06/msg00021.html
 
+
 10. Credits
 -----------
 
- People who contributed to documentation for the Debian cryptsetup package:
+ People who contributed to the Debian cryptsetup package:
 
 Jonas Meurer <jonas@freesources.org>
 David Härdeman <david@hardeman.nu>
 Bastian Kleineidam <calvin@debian.org>
 Michael Gebetsroither <michael.geb@gmx.at>
 
- -- Jonas Meurer <mejo@debian.org>, Tue, 01 Sep 2009 12:20:51 +0200
+ -- Jonas Meurer <mejo@debian.org>, Thu, 17 Feb 2011 20:54:56 +0100
