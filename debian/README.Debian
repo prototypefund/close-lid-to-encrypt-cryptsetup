@@ -135,8 +135,8 @@ case, so that it runs asynchronously.
 5. The 'check' option
 ---------------------
 
- The 'check' option in crypttab allows to configure checks to be run against
-the target device after cryptsetup has been invoked.
+ The 'check' option in crypttab allows one to configure checks to be run
+against the target device after cryptsetup has been invoked.
 The default check 'blkid' can check for any known filesystem type, as it uses
 blkid from util-linux. you can check for a particular filesystem by giving for
 example 'checkargs=ext2' or 'checkargs=swap' as an option in /etc/crypttab.
