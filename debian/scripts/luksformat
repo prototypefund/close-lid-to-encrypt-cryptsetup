@@ -74,6 +74,7 @@ if ((system 'cryptsetup', 'luksOpen', $device, $name) != 0) {
 
 $result = system $mkfs, "/dev/mapper/$name", @ARGV;
 print "\n";
+system 'udevadm', 'settle', '--timeout=30';
 system 'cryptsetup', 'luksClose', $name;
 
 die "Could not format device with file system $fs" if $result;

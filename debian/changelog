@@ -1,6 +1,9 @@
-cryptsetup (2:1.2.0-2) UNRELEASED; urgency=low
+cryptsetup (2:1.2.0-2~pre1) unstable; urgency=low
 
   * NOT RELEASED YET
+  * upload to unstable.
+  * fixes a ftbfs due to updated libgpg-error and libgcrypt11 build-
+    dependencies. (closes: #614530)
   * install cryptkeyctl initramfs hook, needed for keyctl keyscript in
     initramfs, thanks to Maik Zumstrull (closes: #610750)
   * use 'egrep -c' instead of wc in cryptdisks_st* scripts, wc might not be
@@ -14,8 +17,10 @@ cryptsetup (2:1.2.0-2) UNRELEASED; urgency=low
     plain dm-crypt devices. (closes: #612452)
   * fix examples in crypttab manpage, cipher, hash and keysize should be
     configured for plain dm-crypt devices.
+  * luksformat: invoke udevadm settle between mkfs.vfat and luksClose, to
+    prevent possible race conditions. This is a workaround. (closes: #601886)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 17 Feb 2011 21:24:59 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 07 Mar 2011 01:05:49 +0100
 
 cryptsetup (2:1.2.0-1) experimental; urgency=low
 
