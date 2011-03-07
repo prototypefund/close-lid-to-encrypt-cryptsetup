@@ -21,8 +21,10 @@ cryptsetup (2:1.2.0-2~pre1) unstable; urgency=low
     prevent possible race conditions. This is a workaround. (closes: #601886)
   * update lintian-overrides for new lintian from experimental.
   * fix spelling mistake in README.Debian thanks to lintian.
+  * update short and long description for udebs to mention udeb and
+    debian-installer. This satisfies lintian.
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 07 Mar 2011 01:20:17 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 07 Mar 2011 01:30:15 +0100
 
 cryptsetup (2:1.2.0-1) experimental; urgency=low
 

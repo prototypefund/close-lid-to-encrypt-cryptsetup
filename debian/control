@@ -55,25 +55,21 @@ Section: debian-installer
 Package-Type: udeb
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, dmsetup-udeb
-Description: configures encrypted block devices
+Description: configures encrypted block devices - udeb
  Cryptsetup provides a command-line interface for configuring encrypted
  devices. This is done using the Linux kernel device mapper target
  dm-crypt. This version of cryptsetup has integrated support for LUKS.
  .
- cryptsetup is backwards compatible with the on-disk format of cryptoloop,
- but also supports more secure formats. This package includes support for
- automatically configuring encrypted devices at boot time via the config
- file /etc/crypttab. Additional features are cryptoroot support through
- initramfs-tools and several supported ways to read a passphrase or key.
+ This udeb package provides cryptsetup for the debian-installer.
 
 Package: libcryptsetup1-udeb
 Section: debian-installer
 Package-Type: udeb
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: libcryptsetup shared library
+Description: libcryptsetup shared library - udeb
  Cryptsetup provides a command-line interface for configuring encrypted
  devices. This is done using the Linux kernel device mapper target
  dm-crypt. This version of cryptsetup has integrated support for LUKS.
  .
- This package provides the libcryptsetup shared library.
+ This udeb package provides libcryptsetup for the debian-installer.
