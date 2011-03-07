@@ -1,6 +1,5 @@
-cryptsetup (2:1.2.0-2~pre1) unstable; urgency=low
+cryptsetup (2:1.2.0-2~pre2) unstable; urgency=low
 
-  * NOT RELEASED YET
   * upload to unstable.
   * fixes a ftbfs due to updated libgpg-error and libgcrypt11 build-
     dependencies. (closes: #614530)
@@ -23,8 +22,11 @@ cryptsetup (2:1.2.0-2~pre1) unstable; urgency=low
   * fix spelling mistake in README.Debian thanks to lintian.
   * update short and long description for udebs to mention udeb and
     debian-installer. This satisfies lintian.
+  * fix get_resume_device() in initramfs cryptroot hook script to add source
+    device for decrypt_derived keyscript in case it's not the root device.
+    Thanks to Robert Lange and mahashakti89 for bugreport. (closes: #592430)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 07 Mar 2011 01:30:15 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 07 Mar 2011 23:37:18 +0100
 
 cryptsetup (2:1.2.0-1) experimental; urgency=low
 
