@@ -53,6 +53,7 @@ configure-stamp:
 build: build-stamp
 build-stamp: configure-stamp
 	dh_testdir
+	# generate manpages
 	sed 's/VERSION/$(DEB_VERSION)/;s/DATE/$(DEB_DATE)/' \
 		debian/doc/variables.xml.in > debian/doc/variables.xml
 	xsltproc --nonet --xinclude -o debian/doc/ \
@@ -60,7 +61,11 @@ build-stamp: configure-stamp
 		debian/doc/manpages.xml
 	pod2man --section=8 --center="Administrative commands" --release="" debian/scripts/luksformat \
 		debian/luksformat.8
+	# generate gettext po files (for luksformat)
+	$(MAKE) -C debian/scripts/po all luksformat.pot
+	# build upstream cryptsetup
 	$(MAKE)
+	# build askpass and passdev keyscripts
 	gcc -Wall -pedantic -std=c99 debian/askpass.c -o debian/askpass
 	gcc -Wall -pedantic -std=c99 debian/passdev.c -o debian/scripts/passdev
 	touch $@
@@ -132,6 +137,7 @@ ifeq ($(shell dpkg-vendor --is Ubuntu && echo yes),yes)
 	install -m 0644 debian/cryptsetup.apport \
 		$(CURDIR)/debian/cryptsetup/usr/share/apport/package-hooks/cryptsetup.py
 endif
+	$(MAKE) -C debian/scripts/po DESTDIR=$(CURDIR)/debian/cryptsetup install
 	touch $@
 
 binary-indep: build install
@@ -173,8 +179,9 @@ clean:
 	if test -f Makefile; then $(MAKE) distclean; fi
 	rm -f autom4te.cache
 	rm -f manifest manifest.new
-	rm -f debian/luksformat.8
 	rm -f debian/doc/*.[0-9] debian/doc/variables.xml
+	rm -f debian/luksformat.8
+	$(MAKE) -C debian/scripts/po update clean
 	rm -f debian/scripts/passdev
 	rm -f debian/askpass
 	# clean up leftovers which where forgotten
