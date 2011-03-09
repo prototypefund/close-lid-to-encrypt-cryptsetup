@@ -123,6 +123,8 @@ install-stamp: build-stamp
 	install -m 0755 debian/askpass $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
 	install -m 0755 debian/initramfs/cryptgnupg-hook \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptgnupg
+	install -m 0755 debian/initramfs/cryptkeyctl-hook \
+		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptkeyctl
 	install -m 0755 debian/initramfs/cryptpassdev-hook \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptpassdev
 	install -m 0755 debian/initramfs/cryptopensc-hook \
