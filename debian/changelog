@@ -3,8 +3,9 @@ cryptsetup (2:1.2.0-3) UNRELEASED; urgency=low
   * NOT RELEASED YET
   * Add gettext support to luksformat script. Thanks to intrigeri for initial
     patch, and adduser sources for implementation ideas. (closes: #558405)
+  * Fix KEYSCRIPT checks in cryptdisks.functions for empty values.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 08 Mar 2011 20:09:39 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 09 Mar 2011 20:55:40 +0100
 
 cryptsetup (2:1.2.0-2) unstable; urgency=low
 

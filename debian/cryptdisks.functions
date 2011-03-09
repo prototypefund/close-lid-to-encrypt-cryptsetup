@@ -163,13 +163,14 @@ parse_opts () {
 			if [ -n "$KEYSCRIPT" ]; then
 				log_warning_msg "$dst: multiple key decryption options are not allowed together, skipping"
 				return 1
+			elif [ -z "$VALUE" ]; then
+				log_warning_msg "$dst: no value for keyscript option, skipping"
+				return 1
+			#elif type "$VALUE" >/dev/null 2>&1; then
 			elif [ -x "$VALUE" ]; then
 				KEYSCRIPT="$VALUE"
 			elif [ -x "/lib/cryptsetup/scripts/$VALUE" ]; then
 				KEYSCRIPT="/lib/cryptsetup/scripts/$VALUE"
-			elif [ -z "$VALUE" ]; then
-				log_warning_msg "$dst: no value for keyscript option, skipping"
-				return 1
 			else
 				log_warning_msg "script $VALUE is not an executable script, skipping"
 				return 1
