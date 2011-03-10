@@ -1,13 +1,18 @@
+cryptsetup (2:1.1.3-4squeeze2) stable-proposed-updates; urgency=low
+
+  * fix changelog for cryptsetup 2:1.1.3-4squeeze1.
+
+ -- Jonas Meurer <mejo@debian.org>  Thu, 10 Mar 2011 21:45:56 +0100
+
 cryptsetup (2:1.1.3-4squeeze1) stable-proposed-updates; urgency=low
 
-  * NOT RELEASED YET
   * install cryptkeyctl initramfs hook, needed for keyctl keyscript in
     initramfs, thanks to Maik Zumstrull (closes: #610750)
   * fix luksformat script to invoke usage() with --help. (closes: #612947)
   * luksformat: invoke udevadm settle between mkfs.vfat and luksClose, to
     prevent possible race conditions. This is a workaround. (closes: #601886)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 09 Mar 2011 21:21:11 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 09 Mar 2011 21:49:36 +0100
 
 cryptsetup (2:1.1.3-4) unstable; urgency=high
 
