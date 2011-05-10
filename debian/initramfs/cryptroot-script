@@ -33,8 +33,6 @@ message()
 {
 	if [ -x /bin/plymouth ] && plymouth --ping; then
 		plymouth message --text="$@"
-	elif [ -p /dev/.initramfs/usplash_outfifo ] && [ -x /sbin/usplash_write ]; then
-		usplash_write "TEXT-URGENT $@"
 	else
 		echo "$@" >&2
 	fi
@@ -220,9 +218,6 @@ setup_mapping()
 		else
 			slumber=${ROOTDELAY}
 		fi
-		if [ -x /sbin/usplash_write ]; then
-			/sbin/usplash_write "TIMEOUT ${slumber}" || true
-		fi
 
 		slumber=$(( ${slumber} * 10 ))
 		while [ ! -e "$cryptsource" ]; do
@@ -235,9 +230,6 @@ setup_mapping()
 			log_end_msg 0
 		else
 			log_end_msg 1 || true
-		fi
-		if [ -x /sbin/usplash_write ]; then
-			/sbin/usplash_write "TIMEOUT 15" || true
 		fi
  	fi
 	udev_settle

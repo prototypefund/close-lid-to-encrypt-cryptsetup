@@ -1,14 +1,36 @@
-cryptsetup (2:1.2.0-3) unstable; urgency=low
+cryptsetup (2:1.3.0-1) unstable; urgency=low
 
   * NOT RELEASED YET
+  * new upstream release
+    - automatically allocates loopback device for container files. update the
+      cryptdisks functions to only setup loopback device for kernel < 2.6.35.
+      otherwise, let cryptsetup do the magic itself. **************************TODO: TESTING***************************
+    - introduces maximum default keyfile size, see --help for value. manually
+      set the keyfile size with --keyfile-size in order to overwrite the limit.
+    - adds luksChangeKey command for changing passphrase/keyfile in one step
+    - adds loopAES compability command loopaesOpen
+    - remove d/patches/01_luksAddKey_return_code.patch, incorporated upstream
   * add gettext support to luksformat script. Thanks to intrigeri for initial
     patch, and adduser sources for implementation ideas. (closes: #558405)
   * fix KEYSCRIPT checks in cryptdisks.functions for empty values.
   * update REAMDE.gnupg and initramfs cryptgnupg hook script:
     - warn about keys being copied to initramfs.
     - fix the documentation to provide working examples.
+  * update README.Debian and related documentation:
+    - add a section about the 'special' keyscripts askpass and passdev
+      (closes: #601314)
+    - update several sections, remove reference to lenny
+  * add debian/patches/01_create_fix_size.patch, to fix a regression in 1.2.0
+    where the size argument was ignored for create command (closes: #624828)
+  * remove usplash support from cryptroot initramfs script, askpass and
+    keyscripts, add plymouth support to keyscripts. (closes: #620923)
+  * ignore options like cipher, hash, size, etc. for luks commands in
+    cryptdisks. mention this in the crypttab manpage. (closes: #619249)
+  * again check for existance of /lib/cryptsetup/cryptdisks.functions before
+    sourcing it in cryptdisks(-early).init. required if cryptsetup is removed
+    but not purged, where initscripts are still around. (closes: #625468)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 13 Mar 2011 00:45:13 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 10 May 2011 03:24:39 +0200
 
 cryptsetup (2:1.2.0-2) unstable; urgency=low
 

@@ -28,6 +28,7 @@ parse_opts () {
 	# Strip comments - https://bugs.launchpad.net/bugs/185380
 	opts=$(echo -n $1 | sed 's/ *#.*//')
 	PARAMS=""
+	PLAINPARAMS=""
 	CHECK=""
 	CHECKARGS=""
 	PRECHECK=""
@@ -56,11 +57,11 @@ parse_opts () {
 				log_warning_msg "$dst: no value for cipher option, skipping"
 				return 1
 			fi
-			PARAMS="$PARAMS -c $VALUE"
+			PLAINPARAMS="$PLAINPARAMS -c $VALUE"
 			;;
 		size)
 			if [ -z "$VALUE" ] || echo "$VALUE" | grep -q "^[[:digit:]]\+$" && [ "$VALUE" -gt 0 ]; then
-				PARAMS="$PARAMS -s $VALUE"
+				PLAINPARAMS="$PLAINPARAMS -s $VALUE"
 			else
 				log_warning_msg "$dst: option size used with an incorrect argument, skipping"
 				return 1
@@ -71,21 +72,21 @@ parse_opts () {
 				log_warning_msg "$dst: no value for hash option, skipping"
 				return 1
 			fi
-			PARAMS="$PARAMS -h $VALUE"
+			PLAINPARAMS="$PLAINPARAMS -h $VALUE"
 			;;
 		offset)
 			if [ -z "$VALUE" ]; then
 				log_warning_msg "$dst: no value for offset option, skipping"
 				return 1
 			fi
-			PARAMS="$PARAMS -o $VALUE"
+			PLAINPARAMS="$PLAINPARAMS -o $VALUE"
 			;;
 		skip)
 			if [ -z "$VALUE" ]; then
 				log_warning_msg "$dst: no value for skip option, skipping"
 				return 1
 			fi
-			PARAMS="$PARAMS -p $VALUE"
+			PLAINPARAMS="$PLAINPARAMS -p $VALUE"
 			;;
 		verify)
 			PARAMS="$PARAMS -y"
@@ -191,7 +192,7 @@ parse_opts () {
 lo_setup () {
 	#local loopdev
 
-	if [ ! -f "$src" ]; then
+	if [ ! -f "$src" ] || [ "$lo_kernel" = "yes" ]; then
 		return 0
 	fi
 
@@ -385,9 +386,9 @@ do_noluks () {
 
 	while [ "$tried" -lt "$TRIES" ]; do
 		if [ -n "$KEYSCRIPT" ]; then
-			$KEYSCRIPT "$keyscriptarg" | cryptsetup $PARAMS create "${dst}_unformatted" "$src"
+			$KEYSCRIPT "$keyscriptarg" | cryptsetup $PLAINPARAMS $PARAMS create "${dst}_unformatted" "$src"
 		else
-			cryptsetup $PARAMS create "${dst}_unformatted" "$src"
+			cryptsetup $PLAINPARAMS $PARAMS create "${dst}_unformatted" "$src"
 		fi
 
 		if [ -z "$CHECK" ] || "$CHECK" "/dev/mapper/${dst}_unformatted" $CHECKARGS; then
@@ -535,6 +536,16 @@ handle_crypttab_line_start () {
 		return 0
 	fi
 
+	kernel="$(uname -r)"
+	case "$kernel" in
+		2.[012345].*|2.6.[0-9]|2.6.[0-9][!0-9]*|2.6.[0-2][0-9]|2.6.[0-2][0-9][!0-9]*|2.6.3[0-4]|2.6.3[0-4][!0-9]*)
+		  lo_kernel="yes"
+		;;
+		*)
+		  lo_kernel="no"
+		;;
+	esac
+
 	if ! check_key; then
 		device_msg "$dst" "invalid key"
 		return 1
@@ -622,7 +633,7 @@ handle_crypttab_line_stop () {
 	do_close || return $?
 
 	# Detach loopback device, if attached
-	if [ "$src_major" = "7" ]; then
+	if [ "$src_major" = "7" ] && [ "$lo_kernel" = "yes" ]; then
 		loopdev="/dev/loop${src_minor}"
 		if ! rm_lo_setup; then
 			device_msg "$dst" "detaching loopback failed"
