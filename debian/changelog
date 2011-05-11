@@ -22,6 +22,7 @@ cryptsetup (2:1.3.0-1) unstable; urgency=low
     - update several sections, remove reference to lenny
   * add debian/patches/01_create_fix_size.patch, to fix a regression in 1.2.0
     where the size argument was ignored for create command (closes: #624828)
+  * add debian/patches/02_manpage.patch, escapes minus signs in manpage
   * remove usplash support from cryptroot initramfs script, askpass and
     keyscripts, add plymouth support to keyscripts. (closes: #620923)
   * ignore options like cipher, hash, size, etc. for luks commands in
@@ -31,7 +32,7 @@ cryptsetup (2:1.3.0-1) unstable; urgency=low
     but not purged, where initscripts are still around. (closes: #625468)
   * bump standards-version to 3.9.2, no changes needed.
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 11 May 2011 13:10:20 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 11 May 2011 13:46:23 +0200
 
 cryptsetup (2:1.2.0-2) unstable; urgency=low
 
