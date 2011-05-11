@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pkg-cryptsetup-devel@lists.alioth.debian.org\n"
-"POT-Creation-Date: 2011-03-08 19:36+0100\n"
+"POT-Creation-Date: 2011-03-08 20:06+0100\n"
 "PO-Revision-Date: 2011-03-08 19:40+0100\n"
 "Last-Translator: root <jonas@freesources.org>\n"
 "Language-Team: German\n"
@@ -18,12 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: luksformat:19
-#, perl-format
-msgid "%s: %s"
-msgstr "%s: %s"
-
-#: luksformat:54
+#: debian/scripts/luksformat:48
 msgid ""
 "luksformat - Create and format an encrypted LUKS device\n"
 "Usage: luksformat [-t <file system>] <device> [ mkfs options ]\n"
@@ -33,45 +28,48 @@ msgstr ""
 "Verwendung: luksformat [-t <Dateisystem>] <Partition> [ mkfs Optionen ]\n"
 "\n"
 
-#: luksformat:69
+#: debian/scripts/luksformat:63
 msgid "This program needs to be started as root\n"
 msgstr "Dieses Programm muss als Benutzer root gestartet werden\n"
 
-#: luksformat:77
+#: debian/scripts/luksformat:71
 #, perl-format
 msgid "Error: device mounted: %s\n"
 msgstr "Fehler: Partition ist eingebunden: %s\n"
 
-#: luksformat:87
+#: debian/scripts/luksformat:81
 #, perl-format
 msgid "Error: invalid file system: %s\n"
 msgstr "Fehler: Ungültiges Dateisystem: %s\n"
 
-#: luksformat:100
+#: debian/scripts/luksformat:94
 msgid "Error: could not generate temporary mapped device name"
 msgstr "Fehler: Erstellen einer temporären Partition schlug fehl"
 
 #. we do not need to be overly concerned with race conditions here, cryptsetup
 #. will just fail if the name already exists now.
-#: luksformat:104
+#: debian/scripts/luksformat:98
 #, perl-format
 msgid "Creating encrypted device on %s...\n"
 msgstr "Erstelle verschlüsselte Partition auf %s...\n"
 
-#: luksformat:106
+#: debian/scripts/luksformat:100
 #, perl-format
 msgid "Could not create LUKS device %s"
 msgstr "Erstellen der LUKS-Partition %s schlug fehl"
 
-#: luksformat:109
+#: debian/scripts/luksformat:103
 msgid "Please enter your passphrase again to verify it\n"
 msgstr "Bitte zum verifizieren das Passwort erneut eingeben\n"
 
-#: luksformat:111
+#: debian/scripts/luksformat:105
 msgid "The passphrases you entered were not identical\n"
 msgstr "Die eingegebenen Passwörter waren nicht identisch\n"
 
-#: luksformat:120
+#: debian/scripts/luksformat:114
 #, perl-format
 msgid "Could not format device with file system %s"
 msgstr "Formatieren der Partition mit dem Dateisystem %s schlug fehl"
+
+#~ msgid "%s: %s"
+#~ msgstr "%s: %s"

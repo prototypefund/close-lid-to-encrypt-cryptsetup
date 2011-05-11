@@ -4,11 +4,11 @@ cryptsetup (2:1.3.0-1) unstable; urgency=low
   * new upstream release
     - automatically allocates loopback device for container files. update the
       cryptdisks functions to only setup loopback device for kernel < 2.6.35.
-      otherwise, let cryptsetup do the magic itself. **************************TODO: TESTING***************************
+      otherwise, let cryptsetup do the magic itself. *****TODO: TESTING*****
     - introduces maximum default keyfile size, see --help for value. manually
       set the keyfile size with --keyfile-size in order to overwrite the limit.
     - adds luksChangeKey command for changing passphrase/keyfile in one step
-    - adds loopAES compability command loopaesOpen
+    - adds loopAES compatibility command loopaesOpen
     - remove d/patches/01_luksAddKey_return_code.patch, incorporated upstream
   * add gettext support to luksformat script. Thanks to intrigeri for initial
     patch, and adduser sources for implementation ideas. (closes: #558405)
@@ -29,8 +29,9 @@ cryptsetup (2:1.3.0-1) unstable; urgency=low
   * again check for existance of /lib/cryptsetup/cryptdisks.functions before
     sourcing it in cryptdisks(-early).init. required if cryptsetup is removed
     but not purged, where initscripts are still around. (closes: #625468)
+  * bump standards-version to 3.9.2, no changes needed.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 10 May 2011 03:24:39 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 11 May 2011 13:10:20 +0200
 
 cryptsetup (2:1.2.0-2) unstable; urgency=low
 
