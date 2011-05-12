@@ -46,8 +46,7 @@
   </simpara>
   <simpara>
    The second field, <emphasis>source device</emphasis>, describes either the
-   block special device or file (which will be automatically mounted as a loop
-   device) that should hold the encrypted data.
+   block special device or file that contains the encrypted data.
   </simpara>
   <simpara>
    The third field, <emphasis>key file</emphasis>, describes the file to use

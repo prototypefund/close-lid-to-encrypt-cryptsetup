@@ -188,56 +188,6 @@ parse_opts () {
 	return 0
 }
 
-# Set up loopback devices
-lo_setup () {
-	#local loopdev
-
-	if [ ! -f "$src" ]; then
-		return 0
-	fi
-
-	kernel="$(uname -r)"
-	case "$kernel" in
-		2.[012345].*|2.6.[0-9]|2.6.[0-9][!0-9]*|2.6.[0-2][0-9]|2.6.[0-2][0-9][!0-9]*|2.6.3[0-4]|2.6.3[0-4][!0-9]*)
-		  if [ ! -x /sbin/losetup ]; then
-			return 1
-		  fi
-
-		  if ! grep -q "[[:space:]]loop$" /proc/devices; then
-			modprobe -qb loop > /dev/null 2>&1 || return 1
-		  fi
-
-		  loopdev=$(losetup -f 2> /dev/null) || return 1
-
-		  losetup "$loopdev" "$src" || return 1
-		  src="$loopdev"
-		;;
-	esac
-
-	return 0
-}
-
-rm_lo_setup () {
-	kernel="$(uname -r)"
-	case "$kernel" in
-		2.[012345].*|2.6.[0-9]|2.6.[0-9][!0-9]*|2.6.[0-2][0-9]|2.6.[0-2][0-9][!0-9]*|2.6.3[0-4]|2.6.3[0-4][!0-9]*)
-		  if [ "x${src%/dev/loop[0-9]}" = "x" ]; then
-			src="$(losetup $src | sed -e 's/^.*(\(.*\))$/\1/g' || true)"
-		  fi
-
-		  if [ ! -f "$src" ]; then
-			return 0
-		  fi
-
-		  if [ -n "$loopdev" ]; then
-			losetup -d "$loopdev" || return 1
-		  fi
-		;;
-	esac
-
-	return 0
-}
-
 # Sanity check for keys
 check_key () {
 	local GMODE OMODE OWNER GROUP
@@ -551,8 +501,6 @@ handle_crypttab_line_start () {
 	if ! check_key; then
 		device_msg "$dst" "invalid key"
 		return 1
-	elif ! lo_setup; then
-		device_msg "$dst" "loopback failed"
 	fi
 
 	# Export crypttab fields as environment variables
@@ -586,7 +534,6 @@ handle_crypttab_line_start () {
 
 	# Finish up
 	if [ "$result" != "ok" ]; then
-		rm_lo_setup
 		device_msg "$dst" "failed"
 		return 1
 	else
@@ -634,15 +581,6 @@ handle_crypttab_line_stop () {
 	
 	do_close || return $?
 
-	# Detach loopback device, if attached
-	if [ "$src_major" = "7" ]; then
-		loopdev="/dev/loop${src_minor}"
-		if ! rm_lo_setup; then
-			device_msg "$dst" "detaching loopback failed"
-			return 1
-		fi
-	fi
-
 	device_msg "$dst" "stopping"
 
 	return 0
@@ -667,11 +605,10 @@ do_start () {
 
 # Removes all mappings in crypttab
 do_stop () {
-	local dst src key opts opencount major minor loopmajor
+	local dst src key opts opencount major minor
 
 	dmsetup mknodes
 	log_action_begin_msg "Stopping $INITSTATE crypto disks"
-	loopmajor=$(grep "[[:space:]]*loop$" /proc/devices | sed 's/^[[:space:]]*//;s/[[:space:]].*//')
 
 	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
 		handle_crypttab_line_stop "$dst" "$src" "$key" "$opts" <&3 || log_action_end_msg $?

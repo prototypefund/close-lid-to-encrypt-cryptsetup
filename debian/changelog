@@ -1,8 +1,11 @@
 cryptsetup (2:1.3.0-3) UNRELEASED; urgency=low
 
-  * NOT RELEASED YET
+  * drop the loopback magick from cryptdisks scripts. Mario 'Bitkoenig' Holbe
+    pointed out, that auto-destruction support was added to the loopback driver
+    with kernel 2.6.25. Given, that even lenny has a more recent kernel,
+    support for kernels < 2.6.25 is not required any more. (closes: #626458)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 12 May 2011 03:13:03 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 12 May 2011 12:30:38 +0200
 
 cryptsetup (2:1.3.0-2) unstable; urgency=low
 
