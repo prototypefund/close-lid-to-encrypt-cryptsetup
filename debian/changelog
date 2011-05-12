@@ -1,10 +1,15 @@
+cryptsetup (2:1.3.0-2) unstable; urgency=low
+
+  * fix changelog of 2:1.3.0-1 release, thanks to Thorsten Glaser for the hint
+
+ -- Jonas Meurer <mejo@debian.org>  Thu, 12 May 2011 03:06:46 +0200
+
 cryptsetup (2:1.3.0-1) unstable; urgency=low
 
-  * NOT RELEASED YET
   * new upstream release
     - automatically allocates loopback device for container files. update the
       cryptdisks functions to only setup loopback device for kernel < 2.6.35.
-      otherwise, let cryptsetup do the magic itself. *****TODO: TESTING*****
+      otherwise, let cryptsetup do the magic itself.
     - introduces maximum default keyfile size, see --help for value. manually
       set the keyfile size with --keyfile-size in order to overwrite the limit.
     - adds luksChangeKey command for changing passphrase/keyfile in one step
