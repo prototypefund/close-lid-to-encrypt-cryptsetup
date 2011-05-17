@@ -146,6 +146,7 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
+	dh_installdebconf
 	dh_installchangelogs -a ChangeLog
 	dh_installdocs -a
 	dh_installexamples -a debian/scripts/gen-ssl-key
@@ -188,5 +189,7 @@ clean:
 	if test -f config.mess; then rm -f `cat config.mess`; fi
 	rm -f config.mess
 	dh_clean configure-stamp build-stamp install-stamp
+	# update debconf po files
+	debconf-updatepo
 
 .PHONY: configure build install binary-indep binary-arch binary clean

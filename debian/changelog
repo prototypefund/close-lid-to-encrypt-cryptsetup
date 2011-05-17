@@ -4,8 +4,11 @@ cryptsetup (2:1.3.0-3) UNRELEASED; urgency=low
     pointed out, that auto-destruction support was added to the loopback driver
     with kernel 2.6.25. Given, that even lenny has a more recent kernel,
     support for kernels < 2.6.25 is not required any more. (closes: #626458)
+  * add debconf question 'prerm/active-mappings' with priority high to prerm
+    maintainer script. will warn about active dm-crypt mappings before the
+    package is removed/purged. (closes: #626641)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 12 May 2011 12:30:38 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 17 May 2011 14:50:06 +0200
 
 cryptsetup (2:1.3.0-2) unstable; urgency=low
 

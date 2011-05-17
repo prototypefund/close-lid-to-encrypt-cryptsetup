@@ -1,0 +1,24 @@
+#! /bin/sh
+
+set -e
+
+# It is possible that Debconf has already been removed, too.
+if [ -f /usr/share/debconf/confmodule ]; then
+  . /usr/share/debconf/confmodule
+fi
+
+case "$1" in
+    remove)
+	cryptmap="$(dmsetup table | sed -ne 's/^\([a-zA-Z0-9_-]*\): [0-9] [0-9]* crypt .*$/\1/p')"
+	if [ -n "$cryptmap" ]; then
+		db_input high cryptsetup/prerm/active-mappings || true
+		db_go || true
+		db_get cryptsetup/prerm/active-mappings || true
+		if [ "$RET" = "false" ]; then
+			exit 1
+		fi
+	fi
+    ;;
+esac
+
+#DEBHELPER#
