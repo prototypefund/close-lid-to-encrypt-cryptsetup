@@ -146,7 +146,7 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installdebconf
+	dh_installdebconf -a
 	dh_installchangelogs -a ChangeLog
 	dh_installdocs -a
 	dh_installexamples -a debian/scripts/gen-ssl-key
