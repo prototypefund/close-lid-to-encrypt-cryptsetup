@@ -407,6 +407,10 @@ add_device() {
 				copy_exec "/lib/cryptsetup/scripts/$KEYSCRIPT" /lib/cryptsetup/scripts >&2
 			elif [ -e "$KEYSCRIPT" ]; then
 				copy_exec "$KEYSCRIPT" /lib/cryptsetup/scripts >&2
+			elif KSTYPE="$(type "$KEYSCRIPT" 2>&1)"; then
+				if [ -x "${KSTYPE#"$KEYSCRIPT" is }" ]; then
+					copy_exec "${KSTYPE#"$KEYSCRIPT" is }" /lib/cryptsetup/scripts >&2
+				fi
 			else
 				echo "cryptsetup: WARNING: failed to find keyscript $KEYSCRIPT" >&2
 				continue
@@ -534,6 +538,11 @@ if [ "$MODULES" != "dep" ] || [ "$setup" = "yes" ]; then
 	copy_exec /sbin/cryptsetup
 	copy_exec /sbin/dmsetup
 	copy_exec /lib/cryptsetup/askpass
+
+	# We need sed. Either via busybox or as standalone binary.
+	if [ "$BUSYBOX" = "n" ] || [ ! -e ${BUSYBOXDIR}/busybox ]; then
+		copy_exec /bin/sed
+	fi
 fi
 
 exit 0

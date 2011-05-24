@@ -184,7 +184,7 @@ setup_mapping()
 
 	parse_options "$opts" || return 1
 
-	if [ -n "$cryptkeyscript" ] && [ ! -x "$cryptkeyscript" ]; then
+	if [ -n "$cryptkeyscript" ] && ! type "$cryptkeyscript" >/dev/null; then
 		message "cryptsetup: error - script \"$cryptkeyscript\" missing"
 		return 1
 	fi
