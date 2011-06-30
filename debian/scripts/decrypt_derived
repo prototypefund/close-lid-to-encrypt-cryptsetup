@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# Warning: If you use decrypt_derived keyscript for devices with persistent
+# data (i.e. not swap or temp devices), then you should add a second LUKS slot
+# with a password as backup. Otherwise, if the source for decrypt_derived ever
+# changes, then the data on your target device will be lost.
+
 countlines() {
 	local IFS input count tmp
 	input="$1"

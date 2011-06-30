@@ -8,8 +8,12 @@ cryptsetup (2:1.3.0-4) UNRELEASED; urgency=low
     $PATH. thanks to Ian Jackson for the suggestion. (closes: #597583)
   * use argument '--sysinit' for vgchange in cryptroot initramfs script. thanks
     to Christoph Anton Mitterer for the suggestion.
+  * incorporate changes to package descriptions and debconf templates that
+    suggested by debian-l10n-english people. special thanks go to Justin B Rye.
+  * add a warning about using decrypt_derived keyscript for devices with
+    persistent data. Thanks to Arno Wagner for pointing this out.
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 25 May 2011 01:57:18 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 01 Jul 2011 00:17:21 +0200
 
 cryptsetup (2:1.3.0-3) unstable; urgency=low
 

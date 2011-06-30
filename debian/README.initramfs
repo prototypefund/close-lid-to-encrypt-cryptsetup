@@ -170,6 +170,11 @@ cryptswap /dev/hda2 cryptroot cipher=aes-cbc-essiv:sha256,size=256,hash=sha256,k
 After you've followed the above steps, your swap device should be setup
 automatically after the root device has been setup during the boot stage.
 
+Warning: If you use decrypt_derived keyscript for devices with persistent data
+(i.e. not swap or temp devices), then you should add a second LUKS slot with a
+password as backup. Otherwise, if the source for decrypt_derived ever changes,
+then the data on your target device will be lost.
+
 Note: If you don't use suspend device support, it's better to use completely
 random keys for your encrypted swap device. See the section '2. Encrypted
 swap partition(s)' in /usr/share/doc/cryptsetup/README.Debian for information

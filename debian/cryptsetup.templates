@@ -2,12 +2,12 @@ Template: cryptsetup/prerm_active_mappings
 Type: boolean
 Default: true
 _Description: Continue with cryptsetup removal?
- You have unlocked dm-crypt devices: ${cryptmap}
+ This system has unlocked dm-crypt devices: ${cryptmap}
  .
- If you used to manage these devices with cryptsetup, you might be unable to
- lock the devices after the package removal. There are other tools for managing
- dm-crypt devices though. In any case, system shutdown/reboot will lock the
- devices.
+ If these devices are managed with cryptsetup, you might be unable to
+ lock the devices after the package removal, though other tools can be
+ used for managing dm-crypt devices. Any system shutdown or reboot will
+ lock the devices.
  .
- In case you want to lock the dm-crypt devices before package removal, say no
- here, and continue with removal after all dm-crypt devices have been locked.
+ Do not choose this option if you want to lock the dm-crypt devices
+ before package removal.
