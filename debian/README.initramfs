@@ -170,10 +170,13 @@ cryptswap /dev/hda2 cryptroot cipher=aes-cbc-essiv:sha256,size=256,hash=sha256,k
 After you've followed the above steps, your swap device should be setup
 automatically after the root device has been setup during the boot stage.
 
-Warning: If you use decrypt_derived keyscript for devices with persistent data
-(i.e. not swap or temp devices), then you should add a second LUKS slot with a
-password as backup. Otherwise, if the source for decrypt_derived ever changes,
-then the data on your target device will be lost.
+WARNING: If you use the decrypt_derived keyscript for devices with persistent
+data (i.e. not swap or temp devices), then you will lose access to that data
+permanently if something damages the LUKS header of the LUKS device you derive
+from. The same applies if you luksFormat the device, even if you use the same
+passphrase(s). A LUKS header backup, or better a backup of the data on the
+derived device may be a good idea. See the Cryptsetup FAQ on how to do this
+right.
 
 Note: If you don't use suspend device support, it's better to use completely
 random keys for your encrypted swap device. See the section '2. Encrypted
