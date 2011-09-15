@@ -4,20 +4,22 @@
 # and should not be executed directly.
 
 PATH="/usr/sbin:/usr/bin:/sbin:/bin"
-TABFILE="/etc/crypttab"
+TABFILE=${TABFILE-"/etc/crypttab"}
 CRYPTDISKS_ENABLE="Yes"
 
 #set -x
 
-# Sanity checks
+# Sanity check #1
 [ -x /sbin/cryptsetup ] || exit 0
-[ -f "$TABFILE"       ] || exit 0
 
 . /lib/lsb/init-functions
 
 if [ -r /etc/default/cryptdisks ]; then
 	. /etc/default/cryptdisks
 fi
+
+# Sanity check #2
+[ -f "$TABFILE" ] || exit 0
 
 MOUNT="$CRYPTDISKS_MOUNT"
 

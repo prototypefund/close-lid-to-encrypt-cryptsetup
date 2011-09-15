@@ -77,6 +77,9 @@ get_resume_devices() {
 	devices=""
 	count=0
 	for device in $candidates; do
+		# Remove quotes around device candidate
+		device=$(echo $device | sed -e 's/^"\(.*\)"[[:space:]]*$/\1/' -e "s/^'\(.*\)'[[:space:]]*$/\1/")
+
 		# Weed out clever defaults
 		if [ "$device" = "<path_to_resume_device_file>" ]; then
 			continue

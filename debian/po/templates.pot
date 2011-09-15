@@ -1,14 +1,14 @@
-# debconf template for cryptsetup package.
-# Copyright (C) 2011 Jonas meurer
-# This file is distributed under the same license as the cryptsetup package.
-# Jonas Meurer <mejo@debian.org, 2011.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: cryptsetup VERSION\n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: cryptsetup@packages.debian.org\n"
-"POT-Creation-Date: 2011-05-17 14:46+0200\n"
+"POT-Creation-Date: 2011-09-15 12:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,23 +26,23 @@ msgstr ""
 #. Type: boolean
 #. Description
 #: ../cryptsetup.templates:1001
-msgid "You have unlocked dm-crypt devices: ${cryptmap}"
+msgid "This system has unlocked dm-crypt devices: ${cryptmap}"
 msgstr ""
 
 #. Type: boolean
 #. Description
 #: ../cryptsetup.templates:1001
 msgid ""
-"If you used to manage these devices with cryptsetup, you might be unable to "
-"lock the devices after the package removal. There are other tools for "
-"managing dm-crypt devices though. In any case, system shutdown/reboot will "
-"lock the devices."
+"If these devices are managed with cryptsetup, you might be unable to lock "
+"the devices after the package removal, though other tools can be used for "
+"managing dm-crypt devices. Any system shutdown or reboot will lock the "
+"devices."
 msgstr ""
 
 #. Type: boolean
 #. Description
 #: ../cryptsetup.templates:1001
 msgid ""
-"In case you want to lock the dm-crypt devices before package removal, say no "
-"here, and continue with removal after all dm-crypt devices have been locked."
+"Do not choose this option if you want to lock the dm-crypt devices before "
+"package removal."
 msgstr ""

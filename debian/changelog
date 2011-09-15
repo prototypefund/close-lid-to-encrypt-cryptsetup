@@ -12,8 +12,12 @@ cryptsetup (2:1.3.0-4) UNRELEASED; urgency=low
     suggested by debian-l10n-english people. special thanks go to Justin B Rye.
   * add a warning about using decrypt_derived keyscript for devices with
     persistent data. Thanks to Arno Wagner for pointing this out.
+  * remove quotes from resume device candidates at get_resume_devs() in
+    initramfs hook script. Thanks to Johannes Rohr. (closes: #634017)
+  * add swedish debconf translation, thanks to Martin Bagge. (closes: #640056)
+  * support custom $TABFILE, thanks to Douglas Huff. (closes: #638317)
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 01 Jul 2011 00:17:21 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 15 Sep 2011 12:34:47 +0200
 
 cryptsetup (2:1.3.0-3) unstable; urgency=low
 
