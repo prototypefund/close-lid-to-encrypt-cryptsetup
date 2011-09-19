@@ -14,10 +14,16 @@ cryptsetup (2:1.3.0-4) UNRELEASED; urgency=low
     persistent data. Thanks to Arno Wagner for pointing this out.
   * remove quotes from resume device candidates at get_resume_devs() in
     initramfs hook script. Thanks to Johannes Rohr. (closes: #634017)
-  * add swedish debconf translation, thanks to Martin Bagge. (closes: #640056)
   * support custom $TABFILE, thanks to Douglas Huff. (closes: #638317)
+  * add debconf translations:
+    - italian, thanks to Milo Casagrande.
+    - french, thanks to Julien Patriarca. (closes: #633105)
+    - swedish, thanks to Martin Bagge. (closes: #640056)
+    - vietnamese, thanks to TRẦN Duy Hùng. (closes: #641719)
+    - portuguese, thanks Portuguese Translation Team. (closes: #641839)
+    - russian, thanks to Yuri Kozlov. (closes: #641947)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 15 Sep 2011 12:34:47 +0200
+ -- Jonas Meurer <mejo@debian.org>  Mon, 19 Sep 2011 13:52:15 +0200
 
 cryptsetup (2:1.3.0-3) unstable; urgency=low
 

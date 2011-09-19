@@ -1,0 +1,53 @@
+# Italian translation of cryptsetup debconf .
+# Copyright (C) 2011 the cryptsetup copyright holder
+# This file is distributed under the same license as the cryptsetup package.
+# Milo Casagrande <milo@ubuntu.com>, 2011.
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: crypsetup-debconf\n"
+"Report-Msgid-Bugs-To: cryptsetup@packages.debian.org\n"
+"POT-Creation-Date: 2011-09-15 12:30+0200\n"
+"PO-Revision-Date: 2011-09-16 15:36+0200\n"
+"Last-Translator: Milo Casagrande <milo@ubuntu.com>\n"
+"Language-Team: Italian <tp@lists.linux.it>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8-bit\n"
+
+#. Type: boolean
+#. Description
+#: ../cryptsetup.templates:1001
+msgid "Continue with cryptsetup removal?"
+msgstr "Continuare con la rimozione di cryptsetup?"
+
+#. Type: boolean
+#. Description
+#: ../cryptsetup.templates:1001
+msgid "This system has unlocked dm-crypt devices: ${cryptmap}"
+msgstr "Il sistema presenta dispositivi dm-crypt sbloccati: ${cryptmap}"
+
+#. Type: boolean
+#. Description
+#: ../cryptsetup.templates:1001
+msgid ""
+"If these devices are managed with cryptsetup, you might be unable to lock "
+"the devices after the package removal, though other tools can be used for "
+"managing dm-crypt devices. Any system shutdown or reboot will lock the "
+"devices."
+msgstr ""
+"Se questi dispositivi sono gestiti tramite cryptsetup, potrebbe non essere "
+"possibile bloccarli dopo la rimozione del pacchetto, anche se altri "
+"strumenti possono essere utilizzati per la gestione di dispositivi dm-crypt. "
+"L'arresto o il riavvio del sistema bloccherà i dispositivi."
+
+#. Type: boolean
+#. Description
+#: ../cryptsetup.templates:1001
+msgid ""
+"Do not choose this option if you want to lock the dm-crypt devices before "
+"package removal."
+msgstr ""
+"Non scegliere questa opzione per bloccare i dispositivi dm-crypt prima della "
+"rimozione del pacchetto."
