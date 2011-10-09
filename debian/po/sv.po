@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: cryptsetup VERSION\n"
 "Report-Msgid-Bugs-To: cryptsetup@packages.debian.org\n"
 "POT-Creation-Date: 2011-09-15 12:30+0200\n"
-"PO-Revision-Date: 2011-09-01 22:20+0100\n"
+"PO-Revision-Date: 2011-09-22 21:28+0100\n"
 "Last-Translator: Martin Bagge / brother <brother@bsnet.se>\n"
 "Language-Team: Swedish <debian-l10n-swedish@lists.debian.org>\n"
 "Language: \n"
@@ -27,30 +27,22 @@ msgstr "Ska cryptsetup tas bort?"
 #. Type: boolean
 #. Description
 #: ../cryptsetup.templates:1001
-#, fuzzy
-#| msgid "You have unlocked dm-crypt devices: ${cryptmap}"
 msgid "This system has unlocked dm-crypt devices: ${cryptmap}"
-msgstr "Du har låst upp dm-crypt-enhet: ${cryptmap}"
+msgstr "Detta system har olåsta dm-crypt-enheter: ${cryptmap}"
 
 #. Type: boolean
 #. Description
 #: ../cryptsetup.templates:1001
-#, fuzzy
-#| msgid ""
-#| "If you used to manage these devices with cryptsetup, you might be unable "
-#| "to lock the devices after the package removal. There are other tools for "
-#| "managing dm-crypt devices though. In any case, system shutdown/reboot "
-#| "will lock the devices."
 msgid ""
 "If these devices are managed with cryptsetup, you might be unable to lock "
 "the devices after the package removal, though other tools can be used for "
 "managing dm-crypt devices. Any system shutdown or reboot will lock the "
 "devices."
 msgstr ""
-"Om dessa enheter tidigare hanterades av cryptsetup kan det innebära att "
-"dessa enheter inte kan låsas efter att paketet tagits bort. Deta finns andra "
-"verktyg för att hantera dm-crypt-enheter dock. Hur som helst så kommer "
-"enheterna att låsas när systemet stängs av eller startas om."
+"Om dessa enheter hanteras av cryptsetup kan det innebära att dessa enheter "
+"inte kan låsas upp efter paketet tagits bort. Det finns dock andra verktyg "
+"för att hantera dm-crypt-enheter. Hur som helst så kommer enheterna att "
+"låsas när systemet stängs av eller startas om."
 
 #. Type: boolean
 #. Description
@@ -59,6 +51,8 @@ msgid ""
 "Do not choose this option if you want to lock the dm-crypt devices before "
 "package removal."
 msgstr ""
+"Välj inte detta alternativ om du vill låsa dm-crypt-enheter innan paketet "
+"tas bort."
 
 #~ msgid ""
 #~ "In case you want to lock the dm-crypt devices before package removal, say "

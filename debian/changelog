@@ -6,25 +6,30 @@ cryptsetup (2:1.3.0-4~mejo1) mejo-unstable; urgency=low
   * add checks for 'type $KEYSCRIPT' to initscripts cryptdisks.functions, and
     to cryptroot initramfs script/hook. this adds support for keyscripts inside
     $PATH. thanks to Ian Jackson for the suggestion. (closes: #597583)
-  * use argument '--sysinit' for vgchange in cryptroot initramfs script. thanks
+  * use argument '--sysinit' for vgchange in cryptroot initramfs script. Thanks
     to Christoph Anton Mitterer for the suggestion.
   * incorporate changes to package descriptions and debconf templates that
-    suggested by debian-l10n-english people. special thanks go to Justin B Rye.
+    suggested by debian-l10n-english people. Special thanks go to Justin B Rye.
   * add a warning about using decrypt_derived keyscript for devices with
     persistent data. Thanks to Arno Wagner for pointing this out.
   * remove quotes from resume device candidates at get_resume_devs() in
     initramfs hook script. Thanks to Johannes Rohr. (closes: #634017)
   * support custom $TABFILE, thanks to Douglas Huff. (closes: #638317)
   * add debconf translations:
-    - italian, thanks to Milo Casagrande.
     - french, thanks to Julien Patriarca. (closes: #633105)
-    - swedish, thanks to Martin Bagge. (closes: #640056)
+    - italian, thanks to Milo Casagrande.
+    - swedish, thanks to Martin Bagge. (closes: #640056, #642470)
     - vietnamese, thanks to TRẦN Duy Hùng. (closes: #641719)
-    - portuguese, thanks Portuguese Translation Team. (closes: #641839)
+    - portuguese, thanks to Portuguese Translation Team. (closes: #641839)
     - russian, thanks to Yuri Kozlov. (closes: #641947)
     - german, thanks to Erik Pfannenstein. (closes: #642147)
+    - czech, thanks to Michal Simunek. (closes: #642540)
+    - dutch, thanks to Jeroen Schot. (closes: #643633)
+    - spanish, thanks to Camaleón. (closes: #643962)
+  * set architecture to linux-any, depends on linux kernel anyway. Thanks to
+    Christoph Egger. (closes: #638257)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 20 Sep 2011 12:47:28 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 01 Oct 2011 17:39:31 +0200
 
 cryptsetup (2:1.3.0-3) unstable; urgency=low
 
