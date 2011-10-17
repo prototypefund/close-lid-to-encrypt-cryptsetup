@@ -147,16 +147,14 @@ get_lvm_deps() {
 		return 1
 	fi
 
-	if ! deps=$(dmsetup deps "$node" 2> /dev/null | sed 's/[^:]*: *//;s/[ (]//g;s/)/ /g'); then
+	if ! deps=$(vgs --noheadings -o pv_name $(echo "$node" | cut -d '-' -f1)); then
 		echo "cryptsetup: WARNING: failed to find deps for $node" >&2
 		return 1
 	fi
 
 	# We should now have a list of major,minor pairs, e.g. "3,2 3,3"
 	for dep in $deps; do
-		maj=$(echo ${dep%,*} | sed -e "s/^[ \t]*//g")
-		min=$(echo ${dep#*,} | sed -e "s/[ \t]*$//g")
-		depnode=$(dmsetup ls | sed -n "s/\\([^ ]*\\) *($maj, $min)/\\1/p" | sed -e "s/[ \t]*$//")
+		depnode=$(dmsetup info -c --noheadings -o name "$dep")
 		if [ -z "$depnode" ]; then
 			continue
 		fi
