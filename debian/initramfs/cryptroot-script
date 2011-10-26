@@ -259,11 +259,6 @@ setup_mapping()
 			/bin/sleep 3
 		fi
 
-		if [ $crypttries -gt 0 ] && [ $count -gt $crypttries ]; then
-			message "cryptsetup: maximum number of tries exceeded for $crypttarget"
-			return 1
-		fi
-
 		if [ -z "$cryptkeyscript" ]; then
 			cryptkey="Unlocking the disk $cryptsource ($crypttarget)\nEnter passphrase: "
 			if [ -x /bin/plymouth ] && plymouth --ping; then
@@ -318,6 +313,11 @@ setup_mapping()
 		message "cryptsetup: $crypttarget set up successfully"
 		break
 	done
+
+	if [ $crypttries -gt 0 ] && [ $count -gt $crypttries ]; then
+		message "cryptsetup: maximum number of tries exceeded for $crypttarget"
+		return 1
+	fi
 
 	udev_settle
 	return 0
