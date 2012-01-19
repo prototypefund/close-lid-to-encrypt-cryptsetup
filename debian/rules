@@ -20,13 +20,11 @@ else
   confflags += --build $(DEB_BUILD_GNU_TYPE) --host $(DEB_HOST_GNU_TYPE)
 endif
 
-CFLAGS = -Wall -g
+# Export dpkg build flags
+DEB_CFLAGS_MAINT_APPEND = -Wall
+DPKG_EXPORT_BUILDFLAGS  = 1
+-include /usr/share/dpkg/buildflags.mk
 
-ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	CFLAGS += -O0
-else
-	CFLAGS += -O2
-endif
 ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
 	INSTALL_PROGRAM += -s
 endif
@@ -40,7 +38,7 @@ configure-stamp:
 	dh_testdir
 	find -xtype f ! -name manifest > manifest
 	autoreconf --force --install
-	CFLAGS="$(CFLAGS)" ./configure $(confflags) \
+	./configure $(confflags)  \
 		--prefix=/usr \
 		--libdir=/lib \
 		--sbindir=/sbin \

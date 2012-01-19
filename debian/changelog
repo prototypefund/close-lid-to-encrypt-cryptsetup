@@ -4,6 +4,7 @@ cryptsetup (2:1.4.0-1~mejo2) mejo-unstable; urgency=low
   * new upstream release (1.4.0)
     - fixes typo in german translation. (closes: #645528)
     - remove patches, all incorporated upstream.
+    - bump library symbols to 1.4. *TODO*****************************************************************************************************
   * check for busybox in initramfs cryptroot hook, and install the sed binary
     in case it's either not installed or not activated. (closes: #591853)
   * add checks for 'type $KEYSCRIPT' to initscripts cryptdisks.functions, and
@@ -41,7 +42,7 @@ cryptsetup (2:1.4.0-1~mejo2) mejo-unstable; urgency=low
     number of tries is reached. Thanks to Chistian Lamparter for bugreport and
     patch. (closes: #646083)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 26 Oct 2011 21:16:54 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 26 Oct 2011 22:30:18 +0200
 
 cryptsetup (2:1.3.0-3) unstable; urgency=low
 
