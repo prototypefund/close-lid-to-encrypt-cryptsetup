@@ -73,7 +73,7 @@ build-arch: build-stamp
 	gcc -Wall -pedantic -std=c99 debian/askpass.c -o debian/askpass
 	gcc -Wall -pedantic -std=c99 debian/passdev.c -o debian/scripts/passdev
 
-build: build-indep build-binary
+build: build-indep build-arch
 
 install: install-stamp
 install-stamp: build-stamp

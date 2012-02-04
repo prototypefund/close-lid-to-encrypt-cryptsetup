@@ -12,13 +12,25 @@ cryptsetup (2:1.4.1-1~mejo1) mejo-unstable; urgency=low
     $PATH. thanks to Ian Jackson for the suggestion. (closes: #597583)
   * use argument '--sysinit' for vgchange in cryptroot initramfs script. Thanks
     to Christoph Anton Mitterer for the suggestion.
-  * incorporate changes to package descriptions and debconf templates that
-    suggested by debian-l10n-english people. Special thanks go to Justin B Rye.
+  * add option for discard/trim features to crypttab and initramfs scripts.
+    Thanks to intrigeri and Peter Colberg for patches. (closes: #648868)
+  * print $target on error in initramfs hook. Thanks to Daniel Hahler for the
+    bugreport. (closes: #648192)
   * add a warning about using decrypt_derived keyscript for devices with
     persistent data. Thanks to Arno Wagner for pointing this out.
   * remove quotes from resume device candidates at get_resume_devs() in
     initramfs hook script. Thanks to Johannes Rohr. (closes: #634017)
   * support custom $TABFILE, thanks to Douglas Huff. (closes: #638317)
+  * fix get_lvm_deps() in initramfs cryptroot hook to add all physical volumes
+    of lvm volume group that contains the rootfs logical volume, even if the
+    rootfs is lv is not spread over all physical volumes. Thanks to Christian
+    Pernegger for bugreport and patch. (closes: #634109)
+  * debian/initramfs/cryptroot-script: Move check for maximum number of tries
+    behind the while loop, to make the warning appear in case that maximum
+    number of tries is reached. Thanks to Chistian Lamparter for bugreport and
+    patch. (closes: #646083)
+  * incorporate changes to package descriptions and debconf templates that
+    suggested by debian-l10n-english people. Special thanks go to Justin B Rye.
   * acknowledge NMU, thanks a lot to Christian Perrier for his great work on
     the i18n front. (closes: #633105, #641719, #641839, #641947, #642470,
     #640056, #642540, #643633, #643962, #644853)
@@ -29,21 +41,10 @@ cryptsetup (2:1.4.1-1~mejo1) mejo-unstable; urgency=low
     - russian, thanks to Yuri Kuzlov (closes: #654676)
   * set architecture to linux-any, depends on linux kernel anyway. Thanks to
     Christoph Egger. (closes: #638257)
-  * fix get_lvm_deps() in initramfs cryptroot hook to add all physical volumes
-    of lvm volume group that contains the rootfs logical volume, even if the
-    rootfs is lv is not spread over all physical volumes. Thanks to Christian
-    Pernegger for bugreport and patch. (closes: #634109)
-  * debian/initramfs/cryptroot-script: Move check for maximum number of tries
-    behind the while loop, to make the warning appear in case that maximum
-    number of tries is reached. Thanks to Chistian Lamparter for bugreport and
-    patch. (closes: #646083)
-  * add option for discard/trim features to crypttab and initramfs scripts.
-    Thanks to intrigeri and Peter Colberg for patches. (closes: #648868)
-  * print $target on error in initramfs hook. Thanks to Daniel Hahler for the
-    bugreport. (closes: #648192)
   * small updates to the copyright file.
+  * add targets build-indep and build-arch to debian/rules, thanks to lintian.
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 04 Feb 2012 04:16:58 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sat, 04 Feb 2012 04:23:26 +0100
 
 cryptsetup (2:1.3.0-3.1) unstable; urgency=low
 
