@@ -29,7 +29,7 @@ Description: disk encryption support - commandline tools
  file /etc/crypttab. Additional features are cryptoroot support through
  initramfs-tools and several supported ways to read a passphrase or key.
 
-Package: libcryptsetup1
+Package: libcryptsetup4
 Section: libs
 Architecture: linux-any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libgpg-error0 (>= 1.10-0.1), libgcrypt11 (>= 1.4.6-2)
@@ -44,7 +44,7 @@ Description: disk encryption support - shared library
 Package: libcryptsetup-dev
 Section: libdevel
 Architecture: linux-any
-Depends: ${misc:Depends}, libcryptsetup1 (= ${binary:Version})
+Depends: ${misc:Depends}, libcryptsetup4 (= ${binary:Version})
 Description: disk encryption support - development files
  Cryptsetup provides an interface for configuring encryption on block
  devices (such as /home or swap partitions), using the Linux kernel
@@ -66,7 +66,7 @@ Description: disk encryption support - commandline tools (udeb)
  .
  This udeb package provides cryptsetup for the Debian Installer.
 
-Package: libcryptsetup1-udeb
+Package: libcryptsetup4-udeb
 Section: debian-installer
 Package-Type: udeb
 Architecture: linux-any

@@ -4,7 +4,8 @@ cryptsetup (2:1.4.0-1~mejo2) mejo-unstable; urgency=low
   * new upstream release (1.4.0)
     - fixes typo in german translation. (closes: #645528)
     - remove patches, all incorporated upstream.
-    - bump library symbols to 1.4. *TODO*****************************************************************************************************
+    - soname bump, rename library package to libcryptsetup4
+      ****TODO*****************************************************************************************************
   * check for busybox in initramfs cryptroot hook, and install the sed binary
     in case it's either not installed or not activated. (closes: #591853)
   * add checks for 'type $KEYSCRIPT' to initscripts cryptdisks.functions, and
@@ -21,7 +22,7 @@ cryptsetup (2:1.4.0-1~mejo2) mejo-unstable; urgency=low
   * support custom $TABFILE, thanks to Douglas Huff. (closes: #638317)
   * add debconf translations:
     - french, thanks to Julien Patriarca. (closes: #633105)
-    - italian, thanks to Milo Casagrande.
+    - italian, thanks to Milo Casagrande, Francesca Ciceri. (closes: #656933(
     - swedish, thanks to Martin Bagge. (closes: #640056, #642470)
     - vietnamese, thanks to TRẦN Duy Hùng. (closes: #641719)
     - portuguese, thanks to Portuguese Translation Team. (closes: #641839)
@@ -29,7 +30,7 @@ cryptsetup (2:1.4.0-1~mejo2) mejo-unstable; urgency=low
     - german, thanks to Erik Pfannenstein. (closes: #642147)
     - czech, thanks to Michal Simunek. (closes: #642540)
     - dutch, thanks to Jeroen Schot. (closes: #643633)
-    - spanish, thanks to Camaleón. (closes: #643962)
+    - spanish, thanks to Camaleón. (closes: #643962, #658360)
     - danish, thanks to Joe Dalton. (closes: #644853)
   * set architecture to linux-any, depends on linux kernel anyway. Thanks to
     Christoph Egger. (closes: #638257)
@@ -42,7 +43,7 @@ cryptsetup (2:1.4.0-1~mejo2) mejo-unstable; urgency=low
     number of tries is reached. Thanks to Chistian Lamparter for bugreport and
     patch. (closes: #646083)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 26 Oct 2011 22:30:18 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 04 Feb 2012 02:32:45 +0100
 
 cryptsetup (2:1.3.0-3) unstable; urgency=low
 
