@@ -2,7 +2,7 @@ Format: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file
 Upstream-Contact: Milan Broz <mbroz@redhat.com>
 Source: http://code.google.com/p/cryptsetup
 
-Files: debian/askpass.c, debian/passdev.c
+Files: debian/askpass.c debian/passdev.c
 Copyright: © 2008 David Härdeman <david@hardeman.nu>
 License: GPL-2+
 
