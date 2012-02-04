@@ -48,8 +48,11 @@ configure-stamp:
 	diff manifest manifest.new | grep '>' | cut -b3- > config.mess
 	touch $@
 
-build: build-stamp
 build-stamp: configure-stamp
+	touch $@
+
+
+build-indep: build-stamp
 	dh_testdir
 	# generate manpages
 	sed 's/VERSION/$(DEB_VERSION)/;s/DATE/$(DEB_DATE)/' \
@@ -61,12 +64,16 @@ build-stamp: configure-stamp
 		debian/luksformat.8
 	# generate gettext po files (for luksformat)
 	$(MAKE) -C debian/scripts/po all luksformat.pot
+
+build-arch: build-stamp
+	dh_testdir
 	# build upstream cryptsetup
 	$(MAKE)
 	# build askpass and passdev keyscripts
 	gcc -Wall -pedantic -std=c99 debian/askpass.c -o debian/askpass
 	gcc -Wall -pedantic -std=c99 debian/passdev.c -o debian/scripts/passdev
-	touch $@
+
+build: build-indep build-binary
 
 install: install-stamp
 install-stamp: build-stamp
@@ -190,4 +197,4 @@ clean:
 	# update debconf po files
 	debconf-updatepo
 
-.PHONY: configure build install binary-indep binary-arch binary clean
+.PHONY: configure build-indep build-arch build install binary-indep binary-arch binary clean

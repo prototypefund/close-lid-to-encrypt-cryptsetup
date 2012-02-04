@@ -1,2 +1,2 @@
 libcryptsetup.so.4 libcryptsetup4 #MINVER#
- *@CRYPTSETUP_4.0 2:1.4
+ *@CRYPTSETUP_1.0 2:1.4

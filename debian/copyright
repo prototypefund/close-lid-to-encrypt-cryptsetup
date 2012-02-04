@@ -1,4 +1,4 @@
-Format: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file
+Format: http://dep.debian.net/deps/dep5/
 Upstream-Contact: Milan Broz <mbroz@redhat.com>
 Source: http://code.google.com/p/cryptsetup
 
@@ -32,10 +32,6 @@ Copyright: © 2004-2005 Wesley W. Terpstra <terpstra@debian.org>
            © 2006-2008 David Härdeman <david@hardeman.nu>
            © 2005-2010 Jonas Meurer <jonas@freesources.org>
 License: GPL-2+
-
-Files: luks/sha/*
-Copyright: © 2002 Dr Brian Gladman, Worcester, UK
-License: GPL
 
 Files: *
 Copyright: © 2004      Christophe Saout <christophe@saout.de>
