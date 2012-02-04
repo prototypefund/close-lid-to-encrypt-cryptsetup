@@ -186,7 +186,7 @@ get_device_opts() {
 	rootopts=$( echo $opt | cut -d " " -f4- )
 
 	if [ -z "$opt" ] || [ -z "$source" ] || [ -z "$key" ] || [ -z "$rootopts" ]; then
-		echo "cryptsetup: WARNING: invalid line in /etc/crypttab - $opt" >&2
+		echo "cryptsetup: WARNING: invalid line in /etc/crypttab for $target - $opt" >&2
 		return 1
 	fi
 
