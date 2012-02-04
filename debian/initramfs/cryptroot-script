@@ -70,6 +70,7 @@ parse_options()
 	cryptkey="" # This is only used as an argument to an eventual keyscript
 	crypttries=3
 	cryptrootdev=""
+	cryptdiscard=""
 	CRYPTTAB_OPTIONS=""
 
 	local IFS=" ,"
@@ -119,6 +120,9 @@ parse_options()
 			;;
 		rootdev)
 			cryptrootdev="yes"
+			;;
+		discard)
+			cryptdiscard="yes"
 			;;
 		esac
 		PARAM="${x%=*}"
@@ -242,10 +246,14 @@ setup_mapping()
 	done
 
 	# Prepare commands
+	cryptcreate="/sbin/cryptsetup -T 1"
+	if [ "$cryptdiscard" = "yes" ]; then
+		cryptcreate="$cryptcreate --allow-discards"
+	fi
 	if /sbin/cryptsetup isLuks $cryptsource > /dev/null 2>&1; then
-		cryptcreate="/sbin/cryptsetup -T 1 luksOpen $cryptsource $crypttarget"
+		cryptcreate="$cryptcreate luksOpen $cryptsource $crypttarget"
 	else
-		cryptcreate="/sbin/cryptsetup -T 1 -c $cryptcipher -s $cryptsize -h $crypthash create $crypttarget $cryptsource"
+		cryptcreate="$cryptcreate -c $cryptcipher -s $cryptsize -h $crypthash create $crypttarget $cryptsource"
 	fi
 	cryptremove="/sbin/cryptsetup remove $crypttarget"
 	NEWROOT="/dev/mapper/$crypttarget"

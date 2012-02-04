@@ -1,7 +1,7 @@
 cryptsetup (2:1.4.0-1~mejo2) mejo-unstable; urgency=low
 
   * NOT RELEASED YET
-  * new upstream release (1.4.0)
+  * new upstream release (1.4.0) (closes: #647851)
     - fixes typo in german translation. (closes: #645528)
     - remove patches, all incorporated upstream.
     - soname bump, rename library package to libcryptsetup4
@@ -20,18 +20,13 @@ cryptsetup (2:1.4.0-1~mejo2) mejo-unstable; urgency=low
   * remove quotes from resume device candidates at get_resume_devs() in
     initramfs hook script. Thanks to Johannes Rohr. (closes: #634017)
   * support custom $TABFILE, thanks to Douglas Huff. (closes: #638317)
-  * add debconf translations:
-    - french, thanks to Julien Patriarca. (closes: #633105)
-    - italian, thanks to Milo Casagrande, Francesca Ciceri. (closes: #656933(
-    - swedish, thanks to Martin Bagge. (closes: #640056, #642470)
-    - vietnamese, thanks to TRẦN Duy Hùng. (closes: #641719)
-    - portuguese, thanks to Portuguese Translation Team. (closes: #641839)
-    - russian, thanks to Yuri Kozlov. (closes: #641947)
+  * acknowledge NMU, thanks a lot to Christian Perrier for his great work on
+    the i18n front. (closes: #633105, #641719, #641839, #641947, #642470,
+    #640056, #642540, #643633, #643962, #644853)
+  * add and update debconf translations:
+    - italian, thanks to Milo Casagrande, Francesca Ciceri. (closes: #656933)
     - german, thanks to Erik Pfannenstein. (closes: #642147)
-    - czech, thanks to Michal Simunek. (closes: #642540)
-    - dutch, thanks to Jeroen Schot. (closes: #643633)
-    - spanish, thanks to Camaleón. (closes: #643962, #658360)
-    - danish, thanks to Joe Dalton. (closes: #644853)
+    - spanish, thanks to Camaleón. (closes: #658360)
   * set architecture to linux-any, depends on linux kernel anyway. Thanks to
     Christoph Egger. (closes: #638257)
   * fix get_lvm_deps() in initramfs cryptroot hook to add all physical volumes
@@ -42,8 +37,26 @@ cryptsetup (2:1.4.0-1~mejo2) mejo-unstable; urgency=low
     behind the while loop, to make the warning appear in case that maximum
     number of tries is reached. Thanks to Chistian Lamparter for bugreport and
     patch. (closes: #646083)
+  * add option for discard/trim features to crypttab and initramfs scripts.
+    Thanks to intrigeri and Peter Colberg for patches. (closes: #648868)
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 04 Feb 2012 02:32:45 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sat, 04 Feb 2012 02:49:47 +0100
+
+cryptsetup (2:1.3.0-3.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Fix pending l10n issues. Debconf translations:
+    - French (Julien Patriarca).  Closes: #633105
+    - Vietnamese (Hung Tran).  Closes: #641719
+    - Portuguese (Miguel Figueiredo).  Closes: #641839
+    - Russian (Yuri Kozlov).  Closes: #641947
+    - Swedish (Martin Bagge / brother).  Closes: #642470,#640056
+    - Czech (Michal Simunek).  Closes: #642540
+    - Dutch; (Jeroen Schot).  Closes: #643633
+    - Spanish; (Camaleón).  Closes: #643962
+    - Danish (Joe Hansen).  Closes: #644853
+
+ -- Christian Perrier <bubulle@debian.org>  Sun, 25 Dec 2011 19:00:24 +0100
 
 cryptsetup (2:1.3.0-3) unstable; urgency=low
 

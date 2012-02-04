@@ -249,6 +249,9 @@ get_device_opts() {
 			rootdev)
 				OPTIONS="$OPTIONS,$opt"
 				;;
+			discard)
+				OPTIONS="$OPTIONS,$opt"
+				;;
 			luks)
 				LUKS_FOUND=1
 				;;

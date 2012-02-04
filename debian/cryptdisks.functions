@@ -131,6 +131,9 @@ parse_opts () {
 				log_warning_msg "$dst: option tries used with an incorrect argument - forced to $TRIES"
 			fi
 			;;
+		discard)
+			PARAMS="$PARAMS --allow-discards"
+			;;
 		swap)
 			MAKESWAP="yes"
 			SWCHECK="/lib/cryptsetup/checks/un_blkid"

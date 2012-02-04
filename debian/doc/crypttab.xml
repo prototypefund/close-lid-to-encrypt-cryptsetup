@@ -150,6 +150,21 @@
    </varlistentry>
 
    <varlistentry>
+    <term><emphasis>discard</emphasis></term>
+    <listitem>
+     <simpara>Allow using of discards (TRIM) requests for device.</simpara>
+     <simpara><emphasis role="strong">WARNING</emphasis>: Assess the
+     specific security risks carefully before enabling this option.
+     For example, allowing discards on encrypted devices may lead to
+     the leak of information about the ciphertext device (filesystem
+     type, used space etc.) if the discarded blocks can be located
+     easily on the device later.</simpara>
+      <simpara>Kernel version 3.1 or more recent is required.
+      For older versions is the option ignored.</simpara>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
     <term><emphasis>luks</emphasis></term>
     <listitem>
      <simpara>Use device with LUKS extensions.</simpara>
