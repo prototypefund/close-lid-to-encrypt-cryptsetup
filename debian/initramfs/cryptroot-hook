@@ -147,7 +147,7 @@ get_lvm_deps() {
 		return 1
 	fi
 
-	if ! deps=$(vgs --noheadings -o pv_name $(echo "$node" | cut -d '-' -f1)); then
+	if ! deps=$(vgs --noheadings -o pv_name $(echo "$node" | cut -d '-' -f1) 2>/dev/null); then
 		echo "cryptsetup: WARNING: failed to find deps for $node" >&2
 		return 1
 	fi
