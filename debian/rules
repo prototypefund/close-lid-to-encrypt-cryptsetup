@@ -98,7 +98,7 @@ install-stamp: build-stamp
 		$(CURDIR)/debian/libcryptsetup-dev/usr/include/
 	#cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.so \
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
-	dh_link -plibcryptsetup-dev lib/libcryptsetup.so.1 usr/lib/libcryptsetup.so
+	dh_link -plibcryptsetup-dev lib/$$(basename $$(readlink debian/cryptsetup/lib/libcryptsetup.so)) usr/lib/libcryptsetup.so
 
 	# Remove libraries from cryptsetup package, they're shiped in seperate library packags
 	rm -rf $(CURDIR)/debian/cryptsetup/lib/libcryptsetup*
