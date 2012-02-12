@@ -2,12 +2,13 @@ cryptsetup (2:1.4.1-2) unstable; urgency=low
 
   * acknowledge NMU. Thanks to Michael Biebl. (closes: #659182)
   * don't print error for non-encrypted rootfs in initramfs cryptroot hook.
-    Thanks to Jamie Heilman for bugreport and patch. (closes: #659087, #659106)
+    Thanks to Jamie Heilman and Christoph Anton Mitterer for bugreports.
+    (closes: #659087, #659106)
   * use dmsetup splitname to extract VG name from $node in initramfs cryptroot
     hook. Thanks to Kai Weber for the bugreport, Milan Broz and Claudio
     Imbrenda for suggestions and patches. (closes: #659235)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 12 Feb 2012 14:57:39 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sun, 12 Feb 2012 15:51:11 +0100
 
 cryptsetup (2:1.4.1-1.1) unstable; urgency=low
 
