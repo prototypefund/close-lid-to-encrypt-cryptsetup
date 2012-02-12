@@ -147,13 +147,12 @@ get_lvm_deps() {
 		return 1
 	fi
 
-	#if ! deps=$(vgs --noheadings -o pv_name $(echo "$node" | cut -d '-' -f1) 2>/dev/null); then
 	if ! deps=$(vgs --noheadings -o pv_name $(dmsetup --noheadings splitname $node | cut -d':' -f1) 2>/dev/null); then
-		echo "cryptsetup: WARNING: failed to find deps for $node" >&2
-		return 1
+		# $node is not a LVM node, stopping here
+		return 0
 	fi
 
-	# We should now have a list of major,minor pairs, e.g. "3,2 3,3"
+	# We should now have a list physical volumes for the VG
 	for dep in $deps; do
 		depnode=$(dmsetup info -c --noheadings -o name "$dep" 2>/dev/null)
 		if [ -z "$depnode" ]; then
