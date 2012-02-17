@@ -278,10 +278,12 @@ setup_mapping()
 		fi
 
 
-		if ! crypttarget="$crypttarget" cryptsource="$cryptsource" \
-		     $cryptkeyscript "$cryptkey" | $cryptcreate --key-file=- ; then
-			message "cryptsetup: cryptsetup failed, bad password or options?"
-			continue
+		if [ ! -e "$NEWROOT" ]; then
+			if ! crypttarget="$crypttarget" cryptsource="$cryptsource" \
+			     $cryptkeyscript "$cryptkey" | $cryptcreate --key-file=- ; then
+				message "cryptsetup: cryptsetup failed, bad password or options?"
+				continue
+			fi
 		fi
 
 		if [ ! -e "$NEWROOT" ]; then
