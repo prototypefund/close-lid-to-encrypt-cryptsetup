@@ -323,7 +323,6 @@ do_noluks () {
 	fi
 
 	if ! pre_out=$("$PRECHECK" "$src" 2> /dev/null) && \
-	   [ "$MAKESWAP" != "yes" ] && \
 	   ! /lib/cryptsetup/checks/blkid "$src" swap >/dev/null; then
 		log_warning_msg "$dst: the precheck for '$src' failed: $pre_out"
 		return 1
