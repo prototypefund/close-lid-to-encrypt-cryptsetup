@@ -158,7 +158,7 @@ get_lvm_deps() {
 		if [ -z "$depnode" ]; then
 			continue
 		fi
-		if [ "$(dmsetup table "$depnode" 2> /dev/null | cut -d' ' -f3)" != "crypt" ]; then
+		if [ "$(dmsetup table "$depnode" 2>/dev/null | cut -d' ' -f3)" != "crypt" ]; then
 			get_lvm_deps "$depnode"
 			continue
 		fi
@@ -399,7 +399,7 @@ add_device() {
 		if ! get_device_opts "$node" "$opts"; then
 			continue
 		fi
-		echo "$OPTIONS" >> "$DESTDIR/conf/conf.d/cryptroot"
+		echo "$OPTIONS" >>"$DESTDIR/conf/conf.d/cryptroot"
 
 		# If we have a keyscript, make sure it is included
 		if [ -n "$KEYSCRIPT" ]; then

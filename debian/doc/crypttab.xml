@@ -185,7 +185,7 @@
     <listitem>
      <simpara>
       Run <command moreinfo="refentry">mkfs</command> with filesystem type
-      &lt;tmpfs&gt; on the created device. Default is ext2.
+      &lt;tmpfs&gt; on the created device. Default is ext4.
      </simpara>
     </listitem>
    </varlistentry>
@@ -359,8 +359,8 @@
        "none" - succeeds if no valid filesystem is found on the device.
       </para></listitem>
       <listitem><para>
-       "ext3" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
-       succeeds if ext3 filesystem is found on the device.
+       "ext4" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
+       succeeds if ext4 filesystem is found on the device.
       </para></listitem>
      </itemizedlist>
     </listitem>
@@ -377,8 +377,8 @@
        no checkargs - succeeds if no valid filesystem is found on the device.
       </para></listitem>
       <listitem><para>
-       "ext3" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
-       succeeds if no ext3 filesystem is found on the device.
+       "ext4" [or another filesystem type like xfs, swap, crypto_LUKS, ...] -
+       succeeds if no ext4 filesystem is found on the device.
       </para></listitem>
      </itemizedlist>
     </listitem>
@@ -397,9 +397,9 @@ cswap /dev/sda6 /dev/urandom cipher=aes-cbc-essiv:sha256,hash=ripemd160,size=256
 # Encrypted LUKS disk with interactive password
 cdisk0 /dev/hda1 none luks
     
-# Encrypted ext2 disk with interactive password
+# Encrypted ext4 disk with interactive password
 # - retry 5 times if the check fails
-cdisk1 /dev/sda2 none cipher=aes-cbc-essiv:sha256,hash=ripemd160,size=256,checkargs=ext2,tries=5
+cdisk1 /dev/sda2 none cipher=aes-cbc-essiv:sha256,hash=ripemd160,size=256,checkargs=ext4,tries=5
 
 # Encrypted disk with interactive password
 # - use a nondefault check script

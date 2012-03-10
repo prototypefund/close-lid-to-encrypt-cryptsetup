@@ -250,7 +250,7 @@ setup_mapping()
 	if [ "$cryptdiscard" = "yes" ]; then
 		cryptcreate="$cryptcreate --allow-discards"
 	fi
-	if /sbin/cryptsetup isLuks $cryptsource > /dev/null 2>&1; then
+	if /sbin/cryptsetup isLuks $cryptsource >/dev/null 2>&1; then
 		cryptcreate="$cryptcreate luksOpen $cryptsource $crypttarget"
 	else
 		cryptcreate="$cryptcreate -c $cryptcipher -s $cryptsize -h $crypthash create $crypttarget $cryptsource"
@@ -310,7 +310,7 @@ setup_mapping()
 			NEWROOT=${cmdline_root:-/dev/mapper/$cryptlvm}
 			if [ "$cryptrootdev" = "yes" ]; then
 				# required for lilo to find the root device
-				echo "ROOT=$NEWROOT" >> /conf/param.conf
+				echo "ROOT=$NEWROOT" >>/conf/param.conf
 			fi
 			eval $(fstype < "$NEWROOT")
 		fi

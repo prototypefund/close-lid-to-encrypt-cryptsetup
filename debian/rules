@@ -36,7 +36,7 @@ endif
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
-	find -xtype f ! -name manifest > manifest
+	find -xtype f ! -name manifest >manifest
 	autoreconf --force --install
 	./configure $(confflags)  \
 		--prefix=/usr \
@@ -44,8 +44,8 @@ configure-stamp:
 		--sbindir=/sbin \
 		--mandir=/usr/share/man \
 		--enable-shared
-	find -xtype f > manifest.new
-	diff manifest manifest.new | grep '>' | cut -b3- > config.mess
+	find -xtype f >manifest.new
+	diff manifest manifest.new | grep '>' | cut -b3- >config.mess
 	touch $@
 
 build-stamp: configure-stamp
@@ -56,7 +56,7 @@ build-indep: build-stamp
 	dh_testdir
 	# generate manpages
 	sed 's/VERSION/$(DEB_VERSION)/;s/DATE/$(DEB_DATE)/' \
-		debian/doc/variables.xml.in > debian/doc/variables.xml
+		debian/doc/variables.xml.in >debian/doc/variables.xml
 	xsltproc --nonet --xinclude -o debian/doc/ \
 		/usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl \
 		debian/doc/manpages.xml

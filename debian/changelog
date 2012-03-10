@@ -11,8 +11,10 @@ cryptsetup (2:1.4.1-3~mejo+1) mejo-unstable; urgency=low
     in initramfs cryptroot script. (closes: #653241)
   * fix conditions for prechecks at do_noluks() in cryptdisks.functions. Should
     prevent data loss with encrypted swap in most cases. (closes: #652497)
+  * change default value for tmpfs and examples from ext2 to ext4.
+  * minor code cleanup.
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 10 Mar 2012 01:25:12 +0100
+ -- Jonas Meurer <mejo@debian.org>  Sat, 10 Mar 2012 02:06:33 +0100
 
 cryptsetup (2:1.4.1-2) unstable; urgency=low
 

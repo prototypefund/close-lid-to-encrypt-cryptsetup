@@ -41,6 +41,6 @@ if [ -x /bin/plymouth ] && plymouth --ping; then
 	/usr/bin/pkcs15-crypt --decipher --input $1 --pkcs1 --raw --pin "$(plymouth ask-for-password --prompt "Enter pin for $crypttarget ($cryptsource): ")"
 else
 	# Get pin number from console
-	/usr/bin/pkcs15-crypt --decipher --input $1 --pkcs1 --raw < /dev/console 2> /dev/console
+	/usr/bin/pkcs15-crypt --decipher --input $1 --pkcs1 --raw < /dev/console 2>/dev/console
 fi
 exit $?

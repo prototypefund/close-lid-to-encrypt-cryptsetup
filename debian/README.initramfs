@@ -55,7 +55,7 @@ encrypted partition /dev/hda2 during boot.
 In addition, you must also make sure that the root device is listed in 
 /etc/fstab, for example:
 
-  /dev/mapper/cryptroot / ext3 defaults 0 1
+  /dev/mapper/cryptroot / ext4 defaults 0 1
 
 This will allow the initramfs support scripts to know which of the devices
 in the crypttab that is the root device.
