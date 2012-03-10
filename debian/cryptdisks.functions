@@ -136,8 +136,6 @@ parse_opts () {
 			;;
 		swap)
 			MAKESWAP="yes"
-			SWCHECK="/lib/cryptsetup/checks/un_blkid"
-			SWCHECKARGS="swap"
 			;;
 		tmp)
 			if [ -z "$VALUE" ]; then
