@@ -1,5 +1,6 @@
 cryptsetup (2:1.4.1-3~mejo+1) mejo-unstable; urgency=low
 
+  [ Jonas Meurer ]
   * finally add back support for configuration of custom rootfs-devices through
     the boot parameter 'root' to initramfs cryptroot script. Thanks a lot to
     August Martin for the bugreport as well as continuously debugging and
@@ -13,8 +14,15 @@ cryptsetup (2:1.4.1-3~mejo+1) mejo-unstable; urgency=low
     prevent data loss with encrypted swap in most cases. (closes: #652497)
   * change default value for tmpfs and examples from ext2 to ext4.
   * minor code cleanup.
+  * update debconf translations:
+    - russian, thanks to Yuri Kozlov. (closes: #661303)
 
- -- Jonas Meurer <mejo@debian.org>  Sat, 10 Mar 2012 02:06:33 +0100
+  [ Jean-Louis Dupond ]
+  * fix watch file.
+  * always add aesni module to initramfs if we have hardware aes support.
+    (closes: #639832).
+
+ -- Jonas Meurer <mejo@debian.org>  Sun, 11 Mar 2012 20:16:36 +0100
 
 cryptsetup (2:1.4.1-2) unstable; urgency=low
 

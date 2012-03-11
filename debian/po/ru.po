@@ -4,10 +4,10 @@
 # Yuri Kozlov <yuray@komyakino.ru>, 2011, 2012.
 msgid ""
 msgstr ""
-"Project-Id-Version: cryptsetup 2:1.3.0-3.1\n"
+"Project-Id-Version: cryptsetup 2:1.4.1-2\n"
 "Report-Msgid-Bugs-To: cryptsetup@packages.debian.org\n"
 "POT-Creation-Date: 2011-09-15 12:30+0200\n"
-"PO-Revision-Date: 2012-01-05 09:56+0400\n"
+"PO-Revision-Date: 2012-02-26 11:02+0400\n"
 "Last-Translator: Yuri Kozlov <yuray@komyakino.ru>\n"
 "Language-Team: Russian <debian-l10n-russian@lists.debian.org>\n"
 "Language: ru\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Lokalize 1.0\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
-"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #. Type: boolean
 #. Description
@@ -27,15 +27,13 @@ msgstr "Продолжить удаление cryptsetup?"
 #. Type: boolean
 #. Description
 #: ../cryptsetup.templates:1001
-#, fuzzy
 #| msgid "You have unlocked dm-crypt devices: ${cryptmap}"
 msgid "This system has unlocked dm-crypt devices: ${cryptmap}"
-msgstr "Имеются незаблокированные устройства dm-crypt: ${cryptmap}"
+msgstr "В системе имеются незаблокированные устройства dm-crypt: ${cryptmap}"
 
 #. Type: boolean
 #. Description
 #: ../cryptsetup.templates:1001
-#, fuzzy
 #| msgid ""
 #| "If you used to manage these devices with cryptsetup, you might be unable "
 #| "to lock the devices after the package removal. There are other tools for "
@@ -48,9 +46,10 @@ msgid ""
 "devices."
 msgstr ""
 "Если эти устройства управляются с помощью cryptsetup, то вы не сможете "
-"заблокировать эти устройства после удаления пакета. Для управления "
-"устройствами dm-crypt есть также другие инструменты. В любом случае, при "
-"следующем выключении или перезагрузке машины устройства будут заблокированы."
+"заблокировать эти устройства после удаления пакета, хотя для управления "
+"устройствами dm-crypt можно использовать другие инструменты. При "
+"следующем выключении или перезагрузке машины устройства будут "
+"заблокированы."
 
 #. Type: boolean
 #. Description

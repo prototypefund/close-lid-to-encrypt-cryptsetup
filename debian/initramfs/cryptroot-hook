@@ -430,11 +430,18 @@ add_device() {
 		echo dm_mod
 		echo dm_crypt
 		echo "$modules"
-
+		# Load hardware aes module
+		if cpu_has_aesni; then
+			echo aesni
+		fi
 		i=$(( $i + 1 ))
 	done
 
 	return 0
+}
+
+cpu_has_aesni() {
+	return $(grep -q aes /proc/cpuinfo)
 }
 
 add_crypto_modules() {
