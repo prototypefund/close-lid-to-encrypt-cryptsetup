@@ -589,13 +589,38 @@ handle_crypttab_line_stop () {
 	return 0
 }
 
+crypttab_start_one_disk () {
+	local dst src key opts result
+	local ret=0
+
+	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
+		if [ "xUUID=$ID_FS_UUID" = "x$src" ]; then
+			src="/dev/disk/by-uuid/${src#UUID=}"
+		elif [ "xLABEL=$ID_FS_LABEL_ENC" = "x$src" ]; then
+			src="/dev/disk/by-label/${src#LABEL=}"
+		elif [ "x$1" != "x$src" ]; then
+			continue
+		fi
+		modprobe -qb dm-mod || true
+		modprobe -qb dm-crypt || true
+		dmsetup mknodes > /dev/null 2>&1 || true
+		# FIXME: no locking
+		mount_fs
+		handle_crypttab_line_start "$dst" "$src" "$key" "$opts" || ret=$?
+		umount_fs
+	done
+	return $ret
+}
+
 do_start () {
 	local dst src key opts result
 
 	modprobe -qb dm-mod || true
 	modprobe -qb dm-crypt || true
 	dmsetup mknodes >/dev/null 2>&1 || true
-	log_action_begin_msg "Starting $INITSTATE crypto disks"
+	if [ "$INITSTATE" != "init" ]; then
+		log_action_begin_msg "Starting $INITSTATE crypto disks"
+	fi
 	mount_fs
 
 	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do

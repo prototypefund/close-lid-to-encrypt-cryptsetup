@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Lokalize 1.0\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #. Type: boolean
 #. Description
@@ -27,18 +27,12 @@ msgstr "Продолжить удаление cryptsetup?"
 #. Type: boolean
 #. Description
 #: ../cryptsetup.templates:1001
-#| msgid "You have unlocked dm-crypt devices: ${cryptmap}"
 msgid "This system has unlocked dm-crypt devices: ${cryptmap}"
 msgstr "В системе имеются незаблокированные устройства dm-crypt: ${cryptmap}"
 
 #. Type: boolean
 #. Description
 #: ../cryptsetup.templates:1001
-#| msgid ""
-#| "If you used to manage these devices with cryptsetup, you might be unable "
-#| "to lock the devices after the package removal. There are other tools for "
-#| "managing dm-crypt devices though. In any case, system shutdown/reboot "
-#| "will lock the devices."
 msgid ""
 "If these devices are managed with cryptsetup, you might be unable to lock "
 "the devices after the package removal, though other tools can be used for "
@@ -47,9 +41,8 @@ msgid ""
 msgstr ""
 "Если эти устройства управляются с помощью cryptsetup, то вы не сможете "
 "заблокировать эти устройства после удаления пакета, хотя для управления "
-"устройствами dm-crypt можно использовать другие инструменты. При "
-"следующем выключении или перезагрузке машины устройства будут "
-"заблокированы."
+"устройствами dm-crypt можно использовать другие инструменты. При следующем "
+"выключении или перезагрузке машины устройства будут заблокированы."
 
 #. Type: boolean
 #. Description
