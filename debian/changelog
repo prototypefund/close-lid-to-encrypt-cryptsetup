@@ -27,8 +27,9 @@ cryptsetup (2:1.4.1-3~mejo+2) mejo-unstable; urgency=low
   * silent warnings on kernels without kernel/{arch,crypto}.
   * add crypttab_start_one_disk in function script to handle udev startup
     in ubuntu.
+  * bump standards-version to 3.9.3, no changes needed.
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 12 Mar 2012 20:27:03 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 11 Apr 2012 23:24:50 +0200
 
 cryptsetup (2:1.4.1-2) unstable; urgency=low
 

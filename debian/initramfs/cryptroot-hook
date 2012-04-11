@@ -521,7 +521,7 @@ for dev in $rootdev $resumedevs; do
 	setup="yes"
 
 	if [ "$MODULES" = "most" ]; then
-		archcrypto="$(find "$MODULESDIR/kernel/arch" -type d -name "crypto")"
+		archcrypto="$(find "$MODULESDIR/kernel/arch" -type d -name "crypto" 2>/dev/null)"
 		if [ -n "$archcrypto" ]; then
 			copy_modules_dir "${archcrypto##*${MODULESDIR}/}"
 		fi
