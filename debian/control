@@ -11,13 +11,13 @@ Vcs-Svn: svn://svn.debian.org/svn/pkg-cryptsetup/cryptsetup/trunk
 
 Package: cryptsetup
 Architecture: linux-any
-Depends: ${shlibs:Depends}, ${misc:Depends}, dmsetup
+Depends: ${shlibs:Depends}, ${misc:Depends}, dmsetup, cryptsetup-bin
 Suggests: udev, initramfs-tools (>= 0.91) | linux-initramfs-tool, busybox, dosfstools, liblocale-gettext-perl
 Provides: cryptsetup-luks
 Conflicts: cryptsetup-luks
 Replaces: cryptsetup-luks, hashalot (<< 0.3-2)
 Breaks: hashalot (<< 0.3-2)
-Description: disk encryption support - commandline tools
+Description: disk encryption support - startup scripts
  Cryptsetup provides an interface for configuring encryption on block
  devices (such as /home or swap partitions), using the Linux kernel
  device mapper target dm-crypt. It features integrated Linux Unified Key
@@ -28,6 +28,17 @@ Description: disk encryption support - commandline tools
  automatically configuring encrypted devices at boot time via the config
  file /etc/crypttab. Additional features are cryptoroot support through
  initramfs-tools and several supported ways to read a passphrase or key.
+
+Package: cryptsetup-bin
+Architecture: linux-any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Breaks: cryptsetup (<< 2:1.4.1-3~)
+Replaces: cryptsetup (<< 2:1.4.1-3~)
+Description: disk encryption support - command line tools
+ Cryptsetup provides an interface for configuring encryption on block
+ devices (such as /home or swap partitions), using the Linux kernel
+ device mapper target dm-crypt. It features integrated Linux Unified Key
+ Setup (LUKS) support.
 
 Package: libcryptsetup4
 Section: libs
