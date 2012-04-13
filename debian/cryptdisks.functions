@@ -599,7 +599,16 @@ crypttab_start_one_disk () {
 		elif [ "xLABEL=$ID_FS_LABEL_ENC" = "x$src" ]; then
 			src="/dev/disk/by-label/${src#LABEL=}"
 		elif [ "x$1" != "x$src" ]; then
-			continue
+			found=
+			for link in $DEVLINKS; do
+				if [ "x$link" = "x$src" ]; then
+					found=1
+					break
+				fi
+			done
+			if [ -z "$found" ]; then
+				continue
+			fi
 		fi
 		modprobe -qb dm-mod || true
 		modprobe -qb dm-crypt || true

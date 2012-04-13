@@ -12,6 +12,9 @@ cryptsetup (2:1.4.2-1) UNRELEASED; urgency=low
   * Split up package in cryptsetup and cryptsetup-bin.
   * Start cryptdisks-enable upstart job on 'or container', to let us
     simplify the udevtrigger job.
+  * debian/cryptdisks.functions: handle the case where crypttab contains a
+    name for the source device that is not the kernel's preferred name for
+    it (as is the case for LVs). (Thanks Steve Langasek)
 
  -- Jonas Meurer <mejo@debian.org>  Fri, 13 Apr 2012 13:02:07 +0200
 
