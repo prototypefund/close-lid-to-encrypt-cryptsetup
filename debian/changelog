@@ -1,8 +1,11 @@
-cryptsetup (2:1.4.1-3ubuntu1) UNRELEASED; urgency=low
+cryptsetup (2:1.4.1-3~mejo1) mejo-unstable; urgency=low
 
   * NOT RELEASED YET
+  * Mention limitations for keyscripts in crypttab(5) manpage: keyscripts must
+    not depend on binaries/files which are part of the to-be-unlocked device.
+    (closes: #665494)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 11 Apr 2012 23:58:47 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 13 Apr 2012 13:02:07 +0200
 
 cryptsetup (2:1.4.1-3) unstable; urgency=low
 

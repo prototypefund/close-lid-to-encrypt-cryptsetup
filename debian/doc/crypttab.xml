@@ -296,6 +296,12 @@
       self-contained (i.e. an executable which does not rely on any external
       program which is not present in the initramfs environment).
      </simpara>
+     <simpara>
+      LIMITATIONS: All binaries and files on which the keyscript depends must
+      be available at the time of execution. Special care needs to be taken for
+      encrypted filesystems like /usr or /var. As an example, unlocking
+      encrypted /usr must not depend on binaries from /usr/(s)bin.
+     </simpara>
      <para>
       All fields of the appropriate crypttab entry are available to the keyscript
       as exported environment variables:
