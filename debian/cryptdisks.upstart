@@ -15,7 +15,7 @@
 
 description    "enable remaining boot-time encrypted block devices"
 
-start on stopped udevtrigger
+start on stopped udevtrigger or container
 
 task
 
