@@ -636,6 +636,22 @@ do_start () {
 	mount_fs
 
 	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
+		dev_match="$src"
+		if [ "${dev_match#UUID=}" != "$dev_match" ]; then
+			dev_match="$(readlink -f /dev/disk/by-uuid/${dev_match#UUID=})"
+		elif [ "${dev_match#LABEL=}" != "$dev_match" ]; then
+			dev_match="$(readlink -f /dev/disk/by-label/${dev_match#LABEL=})"
+		fi
+		# if there's already a udev-triggered job running for this
+		# device, wait for it to finish, then re-process to confirm
+		# that it's started successfully.  In the general case this
+		# will just be a no-op, but we don't want to defer to the
+		# other job entirely because this is the fallback for fixing
+		# up any ordering-dependent decrypting.
+		while status cryptdisks-udev DEVNAME="$dev_match" 2>&1 | grep -q 'start'
+		do
+			sleep 1
+		done
 		handle_crypttab_line_start "$dst" "$src" "$key" "$opts" <&3 || log_action_end_msg $?
 	done 3<&1
 	umount_fs

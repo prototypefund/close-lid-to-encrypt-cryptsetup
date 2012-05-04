@@ -17,6 +17,8 @@ cryptsetup (2:1.4.2-1) UNRELEASED; urgency=low
     it (as is the case for LVs). (Thanks Steve Langasek)
   * debian/cryptdisks.functions: fix a race condition in some cases by
     adding and udevadm settle before rename.
+  * debian/cryptdisks.functions: add UUID & LABEL support to do_start.
+  * debian/copyright: really fix lintian warning.
 
  -- Jonas Meurer <mejo@debian.org>  Fri, 13 Apr 2012 13:02:07 +0200
 
