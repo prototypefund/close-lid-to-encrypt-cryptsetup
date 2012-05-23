@@ -142,9 +142,6 @@ ifeq ($(shell dpkg-vendor --is Ubuntu && echo yes),yes)
 	mkdir -p $(CURDIR)/debian/cryptsetup/usr/share/apport/package-hooks
 	install -m 0644 debian/cryptsetup.apport \
 		$(CURDIR)/debian/cryptsetup/usr/share/apport/package-hooks/cryptsetup.py
-else
-	rm debian/cryptdisks-early.upstart 
-	rm debian/cryptdisks.upstart 
 endif
 	$(MAKE) -C debian/scripts/po DESTDIR=$(CURDIR)/debian/cryptsetup-bin install
 	touch $@
