@@ -1,13 +1,13 @@
-cryptsetup (2:1.4.3-1) UNRELEASED; urgency=low
-
-  * NOT RELEASED YET
+cryptsetup (2:1.4.3-1) unstable; urgency=low
 
   [ Jonas Meurer ]
-  * mention limitations for keyscripts in crypttab(5) manpage: keyscripts must
-    not depend on binaries/files which are part of the to-be-unlocked device.
-    (closes: #665494)
-  * bump versioned build-dependency on debhelper now that we install upstart
-    initscripts in Debian as well.
+  * mention limitations for keyscripts in crypttab(5) manpage: keyscripts
+    must not depend on binaries/files which are part of the to-be-unlocked
+    device. (closes: #665494)
+  * bump versioned build-dependency on debhelper now that we install
+    upstart initscripts in debian as well.
+  * change versioned breaks/replaces for cryptsetup-bin on cryptsetup to
+    1.4.3-1~, fixing upgrades in debian.
 
   [ Jean-Louis Dupond ]
   * New upstream version. (closes: #670071)
@@ -26,7 +26,7 @@ cryptsetup (2:1.4.3-1) UNRELEASED; urgency=low
   * debian/copyright: really fix lintian warning.
   * debian/rules: also include upstart files in debian.
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 08 Jun 2012 12:02:25 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 08 Jun 2012 13:42:51 +0200
 
 cryptsetup (2:1.4.1-3) unstable; urgency=low
 
