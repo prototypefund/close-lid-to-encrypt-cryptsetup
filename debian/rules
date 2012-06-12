@@ -172,6 +172,8 @@ binary-arch: build install
 	dh_compress -a
 	dh_fixperms -a
 	dh_strip -a
+	# Check for new/changed symbols in libcryptsetup
+	#dpkg-gensymbols -plibcryptsetup4 -Pdebian/libcryptsetup4 -Odebian/libcrypsetup4.symbols
 	dh_makeshlibs -a -V --add-udeb=libcryptsetup4-udeb
 	dh_shlibdeps -a
 	dh_gencontrol -a
