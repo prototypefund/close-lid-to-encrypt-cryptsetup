@@ -1,3 +1,9 @@
+cryptsetup (2:1.4.3-2ubuntu1) UNRELEASED; urgency=low
+
+  * NOT RELEASED YET
+
+ -- Jonas Meurer <mejo@debian.org>  Tue, 12 Jun 2012 20:59:56 +0200
+
 cryptsetup (2:1.4.3-2) unstable; urgency=medium
 
   * fix the shared library symbols magic: so far, the symbols file for
