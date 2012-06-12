@@ -1,3 +1,13 @@
+cryptsetup (2:1.4.3-2) unstable; urgency=medium
+
+  * fix the shared library symbols magic: so far, the symbols file for
+    libcryptsetup4 included just a wildcard for all exported symbols, with
+    libcrypsetup4 (>= 2:1.4) as minimum version. This was wrong. Symbols
+    that were added later need adjusted minimum versions. Thanks for the
+    great help in #debian-mentors. (closes: #677127)
+
+ -- Jonas Meurer <mejo@debian.org>  Tue, 12 Jun 2012 20:37:58 +0200
+
 cryptsetup (2:1.4.3-1) unstable; urgency=low
 
   [ Jonas Meurer ]
