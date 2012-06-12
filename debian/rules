@@ -70,8 +70,8 @@ build-arch: build-stamp
 	# build upstream cryptsetup
 	$(MAKE)
 	# build askpass and passdev keyscripts
-	gcc -Wall -pedantic -std=c99 debian/askpass.c -o debian/askpass
-	gcc -Wall -pedantic -std=c99 debian/passdev.c -o debian/scripts/passdev
+	gcc $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -pedantic -std=c99 debian/askpass.c -o debian/askpass
+	gcc $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -pedantic -std=c99 debian/passdev.c -o debian/scripts/passdev
 
 build: build-indep build-arch
 
@@ -89,21 +89,20 @@ install-stamp: build-stamp
 	# Copy library files to library packages
 	cp -a $(CURDIR)/debian/cryptsetup-bin/lib/libcryptsetup.so.* \
 		$(CURDIR)/debian/libcryptsetup4/lib/
-	#cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.la \
+	#cp -a $(CURDIR)/debian/cryptsetup-bin/lib/libcryptsetup.la \
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
-	#cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.a \
+	#cp -a $(CURDIR)/debian/cryptsetup-bin/lib/libcryptsetup.a \
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
 	cp -a $(CURDIR)/debian/cryptsetup-bin/lib/pkgconfig/libcryptsetup.pc \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/pkgconfig/
 	cp -a $(CURDIR)/debian/cryptsetup-bin/usr/include/libcryptsetup.h \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/include/
-	#cp -a $(CURDIR)/debian/cryptsetup/lib/libcryptsetup.so \
+	#cp -a $(CURDIR)/debian/cryptsetup-bin/lib/libcryptsetup.so \
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/
 	dh_link -plibcryptsetup-dev lib/$$(basename $$(readlink debian/cryptsetup-bin/lib/libcryptsetup.so)) usr/lib/libcryptsetup.so
 
 	# Remove libraries from cryptsetup package, they're shiped in seperate library packags
-	rm -rf $(CURDIR)/debian/cryptsetup-bin/lib/libcryptsetup*
-	rm -rf $(CURDIR)/debian/cryptsetup-bin/lib/pkgconfig
+	rm -rf $(CURDIR)/debian/cryptsetup-bin/lib
 	rm -rf $(CURDIR)/debian/cryptsetup-bin/usr/include
 
 	install -m 0644 debian/cryptdisks.functions $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
@@ -163,7 +162,6 @@ binary-arch: build install
 	# Copy relevant parts to cryptsetup-udeb package
 	cp -a $(CURDIR)/debian/cryptsetup/etc $(CURDIR)/debian/cryptsetup-udeb/
 	cp -a $(CURDIR)/debian/cryptsetup/lib $(CURDIR)/debian/cryptsetup-udeb/
-	cp -a $(CURDIR)/debian/cryptsetup-bin/lib $(CURDIR)/debian/cryptsetup-udeb/
 	mkdir $(CURDIR)/debian/cryptsetup-udeb/sbin
 	cp -a $(CURDIR)/debian/cryptsetup-bin/sbin/cryptsetup $(CURDIR)/debian/cryptsetup-udeb/sbin/
 	# Copy relevant parts to libcryptsetup4-udeb package

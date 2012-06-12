@@ -1,9 +1,3 @@
-cryptsetup (2:1.4.3-2ubuntu1) UNRELEASED; urgency=low
-
-  * NOT RELEASED YET
-
- -- Jonas Meurer <mejo@debian.org>  Tue, 12 Jun 2012 20:59:56 +0200
-
 cryptsetup (2:1.4.3-2) unstable; urgency=medium
 
   * fix the shared library symbols magic: so far, the symbols file for
@@ -11,8 +5,10 @@ cryptsetup (2:1.4.3-2) unstable; urgency=medium
     libcrypsetup4 (>= 2:1.4) as minimum version. This was wrong. Symbols
     that were added later need adjusted minimum versions. Thanks for the
     great help in #debian-mentors. (closes: #677127)
+  * remove emtpy directory /lib from cryptsetup-bin package.
+  * compile askpass and passdev with CFLAGS, CPPFLAGS and LDFLAGS.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 12 Jun 2012 20:37:58 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 12 Jun 2012 21:26:18 +0200
 
 cryptsetup (2:1.4.3-1) unstable; urgency=low
 
