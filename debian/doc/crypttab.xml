@@ -54,7 +54,7 @@
    The third field, <emphasis>key file</emphasis>, describes the file to use
    as a key for decrypting the data of the <emphasis>source device</emphasis>.
    Note that the <emphasis>entire</emphasis> key file will be used as the
-   passphase; the passphase must <emphasis>not</emphasis> be
+   passphrase; the passphrase must <emphasis>not</emphasis> be
    followed by a newline character.
   </simpara>
   <simpara>
