@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: cryptsetup\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-06-16 15:27+0000\n"
+"Report-Msgid-Bugs-To: cryptsetup@packages.debian.org\n"
+"POT-Creation-Date: 2011-09-15 12:30+0200\n"
 "PO-Revision-Date: 2012-06-17 00:27+09:00\n"
 "Last-Translator: victory <victory.deb@gmail.com>\n"
 "Language-Team: Japanese <debian-japanese@lists.debian.org>\n"
@@ -26,7 +26,8 @@ msgstr "cryptsetup の削除を続行しますか?"
 #. Description
 #: ../cryptsetup.templates:1001
 msgid "This system has unlocked dm-crypt devices: ${cryptmap}"
-msgstr "このシステムにはロックされていない dm-crypt デバイスがあります: ${cryptmap}"
+msgstr ""
+"このシステムにはロックされていない dm-crypt デバイスがあります: ${cryptmap}"
 
 #. Type: boolean
 #. Description
@@ -38,9 +39,9 @@ msgid ""
 "devices."
 msgstr ""
 "cryptsetup により管理されているデバイスがある場合、パッケージ削除後にデバイス"
-"をロックできなくなる可能性がありますが、他のツールを使って dm-crypt デバイスを"
-"管理することができます。システムのシャットダウンや再起動が発生するとデバイスは"
-"ロックされます。"
+"をロックできなくなる可能性がありますが、他のツールを使って dm-crypt デバイス"
+"を管理することができます。システムのシャットダウンや再起動が発生するとデバイ"
+"スはロックされます。"
 
 #. Type: boolean
 #. Description
@@ -49,5 +50,5 @@ msgid ""
 "Do not choose this option if you want to lock the dm-crypt devices before "
 "package removal."
 msgstr ""
-"パッケージ削除の前に dm-crypt デバイスをロックしたい場合はこのオプションを選択"
-"しないでください。"
+"パッケージ削除の前に dm-crypt デバイスをロックしたい場合はこのオプションを選"
+"択しないでください。"
