@@ -12,7 +12,7 @@ Vcs-Svn: svn://svn.debian.org/svn/pkg-cryptsetup/cryptsetup/trunk
 Package: cryptsetup
 Architecture: linux-any
 Depends: ${shlibs:Depends}, ${misc:Depends}, dmsetup, cryptsetup-bin
-Recommends: kdb, console-setup, initramfs-tools (>= 0.91) | linux-initramfs-tool, busybox
+Recommends: kbd, console-setup, initramfs-tools (>= 0.91) | linux-initramfs-tool, busybox
 Suggests: dosfstools, liblocale-gettext-perl
 Provides: cryptsetup-luks
 Conflicts: cryptsetup-luks
