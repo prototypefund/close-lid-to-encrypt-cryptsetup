@@ -1,3 +1,26 @@
+cryptsetup (2:1.4.3-3) unstable; urgency=medium
+
+  * add recommends for 'kbd, console-setup' to cryptsetup package. Both are
+    necessary to support local keymap in initramfs. Thanks to Raphaël Hertzog
+    for the bugreport. (closes: #689722)
+  * move suggestion for 'initramfs-tools (>= 0.91) | linux-initramfs-tool,
+    busybox' to recommends. Both are required for encrypted root fs.
+  * remove suggestion for udev, most debian systems have it installed anyway.
+  * mention option to use UUID=<luks_uuid> for source device in crypttab(5).
+    Thanks to Felicitus for the bug report. (closes: #688786)
+  * add a paragraph in README.initramfs: Describe, why renaming the target
+    name is not supported for encrypted root devices. Thanks to Adam Lee for
+    bugreport and proposed workaround for this limitation. (closes: #671037)
+  * fix keyfile permission checks in cryptdisks init scripts to follow
+    symlinks. Thanks to intrigeri for the bugreport. (closes: #691517)
+  * fix owner group check for keyfile in cryptdisks init scripts to really
+    check owner group.
+  * update debconf translations:
+    - brasilian portuguese, thanks to Adriano Rafael Gomes. (closes: #685762)
+    - japanese, thanks to victory. (closes: #690784)
+
+ -- Jonas Meurer <mejo@debian.org>  Thu, 01 Nov 2012 14:10:02 +0100
+
 cryptsetup (2:1.4.3-2) unstable; urgency=medium
 
   * fix the shared library symbols magic: so far, the symbols file for

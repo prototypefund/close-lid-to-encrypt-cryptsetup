@@ -207,4 +207,20 @@ device, then initramfs-tools needs to be configured to add these modules to
 the initramfs. This can be done by listing the required modules in
 /etc/initramfs-tools/modules.
 
--- David Härdeman <david@hardeman.nu>
+11. Limitation: renaming of target name for encrypted root device
+-----------------------------------------------------------------
+As spotted by Adam Lee in bugreport #671037[1], it's not possible to simply
+rename the target name for encrypted root devices. It breaks the initramfs
+creation process. The bugreport submitter found a solution to workaround this
+limitation:
+
+0. enter another system(like livecd)
+1. luksOpen with the new name, change the target name to the new one
+2. chroot into it(now, the living target name is the same as it in conf)
+3. update-initramfs -u
+4. reboot
+
+[1] http://bugs.debian.org/671037
+
+ -- David Härdeman <david@hardeman.nu>
+ -- Jonas Meurer <mejo@debian.org>  Thu, 01 Nov 2012 13:44:31 +0100

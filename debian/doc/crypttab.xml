@@ -46,7 +46,9 @@
   </simpara>
   <simpara>
    The second field, <emphasis>source device</emphasis>, describes either the
-   block special device or file that contains the encrypted data.
+   block special device or file that contains the encrypted data. Instead of
+   giving the <emphasis>source device</emphasis> explicitly, the UUID is
+   supported as well, using <emphasis>UUID=&lt;luks_uuid&gt;</emphasis>.
   </simpara>
   <simpara>
    The third field, <emphasis>key file</emphasis>, describes the file to use
@@ -400,8 +402,8 @@
 # Encrypted swap device
 cswap /dev/sda6 /dev/urandom cipher=aes-cbc-essiv:sha256,hash=ripemd160,size=256,swap
     
-# Encrypted LUKS disk with interactive password
-cdisk0 /dev/hda1 none luks
+# Encrypted LUKS disk with interactive password, identified by UUID
+cdisk0 UUID=12345678-9abc-def012345-6789abcdef01 none luks
     
 # Encrypted ext4 disk with interactive password
 # - retry 5 times if the check fails
