@@ -209,14 +209,14 @@ the initramfs. This can be done by listing the required modules in
 
 11. Limitation: renaming of target name for encrypted root device
 -----------------------------------------------------------------
-As spotted by Adam Lee in bugreport #671037[1], it's not possible to simply
+As spotted by Adam Lee in bug report #671037[1], it's not possible to simply
 rename the target name for encrypted root devices. It breaks the initramfs
-creation process. The bugreport submitter found a solution to workaround this
+creation process. The bug report submitter found a solution to work around this
 limitation:
 
-0. enter another system(like livecd)
+0. enter another system (like livecd)
 1. luksOpen with the new name, change the target name to the new one
-2. chroot into it(now, the living target name is the same as it in conf)
+2. chroot into it (now, the current target name is the same as it in conf)
 3. update-initramfs -u
 4. reboot
 

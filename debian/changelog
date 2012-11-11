@@ -1,3 +1,11 @@
+cryptsetup (2:1.4.3-5) unstable; urgency=low
+
+  * NOT RELEASED YET
+  * minor wording fixes to README.initramfs, suggested by intrigeri and Adam
+    D. Barrett.
+
+ -- Jonas Meurer <mejo@debian.org>  Sun, 11 Nov 2012 22:06:37 +0100
+
 cryptsetup (2:1.4.3-4) unstable; urgency=medium
 
   * change recommends for busybox to busybox | busybox-static. Thanks to
