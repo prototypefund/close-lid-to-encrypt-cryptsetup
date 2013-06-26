@@ -157,26 +157,6 @@ activate_vg()
 	return $?
 }
 
-activate_evms()
-{
-	local dev module
-
-	# Sanity checks
-	if [ ! -x /sbin/evms_activate ]; then
-		message "cryptsetup: evms_activate is not available"
-		return 1
-	fi
-
-	# Load modules used by evms
-	for module in dm-mod linear raid0 raid1 raid10 raid5 raid6; do
-		modprobe -q $module
-	done
-
-	# Activate it
-	/sbin/evms_activate
-	return $?
-}
-
 setup_mapping()
 {
 	local opts count cryptcreate cryptremove NEWROOT
@@ -204,7 +184,6 @@ setup_mapping()
 	# Make sure the cryptsource device is available
 	if [ ! -e $cryptsource ]; then
 		activate_vg
-		activate_evms
 	fi
 
 	# If the encrypted source device hasn't shown up yet, give it a
@@ -261,6 +240,7 @@ setup_mapping()
 	# Try to get a satisfactory password $crypttries times
 	count=0
 	while [ $crypttries -le 0 ] || [ $count -lt $crypttries ]; do
+		export CRYPTTAB_TRIED="$crypttries"
 		count=$(( $count + 1 ))
 
 		if [ $count -gt 1 ]; then
@@ -293,7 +273,7 @@ setup_mapping()
 
 		#FSTYPE=''
 		#eval $(fstype < "$NEWROOT")
-		FSTYPE="$(blkid -s TYPE -o value "$NEWROOT")"
+		FSTYPE="$(/sbin/blkid -s TYPE -o value "$NEWROOT")"
 
 		# See if we need to setup lvm on the crypto device
 		#if [ "$FSTYPE" = "lvm" ] || [ "$FSTYPE" = "lvm2" ]; then

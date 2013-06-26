@@ -1,20 +1,44 @@
-cryptsetup (2:1.4.3-5) unstable; urgency=low
+cryptsetup (2:1.6.1-1~mejo.01) mejo-unstable; urgency=low
 
   * NOT RELEASED YET
+
+  [ Milan Broz ]
+  * new upstream version. (closes: #670071, 707997)
+    - default LUKS encryption mode is now XTS (aes-xts-plain64)
+    - add native support for Truecrypt and compatible on-disk format
+    - add benchmark command
+    - add cryptsetup-reencrypt, a tool to offline reencrypt LUKS device
+  * add veritysetup package, a tool for dm-verity block device verification
+    kernel module.
+  * install docs/examples into docs at cryptsetup-dev package.
+  * fix compilation warnings in askpass.c.
 
   [ Jonas Meurer ]
   * minor wording fixes to README.initramfs, suggested by intrigeri and Adam
     D. Barrett.
+  * add bash-completion script for cryptdisks_{start,stop}. Thanks to Claudius
+    Hubig for providing a patch. (closes: #700777)
+  * support specifying key-slot in crypttab. Thanks to Kevin Locke for the
+    patch. (closes: #704470)
+  * remove evms support code from cryptroot initramfs script. (closes: #713918)
+  * fix location of keyscripts in initramfs documentation. (closes: #697446)
+  * fix a typo in decrypt_ssl script that prevented stdout from beeing
+    redirected to /dev/null. (closes: #700285)
+  * give full path to blkid in crytproot initramfs script. (closes: #697155)
+  * export number of previous tries from cryptroot and cryptdisks to
+    keyscript. Thanks to Laurens Blankers for the idea. Opens the possibility
+    to fallback after a given number of tries for keyscripts. (closes: #438481,
+    #471729, #697455)
 
   [ Steve Langasek ]
-  * Fix upstart jobs to not cause boot hangs when actually used in
-    conjunction with startpar.  Closes: #694499.
-  * In connection with the above, make the cryptdisks-early job explicitly
+  * fix upstart jobs to not cause boot hangs when actually used in
+    conjunction with startpar.  (closes: #694499, #677712).
+  * in connection with the above, make the cryptdisks-early job explicitly
     wait for 'umountfs' on shutdown just like cryptdisks does; otherwise,
     the teardown of the cryptdisks upstart job may cause the cryptdisks-early
     init script run before we're done unmounting filesystems.
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 28 Nov 2012 16:37:11 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 28 Nov 2012 18:12:41 +0100
 
 cryptsetup (2:1.4.3-4) unstable; urgency=medium
 

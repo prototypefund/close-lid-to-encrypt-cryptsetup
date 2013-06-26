@@ -170,7 +170,7 @@ splashy_prepare(const char *prompt)
 
 	iov[0].iov_base = "getpass ";
 	iov[0].iov_len = strlen ("getpass ");
-	iov[1].iov_base = prompt;
+	iov[1].iov_base = (char *)prompt;
 	iov[1].iov_len = strlen (prompt) + 1;
 
 	if (writev (fd, iov, 2) == -1) {
@@ -297,7 +297,7 @@ static int
 console_prepare(const char *prompt)
 {
 	struct termios term_new;
-	char *prompt_ptr = prompt;
+	const char *prompt_ptr = prompt;
 	char *newline = NULL;
 
 	if (!isatty(STDIN_FILENO)) {
@@ -473,8 +473,10 @@ main(int argc, char **argv, char **envp)
 	}
 
 	debug("Writing %i bytes to stdout\n", (int)passlen);
-	write(STDOUT_FILENO, pass, passlen);
-	disable_method(NULL);
+	if (write(STDOUT_FILENO, pass, passlen) == -1) {
+		disable_method(NULL);
+		exit(EXIT_FAILURE);
+	}
 	exit(EXIT_SUCCESS);
 }
 
