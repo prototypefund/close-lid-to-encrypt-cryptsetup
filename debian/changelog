@@ -3,7 +3,7 @@ cryptsetup (2:1.6.1-1~mejo.01) mejo-unstable; urgency=low
   * NOT RELEASED YET
 
   [ Milan Broz ]
-  * new upstream version. (closes: #670071, 707997)
+  * new upstream version. (closes: #704827, 707997)
     - default LUKS encryption mode is now XTS (aes-xts-plain64)
     - add native support for Truecrypt and compatible on-disk format
     - add benchmark command
