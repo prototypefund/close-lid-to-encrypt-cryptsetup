@@ -1,4 +1,4 @@
-cryptsetup (2:1.6.1-1~mejo.01) mejo-unstable; urgency=low
+cryptsetup (2:1.6.1-1) unstable; urgency=low
 
   * NOT RELEASED YET
 
@@ -12,6 +12,14 @@ cryptsetup (2:1.6.1-1~mejo.01) mejo-unstable; urgency=low
     kernel module.
   * install docs/examples into docs at cryptsetup-dev package.
   * fix compilation warnings in askpass.c.
+
+  [ Steve Langasek ]
+  * fix upstart jobs to not cause boot hangs when actually used in
+    conjunction with startpar.  (closes: #694499, #677712).
+  * in connection with the above, make the cryptdisks-early job explicitly
+    wait for 'umountfs' on shutdown just like cryptdisks does; otherwise,
+    the teardown of the cryptdisks upstart job may cause the cryptdisks-early
+    init script run before we're done unmounting filesystems.
 
   [ Jonas Meurer ]
   * minor wording fixes to README.initramfs, suggested by intrigeri and Adam
@@ -29,14 +37,6 @@ cryptsetup (2:1.6.1-1~mejo.01) mejo-unstable; urgency=low
     keyscript. Thanks to Laurens Blankers for the idea. Opens the possibility
     to fallback after a given number of tries for keyscripts. (closes: #438481,
     #471729, #697455)
-
-  [ Steve Langasek ]
-  * fix upstart jobs to not cause boot hangs when actually used in
-    conjunction with startpar.  (closes: #694499, #677712).
-  * in connection with the above, make the cryptdisks-early job explicitly
-    wait for 'umountfs' on shutdown just like cryptdisks does; otherwise,
-    the teardown of the cryptdisks upstart job may cause the cryptdisks-early
-    init script run before we're done unmounting filesystems.
 
  -- Jonas Meurer <mejo@debian.org>  Wed, 28 Nov 2012 18:12:41 +0100
 

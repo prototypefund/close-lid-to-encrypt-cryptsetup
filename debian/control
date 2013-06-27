@@ -94,7 +94,6 @@ Description: disk encryption support - shared library (udeb)
  This udeb package provides libcryptsetup for the Debian Installer.
 
 Package: veritysetup
-Section: admin
 Architecture: linux-any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: tool to setup dm-verity
