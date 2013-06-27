@@ -40,6 +40,8 @@ Description: disk encryption support - command line tools
  devices (such as /home or swap partitions), using the Linux kernel
  device mapper target dm-crypt. It features integrated Linux Unified Key
  Setup (LUKS) support.
+ .
+ This package provides cryptsetup, cryptsetup-reencrypt and luksformat.
 
 Package: libcryptsetup4
 Section: libs
@@ -90,3 +92,10 @@ Description: disk encryption support - shared library (udeb)
  Setup (LUKS) support.
  .
  This udeb package provides libcryptsetup for the Debian Installer.
+
+Package: veritysetup
+Architecture: linux-any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: tool to setup dm-verity
+ Veritysetup provides an interface for configuring data verification
+ on block devices using dm-verity kernel module.

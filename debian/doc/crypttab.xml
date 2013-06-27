@@ -254,9 +254,9 @@
     <term><emphasis>noearly</emphasis></term>
     <listitem>
      <simpara>The cryptsetup init scripts are invoked twice during the boot 
-      process - once before lvm, evms, raid, etc. are started and once again
-      after that. Sometimes you need to start your encrypted disks in a special
-      order. With this option the device is ignored during the first invokation
+      process - once before lvm, raid, etc. are started and once again after
+      that. Sometimes you need to start your encrypted disks in a special
+      order. With this option the device is ignored during the first invocation
       of the cryptsetup init scripts.
      </simpara>
     </listitem>
@@ -328,6 +328,13 @@
         </para></listitem>
        </varlistentry>
        <varlistentry>
+        <term>CRYPTTAB_TRIED</term>
+        <listitem><para>
+	 Number of previous tries since start of cryptdisks (counts until
+         <term>CRYPTTAB_TRIES</term> is reached).
+        </para></listitem>
+       </varlistentry>
+       <varlistentry>
         <term>CRYPTTAB_OPTIONS</term>
         <listitem><para>
 	 A list of exported crypttab options
@@ -343,6 +350,15 @@
 
       </variablelist>
      </para>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><emphasis>keyslot</emphasis>=&lt;slot&gt;</term>
+    <listitem>
+     <simpara>
+       Key slot (ignored for non-LUKS devices). See <command>cryptsetup -S</command>.
+     </simpara>
     </listitem>
    </varlistentry>
 
