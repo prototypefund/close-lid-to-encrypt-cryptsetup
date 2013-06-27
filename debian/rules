@@ -82,7 +82,6 @@ install-stamp: build-stamp
 	dh_testroot
 	dh_clean
 	dh_installdirs
-	#mkdir -p $(CURDIR)/debian/cryptsetup-bin
 	mkdir -p $(CURDIR)/debian/cryptsetup-udeb
 	mkdir -p $(CURDIR)/debian/libcryptsetup4-udeb
 	$(MAKE) DESTDIR=$(CURDIR)/debian/cryptsetup-bin install
@@ -107,9 +106,10 @@ install-stamp: build-stamp
 	rm -rf $(CURDIR)/debian/cryptsetup-bin/usr/include
 
 	# Move veritysetup binary and manpage to veritysetup package
-	dh_install -pveritysetup --sourcedir=debian/cryptsetup-bin \
-		sbin/veritysetup \
-		usr/share/man/man8/veritysetup.8
+	mv $(CURDIR)/debian/cryptsetup-bin/sbin/veritysetup \
+		$(CURDIR)/debian/veritysetup/sbin/ \
+	mv $(CURDIR)/debian/cryptsetup-bin/usr/share/man/man8/veritysetup.8 \
+		$(CURDIR)/debian/veritysetup/usr/share/man/man8/
 
 	install -m 0644 debian/cryptdisks.functions $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
 	install -m 0755 debian/checks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/checks/
