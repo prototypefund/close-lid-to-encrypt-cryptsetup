@@ -105,11 +105,15 @@ install-stamp: build-stamp
 	rm -rf $(CURDIR)/debian/cryptsetup-bin/lib
 	rm -rf $(CURDIR)/debian/cryptsetup-bin/usr/include
 
-	# Move veritysetup binary and manpage to veritysetup package
-	mv $(CURDIR)/debian/cryptsetup-bin/sbin/veritysetup \
-		$(CURDIR)/debian/veritysetup/sbin/ \
-	mv $(CURDIR)/debian/cryptsetup-bin/usr/share/man/man8/veritysetup.8 \
+	# Copy veritysetup binary and manpage to veritysetup package
+	cp -a $(CURDIR)/debian/cryptsetup-bin/sbin/veritysetup \
+		$(CURDIR)/debian/veritysetup/sbin/ 
+	cp -a $(CURDIR)/debian/cryptsetup-bin/usr/share/man/man8/veritysetup.8 \
 		$(CURDIR)/debian/veritysetup/usr/share/man/man8/
+
+	# Remove veritysetup binary and manpage from cryptsetup-bin package
+	rm -rf $(CURDIR)/debian/cryptsetup-bin/sbin/veritysetup
+	rm -rf $(CURDIR)/debian/cryptsetup-bin/usr/share/man/man8/veritysetup.8
 
 	install -m 0644 debian/cryptdisks.functions $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
 	install -m 0755 debian/checks/* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/checks/
