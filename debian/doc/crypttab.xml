@@ -331,7 +331,7 @@
         <term>CRYPTTAB_TRIED</term>
         <listitem><para>
 	 Number of previous tries since start of cryptdisks (counts until
-         <term>CRYPTTAB_TRIES</term> is reached).
+         maximum tries (exportet as <term>CRYPTTAB_TRIES</term>) are reached).
         </para></listitem>
        </varlistentry>
        <varlistentry>
