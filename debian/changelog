@@ -35,7 +35,7 @@ cryptsetup (2:1.6.1-1) unstable; urgency=low
     to fallback after a given number of tries for keyscripts. (closes: #438481,
     #471729, #697455)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 28 Nov 2012 18:12:41 +0100
+ -- Jonas Meurer <mejo@debian.org>  Fri, 28 Jun 2013 11:39:35 +0200
 
 cryptsetup (2:1.4.3-4) unstable; urgency=medium
 
