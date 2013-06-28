@@ -3,11 +3,10 @@ cryptsetup (2:1.6.1-1) unstable; urgency=low
   [ Milan Broz ]
   * new upstream version. (closes: #704827, 707997)
     - default LUKS encryption mode is now XTS (aes-xts-plain64)
-    - add native support for Truecrypt and compatible on-disk format
-    - add benchmark command
-    - add cryptsetup-reencrypt, a tool to offline reencrypt LUKS device
-  * add veritysetup package, a tool for dm-verity block device verification
-    kernel module.
+    - adds native support for Truecrypt and compatible on-disk format
+    - adds benchmark command
+    - adds cryptsetup-reencrypt, a tool to offline reencrypt LUKS device
+    - adds veritysetup, a tool for dm-verity block device verification module
   * install docs/examples into docs at cryptsetup-dev package.
   * fix compilation warnings in askpass.c.
 
