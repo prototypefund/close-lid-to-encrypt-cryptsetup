@@ -441,7 +441,7 @@ add_device() {
 }
 
 cpu_has_aesni() {
-	return $(grep -q aes /proc/cpuinfo)
+	return $(grep -q "^flags\s*:\s*.*aes" /proc/cpuinfo)
 }
 
 add_crypto_modules() {

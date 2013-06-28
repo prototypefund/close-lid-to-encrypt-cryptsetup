@@ -2,7 +2,7 @@ cryptsetup (2:1.6.1-1) unstable; urgency=low
 
   [ Milan Broz ]
   * new upstream version. (closes: #704827, 707997)
-    - default LUKS encryption mode is now XTS (aes-xts-plain64)
+    - default LUKS encryption mode is XTS (aes-xts-plain64) (closes: #714331)
     - adds native support for Truecrypt and compatible on-disk format
     - adds benchmark command
     - adds cryptsetup-reencrypt, a tool to offline reencrypt LUKS device
@@ -34,8 +34,10 @@ cryptsetup (2:1.6.1-1) unstable; urgency=low
     keyscript. Thanks to Laurens Blankers for the idea. Opens the possibility
     to fallback after a given number of tries for keyscripts. (closes: #438481,
     #471729, #697455)
+  * improve check for cpu hardware encryption support in initramfs cryptroot
+    hook. (closes: #714326)
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 28 Jun 2013 11:39:35 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 28 Jun 2013 12:10:41 +0200
 
 cryptsetup (2:1.4.3-4) unstable; urgency=medium
 
