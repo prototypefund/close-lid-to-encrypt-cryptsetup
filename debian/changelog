@@ -1,7 +1,7 @@
 cryptsetup (2:1.6.1-1ubuntu1) UNRELEASED; urgency=low
 
   * NOT RELEASED YET
-  * small improvement to explanation for CRYPTTAB_TRIES environment variable
+  * small improvement to explanation for CRYPTTAB_TRIED environment variable
     in crypttab manpage.
   * use compiled defaults for cypher, keysize and hash in luksformat script.
     (closes: #714331)
