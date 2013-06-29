@@ -64,15 +64,15 @@ that may be written to disk when memory is swapped to disk.
 swapoff -a
 
  You'll have to add an entry for every swap partition in /etc/crypttab. Be
-sure toeplace the source device (here /dev/hda9) with your swap devices:
+sure to place the source device (here /dev/sde9) with your swap devices:
 # <target name> <source device>	<key file>	<options>
-cswap1		/dev/hda9	/dev/urandom	swap,cipher=aes-cbc-essiv:sha256,size=256,hash=sha256
+cswap1		/dev/sde9	/dev/urandom	swap,cipher=aes-xts-plain64,size=256,hash=sha1
 
  Now you need to change the swap devices in /etc/fstab to the encrypted swap
 device names (/dev/mapper/cswap1 in this example).
 
 # <file system> <mount point>   <type>  <options>     <dump>  <pass>
-/dev/hda9        none           swap    sw            0       0
+/dev/sde9        none           swap    sw            0       0
 
 becomes 
 
@@ -108,16 +108,16 @@ does not support file permissions and ownership. Instead, you should use the
 uid, gid and umask options in /etc/fstab to ensure secure permissions for the
 key.
 
- As an example, assume that /dev/sdg2 is the removable media containing
+ As an example, assume that /dev/sdg8 is the removable media containing
 keyfiles on a vfat filesystem and that it is going to be mounted on 
 /media/flash0. The configuration in /etc/fstab should then be something
 like this:
 
 # <file system>	<mount point>	<type>	<options>		<dump>	<pass>
-/dev/sdg2	/media/flash0	vfat	uid=0,gid=0,umask=277	0	0
+/dev/sdg8	/media/flash0	vfat	uid=0,gid=0,umask=277	0	0
 
  If you are using udev, it might be a good idea to use the /dev/disk/by-label
-links instead of /dev/sdg2 as the link will work no matter in which order the
+links instead of /dev/sdg8 as the link will work no matter in which order the
 media is inserted and detected.
 
 

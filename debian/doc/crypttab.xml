@@ -416,23 +416,23 @@
   <para>
    <screen>
 # Encrypted swap device
-cswap /dev/sda6 /dev/urandom cipher=aes-cbc-essiv:sha256,hash=ripemd160,size=256,swap
+cswap /dev/sda6 /dev/urandom cipher=aes-xts-plain64,size=256,hash=sha1,swap
     
 # Encrypted LUKS disk with interactive password, identified by UUID
 cdisk0 UUID=12345678-9abc-def012345-6789abcdef01 none luks
     
 # Encrypted ext4 disk with interactive password
 # - retry 5 times if the check fails
-cdisk1 /dev/sda2 none cipher=aes-cbc-essiv:sha256,hash=ripemd160,size=256,checkargs=ext4,tries=5
+cdisk1 /dev/sda2 none cipher=aes-xts-plain64,size=256,hash=sha1,checkargs=ext4,tries=5
 
 # Encrypted disk with interactive password
 # - use a nondefault check script
 # - no retries
-cdisk2 /dev/hdc1 none cipher=aes-cbc-essiv:sha256,hash=ripemd160,size=256,check=customscript,tries=1
+cdisk2 /dev/sdc1 none cipher=aes-xts-plain64,size=256,hash=sha1,check=customscript,tries=1
 
 # Encrypted disk with interactive password
-# - twofish as the cipher
-cdisk3 /dev/sda3 none cipher=twofish,hash=ripemd160,size=256
+# - Twofish as the cipher, RIPEMD-160 as the hash
+cdisk3 /dev/sda3 none cipher=twofish,size=256,hash=ripemd160
    </screen>
   </para>
  </refsect1>
