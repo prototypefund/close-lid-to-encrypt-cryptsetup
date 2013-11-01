@@ -1,6 +1,7 @@
-cryptsetup (2:1.6.1-1ubuntu1) UNRELEASED; urgency=low
+cryptsetup (2:1.6.2-1) UNRELEASED; urgency=low
 
   * NOT RELEASED YET
+  * new upstream version 1.6.2.
   * use compiled defaults for cypher, keysize and hash in luksformat script
   * improvements to docs (thanks to Christoph Anton Mitterer):
     - small improvement to explanation for CRYPTTAB_TRIED environment variable
