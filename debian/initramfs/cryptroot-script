@@ -69,6 +69,7 @@ parse_options()
 	cryptkeyscript=""
 	cryptkey="" # This is only used as an argument to an eventual keyscript
 	crypttries=3
+	crypttcrypt=""
 	cryptrootdev=""
 	cryptdiscard=""
 	CRYPTTAB_OPTIONS=""
@@ -118,6 +119,9 @@ parse_options()
 				;;
 			esac
 			;;
+		tcrypt)
+			crypttcrypt="yes"
+			;;
 		rootdev)
 			cryptrootdev="yes"
 			;;
@@ -159,7 +163,7 @@ activate_vg()
 
 setup_mapping()
 {
-	local opts count cryptcreate cryptremove NEWROOT
+	local opts count cryptopen cryptremove NEWROOT
 	opts="$1"
 
 	if [ -z "$opts" ]; then
@@ -225,14 +229,16 @@ setup_mapping()
 	done
 
 	# Prepare commands
-	cryptcreate="/sbin/cryptsetup -T 1"
+	cryptopen="/sbin/cryptsetup -T 1"
 	if [ "$cryptdiscard" = "yes" ]; then
-		cryptcreate="$cryptcreate --allow-discards"
+		cryptopen="$cryptopen --allow-discards"
 	fi
 	if /sbin/cryptsetup isLuks $cryptsource >/dev/null 2>&1; then
-		cryptcreate="$cryptcreate luksOpen $cryptsource $crypttarget"
+		cryptopen="$cryptopen open --type luks $cryptsource $crypttarget"
+	elif [ "$crypttruecrypt" = "yes" ]; then
+		cryptopen="$cryptopen open --type tcrypt $cryptsource $crypttarget"
 	else
-		cryptcreate="$cryptcreate -c $cryptcipher -s $cryptsize -h $crypthash create $crypttarget $cryptsource"
+		cryptopen="$cryptopen -c $cryptcipher -s $cryptsize -h $crypthash open --type plain $crypttarget $cryptsource"
 	fi
 	cryptremove="/sbin/cryptsetup remove $crypttarget"
 	NEWROOT="/dev/mapper/$crypttarget"
@@ -243,24 +249,28 @@ setup_mapping()
 		export CRYPTTAB_TRIED="$crypttries"
 		count=$(( $count + 1 ))
 
-		if [ $count -gt 1 ]; then
-			/bin/sleep 3
-		fi
-
 		if [ -z "$cryptkeyscript" ]; then
-			cryptkey="Unlocking the disk $cryptsource ($crypttarget)\nEnter passphrase: "
+			if [ ${cryptsource#/dev/disk/by-uuid/} != $cryptsource ]; then
+				# UUIDs are not very helpful
+				diskname="$crypttarget"
+			else
+				diskname="$cryptsource ($crypttarget)"
+			fi
+			
 			if [ -x /bin/plymouth ] && plymouth --ping; then
 				cryptkeyscript="plymouth ask-for-password --prompt"
-				cryptkey=$(printf "$cryptkey")
+				# Plymouth will add a : if it is a non-graphical prompt
+				cryptkey="Please unlock disk $diskname"
 			else
 				cryptkeyscript="/lib/cryptsetup/askpass"
+				cryptkey="Please unlock disk $diskname: "
 			fi
 		fi
 
 
 		if [ ! -e "$NEWROOT" ]; then
 			if ! crypttarget="$crypttarget" cryptsource="$cryptsource" \
-			     $cryptkeyscript "$cryptkey" | $cryptcreate --key-file=- ; then
+			     $cryptkeyscript "$cryptkey" | $cryptopen --key-file=- ; then
 				message "cryptsetup: cryptsetup failed, bad password or options?"
 				continue
 			fi

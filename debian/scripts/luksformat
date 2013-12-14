@@ -86,7 +86,7 @@ if ((system 'cryptsetup', 'luksFormat', $device)) {
 }
 
 print gettext("Please enter your passphrase again to verify it\n");
-if ((system 'cryptsetup', 'luksOpen', $device, $name) != 0) {
+if ((system 'cryptsetup', 'open', '--type', 'luks', $device, $name) != 0) {
     print STDERR gettext("The passphrases you entered were not identical\n");
     exit 1;
 }

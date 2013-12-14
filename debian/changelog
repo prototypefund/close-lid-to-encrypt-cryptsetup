@@ -1,7 +1,8 @@
-cryptsetup (2:1.6.2-1) UNRELEASED; urgency=low
+cryptsetup (2:1.6.3-1) UNRELEASED; urgency=low
 
   * NOT RELEASED YET
-  * new upstream version 1.6.2.
+  * new upstream version 1.6.3.
+    - minor fixes in cryptsetup manpage. (closes: #725131)
   * use compiled defaults for cypher, keysize and hash in luksformat script
   * improvements to docs (thanks to Christoph Anton Mitterer):
     - small improvement to explanation for CRYPTTAB_TRIED environment variable
@@ -9,6 +10,21 @@ cryptsetup (2:1.6.2-1) UNRELEASED; urgency=low
     - update cipher, size and hash settings in examples (closes: #714331)
     - replace '/dev/hdX' devices with '/dev/sdX' in examples
     - full path to keyscripts in /lib/cryptsetup/scripts not needed in examples
+  * update init and initramfs scripts to use new open syntax (closes: #714395)
+  * add scripts/local-block/cryptroot in order to support event based block
+    device handling. Thanks to Goswin von Brederlow (closes: #678692)
+  * add support for TCRYPT device handling to cryptdisks init and cryptroot
+    initramfs scripts. (closes: #722509)
+  * improve passphrase prompt in cryptroot initramfs script. Thanks to Joachim
+    Breitner. (closes: #728080)
+  * add support for detached luks header to cryptdisks init script. Thanks to
+    Ximin Luo. (closes: #716652)
+  * enhance docs about remote unlocking feature. Thanks to Karl O. Pinc.
+    (closes: #714899, #715487)
+  * update README.keyctl docs: since linux kernel 2.6.38, dm-crypt is not
+    single-threaded any longer. (closes: #714806)
+  * don't sleep between retries in cryptroot initramfs script. (closes: #715525)
+  * add multi-arch support. Thanks to Shawn Landden. (closes: #696008, #732099)
 
  -- Jonas Meurer <mejo@debian.org>  Fri, 28 Jun 2013 12:14:55 +0200
 

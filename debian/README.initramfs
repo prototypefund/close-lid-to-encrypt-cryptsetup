@@ -215,7 +215,7 @@ creation process. The bug report submitter found a solution to work around this
 limitation:
 
 0. enter another system (like livecd)
-1. luksOpen with the new name, change the target name to the new one
+1. open luks device with the new name, change the target name to the new one
 2. chroot into it (now, the current target name is the same as it in conf)
 3. update-initramfs -u
 4. reboot

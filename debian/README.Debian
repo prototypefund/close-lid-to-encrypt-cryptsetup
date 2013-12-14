@@ -217,8 +217,19 @@ dropbear on the remote system, is to copy the root ssh keyfile from
 
 $ scp remote.system.com:/etc/initramfs/root/ssh/id_rsa remote_rsa
 
- Now the remote system should start dropbear automatically during initramfs
-excecution at the boot process. You can login into the initramfs via ssh
+ The remote system should start dropbear automatically during the boot
+process's initramfs execution making it possible to ssh to the remote
+system and supply the rootfs passphrase.  Because the initramfs is
+kept in an unencrypted partition the default dropbear configuration
+uses a different host key in the initramfs than the remote system's
+normal host key.  This means some care must be taken when connecting
+to the remote system so that host key checking does not interfere with
+ssh connection establishment.  When using the OpenSSH client either
+the "-o StrictHostKeyChecking=no" or the "-o
+UserKnownHostsFile=alternate_known_hosts" options are some available
+choices.
+
+ You can login into the initramfs via ssh (modified per above)
 
 $ ssh -i remote_rsa -l root remote.system.com
 
@@ -228,6 +239,27 @@ $ ssh -i remote_rsa -l root remote.system.com
 
  That's it. Now that the encrypted root device is unlocked, the remote system
 should continue with the boot process.
+
+ If the remote system has a network configuration at boot (via ip= on the
+kernel command line) which differs from the network configuration normally
+used, the network interfaces will need to be brought down after the rootfs is
+mounted.  Without this step the normal boot process will be unable to properly
+reconfigure the network interfaces. To do this take the following steps.
+
+# mkdir -p /etc/initramfs-tools/conf.d
+# cp -a /usr/share/initramfs-tools/conf.d/dropbear \
+        /etc/initramfs-tools/conf.d/
+
+Then edit /etc/initramfs-tools/conf.d/dropbear to specify the network
+interfaces to be brought down.
+
+ Should it be desirable to have the remote system use the same host key
+during the boot process as during regular system operation the
+following steps may be taken.
+
+# cp -a /etc/dropbear/dropbear_{dsa,rsa}_host_key \
+        /etc/initramfs-tools/etc/dropbear/
+# update-initramfs -u -k all
 
  /usr/share/doc/cryptsetup/README.remote.gz is a documentation with more
 details on the setup of an initramfs with suppurt to remotely unlock the

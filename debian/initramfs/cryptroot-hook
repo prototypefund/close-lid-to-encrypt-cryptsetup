@@ -255,6 +255,9 @@ get_device_opts() {
 			luks)
 				LUKS_FOUND=1
 				;;
+			tcrypt)
+				OPTIONS="$OPTIONS,$opt"
+				;;
 			*)
 				# Presumably a non-supported option
 				;;
