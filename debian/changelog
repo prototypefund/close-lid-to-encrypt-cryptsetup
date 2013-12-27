@@ -1,4 +1,4 @@
-cryptsetup (2:1.6.3-1) UNRELEASED; urgency=low
+cryptsetup (2:1.6.3-1) mejo-unstable; urgency=low
 
   * NOT RELEASED YET
   * new upstream version 1.6.3.
@@ -20,7 +20,7 @@ cryptsetup (2:1.6.3-1) UNRELEASED; urgency=low
   * add support for detached luks header to cryptdisks init script. Thanks to
     Ximin Luo. (closes: #716652)
   * enhance docs about remote unlocking feature. Thanks to Karl O. Pinc.
-    (closes: #714899, #715487)
+    (closes: #715487, #714952)
   * update README.keyctl docs: since linux kernel 2.6.38, dm-crypt is not
     single-threaded any longer. (closes: #714806)
   * don't sleep between retries in cryptroot initramfs script. (closes: #715525)
