@@ -13,7 +13,7 @@ Package: cryptsetup
 Architecture: linux-any
 Depends: ${shlibs:Depends}, ${misc:Depends}, dmsetup, cryptsetup-bin
 Recommends: kbd, console-setup, initramfs-tools (>= 0.91) | linux-initramfs-tool, busybox | busybox-static
-Suggests: dosfstools, liblocale-gettext-perl
+Suggests: dosfstools, liblocale-gettext-perl, keyutils
 Provides: cryptsetup-luks
 Conflicts: cryptsetup-luks
 Replaces: cryptsetup-luks, hashalot (<< 0.3-2)

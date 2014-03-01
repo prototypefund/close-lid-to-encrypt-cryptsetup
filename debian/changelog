@@ -1,4 +1,4 @@
-cryptsetup (2:1.6.3-1) mejo-unstable; urgency=low
+cryptsetup (2:1.6.3-1~mejo1) mejo-unstable; urgency=low
 
   * NOT RELEASED YET
   * new upstream version 1.6.3.
@@ -25,6 +25,9 @@ cryptsetup (2:1.6.3-1) mejo-unstable; urgency=low
     single-threaded any longer. (closes: #714806)
   * don't sleep between retries in cryptroot initramfs script. (closes: #715525)
   * add multi-arch support. Thanks to Shawn Landden. (closes: #696008, #732099)
+  * add keyutils to suggests. Thanks to Nikolaus Rath. (closes: #734133, #735496)
+  * fix initramfs/cryptroot-hook to support more than one lvm source devices.
+    Thanks to Jens Reinsberger for the patch. (closes: #659688, #737686)
 
  -- Jonas Meurer <mejo@debian.org>  Fri, 28 Jun 2013 12:14:55 +0200
 

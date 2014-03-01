@@ -381,7 +381,11 @@ add_device() {
 		fi
 
 		# It is a lvm device!
-		lastopts="lvm=$nodes"
+		if [ -z "$opts" ]; then
+			opts="lvm=$nodes"
+		else
+			opts="$opts,lvm=$nodes"
+		fi
 		nodes="$lvmnodes"
 	fi
 
