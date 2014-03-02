@@ -13,7 +13,7 @@ Package: cryptsetup
 Architecture: linux-any
 Depends: ${shlibs:Depends}, ${misc:Depends}, dmsetup, cryptsetup-bin
 Recommends: kbd, console-setup, initramfs-tools (>= 0.91) | linux-initramfs-tool, busybox | busybox-static
-Suggests: dosfstools, liblocale-gettext-perl
+Suggests: dosfstools, liblocale-gettext-perl, keyutils
 Provides: cryptsetup-luks
 Conflicts: cryptsetup-luks
 Replaces: cryptsetup-luks, hashalot (<< 0.3-2)
@@ -46,6 +46,7 @@ Description: disk encryption support - command line tools
 Package: libcryptsetup4
 Section: libs
 Architecture: linux-any
+Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}, libgpg-error0 (>= 1.10-0.1), libgcrypt11 (>= 1.4.6-2)
 Description: disk encryption support - shared library
  Cryptsetup provides an interface for configuring encryption on block
@@ -58,6 +59,7 @@ Description: disk encryption support - shared library
 Package: libcryptsetup-dev
 Section: libdevel
 Architecture: linux-any
+Multi-Arch: same
 Depends: ${misc:Depends}, libcryptsetup4 (= ${binary:Version})
 Description: disk encryption support - development files
  Cryptsetup provides an interface for configuring encryption on block
