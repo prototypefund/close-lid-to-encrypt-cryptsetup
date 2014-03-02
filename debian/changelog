@@ -1,3 +1,11 @@
+cryptsetup (2:1.6.4-3~mejo1) mejo-unstable; urgency=low
+
+  * NOT RELEASED YET
+  * update italian debconf translations, thanks to Italian l10n team and
+    Francesca Ciceri. (closes: #740557)
+
+ -- Jonas Meurer <mejo@debian.org>  Sun, 02 Mar 2014 13:51:35 +0100
+
 cryptsetup (2:1.6.4-2) unstable; urgency=medium
 
   * fix libcryptsetup.so symlink. Thanks to Michael Biebl. (closes: #740484)
