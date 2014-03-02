@@ -1,9 +1,3 @@
-cryptsetup (2:1.6.4-1ubuntu1) UNRELEASED; urgency=low
-
-  * NOT RELEASED YET
-
- -- Jonas Meurer <mejo@debian.org>  Sun, 02 Mar 2014 01:10:51 +0100
-
 cryptsetup (2:1.6.4-1) unstable; urgency=low
 
   * new upstream version 1.6.4.
@@ -34,9 +28,10 @@ cryptsetup (2:1.6.4-1) unstable; urgency=low
     single-threaded any longer. (closes: #714806)
   * don't sleep between retries in cryptroot initramfs script. (closes: #715525)
   * add multi-arch support. Thanks to Shawn Landden. (closes: #696008, #732099)
-  * add keyutils to suggests. Thanks to Nikolaus Rath. (closes: #734133, #735496)
+  * suggest keyutils. Thanks to Nikolaus Rath. (closes: #734133, #735496)
   * fix initramfs/cryptroot-hook to support more than one lvm source devices.
     Thanks to Jens Reinsberger for the patch. (closes: #659688, #737686)
+  * bump standards-version to 3.9.5, no changes needed.
 
  -- Jonas Meurer <mejo@debian.org>  Fri, 28 Jun 2013 12:14:55 +0200
 
