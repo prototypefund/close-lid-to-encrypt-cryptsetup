@@ -105,7 +105,7 @@ install-stamp: build-stamp
 		$(CURDIR)/debian/libcryptsetup-dev/usr/include/
 	#cp -a $(CURDIR)/debian/cryptsetup-bin/lib/libcryptsetup.so \
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/$(DEB_HOST_MULTIARCH)/
-	dh_link -plibcryptsetup-dev lib/$$(basename $$(readlink debian/cryptsetup-bin/lib/$(DEB_HOST_MULTIARCH)/libcryptsetup.so)) usr/lib/$(DEB_HOST_MULTIARCH)/libcryptsetup.so
+	dh_link -plibcryptsetup-dev lib/$$(basename $$(readlink debian/libcryptsetup4/lib/$(DEB_HOST_MULTIARCH)/libcryptsetup.so)) usr/lib/$(DEB_HOST_MULTIARCH)/libcryptsetup.so
 
 	# Remove libraries from cryptsetup package, they're shiped in seperate library packages
 	rm -rf $(CURDIR)/debian/cryptsetup-bin/lib
