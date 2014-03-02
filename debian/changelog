@@ -32,6 +32,10 @@ cryptsetup (2:1.6.4-1) unstable; urgency=low
   * fix initramfs/cryptroot-hook to support more than one lvm source devices.
     Thanks to Jens Reinsberger for the patch. (closes: #659688, #737686)
   * bump standards-version to 3.9.5, no changes needed.
+  * override lintian false positives for init scripts:
+    - init.d-script-does-not-implement-optional-option status
+    - init.d-script-does-not-source-init-functions
+   
 
  -- Jonas Meurer <mejo@debian.org>  Fri, 28 Jun 2013 12:14:55 +0200
 
