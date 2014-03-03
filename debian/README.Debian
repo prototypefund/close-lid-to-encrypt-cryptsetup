@@ -74,7 +74,7 @@ device names (/dev/mapper/cswap1 in this example).
 # <file system> <mount point>   <type>  <options>     <dump>  <pass>
 /dev/sde9        none           swap    sw            0       0
 
-becomes 
+becomes
 
 # <file system> <mount point>   <type>  <options>     <dump>  <pass>
 /dev/mapper/cswap1  none        swap    sw            0       0
@@ -104,12 +104,12 @@ mode 400 (-r--------) and root as owner/group. 'chown root.root keyfile' and
 
  If a key is stored on a vfat filesystem (very common for removable media),
 chmod and chown will not work. The vfat filesytem (and several others too)
-does not support file permissions and ownership. Instead, you should use the 
+does not support file permissions and ownership. Instead, you should use the
 uid, gid and umask options in /etc/fstab to ensure secure permissions for the
 key.
 
  As an example, assume that /dev/sdg8 is the removable media containing
-keyfiles on a vfat filesystem and that it is going to be mounted on 
+keyfiles on a vfat filesystem and that it is going to be mounted on
 /media/flash0. The configuration in /etc/fstab should then be something
 like this:
 

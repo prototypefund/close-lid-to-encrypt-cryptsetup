@@ -53,8 +53,8 @@ parse_opts () {
 	for opt in $opts; do
 		PARAM=$(echo "$opt" | sed 's/=.*//')
 		VALUE=$(echo "$opt" | sed '/=/!d;s/^.*=//')
-		
-		case "$PARAM" in 
+
+		case "$PARAM" in
 		readonly)
 			PARAMS="$PARAMS -r"
 			;;
@@ -686,7 +686,7 @@ handle_crypttab_line_stop () {
 		device_msg "$dst" "error"
 		return 1
 	fi
-	
+
 	do_close || return $?
 
 	device_msg "$dst" "stopping"

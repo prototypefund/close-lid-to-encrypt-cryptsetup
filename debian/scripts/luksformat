@@ -102,7 +102,7 @@ __END__
 
 =head1 NAME
 
-luksformat - Create and format an encrypted LUKS device 
+luksformat - Create and format an encrypted LUKS device
 
 =head1 SYNOPSIS
 

@@ -31,9 +31,9 @@
    and not written; it is the duty of the system
    administrator to properly create and maintain this file. Each filesystem is
    described on a separate line; fields on each line are separated by tabs or
-   spaces. Lines starting with <quote>#</quote> are comments, empty lines are 
+   spaces. Lines starting with <quote>#</quote> are comments, empty lines are
    ignored. The order of records in <filename>crypttab</filename> is important
-   because the init scripts sequentially iterate through 
+   because the init scripts sequentially iterate through
    <filename>crypttab</filename> doing their thing.
   </simpara>
   <simpara>
@@ -64,7 +64,7 @@
    support random data keys.
   </simpara>
   <simpara>
-   If the <emphasis>key file</emphasis> is the string <quote>none</quote>, 
+   If the <emphasis>key file</emphasis> is the string <quote>none</quote>,
    a passphrase will be read interactively from the console. In this case, the
    options precheck, check, checkargs and tries may be useful.
   </simpara>
@@ -260,7 +260,7 @@
    <varlistentry>
     <term><emphasis>noearly</emphasis></term>
     <listitem>
-     <simpara>The cryptsetup init scripts are invoked twice during the boot 
+     <simpara>The cryptsetup init scripts are invoked twice during the boot
       process - once before lvm, raid, etc. are started and once again after
       that. Sometimes you need to start your encrypted disks in a special
       order. With this option the device is ignored during the first invocation
@@ -433,13 +433,13 @@
    <screen>
 # Encrypted swap device
 cswap /dev/sda6 /dev/urandom cipher=aes-xts-plain64,size=256,hash=sha1,swap
-    
+
 # Encrypted LUKS disk with interactive password, identified by UUID
 cdisk0 UUID=12345678-9abc-def012345-6789abcdef01 none luks
-    
+
 # Encrypted TCRYPT disk with interactive password
 tdisk0 /dev/sr0 none tcrypt
-    
+
 # Encrypted ext4 disk with interactive password
 # - retry 5 times if the check fails
 cdisk1 /dev/sda2 none cipher=aes-xts-plain64,size=256,hash=sha1,checkargs=ext4,tries=5

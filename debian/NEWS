@@ -87,7 +87,7 @@ cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
   from sha256 to ripemd160 for consistency with the cryptsetup default. If you
   have followed the recommendation to configure the hash in /etc/crypttab this
   change will have no effect on you.
-  
+
   If you set up disk encryption on your system using the Debian installer
   and/or if you use LUKS encryption, everything is already set up correctly
   and you don't need to do anything.
@@ -100,7 +100,7 @@ cryptsetup (2:1.0.6~pre1+svn45-1) unstable; urgency=low
 cryptsetup (2:1.0.5-2) unstable; urgency=low
 
   The vol_id and un_vol_id check scripts no longer regard minix as a valid
-  filesystem, since random data can be mistakenly identified as a minix 
+  filesystem, since random data can be mistakenly identified as a minix
   filesystem due to an inadequate signature length.
 
   If you use minix filesystems, you should not rely on prechecks anymore.

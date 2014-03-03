@@ -256,7 +256,7 @@ setup_mapping()
 			else
 				diskname="$cryptsource ($crypttarget)"
 			fi
-			
+
 			if [ -x /bin/plymouth ] && plymouth --ping; then
 				cryptkeyscript="plymouth ask-for-password --prompt"
 				# Plymouth will add a : if it is a non-graphical prompt
