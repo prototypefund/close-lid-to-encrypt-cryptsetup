@@ -1,6 +1,7 @@
-cryptsetup (2:1.6.4-3~mejo1) mejo-unstable; urgency=low
+cryptsetup (2:1.6.4-3) unstable; urgency=medium
 
-  * NOT RELEASED YET
+  * fix plain device opening, broken by switch to new unified open command
+    in 1.6.4-1. Thanks to Dirk Griesbach for the patch. (closes: #740592)
   * update italian debconf translations, thanks to Italian l10n team and
     Francesca Ciceri. (closes: #740557)
 
