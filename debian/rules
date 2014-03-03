@@ -94,7 +94,6 @@ install-stamp: build-stamp
 
 	cp -a $(CURDIR)/debian/cryptsetup-bin/lib/libcryptsetup.so.* \
 		$(CURDIR)/debian/libcryptsetup4/lib/$(DEB_HOST_MULTIARCH)/
-	mkdir -p $(CURDIR)/debian/libcryptsetup4/usr/lib/$(DEB_HOST_MULTIARCH)/
 	#cp -a $(CURDIR)/debian/cryptsetup-bin/lib/libcryptsetup.la \
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/$(DEB_HOST_MULTIARCH)/
 	#cp -a $(CURDIR)/debian/cryptsetup-bin/lib/libcryptsetup.a \

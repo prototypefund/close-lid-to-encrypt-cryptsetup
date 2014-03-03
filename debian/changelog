@@ -5,6 +5,10 @@ cryptsetup (2:1.6.4-3) unstable; urgency=medium
   * update italian debconf translations, thanks to Italian l10n team and
     Francesca Ciceri. (closes: #740557)
   * remove trailing whitespaces from text files.
+  * some minor packaging fixes thanks to lintian checks:
+    - fix VCS-* fields in debian/control to use canoncial URIs.
+    - remove empty directory from libcryptsetup4 package.
+    - add lintian-override for init.d-script-not-included-in-package.
 
  -- Jonas Meurer <mejo@debian.org>  Sun, 02 Mar 2014 13:51:35 +0100
 

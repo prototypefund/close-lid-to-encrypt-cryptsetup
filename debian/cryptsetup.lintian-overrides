@@ -4,4 +4,5 @@ cryptsetup: init.d-script-does-not-implement-optional-option etc/init.d/cryptdis
 cryptsetup: init.d-script-does-not-implement-optional-option etc/init.d/cryptdisks-early status
 cryptsetup: init.d-script-does-not-source-init-functions etc/init.d/cryptdisks
 cryptsetup: init.d-script-does-not-source-init-functions etc/init.d/cryptdisks-early
+cryptsetup: init.d-script-not-included-in-package etc/init.d/cryptdisks-udev
 cryptsetup: no-debconf-config
