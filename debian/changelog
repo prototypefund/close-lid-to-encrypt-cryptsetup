@@ -1,3 +1,13 @@
+cryptsetup (2:1.6.4-5~mejo1) mejo-unstable; urgency=medium
+
+  * NOT RELEASED YET
+  * change versioned build-depends on automake to >= 1.12 to reflect upstream
+    requirements. Thanks to Joel Johnson. (closes: #740688)
+  * build and link against libgcrypt20 (>= 1.6.1). Add note about whirlpool
+    bug in older libgcrypt releases and how to deal with it to debian/NEWS.
+
+ -- Jonas Meurer <mejo@debian.org>  Tue, 04 Mar 2014 20:14:07 +0100
+
 cryptsetup (2:1.6.4-4) unstable; urgency=medium
 
   * really fix plain device opening in initramfs cryptroot script this time.
