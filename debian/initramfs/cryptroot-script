@@ -238,7 +238,7 @@ setup_mapping()
 	elif [ "$crypttruecrypt" = "yes" ]; then
 		cryptopen="$cryptopen open --type tcrypt $cryptsource $crypttarget"
 	else
-		cryptopen="$cryptopen -c $cryptcipher -s $cryptsize -h $crypthash open --type plain $crypttarget $cryptsource"
+		cryptopen="$cryptopen -c $cryptcipher -s $cryptsize -h $crypthash open --type plain $cryptsource $crypttarget"
 	fi
 	cryptremove="/sbin/cryptsetup remove $crypttarget"
 	NEWROOT="/dev/mapper/$crypttarget"

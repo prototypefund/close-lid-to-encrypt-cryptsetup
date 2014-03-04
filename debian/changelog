@@ -1,3 +1,10 @@
+cryptsetup (2:1.6.4-4) unstable; urgency=medium
+
+  * really fix plain device opening in initramfs cryptroot script this time.
+    Thanks again to Dirk Griesbach for the patch. (closes: #740592)
+
+ -- Jonas Meurer <mejo@debian.org>  Mon, 03 Mar 2014 21:00:16 +0100
+
 cryptsetup (2:1.6.4-3) unstable; urgency=medium
 
   * fix plain device opening, broken by switch to new unified open command
