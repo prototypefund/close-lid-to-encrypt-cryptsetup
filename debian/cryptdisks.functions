@@ -530,7 +530,7 @@ do_tmp () {
 # Rename the device from its temp name to its final name, which will
 # trigger mountall
 finalize_device () {
-	if [ -x /sbin/udevadm ]; then
+	if command -v udevadm >/dev/null 2>&1; then
         	udevadm settle
     	fi
     	dmsetup rename "${dst}_unformatted" "$dst"

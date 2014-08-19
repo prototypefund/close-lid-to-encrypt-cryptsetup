@@ -42,10 +42,10 @@ message()
 udev_settle()
 {
 	# Wait for udev to be ready, see https://launchpad.net/bugs/85640
-	if [ -x /sbin/udevadm ]; then
-		/sbin/udevadm settle --timeout=30
-	elif [ -x /sbin/udevsettle ]; then
-		/sbin/udevsettle --timeout=30
+	if command -v udevadm >/dev/null 2>&1; then
+		udevadm settle --timeout=30
+	elif command -v udevsettle >/dev/null 2>&1; then
+		udevsettle --timeout=30
 	fi
 	return 0
 }

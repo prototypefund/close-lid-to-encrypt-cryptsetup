@@ -1,10 +1,22 @@
-cryptsetup (2:1.6.4-5~mejo1) mejo-unstable; urgency=medium
+cryptsetup (2:1.6.6-1~mejo1) mejo-unstable; urgency=medium
 
   * NOT RELEASED YET
+  * new upsream version 1.6.6.
+  * add versioned dependency on cryptsetup-bin to cryptsetup. (closes: #747670)
   * change versioned build-depends on automake to >= 1.12 to reflect upstream
     requirements. Thanks to Joel Johnson. (closes: #740688)
   * build and link against libgcrypt20 (>= 1.6.1). Add note about whirlpool
     bug in older libgcrypt releases and how to deal with it to debian/NEWS.
+  * add systemd support to askpass. Thanks to David Härdeman for the patch.
+    (closes: #742600, #755074)
+  * fix initramfs cryptroot hook to not include modules unconditionally. Thanks
+    to Dmitrijs Ledkovs for bugreport and patch. (closes: #714104)
+  * fix decrypt_keyctl script to ask again in case of wrong passphrase. Thanks
+    to Dmitriy Matrosov for bugreport and patch. (closes: #748368)
+  * incorporate changes from ubuntu package:
+    - don't hardcode paths to udevadm and udevsettle.
+    - restore terminal settings in askpass.c. (closes: #714942)
+    - migrate upstart jobs to new names.
 
  -- Jonas Meurer <mejo@debian.org>  Tue, 04 Mar 2014 20:14:07 +0100
 
