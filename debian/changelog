@@ -1,6 +1,5 @@
-cryptsetup (2:1.6.6-1~mejo1) mejo-unstable; urgency=medium
+cryptsetup (2:1.6.6-1~mejo1) unstable; urgency=medium
 
-  * NOT RELEASED YET
   * new upsream version 1.6.6.
   * add versioned dependency on cryptsetup-bin to cryptsetup. (closes: #747670)
   * change versioned build-depends on automake to >= 1.12 to reflect upstream
