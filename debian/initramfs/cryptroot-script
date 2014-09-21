@@ -65,6 +65,7 @@ parse_options()
 	crypthash=ripemd160
 	crypttarget=cryptroot
 	cryptsource=""
+	cryptheader=""
 	cryptlvm=""
 	cryptkeyscript=""
 	cryptkey="" # This is only used as an argument to an eventual keyscript
@@ -98,6 +99,13 @@ parse_options()
 				cryptsource="/dev/disk/by-label/${cryptsource#LABEL=}"
 			fi
 			export CRYPTTAB_SOURCE="$cryptsource"
+			;;
+		header=*)
+			cryptheader=${x#header=}
+			if [ -e "/conf/conf.d/cryptheader/$cryptheader" ]; then
+				cryptheader="/conf/conf.d/cryptheader/$cryptheader"
+			fi
+			export CRYPTTAB_HEADER="$cryptheader"
 			;;
 		lvm=*)
 			cryptlvm=${x#lvm=}
@@ -177,6 +185,11 @@ setup_mapping()
 		return 1
 	fi
 
+	if [ -n "$cryptheader" ] && ! type "$cryptheader" >/dev/null; then
+		message "cryptsetup: error - LUKS header \"$cryptheader\" missing"
+		return 1
+	fi
+
 	# The same target can be specified multiple times
 	# e.g. root and resume lvs-on-lvm-on-crypto
 	if [ -e "/dev/mapper/$crypttarget" ]; then
@@ -233,7 +246,10 @@ setup_mapping()
 	if [ "$cryptdiscard" = "yes" ]; then
 		cryptopen="$cryptopen --allow-discards"
 	fi
-	if /sbin/cryptsetup isLuks $cryptsource >/dev/null 2>&1; then
+	if [ "$cryptheader" = "yes" ]; then
+		cryptopen="$cryptopen --header=$cryptheader"
+	fi
+	if /sbin/cryptsetup isLuks ${cryptheader:-cryptsource} >/dev/null 2>&1; then
 		cryptopen="$cryptopen open --type luks $cryptsource $crypttarget"
 	elif [ "$crypttruecrypt" = "yes" ]; then
 		cryptopen="$cryptopen open --type tcrypt $cryptsource $crypttarget"

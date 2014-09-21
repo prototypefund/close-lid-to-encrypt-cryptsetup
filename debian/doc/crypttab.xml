@@ -370,6 +370,15 @@
    </varlistentry>
 
    <varlistentry>
+    <term><emphasis>header</emphasis>=&lt;path&gt;</term>
+    <listitem>
+     <simpara>
+       Detached header file (ignored for plain dm-crypt devices). See <command>cryptsetup --header</command>.
+     </simpara>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
     <term><emphasis>tcrypthidden</emphasis></term>
     <listitem>
      <simpara>

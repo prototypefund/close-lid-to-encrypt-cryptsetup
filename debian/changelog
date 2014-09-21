@@ -1,3 +1,14 @@
+cryptsetup (2:1.6.6-2~mejo1) mejo-unstable; urgency=medium
+
+  * NOT RELEASED YET
+  * rename 'luksheader' option in crypttab to 'header', as it may be used for
+    different encryption modes later as well.
+  * add support for detached LUKS header to initramfs scripts. Thanks to Pablo
+    Santiago for the hint and DiagonalArg from Launchpad for patch suggestions.
+    (closes: #716652)
+
+ -- Jonas Meurer <mejo@debian.org>  Wed, 20 Aug 2014 19:59:03 +0200
+
 cryptsetup (2:1.6.6-1) unstable; urgency=medium
 
   * new upsream version 1.6.6.
