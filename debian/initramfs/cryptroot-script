@@ -250,11 +250,11 @@ setup_mapping()
 		cryptopen="$cryptopen --header=$cryptheader"
 	fi
 	if /sbin/cryptsetup isLuks ${cryptheader:-cryptsource} >/dev/null 2>&1; then
-		cryptopen="$cryptopen open --type luks $cryptsource $crypttarget"
-	elif [ "$crypttruecrypt" = "yes" ]; then
+		cryptopen="$cryptopen open --type luks $cryptsource $crypttarget --key-file=-"
+	elif [ "$crypttcrypt" = "yes" ]; then
 		cryptopen="$cryptopen open --type tcrypt $cryptsource $crypttarget"
 	else
-		cryptopen="$cryptopen -c $cryptcipher -s $cryptsize -h $crypthash open --type plain $cryptsource $crypttarget"
+		cryptopen="$cryptopen -c $cryptcipher -s $cryptsize -h $crypthash open --type plain $cryptsource $crypttarget --key-file=-"
 	fi
 	cryptremove="/sbin/cryptsetup remove $crypttarget"
 	NEWROOT="/dev/mapper/$crypttarget"
@@ -286,7 +286,7 @@ setup_mapping()
 
 		if [ ! -e "$NEWROOT" ]; then
 			if ! crypttarget="$crypttarget" cryptsource="$cryptsource" \
-			     $cryptkeyscript "$cryptkey" | $cryptopen --key-file=- ; then
+			     $cryptkeyscript "$cryptkey" | $cryptopen; then
 				message "cryptsetup: cryptsetup failed, bad password or options?"
 				continue
 			fi

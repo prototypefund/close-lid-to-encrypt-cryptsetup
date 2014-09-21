@@ -6,6 +6,8 @@ cryptsetup (2:1.6.6-2~mejo1) mejo-unstable; urgency=medium
   * add support for detached LUKS header to initramfs scripts. Thanks to Pablo
     Santiago for the hint and DiagonalArg from Launchpad for patch suggestions.
     (closes: #716652)
+  * fix support for truecrypt devices in initramfs scripts. Thanks to Lukas
+    Wunner for the patch. (closes: #748286)
 
  -- Jonas Meurer <mejo@debian.org>  Wed, 20 Aug 2014 19:59:03 +0200
 
