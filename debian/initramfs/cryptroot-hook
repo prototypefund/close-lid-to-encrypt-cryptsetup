@@ -241,14 +241,14 @@ get_device_opts() {
 			luks)
 				LUKS_FOUND=1
 				;;
-			header)
+			header=*)
 				opt="${opt#header=}"
 				if [ ! -e "$opt" ]; then
 					echo "cryptsetup: WARNING: target $target has an invalid header, skipped" >&2
 					return 1
 				fi
 				CRYPTHEADER="$opt"
-				OPTIONS="$OPTIONS,header="$CRYPTHEADER")"
+				OPTIONS="$OPTIONS,header=$CRYPTHEADER"
 				;;
 			tcrypt)
 				OPTIONS="$OPTIONS,$opt"

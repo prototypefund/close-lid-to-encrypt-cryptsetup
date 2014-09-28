@@ -102,7 +102,7 @@ parse_options()
 			;;
 		header=*)
 			cryptheader=${x#header=}
-			if [ -e "/conf/conf.d/cryptheader/$cryptheader" ]; then
+			if [ ! -e "$cryptheader" ] && [ -e "/conf/conf.d/cryptheader/$cryptheader" ]; then
 				cryptheader="/conf/conf.d/cryptheader/$cryptheader"
 			fi
 			export CRYPTTAB_HEADER="$cryptheader"
@@ -246,7 +246,7 @@ setup_mapping()
 	if [ "$cryptdiscard" = "yes" ]; then
 		cryptopen="$cryptopen --allow-discards"
 	fi
-	if [ "$cryptheader" = "yes" ]; then
+	if [ -n "$cryptheader" ]; then
 		cryptopen="$cryptopen --header=$cryptheader"
 	fi
 	if /sbin/cryptsetup isLuks ${cryptheader:-cryptsource} >/dev/null 2>&1; then
@@ -318,7 +318,8 @@ setup_mapping()
 				# required for lilo to find the root device
 				echo "ROOT=$NEWROOT" >>/conf/param.conf
 			fi
-			eval $(fstype < "$NEWROOT")
+			#eval $(fstype < "$NEWROOT")
+			FSTYPE="$(/sbin/blkid -s TYPE -o value "$NEWROOT")"
 		fi
 
 		#if [ -z "$FSTYPE" ] || [ "$FSTYPE" = "unknown" ]; then
