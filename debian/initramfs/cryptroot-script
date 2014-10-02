@@ -221,6 +221,11 @@ setup_mapping()
 
 		slumber=$(( ${slumber} * 10 ))
 		while [ ! -e "$cryptsource" ]; do
+			# retry for LVM devices every 10 seconds
+			if [ ${slumber} -eq $(( ${slumber}/100*100 )) ]; then
+				activate_vg
+			fi
+
 			/bin/sleep 0.1
 			slumber=$(( ${slumber} - 1 ))
 			[ ${slumber} -gt 0 ] || break
@@ -235,11 +240,18 @@ setup_mapping()
 	udev_settle
 
 	# We've given up, but we'll let the user fix matters if they can
-	while [ ! -e "${cryptsource}" ]; do
+	if [ ! -e "${cryptsource}" ]; then
+		
+		echo "  ALERT! ${cryptsource} does not exist."
 		echo "	Check cryptopts=source= bootarg: cat /proc/cmdline"
 		echo "	or missing modules, devices: cat /proc/modules; ls /dev"
-		panic -r "ALERT!  ${cryptsource} does not exist.  Dropping to a shell!"
-	done
+		panic -r "Dropping to a shell. Will skip ${cryptsource} if you can't fix."
+	fi
+
+	if [ ! -e "${cryptsource}" ]; then
+		return 1
+	fi
+
 
 	# Prepare commands
 	cryptopen="/sbin/cryptsetup -T 1"
@@ -313,10 +325,16 @@ setup_mapping()
 				return 1
 			fi
 
-			NEWROOT=${cmdline_root:-/dev/mapper/$cryptlvm}
-			if [ "$cryptrootdev" = "yes" ]; then
-				# required for lilo to find the root device
-				echo "ROOT=$NEWROOT" >>/conf/param.conf
+			# Apparently ROOT is already set in /conf/param.conf for
+			# flashed kernels at least. See bugreport #759720.
+			if [ -f /conf/param.conf ] && grep -q "^ROOT=" /conf/param.conf; then
+				NEWROOT=$(sed -n 's/^ROOT=//p' /conf/param.conf)
+			else
+				NEWROOT=${cmdline_root:-/dev/mapper/$cryptlvm}
+				if [ "$cryptrootdev" = "yes" ]; then
+					# required for lilo to find the root device
+					echo "ROOT=$NEWROOT" >>/conf/param.conf
+				fi
 			fi
 			#eval $(fstype < "$NEWROOT")
 			FSTYPE="$(/sbin/blkid -s TYPE -o value "$NEWROOT")"
