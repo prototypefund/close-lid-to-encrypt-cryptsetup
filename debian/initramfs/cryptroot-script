@@ -261,7 +261,7 @@ setup_mapping()
 	if [ -n "$cryptheader" ]; then
 		cryptopen="$cryptopen --header=$cryptheader"
 	fi
-	if /sbin/cryptsetup isLuks ${cryptheader:-cryptsource} >/dev/null 2>&1; then
+	if /sbin/cryptsetup isLuks ${cryptheader:-$cryptsource} >/dev/null 2>&1; then
 		cryptopen="$cryptopen open --type luks $cryptsource $crypttarget --key-file=-"
 	elif [ "$crypttcrypt" = "yes" ]; then
 		cryptopen="$cryptopen open --type tcrypt $cryptsource $crypttarget"
