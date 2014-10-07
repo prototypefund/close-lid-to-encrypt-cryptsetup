@@ -1,6 +1,5 @@
 cryptsetup (2:1.6.6-2) unstable; urgency=medium
 
-  * NOT RELEASED YET
   * rename 'luksheader' option in crypttab to 'header', as it may be used for
     different encryption modes later as well.
   * add support for detached LUKS header to initramfs scripts. Thanks to Pablo
@@ -26,6 +25,8 @@ cryptsetup (2:1.6.6-2) unstable; urgency=medium
   * debian/initramfs/cryptroot-script: in slumber loop, retry vg_activate
     every ten seconds. Fixes LVM on USB in cases that the USB device didn't
     come up fast enough. (closes: #762032)
+  * fix package version number in debian/NEWS.
+  * bump standards-version to 3.9.6, no changes needed.
 
  -- Jonas Meurer <mejo@debian.org>  Wed, 20 Aug 2014 19:59:03 +0200
 
