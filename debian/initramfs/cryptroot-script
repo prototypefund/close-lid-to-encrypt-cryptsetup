@@ -274,7 +274,7 @@ setup_mapping()
 	# Try to get a satisfactory password $crypttries times
 	count=0
 	while [ $crypttries -le 0 ] || [ $count -lt $crypttries ]; do
-		export CRYPTTAB_TRIED="$crypttries"
+		export CRYPTTAB_TRIED="$count"
 		count=$(( $count + 1 ))
 
 		if [ -z "$cryptkeyscript" ]; then
