@@ -1,6 +1,5 @@
 cryptsetup (2:1.6.6-3) unstable; urgency=medium
 
-  * NOT RELEASED YET
   * debian/initramfs/cryptroot-script: fix environment variable $CRYPTTAB_TRIED
     to hold the number of actual tries instead of the number of maximum tries.
     Thanks to Luc Maisonobe for debugging and the patch. (closes: #758788)
