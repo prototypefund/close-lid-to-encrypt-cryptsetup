@@ -16,8 +16,9 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
-get_root_devices() {
+get_fs_devices() {
 	local device mount type options dump pass
+	local wantmount="$1"
 
 	if [ ! -r /etc/fstab ]; then
 		return 1
@@ -25,7 +26,7 @@ get_root_devices() {
 
 	grep -s '^[^#]' /etc/fstab | \
 	while read device mount type options dump pass; do
-		if [ "$mount" = "/" ]; then
+		if [ "$mount" = "$wantmount" ]; then
 			local devices
 			if [ "$type" = "btrfs" ]; then
 				for dev in $(btrfs filesystem show $(canonical_device "$device" --no-simplify) 2>/dev/null | sed -r -e 's/.*devid .+ path (.+)/\1/;tx;d;:x') ; do
@@ -611,6 +612,7 @@ add_crypto_modules() {
 
 setup="no"
 rootdevs=""
+usrdevs=""
 resumedevs=""
 
 # Include cryptsetup modules, regardless of _this_ machine
@@ -621,16 +623,17 @@ fi
 
 # Find the root and resume device(s)
 if [ -r /etc/crypttab ]; then
-	rootdevs=$(get_root_devices)
+	rootdevs=$(get_fs_devices /)
 	if [ -z "$rootdevs" ]; then
 		echo "cryptsetup: WARNING: could not determine root device from /etc/fstab" >&2
 	fi
+	usrdevs=$(get_fs_devices /usr)
 	resumedevs=$(get_resume_devices)
 	initramfsdevs=$(get_initramfs_devices)
 fi
 
 # Load the config opts and modules for each device
-for dev in $rootdevs $resumedevs $initramfsdevs; do
+for dev in $rootdevs $usrdevs $resumedevs $initramfsdevs; do
 	if ! modules=$(add_device "$dev"); then
 		echo "cryptsetup: FAILURE: could not determine configuration for $dev" >&2
 		continue
