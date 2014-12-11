@@ -5,13 +5,9 @@ cryptsetup (2:1.6.6-4~mejo1) mejo-unstable; urgency=medium
     split-/usr will work with initramfs-tools (>= 0.118). (closes: #767832)
 
   [ Jonas Meurer ]
-  * Move cryptdisks_{start,stop} symlink creation from debian/rules to
-    postinst. Needed to support /usr-merging. Thanks to Marco d'Itri for
-    the patch. (closes: #767921)
   * debian/cryptdisks.funcctions: check for cryptdisks-udev initscript before
     actually invoking 'status' on it. It's only useful in ubuntu+upstart
     environment anyway. (closes: #764564)
-  * 
 
  -- Jonas Meurer <mejo@debian.org>  Mon, 08 Dec 2014 22:01:09 +0100
 

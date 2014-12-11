@@ -115,6 +115,8 @@ install-stamp: build-stamp
 	install -m 0755 debian/scripts/luksformat $(CURDIR)/debian/cryptsetup-bin/usr/sbin/
 	install -m 0755 debian/scripts/cryptdisks_start $(CURDIR)/debian/cryptsetup/sbin/
 	install -m 0755 debian/scripts/cryptdisks_stop $(CURDIR)/debian/cryptsetup/sbin/
+	dh_link -pcryptsetup sbin/cryptdisks_start usr/sbin/cryptdisks_start
+	dh_link -pcryptsetup sbin/cryptdisks_stop usr/sbin/cryptdisks_stop
 	install -m 0755 debian/scripts/decrypt_* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
 	install -m 0755 debian/scripts/passdev $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
 	install -m 0755 debian/askpass $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
