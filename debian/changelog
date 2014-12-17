@@ -1,4 +1,4 @@
-cryptsetup (2:1.6.6-4~mejo1) mejo-unstable; urgency=medium
+cryptsetup (2:1.6.6-4) unstable; urgency=medium
 
   [ Simon McVittie ]
   * debian/initramfs/cryptroot-script: decrypt /usr as well as / so that
@@ -8,8 +8,10 @@ cryptsetup (2:1.6.6-4~mejo1) mejo-unstable; urgency=medium
   * debian/cryptdisks.funcctions: check for cryptdisks-udev initscript before
     actually invoking 'status' on it. It's only useful in ubuntu+upstart
     environment anyway. (closes: #764564)
+  * debian/askpas.c: fix systemd_read() to really strip trailing newline from
+    input. Thanks to Quentin Lefebvre for report and patch. (closes: #768407)
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 08 Dec 2014 22:01:09 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 17 Dec 2014 14:24:41 +0100
 
 cryptsetup (2:1.6.6-3) unstable; urgency=medium
 
