@@ -1,7 +1,9 @@
-cryptsetup (2:1.6.6-5) unstable; urgency=medium
+cryptsetup (2:1.6.6-5) unstable; urgency=high
 
-  * debian/cryptdisks.functions: fix the precheck for ubuntu+upstart before
-    invoking 'status cryptdisks-udev'. (closes: #773456)
+  * debian/cryptdisks.functions: fix the precheck for ubuntu+upstart
+    before invoking 'status cryptdisks-udev'. (closes: #773456)
+  * debian/cryptdisks.functions: fix the insufficient grep regex for
+    detecting a running cryptdisks-udev (upstart) init script.
 
  -- Jonas Meurer <mejo@debian.org>  Thu, 22 Jan 2015 21:22:08 +0100
 
