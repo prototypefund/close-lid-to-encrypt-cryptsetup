@@ -1,3 +1,10 @@
+cryptsetup (2:1.6.6-5) unstable; urgency=medium
+
+  * debian/cryptdisks.functions: fix the precheck for ubuntu+upstart before
+    invoking 'status cryptdisks-udev'. (closes: #773456)
+
+ -- Jonas Meurer <mejo@debian.org>  Thu, 22 Jan 2015 21:22:08 +0100
+
 cryptsetup (2:1.6.6-4) unstable; urgency=medium
 
   [ Simon McVittie ]
