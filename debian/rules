@@ -144,7 +144,7 @@ install-stamp: build-stamp
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-block/cryptroot
 	install -m 0644 debian/cryptdisks.bash_completion \
 		$(CURDIR)/debian/cryptsetup/etc/bash_completion.d/cryptdisks
-	install -m 0755 debian/cryptsetup.reportbug-script \
+	install -m 0755 debian/cryptsetup.bug-script \
 		$(CURDIR)/debian/cryptsetup/usr/share/bug/cryptsetup
 ifeq ($(shell dpkg-vendor --is Ubuntu && echo yes),yes)
 	mkdir -p $(CURDIR)/debian/cryptsetup/usr/share/apport/package-hooks
