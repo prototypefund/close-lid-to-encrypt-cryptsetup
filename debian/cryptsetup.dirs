@@ -1,9 +1,9 @@
-/etc/bash_completion.d
 /etc/default
 /etc/init.d
 /lib/cryptsetup/checks
 /lib/cryptsetup/scripts
 /sbin
+/usr/share/bash-completion/completions
 /usr/share/bug
 /usr/share/initramfs-tools/hooks
 /usr/share/initramfs-tools/scripts/local-top
