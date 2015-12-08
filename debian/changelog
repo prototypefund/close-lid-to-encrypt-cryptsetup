@@ -13,8 +13,10 @@ cryptsetup (2:1.7.0-1) unstable; urgency=medium
     initramfs script. (closes: #806290) UNTESTED!!!
   * do not send potentially private information without prior user confirmation
     in reportbug script. (Closes: #743158) UNTESTED!!!
+  * do not send potentially private information without prior user confirmation
+    in apport hook. UNTESTED!!!
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 08 Dec 2015 13:10:06 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 08 Dec 2015 13:27:49 +0100
 
 cryptsetup (2:1.6.6-5) unstable; urgency=high
 
