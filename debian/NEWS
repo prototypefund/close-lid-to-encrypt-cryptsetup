@@ -8,8 +8,9 @@ cryptsetup (2:1.6.6-1) unstable; urgency=medium
 
   In the case that you're affected by the whirlpool bug, please read section
   '8.3 Gcrypt after 1.5.3 breaks Whirlpool' of the cryptsetup FAQ at
-  https://code.google.com/p/cryptsetup/wiki/FrequentlyAskedQuestions carefully.
-  It explains how to open your LUKS container and reencrypt it afterwards.
+  https://gitlab.com/cryptsetup/cryptsetup/wikis/FrequentlyAskedQuestions
+  carefully. It explains how to open your LUKS container and reencrypt it
+  afterwards.
 
  -- Jonas Meurer <mejo@debian.org>  Tue, 04 Mar 2014 23:17:37 +0100
 

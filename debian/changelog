@@ -9,14 +9,17 @@ cryptsetup (2:1.7.0-1) unstable; urgency=medium
       keyfile parameters. (in 1.6.8)
     - default hash function is now SHA256 (used in key derivation function
       and anti-forensic splitter) (in 1.7.0)
-  * add support for veracrypt option to cryptdisks initscript and cryptroot
+  * debian/cryptsetup.functions, debian/initramfs/cryptroot.{hook,script}: add
+    support for veracrypt option to cryptdisks initscript and cryptroot
     initramfs script. (closes: #806290) UNTESTED!!!
-  * do not send potentially private information without prior user confirmation
-    in reportbug script. (Closes: #743158) UNTESTED!!!
-  * do not send potentially private information without prior user confirmation
-    in apport hook. UNTESTED!!!
+  * debian/cryptsetup.bug-script: do not send potentially private information
+    without prior user confirmation in reportbug script. (Closes: #743158) UNTESTED!!!
+  * debian/cryptsetup.apport: do not send potentially private information
+    without prior user confirmation in apport hook. UNTESTED!!!
+  * debian/control, debian/NEWS: fix links to cryptsetup homepage/FAQ. Homepage
+    (and FAQ) moved from code.google.com to gitlab.com. (closes: #781674)
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 08 Dec 2015 13:27:49 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 08 Dec 2015 13:31:59 +0100
 
 cryptsetup (2:1.6.6-5) unstable; urgency=high
 
