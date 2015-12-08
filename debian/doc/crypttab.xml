@@ -183,7 +183,7 @@
    <varlistentry>
     <term><emphasis>veracrypt</emphasis></term>
     <listitem>
-     <simpara>Use VeraCrypt extention to TCRYPT device. Only useful in conjunction with <emphasis>tcrypt</emphasis> option (ignored for non-TCRYPT devices).</simpara>
+     <simpara>Use VeraCrypt extension to TCRYPT device. Only useful in conjunction with <emphasis>tcrypt</emphasis> option (ignored for non-TCRYPT devices).</simpara>
     </listitem>
    </varlistentry>
 
