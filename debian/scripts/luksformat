@@ -56,11 +56,17 @@ while (<MOUNTS>) {
     die sprintf(gettext("Error: device mounted: %s\n"), $device) if (/\Q$device\E/)
 }
 
-if (-x "/sbin/mkfs.$fs") {
+if (-x "/usr/sbin/mkfs.$fs") {
+    $mkfs = "/usr/sbin/mkfs.$fs";
+}
+elsif (-x "/usr/bin/mkfs.$fs") {
+    $mkfs = "/usr/bin/mkfs.$fs";
+}
+elsif (-x "/sbin/mkfs.$fs") {
     $mkfs = "/sbin/mkfs.$fs";
 }
-elsif (-x "/usr/sbin/mkfs.$fs") {
-    $mkfs = "/usr/sbin/mkfs.$fs";
+elsif (-x "/bin/mkfs.$fs") {
+    $mkfs = "/bin/mkfs.$fs";
 }
 else {
     printf STDERR (gettext("Error: invalid file system: %s\n"), $fs);

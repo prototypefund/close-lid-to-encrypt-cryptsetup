@@ -69,6 +69,7 @@ parse_options()
 	cryptlvm=""
 	cryptkeyscript=""
 	cryptkey="" # This is only used as an argument to an eventual keyscript
+	cryptkeyslot=""
 	crypttries=3
 	crypttcrypt=""
 	cryptveracrypt=""
@@ -119,6 +120,9 @@ parse_options()
 				cryptkey=${x#key=}
 			fi
 			export CRYPTTAB_KEY="$cryptkey"
+			;;
+		keyslot=*)
+			cryptkeyslot=${x#keyslot=}
 			;;
 		tries=*)
 			crypttries="${x#tries=}"
@@ -264,6 +268,9 @@ setup_mapping()
 	fi
 	if [ -n "$cryptheader" ]; then
 		cryptopen="$cryptopen --header=$cryptheader"
+	fi
+	if [ -n "$cryptkeyslot" ]; then
+		cryptopen="$cryptopen --key-slot=$cryptkeyslot"
 	fi
 	if /sbin/cryptsetup isLuks ${cryptheader:-$cryptsource} >/dev/null 2>&1; then
 		cryptopen="$cryptopen open --type luks $cryptsource $crypttarget --key-file=-"
