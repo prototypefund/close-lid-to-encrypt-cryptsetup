@@ -28,10 +28,6 @@ Files: debian/README.opensc
 Copyright: © 2008 Benjamin Kiessling <benjaminkiessling@bttec.org>
 License: GPL-2+
 
-Files: debian/README.remote
-Copyright: © 2009 <debian@x.ray.net>
-License: GPL-2+
-
 Files: debian/scripts/cryptdisks_start
 Copyright: © 2007 Jon Dowland <jon@alcopop.org>
 License: GPL-2+
