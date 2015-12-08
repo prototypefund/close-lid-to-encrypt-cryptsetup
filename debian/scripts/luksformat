@@ -6,7 +6,7 @@
 # (C) 2005 Canonical Ltd.
 # Author: Martin Pitt <martin.pitt@ubuntu.com>
 # License: GNU General Public License, v2 or any later
-# (http://www.gnu.org/copyleft/gpl.html)
+# (https://www.gnu.org/copyleft/gpl.html)
 
 use Getopt::Long qw(:config pass_through);
 

@@ -1,6 +1,6 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Contact: Milan Broz <mbroz@redhat.com>
-Source: http://code.google.com/p/cryptsetup
+Source: https://gitlab.com/cryptsetup/cryptsetup
 
 Files: *
 Copyright: © 2004      Christophe Saout <christophe@saout.de>

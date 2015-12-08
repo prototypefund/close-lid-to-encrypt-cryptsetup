@@ -11,7 +11,7 @@ use with an initramfs-image.
 If you plan to perform a completely new installation of Debian onto a
 machine and to do so using an encrypted root partition, you might want
 to consider using a version of Debian Installer with partman-crypto
-(see http://wiki.debian.org/DebianInstaller/PartmanCrypto).
+(see https://wiki.debian.org/DebianInstaller/PartmanCrypto).
 
 The installation will then take care of all the details and perform the
 necessary configuration for you, meaning that you should not have to
@@ -220,7 +220,7 @@ limitation:
 3. update-initramfs -u
 4. reboot
 
-[1] http://bugs.debian.org/671037
+[1] https://bugs.debian.org/671037
 
  -- David Härdeman <david@hardeman.nu>
  -- Jonas Meurer <mejo@debian.org>  Thu, 01 Nov 2012 13:44:31 +0100

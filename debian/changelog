@@ -18,8 +18,9 @@ cryptsetup (2:1.7.0-1) unstable; urgency=medium
     without prior user confirmation in apport hook. UNTESTED!!!
   * debian/control, debian/NEWS: fix links to cryptsetup homepage/FAQ. Homepage
     (and FAQ) moved from code.google.com to gitlab.com. (closes: #781674)
+  * debian/*: update hyperlinks to use https instead of http where appropriate.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 08 Dec 2015 13:31:59 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 08 Dec 2015 13:42:52 +0100
 
 cryptsetup (2:1.6.6-5) unstable; urgency=high
 

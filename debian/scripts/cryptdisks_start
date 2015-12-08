@@ -5,7 +5,7 @@
 
 # Initial code and (c) 2007 Jon Dowland <jon@alcopop.org>
 # License: GNU General Public License, v2 or any later
-# (http://www.gnu.org/copyleft/gpl.html)
+# (https://www.gnu.org/copyleft/gpl.html)
 
 set -e
 
