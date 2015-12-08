@@ -206,6 +206,9 @@ parse_opts () {
 		tcrypthidden)
 			TCRYPTPARAMS="$TCRYPTPARAMS --tcrypt-hidden"
 			;;
+		veracrypt)
+			TCRYPTPARAMS="$TCRYPTPARAMS --veracrypt"
+			;;
 		esac
 
 		CRYPTTAB_OPTIONS="$CRYPTTAB_OPTIONS $PARAM"

@@ -71,6 +71,7 @@ parse_options()
 	cryptkey="" # This is only used as an argument to an eventual keyscript
 	crypttries=3
 	crypttcrypt=""
+	cryptveracrypt=""
 	cryptrootdev=""
 	cryptdiscard=""
 	CRYPTTAB_OPTIONS=""
@@ -129,6 +130,9 @@ parse_options()
 			;;
 		tcrypt)
 			crypttcrypt="yes"
+			;;
+		veracrypt)
+			cryptveracrypt="--veracrypt"
 			;;
 		rootdev)
 			cryptrootdev="yes"
@@ -264,7 +268,7 @@ setup_mapping()
 	if /sbin/cryptsetup isLuks ${cryptheader:-$cryptsource} >/dev/null 2>&1; then
 		cryptopen="$cryptopen open --type luks $cryptsource $crypttarget --key-file=-"
 	elif [ "$crypttcrypt" = "yes" ]; then
-		cryptopen="$cryptopen open --type tcrypt $cryptsource $crypttarget"
+		cryptopen="$cryptopen open --type tcrypt $cryptveracrypt $cryptsource $crypttarget"
 	else
 		cryptopen="$cryptopen -c $cryptcipher -s $cryptsize -h $crypthash open --type plain $cryptsource $crypttarget --key-file=-"
 	fi

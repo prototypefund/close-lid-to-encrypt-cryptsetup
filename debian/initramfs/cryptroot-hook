@@ -316,6 +316,9 @@ get_device_opts() {
 			tcrypt)
 				OPTIONS="$OPTIONS,$opt"
 				;;
+			veracrypt)
+				OPTIONS="$OPTIONS,$opt"
+				;;
 			keyscript=*)
 				opt="${opt#keyscript=}"
 				if [ ! -x "/lib/cryptsetup/scripts/$opt" ] && [ ! -x "$opt" ]; then
