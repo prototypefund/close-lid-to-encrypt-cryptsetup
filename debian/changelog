@@ -30,6 +30,7 @@ cryptsetup (2:1.7.0-1~mejo2) mejo-unstable; urgency=medium
   * debian/cryptdisks.functions: iterate over remaining open crypttab devices
     in do_stop() in order to close dependent devices and don't freeze the
     shutdown process. Thanks to Avatar for the patch. (closes: #792552)
+  * debian/rules: set V=1 in order to make build logs usable for blhc.
 
   [ Guilhem Moulin ]
   * debian/README.{Debian,remote}: remove dropbear-specific configuration and
@@ -41,7 +42,7 @@ cryptsetup (2:1.7.0-1~mejo2) mejo-unstable; urgency=medium
   * debian/README.initramfs, debian/initramfs/cryptroot-hook: add support for
     storing keyfiles directly in the initrd. (closes: #786578)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 09 Dec 2015 13:06:40 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 09 Dec 2015 16:07:18 +0100
 
 cryptsetup (2:1.6.6-5) unstable; urgency=high
 

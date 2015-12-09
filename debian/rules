@@ -2,7 +2,10 @@
 
 include /usr/share/dpkg/architecture.mk
 
-# Uncomment this to turn on verbose mode.
+# Turn on verbose mode.
+export V=1
+
+# Uncomment this to turn on debhelper verbose mode.
 #export DH_VERBOSE=1
 
 DEB_VERSION := $(strip $(shell LC_ALL=C dpkg-parsechangelog          |          \
