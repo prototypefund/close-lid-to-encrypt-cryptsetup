@@ -269,6 +269,10 @@ get_device_opts() {
 		fi
 	fi
 
+	if [ "UUID=${source#UUID=}" = "$source" -a ! -b "/dev/disk/by-uuid/${source#UUID=}" ] || [ "UUID=${source#UUID=}" != "$source" -a ! -b "$source" ]; then
+		echo "cryptsetup: WARNING: Invalid source device $source" >&2
+	fi
+
 	# Sanity checks for $key
 	if [ "$key" = "/dev/random" ] || [ "$key" = "/dev/urandom" ]; then
 		echo "cryptsetup: WARNING: target $target has a random key, skipped" >&2
