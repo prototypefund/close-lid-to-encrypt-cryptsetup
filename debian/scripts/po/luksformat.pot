@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: pkg-cryptsetup-devel@lists.alioth.debian.org\n"
-"POT-Creation-Date: 2014-03-03 20:26+0100\n"
+"POT-Creation-Date: 2015-12-09 13:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,37 +33,37 @@ msgstr ""
 msgid "Error: device mounted: %s\n"
 msgstr ""
 
-#: ../luksformat:66
+#: ../luksformat:72
 #, perl-format
 msgid "Error: invalid file system: %s\n"
 msgstr ""
 
-#: ../luksformat:79
+#: ../luksformat:85
 #, perl-format
 msgid "Error: could not generate temporary mapped device name"
 msgstr ""
 
 #. we do not need to be overly concerned with race conditions here, cryptsetup
 #. will just fail if the name already exists now.
-#: ../luksformat:83
+#: ../luksformat:89
 #, perl-format
 msgid "Creating encrypted device on %s...\n"
 msgstr ""
 
-#: ../luksformat:85
+#: ../luksformat:91
 #, perl-format
 msgid "Could not create LUKS device %s"
 msgstr ""
 
-#: ../luksformat:88
+#: ../luksformat:94
 msgid "Please enter your passphrase again to verify it\n"
 msgstr ""
 
-#: ../luksformat:90
+#: ../luksformat:96
 msgid "The passphrases you entered were not identical\n"
 msgstr ""
 
-#: ../luksformat:99
+#: ../luksformat:105
 #, perl-format
 msgid "Could not format device with file system %s"
 msgstr ""

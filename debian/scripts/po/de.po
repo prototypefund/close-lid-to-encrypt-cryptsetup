@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cryptsetup 2:1.3.0-1\n"
 "Report-Msgid-Bugs-To: pkg-cryptsetup-devel@lists.alioth.debian.org\n"
-"POT-Creation-Date: 2011-09-19 13:54+0200\n"
+"POT-Creation-Date: 2015-12-09 13:09+0100\n"
 "PO-Revision-Date: 2011-03-08 19:40+0100\n"
 "Last-Translator: root <jonas@freesources.org>\n"
 "Language-Team: German\n"
@@ -37,37 +37,37 @@ msgstr ""
 msgid "Error: device mounted: %s\n"
 msgstr "Fehler: Partition ist eingebunden: %s\n"
 
-#: ../luksformat:66
+#: ../luksformat:72
 #, perl-format
 msgid "Error: invalid file system: %s\n"
 msgstr "Fehler: Ungültiges Dateisystem: %s\n"
 
-#: ../luksformat:79
+#: ../luksformat:85
 #, perl-format
 msgid "Error: could not generate temporary mapped device name"
 msgstr "Fehler: Erstellen einer temporären Partition schlug fehl"
 
 #. we do not need to be overly concerned with race conditions here, cryptsetup
 #. will just fail if the name already exists now.
-#: ../luksformat:83
+#: ../luksformat:89
 #, perl-format
 msgid "Creating encrypted device on %s...\n"
 msgstr "Erstelle verschlüsselte Partition auf %s...\n"
 
-#: ../luksformat:85
+#: ../luksformat:91
 #, perl-format
 msgid "Could not create LUKS device %s"
 msgstr "Erstellen der LUKS-Partition %s schlug fehl"
 
-#: ../luksformat:88
+#: ../luksformat:94
 msgid "Please enter your passphrase again to verify it\n"
 msgstr "Bitte zum verifizieren das Passwort erneut eingeben\n"
 
-#: ../luksformat:90
+#: ../luksformat:96
 msgid "The passphrases you entered were not identical\n"
 msgstr "Die eingegebenen Passwörter waren nicht identisch\n"
 
-#: ../luksformat:99
+#: ../luksformat:105
 #, perl-format
 msgid "Could not format device with file system %s"
 msgstr "Formatieren der Partition mit dem Dateisystem %s schlug fehl"
