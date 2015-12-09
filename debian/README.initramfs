@@ -222,5 +222,24 @@ limitation:
 
 [1] https://bugs.debian.org/671037
 
+12. Storing keyfiles directly in the initrd
+-------------------------------------------
+Normally devices using a keyfile are ignored (with a loud warning), and
+the key file itself is not included in the initrd, because the initramfs
+image typically lives on an unencrypted /boot partition.  However in
+some cases it is desirable to include the key file in the initrd; for
+instance recent versions of GRUB support booting from encrypted block
+devices, allowing an encrypted /boot partition.
+
+Among the key files used in the crypttab(5), those matching the
+environment variable $KEYFILE_PATTERN (interpreted as a shell pattern)
+will be included in the initramfs image.  For instance if /etc/crypttab
+contains two key files /etc/keys/{root,swap}.key, you can add the
+following to initramfs.conf to add them to the initrd.
+
+  KEYFILE_PATTERN="/etc/keys/*.key"
+  export KEYFILE_PATTERN
+
  -- David Härdeman <david@hardeman.nu>
  -- Jonas Meurer <mejo@debian.org>  Thu, 01 Nov 2012 13:44:31 +0100
+ -- Guilhem Moulin <guilhem@guilhem.org>  Wed, 09 Dec 2015 04:53:41 +0100

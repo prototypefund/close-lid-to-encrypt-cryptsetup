@@ -66,10 +66,10 @@ get_resume_devices() {
 	# regular swsusp
 	for opt in $(cat /proc/cmdline); do
 		case $opt in
-		resume=*)
-			device="${opt#resume=}"
-			candidates="$candidates $device"
-			;;
+			resume=*)
+				device="${opt#resume=}"
+				candidates="$candidates $device"
+				;;
 		esac
 	done
 
@@ -232,10 +232,11 @@ get_lvm_deps() {
 }
 
 get_device_opts() {
-	local target source link extraopts rootopts opt
+	local target source link extraopts rootopts opt key
 	target="$1"
 	extraopts="$2"
 	KEYSCRIPT=""
+	KEYFILE=""
 	CRYPTHEADER=""
 	OPTIONS=""
 
@@ -279,7 +280,7 @@ get_device_opts() {
 	fi
 
 	# We have all the basic options, let's go trough them
-	OPTIONS="target=$target,source=$source,key=$key"
+	OPTIONS="target=$target,source=$source"
 	local IFS=", "
 	unset HASH_FOUND
 	unset LUKS_FOUND
@@ -359,9 +360,19 @@ get_device_opts() {
 
 	# If keyscript is set, the "key" is just an argument to the script
 	if [ "$key" != "none" ] && [ -z "$KEYSCRIPT" ]; then
-		echo "cryptsetup: WARNING: target $target uses a key file, skipped" >&2
-		return 1
+		case "$key" in
+			$KEYFILE_PATTERN)
+				KEYFILE="$key"
+				OPTIONS="$OPTIONS,keyscript=cat"
+				key="/cryptroot-keyfiles/${target}.key"
+				;;
+			*)
+				echo "cryptsetup: WARNING: target $target uses a key file, skipped" >&2
+			   	return 1
+				;;
+		esac
 	fi
+	OPTIONS="$OPTIONS,key=$key"
 }
 
 get_device_modules() {
@@ -517,6 +528,13 @@ add_device() {
 				echo "cryptsetup: WARNING: failed to find keyscript $KEYSCRIPT" >&2
 				continue
 			fi
+		elif [ -n "$KEYFILE" ]; then
+			case "$KEYFILE" in
+				$KEYFILE_PATTERN)
+					mkdir -pm0700 "$DESTDIR/cryptroot-keyfiles"
+					cp --preserve=all "$KEYFILE" "$DESTDIR/cryptroot-keyfiles/${node}.key"
+					;;
+			esac
 		fi
 
 		# If we have a LUKS header, make sure it is included
