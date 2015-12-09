@@ -163,7 +163,7 @@ binary-arch: build install
 	dh_testdir
 	dh_testroot
 	dh_installdebconf -a
-	dh_installchangelogs -a ChangeLog
+	dh_installchangelogs -a
 	dh_installdocs -a
 	dh_installexamples -a debian/scripts/gen-ssl-key
 	dh_installinit -a --no-start --name=cryptdisks-early --update-rcd-params="start 26 S . start 59 0 6 ."
