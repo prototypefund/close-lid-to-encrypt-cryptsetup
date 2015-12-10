@@ -8,11 +8,9 @@ export V=1
 # Uncomment this to turn on debhelper verbose mode.
 #export DH_VERBOSE=1
 
-DEB_VERSION := $(strip $(shell LC_ALL=C dpkg-parsechangelog          |          \
-                               egrep '^Version:' | head -n1 | cut -f2 -d ' '    ))
-DEB_DATE    := $(strip $(shell LC_ALL=C dpkg-parsechangelog          |          \
-                               egrep '^Date:'    | head -n1 | cut -f2- -d ' ' | \
-                               LC_ALL=C date --file=- +%F                       ))
+DEB_VERSION := $(strip $(shell LC_ALL=C dpkg-parsechangelog --show-field Version))
+DEB_DATE    := $(strip $(shell LC_ALL=C dpkg-parsechangelog --show-field Date | \
+                               LC_ALL=C date -u --file=- +%F                    ))
 
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)

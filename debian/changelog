@@ -32,6 +32,9 @@ cryptsetup (2:1.7.0-1~mejo2) mejo-unstable; urgency=medium
     in do_stop() in order to close dependent devices and don't freeze the
     shutdown process. Thanks to Avatar for the patch. (closes: #792552)
   * debian/rules: set V=1 in order to make build logs usable for blhc.
+  * debian/rules: set DEB_VERSION and DEB_DATE in a way to make cryptsetup
+    build reproducible. Thanks to Dhole and Valentin Lorentz for patches.
+    (closes: 780864, #794106)
 
   [ Guilhem Moulin ]
   * debian/README.{Debian,remote}: remove dropbear-specific configuration and
@@ -43,9 +46,9 @@ cryptsetup (2:1.7.0-1~mejo2) mejo-unstable; urgency=medium
   * debian/README.initramfs, debian/initramfs/cryptroot-hook: add support for
     storing keyfiles directly in the initrd. (closes: #786578)
   * debian/initramfs/cryptroot-hook: display a warning for invalid source
-    devices (closes: #720515)
+    devices (closes: #720515, #781955, #784435)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 10 Dec 2015 10:57:35 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 10 Dec 2015 12:24:38 +0100
 
 cryptsetup (2:1.6.6-5) unstable; urgency=high
 
