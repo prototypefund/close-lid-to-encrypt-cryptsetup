@@ -242,7 +242,7 @@ following to initramfs.conf to add them to the initrd.
   UMASK=0077
 
 (If the initramfs image is to contain private key material, you'll want
-create it with a restrictive umask.)
+to create it with a restrictive umask.)
 
  -- David Härdeman <david@hardeman.nu>
  -- Jonas Meurer <mejo@debian.org>  Thu, 01 Nov 2012 13:44:31 +0100
