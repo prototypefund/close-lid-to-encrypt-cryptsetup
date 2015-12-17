@@ -360,11 +360,11 @@ do_tcrypt () {
 	if [ -n "$KEYSCRIPT" ]; then
 		# keyscript => "key" is just an argument to the keyscript
 		keyscriptarg="$key"
-		key="-"
+		#key="-"
 	elif [ -z "$key" ]; then
 		# no keyscript, no key => password
 		keyscriptarg="$promptmsg"
-		key="-"
+		#key="-"
 		if [ -x /bin/plymouth ] && plymouth --ping; then
 			KEYSCRIPT="plymouth ask-for-password --prompt"
 			keyscriptarg=$(printf "$keyscriptarg")
@@ -376,14 +376,16 @@ do_tcrypt () {
 		keyscriptarg=""
 		key="$key"
 		KEYSCRIPT=""
+		# only use --key-file here until upstream issue #269 is fixed
+		PARAMS="$PARAMS --key-file=$key"
 	else
 		# no keyscript, key => file input
 		keyscriptarg="$key"
-		key="-"
+		#key="-"
 		KEYSCRIPT="cat"
 	fi
 
-	PARAMS="$PARAMS --key-file=$key"
+	#PARAMS="$PARAMS --key-file=$key"
 
 	while [ "$tried" -lt "$TRIES" ] || [ "$TRIES" -eq "0" ]; do
 		export CRYPTTAB_TRIED="$tried"
