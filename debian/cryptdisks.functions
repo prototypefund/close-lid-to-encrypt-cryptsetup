@@ -296,7 +296,7 @@ do_luks () {
 		key="-"
 	elif [ -z "$key" ]; then
 		# no keyscript, no key => password
-		keyscriptarg="Unlocking the disk $src ($dst)\nEnter passphrase: "
+		keyscriptarg="$promptmsg"
 		key="-"
 		if [ -x /bin/plymouth ] && plymouth --ping; then
 			KEYSCRIPT="plymouth ask-for-password --prompt"
@@ -363,7 +363,7 @@ do_tcrypt () {
 		key="-"
 	elif [ -z "$key" ]; then
 		# no keyscript, no key => password
-		keyscriptarg="Unlocking the disk $src ($dst)\nEnter passphrase: "
+		keyscriptarg="$promptmsg"
 		key="-"
 		if [ -x /bin/plymouth ] && plymouth --ping; then
 			KEYSCRIPT="plymouth ask-for-password --prompt"
@@ -434,7 +434,7 @@ do_noluks () {
 		key="-"
 	elif [ -z "$key" ]; then
 		# no keyscript, no key => password
-		keyscriptarg="Unlocking the disk $src ($dst)\nEnter passphrase: "
+		keyscriptarg="$promptmsg"
 		key="-"
 		if [ -x /bin/plymouth ] && plymouth --ping; then
 			KEYSCRIPT="plymouth ask-for-password --prompt"
@@ -631,6 +631,15 @@ handle_crypttab_line_start () {
 		device_msg "$dst" "running"
 		return 0
 	fi
+
+	# Prepare the unlocking prompt
+	if [ "${src#/dev/disk/by-uuid/}" != "$src" ]; then
+		# UUIDs are not very helpful
+		diskname="$dst"
+	else
+		diskname="$src ($dst)"
+	fi
+	promptmsg="Please unlock disk $diskname: "
 
 	# All checks passed, do the real setup
 	log_action_msg "$dst (starting).."

@@ -37,7 +37,11 @@ cryptsetup (2:1.7.0-1~mejo2) mejo-unstable; urgency=medium
   * debian/rules: set V=1 in order to make build logs usable for blhc.
   * debian/rules: set DEB_VERSION and DEB_DATE in a way to make cryptsetup
     build reproducible. Thanks to Dhole and Valentin Lorentz for patches.
-    (closes: 780864, #794106)
+    (closes: #780864, #794106)
+  * debian/cryptdisks.functions: bring the passphrase prompt in line with the
+    one from initramfs script in order to make the user experience more
+    consistent. (closes: #772943)
+    
 
   [ Guilhem Moulin ]
   * debian/README.{Debian,remote}: remove dropbear-specific configuration and
@@ -51,7 +55,7 @@ cryptsetup (2:1.7.0-1~mejo2) mejo-unstable; urgency=medium
   * debian/initramfs/cryptroot-hook: display a warning for invalid source
     devices (closes: #720515, #781955, #784435)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 10 Dec 2015 13:30:03 +0100
+ -- Jonas Meurer <mejo@debian.org>  Thu, 17 Dec 2015 11:44:35 +0100
 
 cryptsetup (2:1.6.6-5) unstable; urgency=high
 
