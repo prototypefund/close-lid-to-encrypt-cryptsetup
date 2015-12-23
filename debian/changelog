@@ -55,8 +55,11 @@ cryptsetup (2:1.7.0-1~mejo5) mejo-unstable; urgency=medium
   * debian/initramfs/cryptroot-hook: display a warning for invalid source
     devices (closes: #720515, #781955, #784435)
   * debian/askpass.c: add plymouth support to the askpass helper command
+  * debian/cryptdisks.functions, debian/initramfs/cryptroot-script: remove
+    special treatment of plymouth installations now that askpass supports
+    plymouth natively.
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 23 Dec 2015 22:40:54 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 23 Dec 2015 22:48:23 +0100
 
 cryptsetup (2:1.6.6-5) unstable; urgency=high
 

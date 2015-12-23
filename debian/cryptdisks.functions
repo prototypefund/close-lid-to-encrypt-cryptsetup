@@ -298,12 +298,7 @@ do_luks () {
 		# no keyscript, no key => password
 		keyscriptarg="$promptmsg"
 		key="-"
-		if [ -x /bin/plymouth ] && plymouth --ping; then
-			KEYSCRIPT="plymouth ask-for-password --prompt"
-			keyscriptarg=$(printf "${keyscriptarg%?}")
-		else
-			KEYSCRIPT="/lib/cryptsetup/askpass"
-		fi
+		KEYSCRIPT="/lib/cryptsetup/askpass"
 	elif [ "$key" != "${key%/dev/*}" ]; then
 		# no keyscript, device key => special treatment
 		keyscriptarg=""
@@ -365,12 +360,7 @@ do_tcrypt () {
 		# no keyscript, no key => password
 		keyscriptarg="$promptmsg"
 		#key="-"
-		if [ -x /bin/plymouth ] && plymouth --ping; then
-			KEYSCRIPT="plymouth ask-for-password --prompt"
-			keyscriptarg=$(printf "${keyscriptarg%?}")
-		else
-			KEYSCRIPT="/lib/cryptsetup/askpass"
-		fi
+		KEYSCRIPT="/lib/cryptsetup/askpass"
 	elif [ "$key" != "${key%/dev/*}" ]; then
 		# no keyscript, device key => special treatment
 		keyscriptarg=""
@@ -438,12 +428,7 @@ do_noluks () {
 		# no keyscript, no key => password
 		keyscriptarg="$promptmsg"
 		key="-"
-		if [ -x /bin/plymouth ] && plymouth --ping; then
-			KEYSCRIPT="plymouth ask-for-password --prompt"
-			keyscriptarg=$(printf "${keyscriptarg%?}")
-		else
-			KEYSCRIPT="/lib/cryptsetup/askpass"
-		fi
+		KEYSCRIPT="/lib/cryptsetup/askpass"
 	else
 		# no keyscript, key => file input
 		keyscriptarg=""
