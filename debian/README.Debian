@@ -218,11 +218,11 @@ into the initramfs.
 
  You can then unlock the disk remotely via SSH with
 
-$ ssh -tF ~/.luks/ssh.conf root@remote.system.com unlock
+$ ssh -tF ~/.luks/ssh.conf root@remote.system.com cryptroot-unlock
 
  Or, using a local gpg-encrypted key file:
 
-$ gpg --decrypt ~/.luks/remote.key.gpg | ssh -TF ~/.luks/ssh.conf root@remote.system.com unlock
+$ gpg --decrypt ~/.luks/remote.key.gpg | ssh -TF ~/.luks/ssh.conf root@remote.system.com cryptroot-unlock
 
  That's it. Now that the encrypted root device is unlocked, the remote system
 should continue with the boot process.
@@ -231,7 +231,7 @@ should continue with the boot process.
 /etc/initramfs-tools/root/.ssh/authorized_keys to restrict access and avoid
 users poking around:
 
-no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command="/bin/unlock" ssh-rsa ...
+no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command="/bin/cryptroot-unlock" ssh-rsa ...
 
 (Be sure to rebuild the initrd afterwards: `update-initramfs -u -k all`.)
 
