@@ -54,8 +54,9 @@ cryptsetup (2:1.7.0-1~mejo5) mejo-unstable; urgency=medium
     storing keyfiles directly in the initrd. (closes: #786578)
   * debian/initramfs/cryptroot-hook: display a warning for invalid source
     devices (closes: #720515, #781955, #784435)
+  * debian/askpass.c: add plymouth support to the askpass helper command
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 17 Dec 2015 19:39:10 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 23 Dec 2015 22:40:54 +0100
 
 cryptsetup (2:1.6.6-5) unstable; urgency=high
 

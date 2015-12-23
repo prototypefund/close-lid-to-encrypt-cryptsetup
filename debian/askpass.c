@@ -38,11 +38,7 @@
 #include <sys/select.h>
 #include <sys/ioctl.h>
 #include <signal.h>
-#include <dirent.h>
-#include <linux/vt.h>
-#include <sys/socket.h>
 #include <sys/un.h>
-#include <sys/uio.h>
 
 #define DEBUG 0
 
@@ -216,65 +212,76 @@ systemd_finish(int fd)
 }
 
 /*****************************************************************************
- * splashy functions                                                         *
+ * plymouth functions                                                        *
  *****************************************************************************/
 
-/* It might be better style to just do a popen of splashy_update ? */
-
-#define SPLASHY_SOCK	"\0/splashy"
-static size_t splashyused = 0;
-static size_t splashysize = 0;
-static char *splashybuf = NULL;
+#define PLYMOUTH_PATH "/bin/plymouth"
+static pid_t plymouthpid;
+static size_t plymouthused = 0;
+static size_t plymouthsize = 0;
+static char *plymouthbuf = NULL;
 
 static int
-splashy_prepare(const char *prompt)
+plymouth_prepare(const char *prompt)
 {
-	int fd;
-	struct sockaddr addr = {AF_UNIX, SPLASHY_SOCK};
-	struct iovec iov[2];
+	int pipefds[2];
 
-	if ((fd = socket (PF_UNIX, SOCK_STREAM, 0)) == -1) {
+	if (access(PLYMOUTH_PATH, X_OK))
+		return -1;
+
+	if (system(PLYMOUTH_PATH" --ping"))
+		return -1;
+
+	/* Plymouth will add a ':' if it is a non-graphical prompt */
+	char *prompt2 = strdup(prompt);
+	int len = strlen(prompt2);
+	if (len > 1 && prompt2[len-2] == ':' && prompt2[len - 1] == ' ')
+		prompt2[len - 2] = '\0';
+	else if (len > 0 && prompt2[len - 1] == ':')
+		prompt2[len - 1] = '\0';
+
+	if (pipe(pipefds))
+		return -1;
+
+	plymouthpid = fork();
+	if (plymouthpid < 0) {
+		close(pipefds[0]);
+		close(pipefds[1]);
 		return -1;
 	}
 
-	if (connect (fd, &addr, sizeof addr) == -1) {
-		close (fd);
-		return -1;
+	if (plymouthpid == 0) {
+		close(pipefds[0]);
+		if (dup2(pipefds[1], STDOUT_FILENO) < 0)
+			exit(EXIT_FAILURE);
+		execl(PLYMOUTH_PATH, PLYMOUTH_PATH,
+		      "ask-for-password", "--prompt", prompt2, (char*)NULL);
+		exit(EXIT_FAILURE);
 	}
+	free(prompt2);
 
-	iov[0].iov_base = "getpass ";
-	iov[0].iov_len = strlen ("getpass ");
-	iov[1].iov_base = (char *)prompt;
-	iov[1].iov_len = strlen (prompt) + 1;
-
-	if (writev (fd, iov, 2) == -1) {
-		close (fd);
-		return -1;
-	}
-
-	/* Shutdown write? */
-
-	return fd;
+	close(pipefds[1]);
+	return pipefds[0];
 }
 
 static bool
-splashy_read(int fd, char **buf, size_t *size)
+plymouth_read(int fd, char **buf, size_t *size)
 {
-	debug("In splashy_read\n");
-	if (fifo_common_read(fd, &splashybuf, &splashyused, &splashysize)) {
-		*buf = splashybuf;
-		*size = splashyused;
+	debug("In plymouth_read\n");
+	if (fifo_common_read(fd, &plymouthbuf, &plymouthused, &plymouthsize)) {
+		*buf = plymouthbuf;
+		*size = plymouthused;
 		return true;
 	}
 
 	return false;
 }
 
-
 static void
-splashy_finish(int fd)
+plymouth_finish(int fd)
 {
-	fifo_common_finish (fd, &splashybuf, &splashyused, &splashysize);
+	kill(plymouthpid, SIGKILL);
+	fifo_common_finish(fd, &plymouthbuf, &plymouthused, &plymouthsize);
 }
 
 /*****************************************************************************
@@ -448,8 +455,8 @@ struct method {
 
 static struct method methods[] = {
 	{ "systemd", systemd_prepare, systemd_read, systemd_finish, true, false, true, -1 },
-	{ "splashy", splashy_prepare, splashy_read, splashy_finish, false, false, true, -1 },
 	{ "fifo", fifo_prepare, fifo_read, fifo_finish, false, false, true, -1 },
+	{ "plymouth", plymouth_prepare, plymouth_read, plymouth_finish, true, false, true, -1 },
 	{ "console", console_prepare, console_read, console_finish, false, false, true, -1 }
 };
 
