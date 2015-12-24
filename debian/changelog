@@ -1,4 +1,4 @@
-cryptsetup (2:1.7.0-1~mejo5) mejo-unstable; urgency=medium
+cryptsetup (2:1.7.0-1~mejo6) mejo-unstable; urgency=medium
 
   * NOT RELEASED YET
 
@@ -61,7 +61,7 @@ cryptsetup (2:1.7.0-1~mejo5) mejo-unstable; urgency=medium
   * debian/initramfs/cryptroot-unlock(-hook): add initramfs hook and script
     to remotely unlock cryptroot devices (e.g. via SSH). (closes: #782024)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 23 Dec 2015 22:58:44 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 23 Dec 2015 23:21:07 +0100
 
 cryptsetup (2:1.6.6-5) unstable; urgency=high
 

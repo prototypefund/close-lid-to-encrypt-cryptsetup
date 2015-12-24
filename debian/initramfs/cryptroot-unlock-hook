@@ -14,7 +14,7 @@ prereqs)
 	;;
 esac
 
-cp -p /usr/share/initramfs-tools/bin/cryptroot-unlock "$DESTDIR/bin/cryptroot-unlock"
+cp -p /usr/share/cryptsetup/initramfs/bin/cryptroot-unlock "$DESTDIR/bin/cryptroot-unlock"
 
 if [ -f /etc/initramfs-tools/etc/motd ]; then
 	cp /etc/initramfs-tools/etc/motd "$DESTDIR/etc/motd"
