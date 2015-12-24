@@ -188,7 +188,16 @@ setup_mapping()
 
 	parse_options "$opts" || return 1
 
-	if [ -n "$cryptkeyscript" ] && ! type "$cryptkeyscript" >/dev/null; then
+	if [ -z "$cryptkeyscript" ]; then
+		if [ ${cryptsource#/dev/disk/by-uuid/} != $cryptsource ]; then
+			# UUIDs are not very helpful
+			diskname="$crypttarget"
+		else
+			diskname="$cryptsource ($crypttarget)"
+		fi
+		cryptkeyscript="/lib/cryptsetup/askpass"
+		cryptkey="Please unlock disk $diskname: "
+	elif ! type "$cryptkeyscript" >/dev/null; then
 		message "cryptsetup: error - script \"$cryptkeyscript\" missing"
 		return 1
 	fi
@@ -287,19 +296,6 @@ setup_mapping()
 	while [ $crypttries -le 0 ] || [ $count -lt $crypttries ]; do
 		export CRYPTTAB_TRIED="$count"
 		count=$(( $count + 1 ))
-
-		if [ -z "$cryptkeyscript" ]; then
-			if [ ${cryptsource#/dev/disk/by-uuid/} != $cryptsource ]; then
-				# UUIDs are not very helpful
-				diskname="$crypttarget"
-			else
-				diskname="$cryptsource ($crypttarget)"
-			fi
-
-			cryptkeyscript="/lib/cryptsetup/askpass"
-			cryptkey="Please unlock disk $diskname: "
-		fi
-
 
 		if [ ! -e "$NEWROOT" ]; then
 			if ! crypttarget="$crypttarget" cryptsource="$cryptsource" \
