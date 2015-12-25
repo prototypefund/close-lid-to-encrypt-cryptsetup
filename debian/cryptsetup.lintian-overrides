@@ -6,3 +6,5 @@ cryptsetup: init.d-script-does-not-source-init-functions etc/init.d/cryptdisks
 cryptsetup: init.d-script-does-not-source-init-functions etc/init.d/cryptdisks-early
 cryptsetup: init.d-script-not-included-in-package etc/init.d/cryptdisks-udev
 cryptsetup: no-debconf-config
+# `cryptroot-unlock` is meant to be run from the initramfs image, using busybox's /bin/ash
+unusual-interpreter usr/share/cryptsetup/initramfs/bin/cryptroot-unlock #!/bin/busybox
