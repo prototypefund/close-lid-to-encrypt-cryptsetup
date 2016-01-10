@@ -770,21 +770,15 @@ do_stop () {
 	dmsetup mknodes
 	log_action_begin_msg "Stopping $INITSTATE crypto disks"
 
-	ITERATE=1
-	while [ "$ITERATE" = "1" ]; do
-		egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
+	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
+		for i in $(seq 1 30); do
 			handle_crypttab_line_stop "$dst" "$src" "$key" "$opts" <&3
-			STATE=$?
-			if [ "$STATE" = "0" ]; then
-				echo  "stopped $dst"
-				ITERATE=0
-			elif [ "$STATE" = "1" ]; then
-				log_action_end_msg $?
-				ITERATE=0
-			elif [ "$STATE" = "2" ]; then
-				echo "$dst Busy. Retrying..."
+			if [ $? -eq 2 ]; then
 				sleep 1
-				ITERATE=1
+				log_action_cont_msg "$dst busy..."
+			else
+				[ $? -eq 0 ] || log_action_end_msg $?
+				break
 			fi
 		done 3<&1
 	done
