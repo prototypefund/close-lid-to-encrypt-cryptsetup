@@ -1,3 +1,10 @@
+cryptsetup (2:1.7.0-3~mejo1) UNRELEASED; urgency=medium
+
+  * NOT RELEASED YET
+  * 
+
+ -- Jonas Meurer <mejo@debian.org>  Sun, 10 Jan 2016 18:55:54 +0100
+
 cryptsetup (2:1.7.0-2) unstable; urgency=medium
 
   [ Guilhem Moulin ]
