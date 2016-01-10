@@ -1,7 +1,11 @@
 cryptsetup (2:1.7.0-3~mejo1) UNRELEASED; urgency=medium
 
   * NOT RELEASED YET
-  * 
+
+  [ Guilhem Moulin ]
+  * debian/cryptdisks.functions: when iterating through the crypttab, don't
+    abort after the first disk that fails to be closed.  Regression introduced
+    2:1.7.0-1 when the filed is sourced under 'set -e'.
 
  -- Jonas Meurer <mejo@debian.org>  Sun, 10 Jan 2016 18:55:54 +0100
 

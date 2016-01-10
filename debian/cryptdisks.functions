@@ -772,12 +772,13 @@ do_stop () {
 
 	egrep -v "^[[:space:]]*(#|$)" "$TABFILE" | while read dst src key opts; do
 		for i in $(seq 1 30); do
-			handle_crypttab_line_stop "$dst" "$src" "$key" "$opts" <&3
-			if [ $? -eq 2 ]; then
+			ret=0
+			handle_crypttab_line_stop "$dst" "$src" "$key" "$opts" <&3 || ret=$?
+			if [ $ret -eq 2 ]; then
 				sleep 1
 				log_action_cont_msg "$dst busy..."
 			else
-				[ $? -eq 0 ] || log_action_end_msg $?
+				[ $ret -eq 0 ] || log_action_end_msg $ret
 				break
 			fi
 		done 3<&1
