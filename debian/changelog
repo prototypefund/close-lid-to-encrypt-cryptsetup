@@ -3,7 +3,7 @@ cryptsetup (2:1.7.0-2) unstable; urgency=medium
   [ Guilhem Moulin ]
   * Fix cryptsetup shutdown procedure on sysvinit, broken since 2:1.7.0-1 for
     systems without active crypttab entry at the time fo the shutdown.
-    (Closes: #792552)
+    (Closes: #792552, #810380)
 
  -- Guilhem Moulin <guilhem@guilhem.org>  Sun, 10 Jan 2016 05:44:31 +0100
 
