@@ -10,6 +10,7 @@ cryptsetup (2:1.7.0-3~mejo1) UNRELEASED; urgency=medium
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that
     cross-pkg-config can find it. (closes: #811545)
+  * Fix FTCBFS: Use host arch compiler for askpass as well. (closes: #811559)
 
  -- Jonas Meurer <mejo@debian.org>  Sun, 10 Jan 2016 18:55:54 +0100
 
