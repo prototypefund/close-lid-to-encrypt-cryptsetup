@@ -6,6 +6,9 @@ cryptsetup (2:1.7.0-3~mejo1) UNRELEASED; urgency=medium
   * debian/cryptdisks.functions: when iterating through the crypttab, don't
     abort after the first disk that fails to be closed.  Regression introduced
     2:1.7.0-1 when the filed is sourced under 'set -e'.
+  * debian/cryptdisks.functions: stop using `seq` since cryptsetup doesn't
+    depend on busybox.  Instead, try again after 1, 2, 4, 8 and 16s when an
+    encrypted disk cannot be closed. (Closes: #811456)
 
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that
