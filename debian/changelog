@@ -7,6 +7,10 @@ cryptsetup (2:1.7.0-3~mejo1) UNRELEASED; urgency=medium
     abort after the first disk that fails to be closed.  Regression introduced
     2:1.7.0-1 when the filed is sourced under 'set -e'.
 
+  [ Helmut Grohne ]
+  * libcryptsetup-dev: move the .pc file to a multiarch location such that
+    cross-pkg-config can find it. (closes: #811545)
+
  -- Jonas Meurer <mejo@debian.org>  Sun, 10 Jan 2016 18:55:54 +0100
 
 cryptsetup (2:1.7.0-2) unstable; urgency=medium

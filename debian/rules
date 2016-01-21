@@ -91,6 +91,7 @@ install-stamp: build-stamp
 
 	# Copy library files to library packages
 	mkdir -p $(CURDIR)/debian/libcryptsetup4/lib/$(DEB_HOST_MULTIARCH)/
+	mkdir -p $(CURDIR)/debian/libcryptsetup-dev/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig
 	#mkdir -p $(CURDIR)/debian/libcryptsetup4/usr/lib/$(DEB_HOST_MULTIARCH)/
 
 	cp -a $(CURDIR)/debian/cryptsetup-bin/lib/libcryptsetup.so.* \
@@ -100,7 +101,7 @@ install-stamp: build-stamp
 	#cp -a $(CURDIR)/debian/cryptsetup-bin/lib/libcryptsetup.a \
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/$(DEB_HOST_MULTIARCH)/
 	cp -a $(CURDIR)/debian/cryptsetup-bin/lib/pkgconfig/libcryptsetup.pc \
-		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/pkgconfig/
+		$(CURDIR)/debian/libcryptsetup-dev/usr/lib/$(DEB_HOST_MULTIARCH)/pkgconfig/
 	cp -a $(CURDIR)/debian/cryptsetup-bin/usr/include/libcryptsetup.h \
 		$(CURDIR)/debian/libcryptsetup-dev/usr/include/
 	#cp -a $(CURDIR)/debian/cryptsetup-bin/lib/libcryptsetup.so \
