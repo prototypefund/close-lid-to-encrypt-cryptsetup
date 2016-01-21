@@ -9,6 +9,9 @@ cryptsetup (2:1.7.0-3~mejo1) UNRELEASED; urgency=medium
   * debian/cryptdisks.functions: stop using `seq` since cryptsetup doesn't
     depend on busybox.  Instead, try again after 1, 2, 4, 8 and 16s when an
     encrypted disk cannot be closed. (Closes: #811456)
+  * debian/cryptsetup.maintscript: add a "rm_conffile" directive to remove
+    conffile /etc/bash_completion.d/cryptdisks, obsolete since 2:1.7.0-1.
+    (Closes: #810227)
 
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that
