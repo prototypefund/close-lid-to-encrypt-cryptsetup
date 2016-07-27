@@ -1,6 +1,15 @@
-cryptsetup (2:1.7.0-3~mejo1) UNRELEASED; urgency=medium
+cryptsetup (2:1.7.2-3~mejo1) UNRELEASED; urgency=medium
 
   * NOT RELEASED YET
+
+  [ Jonas Meurer ]
+  * new upstream release 1.7.2. Highlights include:
+    - code now uses kernel crypto API backend according to new changes
+      introduced in mainline kernel. (in 1.7.1)
+    - cryptsetup now allows special "-" (standard input) keyfile handling
+      even for TCRYPT (TrueCrypt and VeraCrypt compatible) devices. (in 1.7.1)
+    - Support activation options for error handling modes in Linux kernel
+      dm-verity module. (in 1.7.2)
 
   [ Guilhem Moulin ]
   * debian/cryptdisks.functions: when iterating through the crypttab, don't
@@ -18,7 +27,7 @@ cryptsetup (2:1.7.0-3~mejo1) UNRELEASED; urgency=medium
     cross-pkg-config can find it. (closes: #811545)
   * Fix FTCBFS: Use host arch compiler for askpass as well. (closes: #811559)
 
- -- Jonas Meurer <mejo@debian.org>  Sun, 10 Jan 2016 18:55:54 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 27 Jul 2016 17:01:11 +0200
 
 cryptsetup (2:1.7.0-2) unstable; urgency=medium
 
