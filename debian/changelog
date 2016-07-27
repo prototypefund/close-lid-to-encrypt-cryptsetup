@@ -10,6 +10,8 @@ cryptsetup (2:1.7.2-3~mejo1) UNRELEASED; urgency=medium
       even for TCRYPT (TrueCrypt and VeraCrypt compatible) devices. (in 1.7.1)
     - Support activation options for error handling modes in Linux kernel
       dm-verity module. (in 1.7.2)
+  * debian/cryptdisks.functions: use '--key-file=-' again with the tcrypt
+    extension, now that upstream issue #269 is fixed.
 
   [ Guilhem Moulin ]
   * debian/cryptdisks.functions: when iterating through the crypttab, don't
@@ -27,7 +29,7 @@ cryptsetup (2:1.7.2-3~mejo1) UNRELEASED; urgency=medium
     cross-pkg-config can find it. (closes: #811545)
   * Fix FTCBFS: Use host arch compiler for askpass as well. (closes: #811559)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 27 Jul 2016 17:01:11 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 27 Jul 2016 18:25:50 +0200
 
 cryptsetup (2:1.7.0-2) unstable; urgency=medium
 
