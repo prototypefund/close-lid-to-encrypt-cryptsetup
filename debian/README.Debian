@@ -103,7 +103,7 @@ mode 400 (-r--------) and root as owner/group. 'chown root.root keyfile' and
 'chmod 400 keyfile' will do the trick for you.
 
  If a key is stored on a vfat filesystem (very common for removable media),
-chmod and chown will not work. The vfat filesytem (and several others too)
+chmod and chown will not work. The vfat filesystem (and several others too)
 does not support file permissions and ownership. Instead, you should use the
 uid, gid and umask options in /etc/fstab to ensure secure permissions for the
 key.

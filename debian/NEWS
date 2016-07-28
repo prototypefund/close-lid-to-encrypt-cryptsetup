@@ -1,6 +1,6 @@
 cryptsetup (2:1.6.6-1) unstable; urgency=medium
 
-  The whirlpool hash implemenation has been broken in gcrypt until version
+  The whirlpool hash implementation has been broken in gcrypt until version
   1.5.3. This has been fixed in subsequent gcrypt releases. In particular,
   the gcrypt version that is used by cryptsetup starting with this release,
   has the bug fixed. Consequently, LUKS containers created with broken
