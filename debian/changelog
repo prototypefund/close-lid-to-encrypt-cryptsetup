@@ -13,6 +13,7 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
   * debian/cryptdisks.functions: use '--key-file=-' again with the tcrypt
     extension, now that upstream issue #269 is fixed.
   * debian/README.Debian, debian/NEWS: minor typo fixes.
+  * debian/control: Update Vcs-* fields to point to the new git repository.
 
   [ Guilhem Moulin ]
   * debian/cryptdisks.functions: when iterating through the crypttab, don't
@@ -30,7 +31,7 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
     cross-pkg-config can find it. (closes: #811545)
   * Fix FTCBFS: Use host arch compiler for askpass as well. (closes: #811559)
 
- -- Jonas Meurer <mejo@debian.org>  Thu, 28 Jul 2016 23:22:41 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 05 Aug 2016 17:11:59 +0200
 
 cryptsetup (2:1.7.0-2) unstable; urgency=medium
 
