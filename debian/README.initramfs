@@ -61,7 +61,7 @@ This will allow the initramfs support scripts to know which of the devices
 in the crypttab that is the root device.
 
 After doing these changes, you should regenerate the initramfs by running
-"initramfs-update -u", then make sure that your boot loader is configured
+"update-initramfs -u", then make sure that your boot loader is configured
 to feed the initramfs to the kernel when booting. The kernel root argument
 should also be changed to /dev/mapper/cryptroot.
 

@@ -25,6 +25,8 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
   * debian/cryptsetup.maintscript: add a "rm_conffile" directive to remove
     conffile /etc/bash_completion.d/cryptdisks, obsolete since 2:1.7.0-1.
     (Closes: #810227)
+  * debian/README.initramfs: fix typo s/initramfs-update/update-initramfs/.
+    Thanks, Stuart Prescott. (Closes: #827263)
 
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that
