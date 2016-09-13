@@ -249,7 +249,7 @@ the header contains eight keyslots, which do keep an encrypted version of the
 LUKS masterkey. the data on an encrypted LUKS partition is encrypted with this
 masterkey. thus, there's no way to restore the data once the masterkey is
 lost. For that reason, one might want to backup the LUKS header in order to
-prevent accidential data loss.
+prevent accidental data loss.
 
  On the other hand keeping a backup of the LUKS header isn't recommended for
 security reasons. The reason is, that LUKS was designed with key revocation in
