@@ -27,6 +27,8 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
     (Closes: #810227)
   * debian/README.initramfs: fix typo s/initramfs-update/update-initramfs/.
     Thanks, Stuart Prescott. (Closes: #827263)
+  * debian/rules: Add 'hardening=+pie' to DEB_BUILD_MAINT_OPTIONS to compile
+    ELF executables as PIEs.
 
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that
