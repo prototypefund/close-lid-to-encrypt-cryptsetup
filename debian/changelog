@@ -29,6 +29,7 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
     Thanks, Stuart Prescott. (Closes: #827263)
   * debian/rules: Add 'hardening=+pie' to DEB_BUILD_MAINT_OPTIONS to compile
     ELF executables as PIEs.
+  * debian/control: Bump Standards-Version to 3.9.8 (no changes necessary).
 
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that
