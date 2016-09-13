@@ -231,18 +231,21 @@ some cases it is desirable to include the key file in the initrd; for
 instance recent versions of GRUB support booting from encrypted block
 devices, allowing an encrypted /boot partition.
 
-Among the key files used in the crypttab(5), those matching the
-environment variable $KEYFILE_PATTERN (interpreted as a shell pattern)
-will be included in the initramfs image. For instance if /etc/crypttab
-contains two key files /etc/keys/{root,swap}.key, you can add the
-following to initramfs.conf to add them to the initrd.
+Among the key files listed in the crypttab(5), those matching the value
+of the environment variable KEYFILE_PATTERN (interpreted as a shell
+pattern) will be included in the initramfs image. For instance if
+/etc/crypttab lists two key files /etc/keys/{root,swap}.key, you can add
+the following to /etc/cryptsetup-initramfs/conf-hook to add them to the
+initrd.
 
   KEYFILE_PATTERN="/etc/keys/*.key"
-  export KEYFILE_PATTERN
-  UMASK=0077
 
-(If the initramfs image is to contain private key material, you'll want
-to create it with a restrictive umask.)
+Furthermore if the initramfs image is to include private key material,
+you'll want to create it with a restrictive umask in order to keep
+non-privileged users at bay.  This can be achived by adding the
+following to /etc/initramfs-tools/initramfs.conf.
+
+  UMASK=0077
 
  -- David Härdeman <david@hardeman.nu>
  -- Jonas Meurer <mejo@debian.org>  Thu, 01 Nov 2012 13:44:31 +0100

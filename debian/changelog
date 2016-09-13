@@ -32,6 +32,13 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
   * debian/control: Bump Standards-Version to 3.9.8 (no changes necessary).
   * debian/cryptsetup.lintian-overrides: Remove unused lintian override
     init.d-script-does-not-source-init-functions.
+  * Use /etc/crytsetup-initramfs/conf-hook for initramfs hook script
+    configuration.  For backward compatibility setting CRYPTSETUP and
+    KEYFILE_PATTERN in /etc/initramfs-tools/initramfs.conf is still supported
+    for now, but causes the hook to print a warning.
+    This is done following the initramfs-tools maintainers' request (see
+    #807527) that hook and boot script configuration files be stored outside
+    the /etc/initramfs-tools directory.
 
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that

@@ -138,8 +138,10 @@ install-stamp: build-stamp
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/scripts/local-top/cryptopensc
 	install -m 0755 debian/initramfs/cryptpassdev-hook \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptpassdev
-	install -m 0644 debian/initramfs/cryptroot-conf \
+	install -m 0644 debian/initramfs/cryptroot-initramfs.conf \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/conf-hooks.d/cryptsetup
+	install -m 0644 debian/initramfs/cryptroot-conf \
+		$(CURDIR)/debian/cryptsetup/etc/cryptsetup-initramfs/conf-hook
 	install -m 0755 debian/initramfs/cryptroot-hook \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptroot
 	install -m 0755 debian/initramfs/cryptroot-unlock \
