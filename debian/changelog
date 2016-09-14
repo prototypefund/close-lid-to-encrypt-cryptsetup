@@ -41,7 +41,9 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
     the /etc/initramfs-tools directory. (Closes: #783393)
   * Print a warning when private key material is to be included in the
     initramfs image (ie, if $KEYFILE_PATTERN is not empty), and the image is
-    created with a premissive mode.
+    created with a permissive mode.
+  * Add Indonesian debconf templates translation.  Thanks, Izharul Haq for the
+    patch.  (Closes: #835158)
 
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that
