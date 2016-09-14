@@ -38,7 +38,7 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
     for now, but causes the hook to print a warning.
     This is done following the initramfs-tools maintainers' request (see
     #807527) that hook and boot script configuration files be stored outside
-    the /etc/initramfs-tools directory.
+    the /etc/initramfs-tools directory. (Closes: #783393)
   * Print a warning when private key material is to be included in the
     initramfs image (ie, if $KEYFILE_PATTERN is not empty), and the image is
     created with a premissive mode.
