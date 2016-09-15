@@ -30,7 +30,7 @@ get_fs_devices() {
 			local devices
 			if [ "$type" = "btrfs" ]; then
 				for dev in $(btrfs filesystem show $(canonical_device "$device" --no-simplify) 2>/dev/null | sed -r -e 's/.*devid .+ path (.+)/\1/;tx;d;:x') ; do
-					devices="$devices $(canonical_device "$dev")"
+					devices="${devices:+$devices }$(canonical_device "$dev")"
 				done
 			else
 				devices=$(canonical_device "$device") || return 0
@@ -51,7 +51,7 @@ get_resume_devices() {
 	if [ -e /etc/uswsusp.conf ]; then
 		device=$(sed -rn 's/^resume device[[:space:]]*[:=][[:space:]]*// p' /etc/uswsusp.conf)
 		if [ -n "$device" ]; then
-			candidates="$candidates $device"
+			candidates="${candidates:+$candidates }$device"
 		fi
 	fi
 
@@ -59,7 +59,7 @@ get_resume_devices() {
 	if [ -e /etc/suspend.conf ]; then
 		device=$(sed -rn 's/^resume device[[:space:]]*[:=][[:space:]]*// p' /etc/suspend.conf)
 		if [ -n "$device" ]; then
-			candidates="$candidates $device"
+			candidates="${candidates:+$candidates }$device"
 		fi
 	fi
 
@@ -68,7 +68,7 @@ get_resume_devices() {
 		case $opt in
 			resume=*)
 				device="${opt#resume=}"
-				candidates="$candidates $device"
+				candidates="${candidates:+$candidates }$device"
 				;;
 		esac
 	done
@@ -77,7 +77,7 @@ get_resume_devices() {
 	if [ -e /etc/initramfs-tools/conf.d/resume ]; then
 		device=$(sed -rn 's/^RESUME[[:space:]]*=[[:space:]]*// p' /etc/initramfs-tools/conf.d/resume)
 		if [ -n "$device" ]; then
-			candidates="$candidates $device"
+			candidates="${candidates:+$candidates }$device"
 		fi
 	fi
 
@@ -96,7 +96,7 @@ get_resume_devices() {
 		# Detect devices required by decrypt_derived
 		derived=$(get_derived_device "$device")
 		if [ -n "$derived" ]; then
-			devices="$devices $derived"
+			devices="${devices:+$devices }$derived"
 		fi
 
 		device=$(canonical_device "$device") || return 0
@@ -113,7 +113,7 @@ get_resume_devices() {
 		fi
 
 		# This device seems ok
-		devices="$devices $device"
+		devices="${devices:+$devices }$device"
 		count=$(( $count + 1 ))
 	done
 
@@ -147,7 +147,7 @@ get_initramfs_devices() {
 		# Detect devices required by decrypt_derived
 		derived=$(get_derived_device "$device")
 		if [ -n "$derived" ]; then
-			devices="$devices $derived"
+			devices="${devices:+$devices }$derived"
 		fi
 
 		device=$(canonical_device "$device") || return 0
@@ -164,7 +164,7 @@ get_initramfs_devices() {
 		fi
 
 		# This device seems ok
-		devices="$devices $device"
+		devices="${devices:+$devices }$device"
 		count=$(( $count + 1 ))
 	done
 
@@ -466,11 +466,7 @@ add_device() {
 
 	# Flag root device
 	if echo "$rootdevs" | grep -q "\b$nodes\b"; then
-		if [ -z "$opts" ]; then
-			opts="rootdev"
-		else
-			opts="$opts,rootdev"
-		fi
+		opts="${opts:+$opts,}rootdev"
 	fi
 
 	# Check that it is a node under /dev/mapper/
@@ -487,11 +483,7 @@ add_device() {
 		fi
 
 		# It is a lvm device!
-		if [ -z "$opts" ]; then
-			opts="lvm=$nodes"
-		else
-			opts="$opts,lvm=$nodes"
-		fi
+		opts="${opts:+$opts,}lvm=$nodes"
 		nodes="$lvmnodes"
 	fi
 
@@ -501,10 +493,8 @@ add_device() {
 	for node in $nodes; do
 		# Prepare the additional options
 		if [ $i -eq $count ]; then
-			if [ -z "$opts" ]; then
-				opts="$lastopts"
-			elif [ -n "$lastopts" ]; then
-				opts="$opts,$lastopts"
+			if [ -n "$lastopts" ]; then
+				opts="${opts:+$opts,}$lastopts"
 			fi
 		fi
 
