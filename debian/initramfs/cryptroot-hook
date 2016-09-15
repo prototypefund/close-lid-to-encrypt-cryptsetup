@@ -373,7 +373,7 @@ get_device_opts() {
 			*)
 				keylink=$(readlink -e "$key")
 				if node_is_in "$target" $rootdevs; then
-					echo "cryptsetup: WARNING: root target $target uses a key file, skipped" >&2
+					echo "cryptsetup: WARNING: root target $target refers to a key file on itself, skipped" >&2
 					return 1
 				elif [ "$(stat -c %m -- "$keylink" 2>/dev/null)" != / ] || ! node_is_in_crypttab "$rootdevs"; then
 					echo "cryptsetup: WARNING: $target's key file $key is not on an encrypted root FS, skipped" >&2
