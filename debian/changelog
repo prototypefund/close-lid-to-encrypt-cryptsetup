@@ -43,7 +43,11 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
     initramfs image (ie, if $KEYFILE_PATTERN is not empty), and the image is
     created with a permissive mode.
   * Add Indonesian debconf templates translation.  Thanks, Izharul Haq for the
-    patch.  (Closes: #835158)
+    patch. (Closes: #835158)
+  * Support unlocking of devices at initramfs stage using a key file stored on
+    the encrypted root FS.  Note however that resume devices won't be unlocked
+    this way since the resume boot script is currently run before mounting the
+    root FS. (Closes: #776409)
 
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that

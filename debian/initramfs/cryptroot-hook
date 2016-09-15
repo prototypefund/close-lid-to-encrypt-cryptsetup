@@ -232,11 +232,11 @@ get_lvm_deps() {
 }
 
 get_device_opts() {
-	local target source link extraopts rootopts opt key
+	local target source link extraopts rootopts opt key keylink
 	target="$1"
 	extraopts="$2"
 	KEYSCRIPT=""
-	KEYFILE=""
+	KEYFILE="" # key file to copy to the initramfs image
 	CRYPTHEADER=""
 	OPTIONS=""
 
@@ -371,12 +371,32 @@ get_device_opts() {
 				key="/cryptroot-keyfiles/${target}.key"
 				;;
 			*)
-				echo "cryptsetup: WARNING: target $target uses a key file, skipped" >&2
-			   	return 1
+				keylink=$(readlink -e "$key")
+				if node_is_in "$target" $rootdevs; then
+					echo "cryptsetup: WARNING: root target $target uses a key file, skipped" >&2
+					return 1
+				elif [ "$(stat -c %m -- "$keylink" 2>/dev/null)" != / ] || ! node_is_in_crypttab "$rootdevs"; then
+					echo "cryptsetup: WARNING: $target's key file $key is not on an encrypted root FS, skipped" >&2
+					return 1
+				fi
+				if node_is_in "$target" $resumedevs; then
+					# we'll be able to decrypt such a device, but they can't be used for resuming
+					echo "cryptsetup: WARNING: resume device $source uses a key file" >&2
+				fi
+				OPTIONS="$OPTIONS,keyscript=cat-rootmnt" # prefix $rootmnt in local-block
+				key="$keylink"
 				;;
 		esac
 	fi
 	OPTIONS="$OPTIONS,key=$key"
+}
+
+node_is_in() {
+	k="$1"; shift
+	for x in "$@"; do
+		[ "$k" != "$x" ] || return 0
+	done
+	return 1
 }
 
 get_device_modules() {

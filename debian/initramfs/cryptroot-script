@@ -197,6 +197,11 @@ setup_mapping()
 		fi
 		cryptkeyscript="/lib/cryptsetup/askpass"
 		cryptkey="Please unlock disk $diskname: "
+	elif [ "$cryptkeyscript" = "cat-rootmnt" ]; then
+		# skip the mapping if the root FS is not mounted
+		grep -Eq "^\S+\s+$rootmnt\s" /proc/mounts || return 1
+		cryptkeyscript=cat
+		cryptkey="${rootmnt}${cryptkey}"
 	elif ! type "$cryptkeyscript" >/dev/null; then
 		message "cryptsetup: error - script \"$cryptkeyscript\" missing"
 		return 1
