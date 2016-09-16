@@ -98,7 +98,7 @@ parse_options()
 			if [ ${cryptsource#UUID=} != $cryptsource ]; then
 				cryptsource="/dev/disk/by-uuid/${cryptsource#UUID=}"
 			elif [ ${cryptsource#LABEL=} != $cryptsource ]; then
-				cryptsource="/dev/disk/by-label/${cryptsource#LABEL=}"
+				cryptsource="/dev/disk/by-label/$(printf '%s' "${cryptsource#LABEL=}" | sed 's,/,\\x2f,g')"
 			fi
 			export CRYPTTAB_SOURCE="$cryptsource"
 			;;

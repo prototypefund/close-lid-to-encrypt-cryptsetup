@@ -56,6 +56,9 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
     + replace `grep "^$x\b"` by `awk -vx="$x" '$1==x {print}'`; and
     + replace `echo "$x"` by printf '%s' "$x" when the argument might start
       with a dash.
+  * debian/initramfs/cryptroot-{hook,script}, debian/cryptdisks.functions:
+    ensure slash characters "/" from device labels are escaped when
+    constructing symlinks under /dev/disk/by-label.
 
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that
