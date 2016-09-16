@@ -16,6 +16,7 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
   * debian/control: Update Vcs-* fields to point to the new git repository.
 
   [ Guilhem Moulin ]
+  * debian/control: add self to uploaders.
   * debian/cryptdisks.functions: when iterating through the crypttab, don't
     abort after the first disk that fails to be closed.  Regression introduced
     2:1.7.0-1 when the filed is sourced under 'set -e'.
