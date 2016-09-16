@@ -232,7 +232,7 @@ get_lvm_deps() {
 }
 
 get_device_opts() {
-	local target source link extraopts rootopts opt key keylink
+	local target source link extraopts rootopts opt key
 	target="$1"
 	extraopts="$2"
 	KEYSCRIPT=""
@@ -367,26 +367,28 @@ get_device_opts() {
 		case "$key" in
 			$KEYFILE_PATTERN)
 				KEYFILE="$key"
-				OPTIONS="$OPTIONS,keyscript=cat"
 				key="/cryptroot-keyfiles/${target}.key"
 				;;
 			*)
-				keylink=$(readlink -e "$key")
+				key=$(readlink -e "$key")
 				if node_is_in "$target" $rootdevs; then
 					echo "cryptsetup: WARNING: root target $target refers to a key file on itself, skipped" >&2
 					return 1
-				elif [ "$(stat -c %m -- "$keylink" 2>/dev/null)" != / ] || ! node_is_in_crypttab "$rootdevs"; then
+				elif [ "$(stat -c %m -- "$key" 2>/dev/null)" != / ] || ! node_is_in_crypttab "$rootdevs"; then
 					echo "cryptsetup: WARNING: $target's key file $key is not on an encrypted root FS, skipped" >&2
 					return 1
 				fi
 				if node_is_in "$target" $resumedevs; then
-					# we'll be able to decrypt such a device, but they can't be used for resuming
+					# we'll be able to decrypt the device, but won't be able to use it for resuming
 					echo "cryptsetup: WARNING: resume device $source uses a key file" >&2
 				fi
-				OPTIONS="$OPTIONS,keyscript=cat-rootmnt" # prefix $rootmnt in local-block
-				key="$keylink"
+				# prepend "/root" (to be substituted by the real root FS
+				# mountpoint "$rootmnt" in the boot script) to the
+				# absolute filename
+				key="/root$key"
 				;;
 		esac
+		OPTIONS="$OPTIONS,keyscript=cat"
 	fi
 	OPTIONS="$OPTIONS,key=$key"
 }

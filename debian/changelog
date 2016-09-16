@@ -47,7 +47,7 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
     patch. (Closes: #835158)
   * debian/initramfs/cryptroot-hook: Avoid leading space in $rootdevs,
     $resumedevs, etc.
-  * Support unlocking of devices at initramfs stage using a key file stored on
+  * Support unlocking devices at initramfs stage using a key file stored on
     the encrypted root FS.  Note however that resume devices won't be unlocked
     this way since the resume boot script is currently run before mounting the
     root FS. (Closes: #776409)
