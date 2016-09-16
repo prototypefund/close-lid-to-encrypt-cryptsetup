@@ -35,7 +35,7 @@ get_fs_devices() {
 			else
 				devices=$(canonical_device "$device") || return 0
 			fi
-			echo "$devices"
+			printf '%s' "$devices"
 			return
 		fi
 	done
@@ -86,7 +86,7 @@ get_resume_devices() {
 	count=0
 	for device in $candidates; do
 		# Remove quotes around device candidate
-		device=$(echo $device | sed -e 's/^"\(.*\)"[[:space:]]*$/\1/' -e "s/^'\(.*\)'[[:space:]]*$/\1/")
+		device=$(printf '%s' "$device" | sed -r -e 's/^"(.*)"\s*$/\1/' -e "s/^'(.*)'\s*$/\1/")
 
 		# Weed out clever defaults
 		if [ "$device" = "<path_to_resume_device_file>" ]; then
@@ -125,7 +125,7 @@ get_resume_devices() {
 	fi
 
 	if [ $count -gt 0 ]; then
-		echo $devices
+		printf '%s' "$devices"
 	fi
 
 	return 0
@@ -136,7 +136,7 @@ get_initramfs_devices() {
 
 	candidates="$(grep -s '^[^#]' /etc/crypttab | \
 	while read target source key options; do
-		if echo $options | grep -q "\binitramfs\b"; then
+		if printf '%s' "$options" | grep -Eq "^(.*,)?initramfs(,.*)$"; then
 			echo " /dev/mapper/$target"
 		fi
 	done;)"
@@ -169,7 +169,7 @@ get_initramfs_devices() {
 	done
 
 	if [ $count -gt 0 ]; then
-		echo $devices
+		printf '%s' "$devices"
 	fi
 
 	return 0
@@ -180,12 +180,14 @@ get_derived_device() {
 	local device derived
 	device="$1"
 
-	derived="$(grep "^${device#/dev/mapper/}\b.*decrypt_derived" /etc/crypttab 2>/dev/null | awk '{print $3}')"
+	derived="$( awk -vtarget="${device#/dev/mapper/}" \
+		'$1 == target && $4 ~ /^(.*,)?keyscript=([^,]*\/)?decrypt_derived(,.*)?$/ {print $3; exit}' \
+		/etc/crypttab )"
 	if [ -n "$derived" ]; then
-		if grep -q "^$derived\b" /etc/crypttab; then
+		if node_is_in_crypttab "$derived"; then
 			derived=$(canonical_device "/dev/mapper/$derived") || return 0
-			if ! echo "$rootdevs" | grep -q "\b$derived\b"; then
-				echo "$derived"
+			if ! printf '%s' "$rootdevs" | tr ' ' '\n' | grep -Fxq "$derived"; then
+				printf '%s' "$derived"
 			fi
 		else
 			echo "cryptsetup: WARNING: decrypt_derived device $derived not found in crypttab" >&2
@@ -197,7 +199,8 @@ node_is_in_crypttab() {
 	local node
 	node="$1"
 
-	grep -q "^$node\b" /etc/crypttab
+	[ -f /etc/crypttab ] || return 1
+	sed -rn 's/^\s*([^#]\S*)\s.*/\1/p' /etc/crypttab | grep -Fxq "$node"
 	return $?
 }
 
@@ -225,7 +228,7 @@ get_lvm_deps() {
 			get_lvm_deps "$depnode"
 			continue
 		fi
-		echo "$depnode"
+		printf '%s' "$depnode"
 	done
 
 	return 0
@@ -245,10 +248,10 @@ get_device_opts() {
 		return 1
 	fi
 
-	opt=$( grep "^$target\b" /etc/crypttab | head -1 | sed 's/[[:space:]]\+/ /g' )
-	source=$( echo $opt | cut -d " " -f2 )
-	key=$( echo $opt | cut -d " " -f3 )
-	rootopts=$( echo $opt | cut -d " " -f4- )
+	opt="$( awk -vtarget="$target" '$1 == target {gsub(/[ \t]+/," "); print; exit}' /etc/crypttab )"
+	source=$( printf '%s' "$opt" | cut -d " " -f2 )
+	key=$( printf '%s' "$opt" | cut -d " " -f3 )
+	rootopts=$( printf '%s' "$opt" | cut -d " " -f4- )
 
 	if [ -z "$opt" ] || [ -z "$source" ] || [ -z "$key" ] || [ -z "$rootopts" ]; then
 		echo "cryptsetup: WARNING: invalid line in /etc/crypttab for $target - $opt" >&2
@@ -371,14 +374,14 @@ get_device_opts() {
 				;;
 			*)
 				key=$(readlink -e "$key")
-				if node_is_in "$target" $rootdevs; then
+				if printf '%s' "$rootdevs" | tr ' ' '\n' | grep -Fxq "$target"; then
 					echo "cryptsetup: WARNING: root target $target refers to a key file on itself, skipped" >&2
 					return 1
 				elif [ "$(stat -c %m -- "$key" 2>/dev/null)" != / ] || ! node_is_in_crypttab "$rootdevs"; then
 					echo "cryptsetup: WARNING: $target's key file $key is not on an encrypted root FS, skipped" >&2
 					return 1
 				fi
-				if node_is_in "$target" $resumedevs; then
+				if printf '%s' "$resumedevs" | tr ' ' '\n' | grep -Fxq "$target"; then
 					# we'll be able to decrypt the device, but won't be able to use it for resuming
 					echo "cryptsetup: WARNING: resume device $source uses a key file" >&2
 				fi
@@ -391,14 +394,6 @@ get_device_opts() {
 		OPTIONS="$OPTIONS,keyscript=cat"
 	fi
 	OPTIONS="$OPTIONS,key=$key"
-}
-
-node_is_in() {
-	k="$1"; shift
-	for x in "$@"; do
-		[ "$k" != "$x" ] || return 0
-	done
-	return 1
 }
 
 get_device_modules() {
@@ -448,7 +443,7 @@ canonical_device() {
 	fi
 
 	if [ "$opt" = "--no-simplify" ]; then
-		echo "$dev"
+		printf '%s' "$dev"
 		return 0
 	fi
 
@@ -463,7 +458,7 @@ canonical_device() {
 
 	altdev="${dev#/dev/mapper/}"
 	if [ "$altdev" != "$dev" ]; then
-		echo "$altdev"
+		printf '%s' "$altdev"
 		return 0
 	elif [ "x${original%/dev/disk/by-*/*}" = "x" ]; then
 		# support crypttab UUID/LABEL entries
@@ -487,7 +482,7 @@ add_device() {
 	fi
 
 	# Flag root device
-	if echo "$rootdevs" | grep -q "\b$nodes\b"; then
+	if printf '%s' "$rootdevs" | tr ' ' '\n' | grep -Fxq "$nodes"; then
 		opts="${opts:+$opts,}rootdev"
 	fi
 
@@ -510,7 +505,7 @@ add_device() {
 	fi
 
 	# Prepare to setup each node
-	count=$(echo "$nodes" | wc -w)
+	count=$(printf '%s' "$nodes" | wc -w)
 	i=1
 	for node in $nodes; do
 		# Prepare the additional options
@@ -524,7 +519,7 @@ add_device() {
 		if ! get_device_opts "$node" "$opts"; then
 			continue
 		fi
-		echo "$OPTIONS" >>"$DESTDIR/conf/conf.d/cryptroot"
+		printf '%s\n' "$OPTIONS" >>"$DESTDIR/conf/conf.d/cryptroot"
 
 		# If we have a keyscript, make sure it is included
 		if [ -n "$KEYSCRIPT" ]; then

@@ -204,7 +204,7 @@ setup_mapping()
 
 	if [ "$cryptkeyscript" = "cat" ] && [ "${cryptkey#/root/}" != "$cryptkey" ]; then
 		# skip the mapping if the root FS is not mounted yet
-		sed -rn 's/^[^#]\S*\s+(\S+)\s.*/\1/p' /proc/mounts | grep -Fxq "$rootmnt" || return 1
+		sed -rn 's/^\s*[^#]\S*\s+(\S+)\s.*/\1/p' /proc/mounts | grep -Fxq "$rootmnt" || return 1
 		# substitute the "/root" prefix by the real root FS mountpoint otherwise
 		cryptkey="${rootmnt}/${cryptkey#/root/}"
 	fi

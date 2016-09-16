@@ -51,6 +51,11 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
     the encrypted root FS.  Note however that resume devices won't be unlocked
     this way since the resume boot script is currently run before mounting the
     root FS. (Closes: #776409)
+  * debian/initramfs/cryptroot-hook: Avoid undesired effects for target or
+    device names containing non-alphanumeric characters such as "." or "-":
+    + replace `grep "^$x\b"` by `awk -vx="$x" '$1==x {print}'`; and
+    + replace `echo "$x"` by printf '%s' "$x" when the argument might start
+      with a dash.
 
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that

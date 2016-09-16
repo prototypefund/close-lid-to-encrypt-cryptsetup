@@ -25,7 +25,8 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-if ! device=$(dmsetup --showkeys table 2>/dev/null | grep "^$1:"); then
+if ! device=$(dmsetup --showkeys table 2>/dev/null \
+	| awk -vtarget="$1" '$1 == target ":" {print}'); then
 	echo "$0: failed to find $1 in dmtable" >&2
 	exit 1
 fi
