@@ -427,13 +427,11 @@ canonical_device() {
 	dev="$1"
 	opt="$2"
 
-	altdev="${dev#LABEL=}"
-	if [ "$altdev" != "$dev" ]; then
+	if [ "${dev#LABEL=}" != "$dev" ]; then
+		altdev="${dev#LABEL=}"
 		dev="/dev/disk/by-label/$(printf '%s' "$altdev" | sed 's,/,\\x2f,g')"
-	fi
-
-	altdev="${dev#UUID=}"
-	if [ "$altdev" != "$dev" ]; then
+	elif [ "${dev#UUID=}" != "$dev" ]; then
+		altdev="${dev#UUID=}"
 		dev="/dev/disk/by-uuid/$altdev"
 	fi
 
