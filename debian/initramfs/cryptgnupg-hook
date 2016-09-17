@@ -27,16 +27,14 @@ if [ ! -x ${DESTDIR}/lib/cryptsetup/scripts/decrypt_gnupg ] ; then
 fi
 
 # Install cryptroot key files into initramfs
-keys="$( awk '$4 ~ /^(.*,)?keyscript=([^,]*\/)?decrypt_gnupg(,.*)?$/ {print $3}' \
-			/etc/crypttab )"
-
-if [ -z "$keys" ]; then
-	echo "$0: Missing key files in ${DESTDIR}/conf/conf.d/cryptroot" >&2
-	cat "${DESTDIR}/conf/conf.d/cryptroot" >&2
-	exit 1
-fi
-
-for key in $keys; do
+grep -E '(.*,)?keyscript=([^,]*\/)?decrypt_gnupg(,.*)?$' "${DESTDIR}/conf/conf.d/cryptroot" | \
+sed -r '/(.*,)?key=([^,]*)(,.*)?$/ s//\2/; t n; s/.*//; :n' | \
+while read key; do
+	if [ -z "$key" ]; then
+		echo "$0: Missing key file in ${DESTDIR}/conf/conf.d/cryptroot" >&2
+		cat "${DESTDIR}/conf/conf.d/cryptroot" >&2
+		exit 1
+	fi
 	echo "WARNING: gpg-encrypted key $key is copied to initramfs" >&2
 	mkdir -p "${DESTDIR}/$(dirname ${key})"
 	cp -f "$key" "${DESTDIR}/${key}"
