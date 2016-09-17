@@ -59,6 +59,11 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
   * debian/initramfs/cryptroot-{hook,script}, debian/cryptdisks.functions:
     ensure slash characters "/" from device labels are escaped when
     constructing symlinks under /dev/disk/by-label.
+  * debian/scripts/decrypt_gnupg:
+    + Remove --no-mdc-warning to display a warning if the MDC integrity
+      protection is missing.
+    + Replace "GnuPG key" by "gpg-encrypted key" in messages and
+      documentation.
 
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that

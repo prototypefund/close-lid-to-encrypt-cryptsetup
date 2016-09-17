@@ -18,7 +18,8 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
-# Hooks for loading gnupg software and key into the initramfs
+# Hooks for loading gnupg software and symmetrically encrypted key into
+# the initramfs
 
 # Check whether cryptroot hook has installed decrypt_gnupg script
 if [ ! -x ${DESTDIR}/lib/cryptsetup/scripts/decrypt_gnupg ] ; then
@@ -35,7 +36,7 @@ if [ "${keys}" != "none" ]; then
         exit 1
     fi
     for key in ${keys} ; do
-	echo "WARNING: GnuPG key $key is copied to initramfs" >&2
+	echo "WARNING: gpg-encrypted key $key is copied to initramfs" >&2
         if [ ! -d ${DESTDIR}/$(dirname ${key}) ] ; then
             mkdir -p ${DESTDIR}/$(dirname ${key})
         fi

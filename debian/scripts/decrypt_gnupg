@@ -3,7 +3,7 @@
 decrypt_gpg () {
 	echo "Performing GPG key decryption ..." >&2
 	if ! /lib/cryptsetup/askpass "Enter passphrase for key $1: " | \
-		/usr/bin/gpg -q --batch --no-options --no-mdc-warning  \
+		/usr/bin/gpg -q --batch --no-options  \
 		--no-random-seed-file --no-default-keyring \
 		--keyring /dev/null --secret-keyring /dev/null \
 		--trustdb-name /dev/null --passphrase-fd 0 --decrypt $1; then
