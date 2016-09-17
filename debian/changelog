@@ -66,6 +66,9 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
       documentation.
   * debian/initramfs/cryptgnupg-hook: Add support for multiple devices
     encrypted using a gpg-encrypted key.
+  * debian/README.gnupg: Indicate that not the only the gpg-encrypted key for
+    the root FS is copied onto the initramfs, but also the ones for all
+    devices that need to be unlocked at initramfs stage.
 
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that
