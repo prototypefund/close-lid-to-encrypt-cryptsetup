@@ -64,6 +64,8 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
       protection is missing.
     + Replace "GnuPG key" by "gpg-encrypted key" in messages and
       documentation.
+  * debian/initramfs/cryptgnupg-hook: Add support for multiple devices
+    encrypted using a gpg-encrypted key.
 
   [ Helmut Grohne ]
   * libcryptsetup-dev: move the .pc file to a multiarch location such that
