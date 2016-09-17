@@ -1,7 +1,7 @@
 #!/bin/sh
 
 decrypt_gpg () {
-	echo "Performing GPG key decryption ..." >&2
+	echo "Performing GPG symmetric decryption ..." >&2
 	if ! /lib/cryptsetup/askpass "Enter passphrase for key $1: " | \
 		/usr/bin/gpg -q --batch --no-options  \
 		--no-random-seed-file --no-default-keyring \
