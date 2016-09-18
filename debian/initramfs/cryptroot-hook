@@ -196,12 +196,14 @@ get_derived_device() {
 }
 
 node_is_in_crypttab() {
-	local node
-	node="$1"
-
 	[ -f /etc/crypttab ] || return 1
-	sed -rn 's/^\s*([^#]\S*)\s.*/\1/p' /etc/crypttab | grep -Fxq "$node"
-	return $?
+
+	while [ $# -gt 0 ]; do
+		sed -rn 's/^\s*([^#]\S*)\s.*/\1/p' /etc/crypttab | grep -Fxq "$1" || return 1
+		shift
+	done
+
+	return 0
 }
 
 get_lvm_deps() {
@@ -377,7 +379,7 @@ get_device_opts() {
 				if printf '%s' "$rootdevs" | tr ' ' '\n' | grep -Fxq "$target"; then
 					echo "cryptsetup: WARNING: root target $target refers to a key file on itself, skipped" >&2
 					return 1
-				elif [ "$(stat -c %m -- "$key" 2>/dev/null)" != / ] || ! node_is_in_crypttab "$rootdevs"; then
+				elif [ "$(stat -c %m -- "$key" 2>/dev/null)" != / ] || ! node_is_in_crypttab $rootdevs; then
 					echo "cryptsetup: WARNING: $target's key file $key is not on an encrypted root FS, skipped" >&2
 					return 1
 				fi
