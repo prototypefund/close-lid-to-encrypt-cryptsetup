@@ -1,4 +1,4 @@
-cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
+cryptsetup (2:1.7.2-1~mejo1) mejo-unstable; urgency=medium
 
   * NOT RELEASED YET
 
@@ -14,6 +14,7 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
     extension, now that upstream issue #269 is fixed.
   * debian/README.Debian, debian/NEWS: minor typo fixes.
   * debian/control: Update Vcs-* fields to point to the new git repository.
+  * debian/rules: run pod2man without --release commandline option.
 
   [ Guilhem Moulin ]
   * debian/control: add self to uploaders.
@@ -77,7 +78,7 @@ cryptsetup (2:1.7.2-1~mejo1) UNRELEASED; urgency=medium
     cross-pkg-config can find it. (closes: #811545)
   * Fix FTCBFS: Use host arch compiler for askpass as well. (closes: #811559)
 
- -- Jonas Meurer <mejo@debian.org>  Fri, 05 Aug 2016 17:11:59 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 28 Sep 2016 23:41:55 +0200
 
 cryptsetup (2:1.7.0-2) unstable; urgency=medium
 

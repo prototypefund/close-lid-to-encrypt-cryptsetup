@@ -68,7 +68,7 @@ build-indep: build-stamp
 	xsltproc --nonet --xinclude -o debian/doc/ \
 		/usr/share/xml/docbook/stylesheet/docbook-xsl/manpages/docbook.xsl \
 		debian/doc/manpages.xml
-	pod2man --section=8 --center="Administrative commands" --release="" debian/scripts/luksformat \
+	pod2man --section=8 --center="Administrative commands" debian/scripts/luksformat \
 		debian/luksformat.8
 	# generate gettext po files (for luksformat)
 	$(MAKE) -C debian/scripts/po all luksformat.pot
