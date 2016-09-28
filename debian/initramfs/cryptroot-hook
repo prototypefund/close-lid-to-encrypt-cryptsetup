@@ -136,7 +136,7 @@ get_initramfs_devices() {
 
 	candidates="$(grep -s '^[^#]' /etc/crypttab | \
 	while read target source key options; do
-		if printf '%s' "$options" | grep -Eq "^(.*,)?initramfs(,.*)$"; then
+		if printf '%s' "$options" | grep -Eq "^(.*,)?initramfs(,.*)?$"; then
 			echo " /dev/mapper/$target"
 		fi
 	done;)"
