@@ -1,6 +1,4 @@
-cryptsetup (2:1.7.2-1~mejo1) mejo-unstable; urgency=medium
-
-  * NOT RELEASED YET
+cryptsetup (2:1.7.2-1) unstable; urgency=medium
 
   [ Jonas Meurer ]
   * new upstream release 1.7.2. Highlights include:
@@ -81,7 +79,7 @@ cryptsetup (2:1.7.2-1~mejo1) mejo-unstable; urgency=medium
     cross-pkg-config can find it. (closes: #811545)
   * Fix FTCBFS: Use host arch compiler for askpass as well. (closes: #811559)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 05 Oct 2016 17:21:40 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 05 Oct 2016 20:53:09 +0200
 
 cryptsetup (2:1.7.0-2) unstable; urgency=medium
 
