@@ -40,3 +40,4 @@ Importing a new upstream release
            git checkout master
            git merge <tag>
 
+ -- Jonas Meurer <mejo@debian.org>  Wed, 05 Oct 2016 17:21:40 +0200
