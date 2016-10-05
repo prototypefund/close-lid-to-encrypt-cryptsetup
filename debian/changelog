@@ -14,6 +14,8 @@ cryptsetup (2:1.7.2-1~mejo1) mejo-unstable; urgency=medium
     extension, now that upstream issue #269 is fixed.
   * migrate the packaging repository from SVN to Git:
     - debian/control: Update Vcs-* fields to point to the new git repository.
+    - debian/README.source: document new repository structure and release
+      handling.
   * debian/README.Debian, debian/NEWS: minor typo fixes.
   * debian/rules: run pod2man --release="$(DEB_VERSION). (Closes: #839352)
 
@@ -79,7 +81,7 @@ cryptsetup (2:1.7.2-1~mejo1) mejo-unstable; urgency=medium
     cross-pkg-config can find it. (closes: #811545)
   * Fix FTCBFS: Use host arch compiler for askpass as well. (closes: #811559)
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 05 Oct 2016 17:16:25 +0200
+ -- Jonas Meurer <mejo@debian.org>  Wed, 05 Oct 2016 17:21:40 +0200
 
 cryptsetup (2:1.7.0-2) unstable; urgency=medium
 
