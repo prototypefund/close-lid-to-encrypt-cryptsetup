@@ -41,8 +41,8 @@ Importing a new upstream release
            git merge <tag>
 
     N. After development and testing, the final packages to be uploaded to
-       Debian are built with the following command:
+       Debian are built and tagged in the repository as follows:
 
-           gbp buildpackage --git-upstream-tag=<tag> --git-tag
+           gbp buildpackage --git-tag
 
  -- Jonas Meurer <mejo@debian.org>  Wed, 05 Oct 2016 20:57:12 +0200
