@@ -4,6 +4,7 @@ cryptsetup (2:1.7.2-3) UNRELEASED; urgency=medium
     so the (deprecated) values set in /etc/initramfs-tools aren't overridden
     to the empty string by default.  Regression introduced in 2:1.7.2-1.
     (Closes: #839994.)
+  * debian/README.initramfs: fixed minor typo.
 
  -- Guilhem Moulin <guilhem@guilhem.org>  Fri, 07 Oct 2016 16:28:09 +0200
 

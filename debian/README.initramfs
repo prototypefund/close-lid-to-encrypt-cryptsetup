@@ -242,7 +242,7 @@ initrd.
 
 Furthermore if the initramfs image is to include private key material,
 you'll want to create it with a restrictive umask in order to keep
-non-privileged users at bay.  This can be achived by adding the
+non-privileged users at bay.  This can be achieved by adding the
 following to /etc/initramfs-tools/initramfs.conf.
 
   UMASK=0077
