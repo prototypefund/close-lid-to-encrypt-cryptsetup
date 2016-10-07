@@ -11,7 +11,7 @@
 # (such as root or resume devices).
 #
 
-CRYPTSETUP=
+#CRYPTSETUP=
 
 #
 # KEYFILE_PATTERN: ...
@@ -31,4 +31,4 @@ CRYPTSETUP=
 # /etc/initramfs-tools/initramfs.conf
 #
 
-KEYFILE_PATTERN=
+#KEYFILE_PATTERN=
