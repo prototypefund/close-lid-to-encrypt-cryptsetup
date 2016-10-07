@@ -1,12 +1,13 @@
-cryptsetup (2:1.7.2-3) UNRELEASED; urgency=medium
+cryptsetup (2:1.7.2-3) unstable; urgency=medium
 
+  [ Guilhem Moulin ]
   * debian/initramfs/cryptroot-conf: don't set CRYPTSETUP and KEYFILE_PATTERN,
     so the (deprecated) values set in /etc/initramfs-tools aren't overridden
     to the empty string by default.  Regression introduced in 2:1.7.2-1.
     (Closes: #839994.)
   * debian/README.initramfs: fixed minor typo.
 
- -- Guilhem Moulin <guilhem@guilhem.org>  Fri, 07 Oct 2016 16:28:09 +0200
+ -- Jonas Meurer <mejo@debian.org>  Sat, 08 Oct 2016 00:01:25 +0200
 
 cryptsetup (2:1.7.2-2) unstable; urgency=medium
 
