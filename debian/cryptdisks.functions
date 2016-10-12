@@ -742,7 +742,7 @@ do_start () {
 		if [ "${dev_match#UUID=}" != "$dev_match" ]; then
 			dev_match="$(readlink -f /dev/disk/by-uuid/${dev_match#UUID=})"
 		elif [ "${dev_match#LABEL=}" != "$dev_match" ]; then
-			dev_match="$(readlink -f /dev/disk/by-label/$(printf '%s' "${dev_match#LABEL=}") | sed 's,/,\\x2f,g')"
+			dev_match="$(readlink -f "/dev/disk/by-label/$(printf '%s' "${dev_match#LABEL=}" | sed 's,/,\\x2f,g')")"
 		fi
 		# only required for the (ubuntu) upstart init system:
 		# if there's already a udev-triggered job running for this
