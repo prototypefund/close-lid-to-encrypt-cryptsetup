@@ -1,3 +1,11 @@
+cryptsetup (2:1.7.2-4) UNRELEASED; urgency=medium
+
+  * debian/initramfs/cryptroot-conf: fix warning printed for lvm devices
+    backed by multiple dm-crypt nodes.  Regression introduced in 2:1.7.2-1.
+    Thanks Zoltan Hidvegi, for the patch. (Closes: #840480)
+
+ -- Guilhem Moulin <guilhem@guilhem.org>  Wed, 12 Oct 2016 08:10:58 +0200
+
 cryptsetup (2:1.7.2-3) unstable; urgency=medium
 
   [ Guilhem Moulin ]

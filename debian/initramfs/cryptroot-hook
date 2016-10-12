@@ -230,7 +230,7 @@ get_lvm_deps() {
 			get_lvm_deps "$depnode"
 			continue
 		fi
-		printf '%s' "$depnode"
+		printf '%s\n' "$depnode"
 	done
 
 	return 0
