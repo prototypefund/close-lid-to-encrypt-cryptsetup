@@ -1,5 +1,6 @@
-cryptsetup (2:1.7.2-4) UNRELEASED; urgency=medium
+cryptsetup (2:1.7.2-4) unstable; urgency=high
 
+  [ Guilhem Moulin ]
   * debian/initramfs/cryptroot-hook:
     + Fix warning printed for lvm devices backed by multiple dm-crypt nodes.
       Regression introduced in 2:1.7.2-1.  Thanks Zoltan Hidvegi, for the
@@ -8,7 +9,7 @@ cryptsetup (2:1.7.2-4) UNRELEASED; urgency=medium
       /dev/by-label/..., only the label itself.  Regression introduced in
       2:1.7.2-2 as a fix for #839888.
 
- -- Guilhem Moulin <guilhem@guilhem.org>  Wed, 12 Oct 2016 08:10:58 +0200
+ -- Jonas Meurer <mejo@debian.org>  Thu, 13 Oct 2016 23:11:45 +0200
 
 cryptsetup (2:1.7.2-3) unstable; urgency=medium
 
