@@ -1,380 +1,395 @@
-# Polish translation for cryptsetup.
+# Czech translation for cryptsetup.
 # Copyright (C) 2010 Free Software Foundation, Inc.
-# This file is put in the public domain.
-# Jakub Bogusz <qboosh@pld-linux.org>, 2010.
+# This file is distributed under the same license as the cryptsetup package.
+# Petr Pisar <petr.pisar@atlas.cz>, 2010.
+# Milan Broz <mbroz@redhat.com>, 2010.
+#
+# See `LUKS On-Disk Format Specification' document to clarify some terms.
+#
+# key slot → pozice klíče
+# plain/LUSK1 crypt → šifra plain/LUKS1 („plain“ nepřekládat)
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: cryptsetup 1.2.0-rc1\n"
 "Report-Msgid-Bugs-To: dm-crypt@saout.de\n"
 "POT-Creation-Date: 2010-11-15 18:03+0100\n"
-"PO-Revision-Date: 2010-11-23 07:57+0100\n"
-"Last-Translator: Jakub Bogusz <qboosh@pld-linux.org>\n"
-"Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
+"PO-Revision-Date: 2010-11-25 15:11+0100\n"
+"Last-Translator: Petr Pisar <petr.pisar@atlas.cz>\n"
+"Language-Team: Czech <translation-team-cs@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=ISO-8859-2\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: cs\n"
 
 #: lib/gcrypt.c:47
 msgid "Cannot initialize crypto backend.\n"
-msgstr "Nie mo�na zainicjowa� backendu kryptograficznego.\n"
+msgstr "Nelze inicializovat šifrovací rozhraní.\n"
 
 #: lib/libdevmapper.c:120
 msgid "Cannot initialize device-mapper. Is dm_mod kernel module loaded?\n"
-msgstr "Nie mo�na zainicjowa� device-mappera. Czy modu� j�dra dm_mod jest wczytany?\n"
+msgstr "Nelze inicializovat device-mapper. Je jaderný modul dm_mod zaveden?\n"
 
 #: lib/libdevmapper.c:408
 #, c-format
 msgid "DM-UUID for device %s was truncated.\n"
-msgstr "DM-UUID dla urz�dzenia %s zosta� skr�cony.\n"
+msgstr "DM-UUID pro zařízení %s bylo zkráceno.\n"
 
 #: lib/random.c:73
 msgid ""
 "System is out of entropy while generating volume key.\n"
 "Please move mouse or type some text in another window to gather some random events.\n"
 msgstr ""
-"Entropia w systemie wyczerpa�a si� w trakcie generowania klucza wolumenu.\n"
-"Prosz� porusza� mysz� albo wpisa� troch� tekstu w innym oknie w celu zebrania zdarze� losowych.\n"
+"Během vytváření klíče svazku došla systému entropie.\n"
+"Aby bylo možné nasbírat náhodné události, žádáme uživatele, aby pohyboval\n"
+"myší nebo psal text do jiného okna.\n"
 
 #: lib/random.c:77
 #, c-format
 msgid "Generating key (%d%% done).\n"
-msgstr "Generowanie klucza (gotowe %d%%).\n"
+msgstr "Vytváří se klíč (%d %% hotovo).\n"
 
 #: lib/random.c:163
 msgid "Fatal error during RNG initialisation.\n"
-msgstr "B��d krytyczny w trakcie inicjalizacji RNG.\n"
+msgstr "Fatální chyba během přípravy generátoru náhodných čísel.\n"
 
 #: lib/random.c:190
 msgid "Unknown RNG quality requested.\n"
-msgstr "Nieznane ��danie jako�ci RNG.\n"
+msgstr "Požadována neznámá kvalita generátoru náhodných čísel.\n"
 
 #: lib/random.c:195
 #, c-format
 msgid "Error %d reading from RNG: %s\n"
-msgstr "B��d %d podczas odczytu z RNG: %s\n"
+msgstr "Chyba %d při čtení z generátoru náhodných čísel: %s\n"
 
+# TODO: plural
 #: lib/setup.c:109
 #, c-format
 msgid "Cannot not read %d bytes from key file %s.\n"
-msgstr "Nie mo�na odczyta� %d bajt�w z pliku klucza %s.\n"
+msgstr "Ze souboru s klíčem %2$s nelze přečíst %1$d bajtů.\n"
 
 #: lib/setup.c:121
 #, c-format
 msgid "Key processing error (using hash algorithm %s).\n"
-msgstr "B��d przetwarzania klucza (u�yto algorytmu skr�tu %s).\n"
+msgstr "Chyba zpracování klíče (za použití hašovacího algoritmu %s).\n"
 
 #: lib/setup.c:151
 msgid "All key slots full.\n"
-msgstr "Wszyskie miejsca na klucze s� pe�ne.\n"
+msgstr "Všechny pozice klíčů jsou obsazeny.\n"
 
 #: lib/setup.c:158 lib/setup.c:299 lib/setup.c:763
 #, c-format
 msgid "Key slot %d is invalid, please select between 0 and %d.\n"
-msgstr "Numer klucza %d jest b��dny, prosz� wybra� warto�� mi�dzy 0 a %d.\n"
+msgstr "Pozice klíče %d není platná, prosím, vyberte číslo mezi 0 a %d.\n"
 
 #: lib/setup.c:164
 #, c-format
 msgid "Key slot %d is full, please select another one.\n"
-msgstr "Miejsce na klucz %d jest pe�ne, prosz� wybra� inne.\n"
+msgstr "Pozice klíče %d je obsazena, prosím, vyberte jinou.\n"
 
 #: lib/setup.c:182 src/cryptsetup.c:516
 msgid "Enter any remaining LUKS passphrase: "
-msgstr "Dowolne pozosta�e has�o LUKS: "
+msgstr "Zadejte jakékoliv jiné heslo LUKS: "
 
 #: lib/setup.c:202
 #, c-format
 msgid "Key slot %d verified.\n"
-msgstr "Klucz %d sprawdzony.\n"
+msgstr "Pozice klíče %d ověřena.\n"
 
 #: lib/setup.c:247
 #, c-format
 msgid "Cannot use device %s which is in use (already mapped or mounted).\n"
-msgstr "Nie mo�na u�y� urz�dzenia %s, kt�re jest w u�yciu (ju� podmapowane lub zamontowane).\n"
+msgstr ""
+"Zařízení %s nelze použít, protože se již používá\n"
+"(již namapováno nebo připojeno).\n"
 
 #: lib/setup.c:251
 #, c-format
 msgid "Cannot get info about device %s.\n"
-msgstr "Nie mo�na uzyska� informacji o urz�dzeniu %s.\n"
+msgstr "O zařízení %s nelze získat údaje.\n"
 
 #: lib/setup.c:259
 #, c-format
 msgid "Device %s has zero size.\n"
-msgstr "Urz�dzenie %s ma zerowy rozmiar.\n"
+msgstr "Zařízení %s má nulovou velikost.\n"
 
 #: lib/setup.c:263
 #, c-format
 msgid "Device %s is too small.\n"
-msgstr "Urz�dzenie %s jest zbyt ma�e.\n"
+msgstr "Zařízení %s je příliš malé.\n"
 
 #: lib/setup.c:288 src/cryptsetup.c:544
 msgid "Enter LUKS passphrase to be deleted: "
-msgstr "Has�o LUKS do usuni�cia: "
+msgstr "Zadejte heslo LUKS, které se má smazat: "
 
 #: lib/setup.c:294 src/cryptsetup.c:505 src/cryptsetup.c:559
 #, c-format
 msgid "Key slot %d selected for deletion.\n"
-msgstr "klucz %d wybrany do usuni�cia.\n"
+msgstr "Ke smazání vybrán klíč na pozici %d.\n"
 
 #: lib/setup.c:305 src/cryptsetup.c:508
 #, c-format
 msgid "Key %d not active. Can't wipe.\n"
-msgstr "Klucz %d nie jest aktywny. Nie mo�na wyczy�ci�.\n"
+msgstr "Klíč %d není aktivní. Nelze jej odstranit.\n"
 
 #: lib/setup.c:311 src/cryptsetup.c:515 src/cryptsetup.c:562
 msgid "This is the last keyslot. Device will become unusable after purging this key."
-msgstr "To jest ostatni klucz. Urz�dzenie stanie si� bezu�yteczne po usuni�ciu tego klucza."
+msgstr ""
+"Toto je poslední pozice klíče. Smazáním tohoto klíče přijdete o možnost\n"
+"zařízení použít."
 
 #: lib/setup.c:362 lib/setup.c:1791 lib/setup.c:1862 lib/setup.c:1926
 #, c-format
 msgid "Device %s already exists.\n"
-msgstr "Urz�dzenie %s ju� istnieje.\n"
+msgstr "Zařízení %s již existuje.\n"
 
 #: lib/setup.c:367
 #, c-format
 msgid "Invalid key size %d.\n"
-msgstr "B��dny rozmiar klucza %d.\n"
+msgstr "%d není platná velikost klíče.\n"
 
 #: lib/setup.c:449
 #, c-format
 msgid "Enter passphrase for %s: "
-msgstr "Has�o dla %s: "
+msgstr "Zadejte heslo pro %s: "
 
 #: lib/setup.c:606 lib/setup.c:1523 lib/setup.c:1870 src/cryptsetup.c:227
 msgid "Enter passphrase: "
-msgstr "Has�o: "
+msgstr "Zadejte heslo: "
 
 #: lib/setup.c:647 lib/setup.c:1032 lib/setup.c:1287 lib/setup.c:1978
 #, c-format
 msgid "Device %s is not active.\n"
-msgstr "Urz�dzenie %s nie jest aktywne.\n"
+msgstr "Zařízení %s není aktivní.\n"
 
 #: lib/setup.c:755
 msgid "No known cipher specification pattern detected.\n"
-msgstr "Nie wykryto znanego wzorca okre�laj�cego szyfr.\n"
+msgstr "Nelze určit žádnou známou specifikaci šifry.\n"
 
 #: lib/setup.c:769 src/cryptsetup.c:383 src/cryptsetup.c:677
 msgid "Enter LUKS passphrase: "
-msgstr "Has�o LUKS: "
+msgstr "Zadejte heslo LUKS: "
 
 #: lib/setup.c:1044
 #, c-format
 msgid "Underlying device for crypt device %s disappeared.\n"
-msgstr "Urz�dzenie stoj�ce za urz�dzeniem szyfrowanym %s znik�o.\n"
+msgstr "Zařízení nižší úrovně pod šifrovaným zařízením %s zmizelo.\n"
 
 #: lib/setup.c:1109
 msgid "Invalid plain crypt parameters.\n"
-msgstr "B��dne parametry szyfru plain.\n"
+msgstr "Neplatné parametry plain šifry.\n"
 
 #: lib/setup.c:1114
 msgid "Invalid key size.\n"
-msgstr "B��dny rozmiar klucza.\n"
+msgstr "Neplatná velikost klíče.\n"
 
 #: lib/setup.c:1153
 msgid "Can't format LUKS without device.\n"
-msgstr "Nie mo�na sformatowa� LUKS-a bez urz�dzenia.\n"
+msgstr "LUKS nelze bez zařízení naformátovat.\n"
 
 #: lib/setup.c:1185
 #, c-format
 msgid "Cannot format device %s which is still in use.\n"
-msgstr "Nie mo�na sformatowa� urz�dzenia %s, kt�re jest nadal w u�yciu.\n"
+msgstr "Zařízení %s, které se stále používá, nelze formátovat.\n"
 
 #: lib/setup.c:1188
 #, c-format
 msgid "Cannot wipe header on device %s.\n"
-msgstr "Nie mo�na wyczy�ci� nag��wka na urz�dzeniu %s.\n"
+msgstr "Ze zařízení %s nelze odstranit hlavičku.\n"
 
 #: lib/setup.c:1227
 #, c-format
 msgid "Unknown crypt device type %s requested.\n"
-msgstr "Nieznany typ ��danego urz�dzenia szyfruj�cego %s.\n"
+msgstr "Požadován neznámý typ šifrovaného zařízení %s.\n"
 
 #: lib/setup.c:1324
 msgid "This operation is not supported for this device type.\n"
-msgstr "Ta operacja nie jest obs�ugiwana dla tego rodzaju urz�dzenia.\n"
+msgstr "Tato operace není na zařízení tohoto typu podporována.\n"
 
 #: lib/setup.c:1339
 msgid "Do you really want to change UUID of device?"
-msgstr "Czy na pewno zmieni� UUID urz�dzenia?"
+msgstr "Opravdu chcete změnit UUID zařízení?"
 
 #: lib/setup.c:1415
 #, c-format
 msgid "Volume %s is not active.\n"
-msgstr "Wolumen %s nie jest aktywny.\n"
+msgstr "Svazek %s není aktivní.\n"
 
 #: lib/setup.c:1428
 #, c-format
 msgid "Volume %s is already suspended.\n"
-msgstr "Wolumen %s ju� zosta� zatrzymany.\n"
+msgstr "Svazek %s je již uspán.\n"
 
 #: lib/setup.c:1456 lib/setup.c:1505 lib/setup.c:1561 lib/setup.c:1635
 #: lib/setup.c:1704 lib/setup.c:1750 lib/setup.c:1853 lib/setup.c:2047
 #: lib/setup.c:2148 lib/setup.c:2257
 msgid "This operation is supported only for LUKS device.\n"
-msgstr "Ta operacja jest obs�ugiwana tylko na urz�dzeniach LUKS.\n"
+msgstr "Tato operace je podporována jen u zařízení LUKS.\n"
 
 #: lib/setup.c:1467 lib/setup.c:1516
 #, c-format
 msgid "Volume %s is not suspended.\n"
-msgstr "Wolumen %s nie jest zatrzymany.\n"
+msgstr "Svazek %s není uspán.\n"
 
 #: lib/setup.c:1575 lib/setup.c:1649
 msgid "Cannot add key slot, all slots disabled and no volume key provided.\n"
-msgstr "Nie mo�na doda� klucza, wszystkie miejsca na klucze wy��czone i nie podano klucza wolumenu.\n"
+msgstr ""
+"Nelze přidat pozici klíče, všechny pozice jsou zakázány a klíč svazku\n"
+"nebyl poskytnut.\n"
 
 #: lib/setup.c:1584 lib/setup.c:1655 lib/setup.c:1659
 msgid "Enter any passphrase: "
-msgstr "Dowolne has�o: "
+msgstr "Zadejte jakékoliv heslo: "
 
 #: lib/setup.c:1601 lib/setup.c:1672 lib/setup.c:1676 lib/setup.c:1727
 msgid "Enter new passphrase for key slot: "
-msgstr "Nowe has�o dla klucza: "
+msgstr "Zadejte nové heslo pro pozici klíče: "
 
 #: lib/setup.c:1718 lib/setup.c:1934 lib/setup.c:1947 lib/setup.c:2058
 msgid "Volume key does not match the volume.\n"
-msgstr "Klucz wolumenu nie pasuje do wolumenu.\n"
+msgstr "Heslo svazku neodpovídá svazku.\n"
 
 #: lib/setup.c:1756
 #, c-format
 msgid "Key slot %d is invalid.\n"
-msgstr "Numer klucza %d jest nieprawid�owy.\n"
+msgstr "Pozice klíče %d je neplatná.\n"
 
 #: lib/setup.c:1761
 #, c-format
 msgid "Key slot %d is not used.\n"
-msgstr "Klucz %d nie jest u�ywany.\n"
+msgstr "Pozice klíče %d není použita.\n"
 
 #: lib/setup.c:1906
 msgid "Incorrect volume key specified for plain device.\n"
-msgstr "Podano niew�a�ciwy klucz wolumenu dla zwyk�ego urz�dzenia.\n"
+msgstr "Byl zadán neplatný klíč svazku.\n"
 
 #: lib/setup.c:1917
 msgid "Device type is not properly initialised.\n"
-msgstr "Typ urz�dzenia nie zosta� w�a�ciwie zainicjalizowany.\n"
+msgstr "Typ zařízení není řádně inicializován.\n"
 
 #: lib/setup.c:1974
 #, c-format
 msgid "Device %s is busy.\n"
-msgstr "Urz�dzenie %s jest zaj�te.\n"
+msgstr "Zařízení %s je stále používáno.\n"
 
 #: lib/setup.c:1982
 #, c-format
 msgid "Invalid device %s.\n"
-msgstr "B��dne urz�dzenie %s.\n"
+msgstr "Neplatné zařízení %s.\n"
 
 #: lib/setup.c:2005
 msgid "Volume key buffer too small.\n"
-msgstr "Bufor klucza wolumenu zbyt ma�y.\n"
+msgstr "Vyhrazená paměť pro klíč svazku je příliš malá.\n"
 
 #: lib/setup.c:2013
 msgid "Cannot retrieve volume key for plain device.\n"
-msgstr "Nie mo�na odtworzy� klucza wolumenu dla zwyk�ego urz�dzenia.\n"
+msgstr "Nelze získat klíč svazku pro otevřené zařízení.\n"
 
 #: lib/setup.c:2035
 #, c-format
 msgid "This operation is not supported for %s crypt device.\n"
-msgstr "Ta operacja nie jest obs�ugiwana dla urz�dzenia szyfruj�cego %s.\n"
+msgstr "Na šifrovaném zařízení %s není tato operace podporována.\n"
 
 #: lib/utils.c:247
 #, c-format
 msgid "Device %s doesn't exist or access denied.\n"
-msgstr "Urz�dzenie %s nie istnieje lub dost�p jest zabroniony.\n"
+msgstr "Zařízení %s neexistuje nebo přístup byl zamítnut.\n"
 
 #: lib/utils.c:254
 #, c-format
 msgid "Cannot open device %s for %s%s access.\n"
-msgstr "Nie mo�na otworzy� urz�dzenia %s do %sdost�pu %s.\n"
+msgstr "Zařízení %s nelze otevřít pro %s%s přístup.\n"
 
 #: lib/utils.c:255
 msgid "exclusive "
-msgstr "wy��cznego "
+msgstr "výlučný "
 
 #: lib/utils.c:256
 msgid "writable"
-msgstr "do zapisu"
+msgstr "zápisový"
 
 #: lib/utils.c:256
 msgid "read-only"
-msgstr "tylko do odczytu"
+msgstr "jen pro čtení"
 
 #: lib/utils.c:263
 #, c-format
 msgid "Cannot read device %s.\n"
-msgstr "Nie mo�na odczyta� urz�dzenia %s.\n"
+msgstr "Ze zařízení %s nelze číst.\n"
 
 #: lib/utils.c:388
 msgid "WARNING!!! Possibly insecure memory. Are you root?\n"
-msgstr "UWAGA! Pami�� mo�e nie by� bezpieczna. Czy jeste� rootem?\n"
+msgstr "POZOR!!! Zřejmě nezabezpečená paměť. Jste root?\n"
 
 #: lib/utils.c:394
 msgid "Cannot get process priority.\n"
-msgstr "Nie mo�na odczyta� priorytetu procesu.\n"
+msgstr "Nelze zjistit prioritu procesu.\n"
 
 #: lib/utils.c:397 lib/utils.c:410
 #, c-format
 msgid "setpriority %u failed: %s"
-msgstr "setpriority %u nie powiod�o si�: %s"
+msgstr "nastavení priority %u selhalo: %s"
 
 #: lib/utils.c:408
 msgid "Cannot unlock memory."
-msgstr "Nie mo�na odblokowa� pami�ci."
+msgstr "Paměť nelze odemknout."
 
 #: lib/utils_crypt.c:200
 msgid "Failed to open key file.\n"
-msgstr "Nie uda�o si� otworzy� pliku klucza.\n"
+msgstr "Soubor s klíčem se nepodařilo otevřít.\n"
 
 #: lib/utils_crypt.c:211
 msgid "Error reading passphrase from terminal.\n"
-msgstr "B��d podczas odczytu has�a z terminala.\n"
+msgstr "Chyba při čtení hesla z terminálu.\n"
 
 #: lib/utils_crypt.c:216
 msgid "Verify passphrase: "
-msgstr "Weryfikacja has�a: "
+msgstr "Ověřte heslo: "
 
 #: lib/utils_crypt.c:219
 msgid "Passphrases do not match.\n"
-msgstr "Has�a nie zgadzaj� si�.\n"
+msgstr "Hesla se neshodují.\n"
 
 #: lib/utils_crypt.c:243
 msgid "Failed to stat key file.\n"
-msgstr "Nie uda�o si� wykona� stat na pliku klucza.\n"
+msgstr "O souboru s klíčem nebylo možné zjistit údaje.\n"
 
 #: lib/utils_crypt.c:248
 msgid "Warning: exhausting read requested, but key file is not a regular file, function might never return.\n"
-msgstr "Uwaga: ��dano odczytu ca�o�ci, ale plik klucza nie jest zwyk�ym plikiem i funkcja mo�e nigdy si� nie zako�czy�.\n"
+msgstr "Pozor: požadováno úplné čtení, avšak soubor s klíčem není běžný soubor. Funkce se možná nikdy nevrátí.\n"
 
 #: lib/utils_crypt.c:260
 msgid "Out of memory while reading passphrase.\n"
-msgstr "Brak pami�ci podczas odczytu has�a.\n"
+msgstr "Při čtení hesla došla paměť.\n"
 
 #: lib/utils_crypt.c:268
 msgid "Error reading passphrase.\n"
-msgstr "B��d podczas odczytu has�a.\n"
+msgstr "Chyba při čtení hesla.\n"
 
 #: lib/luks1/keyencryption.c:66
 #, c-format
 msgid "Unable to obtain sector size for %s"
-msgstr "Nie uda�o si� uzyska� rozmiaru sektora dla %s"
+msgstr "Není možné zjistit velikost sektoru u %s"
 
 #: lib/luks1/keyencryption.c:106
 msgid "Key size in XTS mode must be 256 or 512 bits.\n"
-msgstr "Rozmiar klucza w trybie XTS musi wynosi� 256 lub 512 bit�w.\n"
+msgstr "V režimu XTS musí být velikost klíče 256 nebo 512 bitů.\n"
 
 #: lib/luks1/keyencryption.c:108
 msgid "Block mode XTS is available since kernel 2.6.24.\n"
-msgstr "Tryb blokowy XTS jest dost�pny od j�dra 2.6.24.\n"
+msgstr "Blokový režim XTS je dostupný až od jádra 2.6.24.\n"
 
 #: lib/luks1/keyencryption.c:110
 msgid "Key size in LRW mode must be 256 or 512 bits.\n"
-msgstr "Rozmiar klucza w trybie LRW musi wynosi� 256 lub 512 bit�w.\n"
+msgstr "V režimu LRW musí být velikost klíče 256 nebo 512 bitů.\n"
 
 #: lib/luks1/keyencryption.c:112
 msgid "Block mode LRW is available since kernel 2.6.20.\n"
-msgstr "Tryb blokowy LRW jest dost�pny od j�dra 2.6.20.\n"
+msgstr "Blokový režim LRW je dostupný až od jádra 2.6.20.\n"
 
 #: lib/luks1/keyencryption.c:135
 msgid "Failed to obtain device mapper directory."
-msgstr "Nie uda�o si� uzyska� katalogu device mappera."
+msgstr "Adresář device-mapperu se nepodařilo získat."
 
 #: lib/luks1/keyencryption.c:151
 #, c-format
@@ -383,68 +398,68 @@ msgid ""
 "Check that kernel supports %s cipher (check syslog for more info).\n"
 "%s"
 msgstr ""
-"Nie uda�o si� ustawi� odwzorowania klucza dm-crypt dla urz�dzenia %s.\n"
-"Prosz� sprawdzi�, czy j�dro obs�uguje szyfr %s (wi�cej informacji w syslogu).\n"
+"Nepodařilo se nastavit mapování klíče v dm-cryptu pro zařízení %s.\n"
+"Zkontrolujte, že jádro podporuje šifru %s (podrobnosti v syslogu).\n"
 "%s"
 
 #: lib/luks1/keyencryption.c:161
 msgid "Failed to open temporary keystore device.\n"
-msgstr "Nie uda�o si� otworzy� urz�dzenia do tymczasowego przechowywania kluczy.\n"
+msgstr "Otevření dočasného zařízení s úložištěm klíče selhalo.\n"
 
 #: lib/luks1/keyencryption.c:168
 msgid "Failed to access temporary keystore device.\n"
-msgstr "Nie uda�o si� uzyska� dost�pu do urz�dzenia do tymczasowego przechowywania kluczy.\n"
+msgstr "Přístup do dočasného zařízení s úložištěm klíče selhal.\n"
 
 #: lib/luks1/keymanage.c:61
 #, c-format
 msgid "Requested file %s already exist.\n"
-msgstr "��dany plik %s ju� istnieje.\n"
+msgstr "Požadovaný soubor %s již existuje.\n"
 
 #: lib/luks1/keymanage.c:81 lib/luks1/keymanage.c:224
 #, c-format
 msgid "Device %s is not a valid LUKS device.\n"
-msgstr "Urz�dzenie %s nie jest prawid�owym urz�dzeniem LUKS.\n"
+msgstr "Zařízení %s není platným zařízením LUKS.\n"
 
 #: lib/luks1/keymanage.c:101
 #, c-format
 msgid "Cannot write header backup file %s.\n"
-msgstr "Nie mo�na zapisa� pliku kopii zapasowej nag��wka %s.\n"
+msgstr "Nelze zapsat soubor %s se zálohou hlavičky.\n"
 
 #: lib/luks1/keymanage.c:128
 #, c-format
 msgid "Backup file %s doesn't exist.\n"
-msgstr "Plik kopii zapasowej %s nie istnieje.\n"
+msgstr "Záložní soubor %s neexistuje.\n"
 
 #: lib/luks1/keymanage.c:136
 msgid "Backup file do not contain valid LUKS header.\n"
-msgstr "Plik kopii zapasowej nie zawiera prawid�owego nag��wka LUKS.\n"
+msgstr "Záložní soubor neobsahuje platnou hlavičku LUKS.\n"
 
 #: lib/luks1/keymanage.c:149
 #, c-format
 msgid "Cannot open header backup file %s.\n"
-msgstr "Nie mo�na otworzy� pliku kopii zapasowej nag��wka %s.\n"
+msgstr "Nelze otevřít soubor se zálohou hlavičky %s.\n"
 
 #: lib/luks1/keymanage.c:155
 #, c-format
 msgid "Cannot read header backup file %s.\n"
-msgstr "Nie mo�na odczyta� pliku kopii zapasowej nag��wka %s.\n"
+msgstr "Soubor se zálohou hlavičky %s nelze načíst.\n"
 
 #: lib/luks1/keymanage.c:166
 msgid "Data offset or key size differs on device and backup, restore failed.\n"
-msgstr "Offset danych lub rozmiar klucza r�ni� si� mi�dzy urz�dzeniem a kopi� zapasow�; przywr�cenie nie powiod�o si�.\n"
+msgstr "Počátek dat nebo velikost klíče se liší mezi zařízením a zálohou, obnova se nezdařila.\n"
 
 #: lib/luks1/keymanage.c:174
 #, c-format
 msgid "Device %s %s%s"
-msgstr "Urz�dzenie %s %s%s"
+msgstr "Zařízení %s %s%s"
 
 #: lib/luks1/keymanage.c:175
 msgid "does not contain LUKS header. Replacing header can destroy data on that device."
-msgstr "nie zawiera nag��wka LUKS. Nadpisanie nag��wka mo�e zniszczy� dane na tym urz�dzeniu."
+msgstr "neobsahuje hlavičku LUKS. Nahrazení hlavičky může zničit data na daném zařízení."
 
 #: lib/luks1/keymanage.c:176
 msgid "already contains LUKS header. Replacing header will destroy existing keyslots."
-msgstr "ju� zawiera nag��wek LUKS. Nadpisanie nag��wka zniszczy istniej�ce klucze."
+msgstr "již obsahuje hlavičku LUKS. Nahrazení hlavičky zničí existující pozice s klíči."
 
 #: lib/luks1/keymanage.c:177
 msgid ""
@@ -452,220 +467,224 @@ msgid ""
 "WARNING: real device header has different UUID than backup!"
 msgstr ""
 "\n"
-"UWAGA: nag��wek prawdziwego urz�dzenia ma inny UUID ni� kopia zapasowa!"
+"POZOR: hlavička ve skutečném zařízení má jiné UUID než záloha!"
 
 #: lib/luks1/keymanage.c:192 lib/luks1/keymanage.c:305
 #: lib/luks1/keymanage.c:340
 #, c-format
 msgid "Cannot open device %s.\n"
-msgstr "Nie mo�na otworzy� urz�dzenia %s.\n"
+msgstr "Zařízení %s nelze otevřít.\n"
 
 #: lib/luks1/keymanage.c:226
 #, c-format
 msgid "Device %s is not a valid LUKS device."
-msgstr "Urz�dzenie %s nie jest prawid�owym urz�dzeniem LUKS."
+msgstr "Zařízení %s není platným zařízením LUKS."
 
 #: lib/luks1/keymanage.c:229
 #, c-format
 msgid "Unsupported LUKS version %d.\n"
-msgstr "Nieobs�ugiwana wersja LUKS %d.\n"
+msgstr "Nepodporovaná verze LUKS %d.\n"
 
 #: lib/luks1/keymanage.c:232 lib/luks1/keymanage.c:410
 #, c-format
 msgid "Requested LUKS hash %s is not supported.\n"
-msgstr "��dany skr�t LUKS %s nie jest obs�ugiwany.\n"
+msgstr "Požadovaný haš LUKSu %s není podporován.\n"
 
 #: lib/luks1/keymanage.c:277
 #, c-format
 msgid "Cannot open file %s.\n"
-msgstr "Nie mo�na otworzy� pliku %s.\n"
+msgstr "Soubor %s nelze otevřít.\n"
 
 #: lib/luks1/keymanage.c:317
 #, c-format
 msgid "LUKS header detected but device %s is too small.\n"
-msgstr "Wykryto nag��wek LUKS, ale urz�dzenie %s jest zbyt ma�e.\n"
+msgstr "Nalezena hlavička LUKS, ale zařízení %s je příliš malé.\n"
 
 #: lib/luks1/keymanage.c:361
 #, c-format
 msgid "Error during update of LUKS header on device %s.\n"
-msgstr "B��d podczas uaktualniania nag��wka LUKS na urz�dzeniu %s.\n"
+msgstr "Chyba při aktualizaci hlavičky LUKS na zařízení %s.\n"
 
 #: lib/luks1/keymanage.c:368
 #, c-format
 msgid "Error re-reading LUKS header after update on device %s.\n"
-msgstr "B��d podczas ponownego odczytu nag��wka LUKS po uaktualnieniu na urz�dzeniu %s.\n"
+msgstr "Chyba při opakovaném čtení hlavičky LUKS po aktualizaci zařízení %s.\n"
 
 #: lib/luks1/keymanage.c:380
 #, c-format
 msgid "Not compatible PBKDF2 options (using hash algorithm %s).\n"
-msgstr "Niekompatybilne opcje PBKDF2 (przy u�yciu algorytmu skr�tu %s).\n"
+msgstr "Neslučitelné volby PBKDF2 (při použití hašovacího algoritmu %s).\n"
 
 #: lib/luks1/keymanage.c:415 lib/luks1/keymanage.c:492
 msgid "Wrong LUKS UUID format provided.\n"
-msgstr "Podano z�y format LUKS UUID.\n"
+msgstr "Poskytnut UUID LUKSu ve špatném tvaru.\n"
 
 #: lib/luks1/keymanage.c:440
 msgid "Cannot create LUKS header: reading random salt failed.\n"
-msgstr "Nie mo�na utworzy� nag��wka LUKS: odczyt losowego zarodka nie powi�d� si�.\n"
+msgstr "Hlavičku LUKS nelze vytvořit: čtení náhodné soli selhalo.\n"
 
 #: lib/luks1/keymanage.c:457
 #, c-format
 msgid "Cannot create LUKS header: header digest failed (using hash %s).\n"
-msgstr "Nie mo�na utworzy� nag��wka LUKS: uzyskanie skr�tu nag��wka nie powiod�o si� (przy u�yciu algorytmu %s).\n"
+msgstr "Hlavičku LUKS nelze vytvořit: výpočet otisku hlavičky (haš %s) selhal.\n"
 
 #: lib/luks1/keymanage.c:517
 #, c-format
 msgid "Key slot %d active, purge first.\n"
-msgstr "Klucz numer %d jest aktywny, nale�y go najpierw wyczy�ci�.\n"
+msgstr "Pozice klíče %d je aktivní, nejprve ji uvolněte.\n"
 
 #: lib/luks1/keymanage.c:522
 #, c-format
 msgid "Key slot %d material includes too few stripes. Header manipulation?\n"
-msgstr "Klucz %d zawiera zbyt ma�o pas�w. Zmieniony nag��wek?\n"
+msgstr "Pozice klíče %d obsahuje příliš málo útržků. Manipulace s hlavičkou?\n"
 
 #: lib/luks1/keymanage.c:582
 msgid "Failed to write to key storage.\n"
-msgstr "Nie uda�o si� zapisa� klucza.\n"
+msgstr "Zápis do úložiště klíče selhal.\n"
 
 #: lib/luks1/keymanage.c:659
 msgid "Failed to read from key storage.\n"
-msgstr "Nie uda�o si� odczyta� klucza.\n"
+msgstr "Čtení z úložiště klíče selhalo.\n"
 
 #: lib/luks1/keymanage.c:668
 #, c-format
 msgid "Key slot %d unlocked.\n"
-msgstr "Klucz numer %d odblokowany.\n"
+msgstr "Pozice klíče %d odemknuta.\n"
 
 #: lib/luks1/keymanage.c:703 src/cryptsetup.c:482
 msgid "No key available with this passphrase.\n"
-msgstr "Dla tego has�a nie ma dost�pnego klucza.\n"
+msgstr "S tímto heslem není dostupný žádný klíč.\n"
 
 #: lib/luks1/keymanage.c:783
 #, c-format
 msgid "Key slot %d is invalid, please select keyslot between 0 and %d.\n"
-msgstr "Numer klucza %d jest b��dny, prosz� wybra� numer od 0 do %d.\n"
+msgstr "Pozice klíče %d není platná, prosím, vyberte pozici mezi 0 a %d.\n"
 
 #: lib/luks1/keymanage.c:795
 #, c-format
 msgid "Cannot wipe device %s.\n"
-msgstr "Nie mo�na wyczy�ci� urz�dzenia %s.\n"
+msgstr "Zařízení %s není možné smazat.\n"
 
 #: src/cryptsetup.c:75
 msgid "<name> <device>"
-msgstr "<nazwa> <urz�dzenie>"
+msgstr "<název> <zařízení>"
 
 #: src/cryptsetup.c:75
 msgid "create device"
-msgstr "utworzenie urz�dzenia"
+msgstr "vytvoří zařízení"
 
 #: src/cryptsetup.c:76 src/cryptsetup.c:77 src/cryptsetup.c:78
 #: src/cryptsetup.c:86
 msgid "<name>"
-msgstr "<nazwa>"
+msgstr "<název>"
 
 #: src/cryptsetup.c:76
 msgid "remove device"
-msgstr "usuni�cie urz�dzenia"
+msgstr "odstraní zařízení"
 
 #: src/cryptsetup.c:77
 msgid "resize active device"
-msgstr "zmiana rozmiaru aktywnego urz�dzenia"
+msgstr "změní velikost aktivního zařízení"
 
 #: src/cryptsetup.c:78
 msgid "show device status"
-msgstr "pokazanie stanu urz�dzenia"
+msgstr "zobrazí stav zařízení"
 
 #: src/cryptsetup.c:79 src/cryptsetup.c:81
 msgid "<device> [<new key file>]"
-msgstr "<urz�dzenie> [<nowy plik klucza>]"
+msgstr "<zařízení> [<soubor_s_novým_klíčem>]"
 
 #: src/cryptsetup.c:79
 msgid "formats a LUKS device"
-msgstr "sformatowanie urz�dzenia LUKS"
+msgstr "naformátuje zařízení LUKS"
 
 #: src/cryptsetup.c:80
 msgid "<device> <name> "
-msgstr "<uz�dzenie> <nazwa> "
+msgstr "<zařízení> <název> "
 
 #: src/cryptsetup.c:80
 msgid "open LUKS device as mapping <name>"
-msgstr "otwarcie urz�dzenia LUKS jako odwzorowania <nazwa>"
+msgstr "otevře zařízení LUKS jako mapování <název>"
 
 #: src/cryptsetup.c:81
 msgid "add key to LUKS device"
-msgstr "dodanie klucza do urz�dzenia LUKS"
+msgstr "do zařízení LUKS přidá klíč"
 
 #: src/cryptsetup.c:82
 msgid "<device> [<key file>]"
-msgstr "<urz�dzenie> [<plik klucza>]"
+msgstr "<zařízení> [<soubor_s_klíčem>]"
 
 #: src/cryptsetup.c:82
 msgid "removes supplied key or key file from LUKS device"
-msgstr "usuni�cie podanego klucza lub pliku klucza z urz�dzenia LUKS"
+msgstr "odstraní zadaný klíč nebo soubor s klíčem ze zařízení LUKS"
 
 #: src/cryptsetup.c:83
 msgid "<device> <key slot>"
-msgstr "<urz�dzenie> <numer klucza>"
+msgstr "<zařízení> <pozice_klíče>"
 
 #: src/cryptsetup.c:83
 msgid "wipes key with number <key slot> from LUKS device"
-msgstr "wyczyszczenie klucza o numerze <numer klucza> z urz�dzenia LUKS"
+msgstr "smaže klíč s číslem <pozice_klíče> ze zařízení LUKS"
 
 #: src/cryptsetup.c:84 src/cryptsetup.c:85 src/cryptsetup.c:87
 #: src/cryptsetup.c:88 src/cryptsetup.c:89 src/cryptsetup.c:90
 #: src/cryptsetup.c:91
 msgid "<device>"
-msgstr "<urz�dzenie>"
+msgstr "<zařízení>"
 
 #: src/cryptsetup.c:84
 msgid "print UUID of LUKS device"
-msgstr "wypisanie UUID-a urz�dzenia LUKS"
+msgstr "zobrazí UUID zařízení LUKS"
 
 #: src/cryptsetup.c:85
 msgid "tests <device> for LUKS partition header"
-msgstr "sprawdzenie <urz�dzenia> pod k�tem nag��wka partycji LUKS"
+msgstr "otestuje <zařízení> na hlavičku oddílu LUKS"
 
 #: src/cryptsetup.c:86
 msgid "remove LUKS mapping"
-msgstr "usuni�cie odwzorowania LUKS"
+msgstr "odstraní mapování LUKS"
 
 #: src/cryptsetup.c:87
 msgid "dump LUKS partition information"
-msgstr "zrzut informacji o partycji LUKS"
+msgstr "vypíše údaje o oddílu LUKS"
 
+# TODO: not consistent with previous line
 #: src/cryptsetup.c:88
 msgid "Suspend LUKS device and wipe key (all IOs are frozen)."
-msgstr "Zatrzymanie urz�dzenia LUKS i wyczyszczenie klucza (zamra�a wszystkie operacje we/wy)."
+msgstr "uspí zařízení LUKS a smaže klíč (všechny operace budou zmrazeny)"
 
+# TODO: not consistent with previous line
 #: src/cryptsetup.c:89
 msgid "Resume suspended LUKS device."
-msgstr "Wznowienie zatrzymanego urz�dzenia LUKS."
+msgstr "probudí uspané zařízení LUKS"
 
+# TODO: not consistent with previous line
 #: src/cryptsetup.c:90
 msgid "Backup LUKS device header and keyslots"
-msgstr "Kopia zapasowa nag��wka i kluczy urz�dzenia LUKS"
+msgstr "zálohuje hlavičku zařízení LUKS a jeho pozice s klíči"
 
+# TODO: not consistent with previous line
 #: src/cryptsetup.c:91
 msgid "Restore LUKS device header and keyslots"
-msgstr "Odtworzenie nag��wka i kluczy urz�dzenia LUKS z kopii zapasowej"
+msgstr "obnoví hlavičku zařízení LUKS a jeho pozice s klíči"
 
 #: src/cryptsetup.c:169
 msgid "Command successful.\n"
-msgstr "Polecenie si� powiod�o.\n"
+msgstr "Příkaz úspěšně vykonán.\n"
 
 #: src/cryptsetup.c:183
 #, c-format
 msgid "Command failed with code %i"
-msgstr "Polecenie nie powiod�o si� z kodem %i"
+msgstr "Příkaz selhal s kódem %i"
 
 #: src/cryptsetup.c:351
 #, c-format
 msgid "This will overwrite data on %s irrevocably."
-msgstr "To nieodwo�alnie nadpisze dane na %s."
+msgstr "Toto nevratně přepíše data na %s."
 
 #: src/cryptsetup.c:352
 msgid "memory allocation error in action_luksFormat"
-msgstr "b��d przydzielania pami�ci w action_luksFormat"
+msgstr "chyba alokace paměti v action_luksFormat"
 
 #: src/cryptsetup.c:666
 msgid ""
@@ -673,14 +692,13 @@ msgid ""
 "which allows access to encrypted partition without passphrase.\n"
 "This dump should be always stored encrypted on safe place."
 msgstr ""
-"Zrzut nag��wka LUKS z kluczem wolumenu jest informacj� wra�liw�,\n"
-"pozwalaj�c� na dost�p do zaszyfrowanej partycji bez has�a.\n"
-"Zrzut ten powinien by� zawsze zapisywany w postaci zaszyfrowanej\n"
-"w bezpiecznym miejscu."
+"Výpis hlavičky LUKS s klíčem svazku je citlivý údaj,\n"
+"který umožňuje přístup k šifrovanému oddílu bez znalosti hesla.\n"
+"Tento výpis by měl být vždy uložen na bezpečném místě a v zašifrované podobě."
 
 #: src/cryptsetup.c:769 src/cryptsetup.c:790
 msgid "Option --header-backup-file is required.\n"
-msgstr "Wymagana jest opcja --header-backup-file.\n"
+msgstr "Je vyžadován přepínač --header-backup-file.\n"
 
 #: src/cryptsetup.c:824
 msgid ""
@@ -688,7 +706,7 @@ msgid ""
 "<action> is one of:\n"
 msgstr ""
 "\n"
-"<akcja> to jedno z:\n"
+"<akce> je jedna z:\n"
 
 #: src/cryptsetup.c:830
 #, c-format
@@ -700,10 +718,10 @@ msgid ""
 "<key file> optional key file for the new key for luksAddKey action\n"
 msgstr ""
 "\n"
-"<nazwa> to urz�dzenie do utworzenia wewn�trz %s\n"
-"<urz�dzenie> to zaszyfrowane urz�dzenie\n"
-"<numer klucza> to numer klucza LUKS do zmiany\n"
-"<plik klucza> to opcjonalny plik nowego klucza dla akcji luksAddKey\n"
+"<název> je zařízení, které se má vytvořit v %s\n"
+"<zařízení> je zašifrované zařízení\n"
+"<pozice_klíče> je číslo pozice klíče LUKS, který se má upravit\n"
+"<soubor_s_klíčem> je volitelný soubor s novým klíčem pro akci luksAddKey\n"
 
 #: src/cryptsetup.c:837
 #, c-format
@@ -714,69 +732,72 @@ msgid ""
 "\tLUKS1: %s, Key: %d bits, LUKS header hashing: %s, RNG: %s\n"
 msgstr ""
 "\n"
-"Domy�lne wkompilowane parametry szyfrowania urz�dze�:\n"
-"\tplain: %s, bit�w klucza: %d, skr�t has�a: %s\n"
-"\tLUKS1: %s, bit�w klucza: %d, skr�t nag��wka LUKS: %s, RNG: %s\n"
+"Výchozí zakompilované parametry šifer zařízení:\n"
+"\tplain: %s, Klíč: %d bitů, Haš hesla: %s\n"
+"\tLUKS1: %s, Klíč: %d bitů, Haš hlavičky LUKS: %s, RNG: %s\n"
 
 #: src/cryptsetup.c:901
 msgid "Show this help message"
-msgstr "Wy�wietlenie tego opisu"
+msgstr "Zobrazí tuto nápovědu"
 
 #: src/cryptsetup.c:902
 msgid "Display brief usage"
-msgstr "Wy�wietlenie kr�tkiej informacji o sk�adni"
+msgstr "Zobrazí stručný návod na použití"
 
 #: src/cryptsetup.c:906
 msgid "Help options:"
-msgstr "Opcje pomocnicze:"
+msgstr "Přepínače nápovědy:"
 
 #: src/cryptsetup.c:907
 msgid "Print package version"
-msgstr "Wypisanie wersji pakietu"
+msgstr "Vypíše verzi balíku"
 
 #: src/cryptsetup.c:908
 msgid "Shows more detailed error messages"
-msgstr "Wy�wietlanie bardziej szczeg�owych komunikat�w b��d�w"
+msgstr "Zobrazuje podrobnější chybové hlášky"
 
 #: src/cryptsetup.c:909
 msgid "Show debug messages"
-msgstr "Wy�wietlanie informacji diagnostycznych"
+msgstr "Zobrazuje ladicí hlášky"
 
 #: src/cryptsetup.c:910
 msgid "The cipher used to encrypt the disk (see /proc/crypto)"
-msgstr "Szyfr u�ywany do zaszyfrowania dysku (p. /proc/crypto)"
+msgstr "Šifra použita k zašifrování disku (vizte /proc/crypto)"
 
 #: src/cryptsetup.c:911
 msgid "The hash used to create the encryption key from the passphrase"
-msgstr "Skr�t u�ywany do utworzenia klucza szyfruj�cego z has�a"
+msgstr "Haš použit k vytvořené šifrovacího klíče z hesla"
 
 #: src/cryptsetup.c:912
 msgid "Verifies the passphrase by asking for it twice"
-msgstr "Sprawdzenie poprawno�ci has�a poprzez dwukrotne pytanie"
+msgstr "Ověřuje heslo dvojitým dotazem"
 
+# TODO: Remove period
 #: src/cryptsetup.c:913
 msgid "Read the key from a file."
-msgstr "Odczyt klucza z pliku."
+msgstr "Klíč načte ze souboru"
 
+# TODO: Remove period
 #: src/cryptsetup.c:914
 msgid "Read the volume (master) key from file."
-msgstr "Odczyt klucza wolumenu (klucza g��wnego) z pliku."
+msgstr "(Hlavní) klíč svazku načte ze souboru"
 
+# TODO: Remove period
 #: src/cryptsetup.c:915
 msgid "Dump volume (master) key instead of keyslots info."
-msgstr "Zrzut (g��wnego) klucza wolumenu zamiast informacji o kluczach."
+msgstr "Vypíše (hlavní) klíč svazku namísto údajů o pozicích klíčů"
 
 #: src/cryptsetup.c:916
 msgid "The size of the encryption key"
-msgstr "Rozmiar klucza szyfruj�cego"
+msgstr "Velikost šifrovacího klíče"
 
 #: src/cryptsetup.c:916
 msgid "BITS"
-msgstr "BIT�W"
+msgstr "BITY"
 
 #: src/cryptsetup.c:917
 msgid "Limits the read from keyfile"
-msgstr "Ograniczenie odczytu z pliku klucza"
+msgstr "Omezí čtení ze souboru s klíčem"
 
 #: src/cryptsetup.c:917 src/cryptsetup.c:918
 msgid "bytes"
@@ -784,126 +805,126 @@ msgstr "bajty"
 
 #: src/cryptsetup.c:918
 msgid "Limits the read from newly added keyfile"
-msgstr "Ograniczenie odczytu z nowo dodanego pliku klucza"
+msgstr "Omezí čtení z nově přidaného souboru s klíčem"
 
 #: src/cryptsetup.c:919
 msgid "Slot number for new key (default is first free)"
-msgstr "Numer dla nowego klucza (domy�lny: pierwszy wolny)"
+msgstr "Číslo pozice pro nový klíč (výchozí je první volná)"
 
 #: src/cryptsetup.c:920
 msgid "The size of the device"
-msgstr "Rozmiar urz�dzenia"
+msgstr "Velikost zařízení"
 
 #: src/cryptsetup.c:920 src/cryptsetup.c:921 src/cryptsetup.c:922
 #: src/cryptsetup.c:928
 msgid "SECTORS"
-msgstr "SEKTOR�W"
+msgstr "SEKTORY"
 
 #: src/cryptsetup.c:921
 msgid "The start offset in the backend device"
-msgstr "Offset pocz�tku na urz�dzeniu przechowuj�cym"
+msgstr "Poloha začátku dat v podkladovém zařízení"
 
 #: src/cryptsetup.c:922
 msgid "How many sectors of the encrypted data to skip at the beginning"
-msgstr "Liczba sektor�w zaszyfrowanych danych do pomini�cia"
+msgstr "Kolik sektorů šifrovaných dat se má na začátku přeskočit"
 
 #: src/cryptsetup.c:923
 msgid "Create a readonly mapping"
-msgstr "Utworzenie odwzorowania tylko do odczytu"
+msgstr "Vytvoří mapování určené jen pro čtení"
 
 #: src/cryptsetup.c:924
 msgid "PBKDF2 iteration time for LUKS (in ms)"
-msgstr "Czas iteracji PBKDF2 dla LUKS (w milisekundach)"
+msgstr "Doba opakování PBKDF2 pro LUKS (v ms)"
 
 #: src/cryptsetup.c:924
 msgid "msecs"
-msgstr "ms"
+msgstr "milisekundy"
 
 #: src/cryptsetup.c:925
 msgid "Do not ask for confirmation"
-msgstr "Bez pyta� o potwierdzenie"
+msgstr "Nevyžaduje potvrzení"
 
 #: src/cryptsetup.c:926
 msgid "Timeout for interactive passphrase prompt (in seconds)"
-msgstr "Limit czasu przy interaktywnym pytaniu o has�o (w sekundach)"
+msgstr "Časový limit pro interaktivní dotaz na heslo (v sekundách)"
 
 #: src/cryptsetup.c:926
 msgid "secs"
-msgstr "s"
+msgstr "sekundy"
 
 #: src/cryptsetup.c:927
 msgid "How often the input of the passphrase can be retried"
-msgstr "Jak cz�sto mo�na powtarza� pr�by wprowadzenia has�a"
+msgstr "Kolikrát se lze zeptat na heslo"
 
 #: src/cryptsetup.c:928
 msgid "Align payload at <n> sector boundaries - for luksFormat"
-msgstr "Wyr�wnanie danych do granicy <n> sektor�w - dla luksFormat"
+msgstr "Zarovnává data na hranici <n> sektorů – pro luksFormat"
 
 #: src/cryptsetup.c:929
 msgid "File with LUKS header and keyslots backup."
-msgstr "Plik z kopi� zapasow� nag��wka LUKS i kluczy."
+msgstr "Soubor se zálohou hlavičky LUKS a jejích pozic s klíči"
 
 #: src/cryptsetup.c:930
 msgid "Use /dev/random for generating volume key."
-msgstr "U�ycie /dev/random do wygenerowania klucza wolumenu."
+msgstr "Klíče svazku vytvoří z /dev/random."
 
 #: src/cryptsetup.c:931
 msgid "Use /dev/urandom for generating volume key."
-msgstr "U�ycie /dev/urandom do wygenerowania klucza wolumenu."
+msgstr "Klíč svazku vytvoří z /dev/urandom."
 
 #: src/cryptsetup.c:932
 msgid "UUID for device to use."
-msgstr "UUID dla urz�dzenia, kt�re ma by� u�yte."
+msgstr "Použije zařízení s UUID."
 
 #: src/cryptsetup.c:950
 msgid "[OPTION...] <action> <action-specific>]"
-msgstr "[OPCJA...] <akcja> <parametry-akcji>]"
+msgstr "[PŘEPÍNAČ…] <akce> <přepínače_akce>]"
 
 #: src/cryptsetup.c:985
 msgid "Argument <action> missing."
-msgstr "Brak argumentu <akcja>."
+msgstr "Chybí argument <akce>."
 
 #: src/cryptsetup.c:991
 msgid "Unknown action."
-msgstr "Nieznana akcja."
+msgstr "Neznámá akce."
 
 #: src/cryptsetup.c:1006
 #, c-format
 msgid "%s: requires %s as arguments"
-msgstr "%s: wymaga %s jako argument�w"
+msgstr "%s: vyžaduje %s jako argumenty"
 
 #: src/cryptsetup.c:1017
 msgid ""
 "Option --key-size is allowed only for luksFormat and create.\n"
 "To limit read from keyfile use --keyfile-size=(bytes)."
 msgstr ""
-"Opcja --key-size jest dopuszczalna tylko dla operacji luksFormat i create.\n"
-"Aby ograniczy� odczyt z pliku klucza, nale�y u�y� --keyfile-size=(bajty)."
+"Přepínač --key-size je dovolen jen u luksFormat a create.\n"
+"Čtení ze souboru s klíčem lze omezit pomocí --keyfile-size=(bajty)."
 
 #: src/cryptsetup.c:1024
 msgid "Key size must be a multiple of 8 bits"
-msgstr "Rozmiar klucza musi by� wielokrotno�ci� 8 bit�w"
+msgstr "Velikost klíče musí být násobkem 8 bitů."
 
 #: src/cryptsetup.c:1031
 msgid "Key slot is invalid."
-msgstr "Numer klucza jest nieprawid�owy."
+msgstr "Pozice klíče není platná."
 
 #: src/cryptsetup.c:1038
 msgid "Option --key-file takes precedence over specified key file argument.\n"
-msgstr "Opcja --key-file ma priorytet nad podanym argumentem pliku klucza.\n"
+msgstr "Přepínač --key-file má přednost před zadaným argumentem souboru s klíčem.\n"
 
 #: src/cryptsetup.c:1044
 msgid "Only one of --use-[u]random options is allowed."
-msgstr "Dozwolona jest tylko jedna z opcji --use-[u]random."
+msgstr "Je dovolen pouze jeden z přepínačů --use-[u]random."
 
 #: src/cryptsetup.c:1047
 msgid "Option --use-[u]random is allowed only for luksFormat."
-msgstr "Opcja --use-[u]random jest dozwolona tylko dla operacji luksFormat."
+msgstr "Přepínač --use-[u]random je dovolen pouze u luksFormat."
 
 #: src/cryptsetup.c:1051
 msgid "Option --uuid is allowed only for luksFormat and luksUUID."
-msgstr "Opcja --uuid jest dozwolona tylko dla operacji luksFormat i luksUUID."
+msgstr "Přepínač --uuid je dovolen pouze u luksFormat a luksUUID."
 
 #: src/cryptsetup.c:1055
 msgid "Options --offset and --skip are supported only for create command.\n"
-msgstr "Opcje --offset i --skip s� obs�ugiwane tylko dla polecenia create.\n"
+msgstr "Přepínače --offset a --skip jsou podporovány jen u příkazu create.\n"

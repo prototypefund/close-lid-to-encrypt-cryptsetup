@@ -1,3 +1,5 @@
+SUBDIRS = luks1
+
 moduledir = $(libdir)/cryptsetup
 
 pkgconfigdir = $(libdir)/pkgconfig
@@ -5,7 +7,7 @@ pkgconfig_DATA = libcryptsetup.pc
 
 INCLUDES = \
 	-I$(top_srcdir)				\
-	-I$(top_srcdir)/luks			\
+	-I$(top_srcdir)/lib/luks1		\
 	-DDATADIR=\""$(datadir)"\"		\
 	-DLIBDIR=\""$(libdir)"\"		\
 	-DPREFIX=\""$(prefix)"\"		\
@@ -17,14 +19,9 @@ INCLUDES = \
 
 lib_LTLIBRARIES = libcryptsetup.la
 
-if STATIC_LIBRARY
-_STATIC_LIBRARY = -static
-endif
-
 libcryptsetup_la_DEPENDENCIES = libcryptsetup.sym
 
 libcryptsetup_la_LDFLAGS = \
-	$(_STATIC_LIBRARY) \
 	-Wl,--version-script=$(top_srcdir)/lib/libcryptsetup.sym \
 	-version-info @LIBCRYPTSETUP_VERSION_INFO@
 
@@ -34,7 +31,7 @@ libcryptsetup_la_LIBADD = \
 	@UUID_LIBS@				\
 	@DEVMAPPER_LIBS@			\
 	@LIBGCRYPT_LIBS@			\
-	../luks/libluks.la
+	luks1/libluks1.la
 
 libcryptsetup_la_SOURCES = \
 	setup.c					\
@@ -43,9 +40,13 @@ libcryptsetup_la_SOURCES = \
 	blockdev.h				\
 	libcryptsetup.h				\
 	utils.c					\
+	utils_crypt.c				\
+	utils_crypt.h				\
 	utils_debug.c				\
 	backends.c				\
 	libdevmapper.c				\
+	volumekey.c				\
+	random.c				\
 	gcrypt.c
 
 include_HEADERS = libcryptsetup.h

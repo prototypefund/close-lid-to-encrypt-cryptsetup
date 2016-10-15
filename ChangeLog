@@ -1,3 +1,68 @@
+2010-12-20  Milan Broz  <mbroz@redhat.com>
+	* Version 1.2.0.
+
+2010-11-25  Milan Broz  <mbroz@redhat.com>
+	* Fix crypt_activate_by_keyfile() to work with PLAIN devices.
+	* Fix create command to properly handle keyfile size.
+
+2010-11-16  Milan Broz  <mbroz@redhat.com>
+	* Version 1.2.0-rc1.
+
+2010-11-13  Milan Broz  <mbroz@redhat.com>
+	* Fix password callback call.
+	* Fix default plain password entry from terminal in activate_by_passphrase.
+	* Add --dump-master-key option for luksDump to allow volume key dump.
+	* Allow to activate by internally cached volume key
+	  (format/activate without keyslots active - used for temporary devices).
+	* Initialize volume key from active device in crypt_init_by_name()
+	* Fix cryptsetup binary exitcodes.
+	* Increase library version (still binary compatible with 1.1.x release).
+
+2010-11-01  Milan Broz  <mbroz@redhat.com>
+	* No longer support luksDelKey, reload and --non-exclusive.
+	* Remove some obsolete info from man page.
+	* Add crypt_get_type(), crypt_resize(), crypt_keyslot_max()
+	and crypt_get_active_device() to API.
+	* Rewrite all implementations in cryptsetup to new API.
+	* Fix luksRemoveKey to behave as documented (do not ask
+	for remaining keyslot passphrase).
+	* Add more regression tests for commands.
+	* Disallow mapping of device which is already in use (mapped or mounted).
+	* Disallow luksFormat on device in use.
+
+2010-10-27  Milan Broz  <mbroz@redhat.com>
+	* Rewrite cryptsetup luksFormat, luksOpen, luksAddKey to use new API
+	  to allow adding new features.
+	* Implement --use-random and --use-urandom for luksFormat to allow
+	  setting of RNG for volume key generator.
+	* Add crypt_set_rng_type() and crypt_get_rng_type() to API.
+	* Add crypt_set_uuid() to API.
+	* Allow UUID setting in luksFormat and luksUUID (--uuid parameter).
+	* Add --keyfile-size and --new-keyfile-size (in bytes) size and disallow overloading
+	  of --key-size for limiting keyfile reads.
+	* Fix luksFormat to properly use key file with --master-key-file switch.
+	* Fix possible double free when handling master key file.
+
+2010-10-17  Milan Broz  <mbroz@redhat.com>
+	* Add crypt_get_device_name() to API (get underlying device name).
+	* Change detection for static libraries.
+	* Fix pkg-config use in automake scripts.
+	* Remove --disable-shared-library switch and handle static library build
+	  by common libtool logic (using --enable-static).
+	* Add --enable-static-cryptsetup option to build cryptsetup.static binary
+	  together with shared build.
+
+2010-08-05  Milan Broz  <mbroz@redhat.com>
+	* Wipe iteration and salt after KillSlot in LUKS header.
+	* Rewrite file differ test to C (and fix it to really work).
+	* Switch to 1MiB default alignment of data.
+	  For more info see https://bugzilla.redhat.com/show_bug.cgi?id=621684
+	* Do not query non-existent device twice (cryptsetup status /dev/nonexistent).
+	* Check if requested hash is supported before writing LUKS header.
+
+2010-07-28  Arno Wagner <arno@wagner.name>
+	* Add FAQ (Frequently Asked Questions) file to distribution.
+
 2010-07-03  Milan Broz  <mbroz@redhat.com>
 	* Fix udev support for old libdevmapper with not compatible definition.
 	* Version 1.1.3.

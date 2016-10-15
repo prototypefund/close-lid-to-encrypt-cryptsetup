@@ -257,13 +257,13 @@ static char *get_params(const char *device, uint64_t skip, uint64_t offset,
 	char *params;
 	char *hexkey;
 
-	hexkey = safe_alloc(key_size * 2 + 1);
+	hexkey = crypt_safe_alloc(key_size * 2 + 1);
 	if (!hexkey)
 		return NULL;
 
 	hex_key(hexkey, key_size, key);
 
-	params = safe_alloc(strlen(hexkey) + strlen(cipher) + strlen(device) + 64);
+	params = crypt_safe_alloc(strlen(hexkey) + strlen(cipher) + strlen(device) + 64);
 	if (!params)
 		goto out;
 
@@ -271,7 +271,7 @@ static char *get_params(const char *device, uint64_t skip, uint64_t offset,
 	        cipher, hexkey, skip, device, offset);
 
 out:
-	safe_free(hexkey);
+	crypt_safe_free(hexkey);
 	return params;
 }
 
@@ -516,7 +516,7 @@ out_no_removal:
 		(void)_dm_udev_wait(cookie);
 
 	if (params)
-		safe_free(params);
+		crypt_safe_free(params);
 	if (dmt)
 		dm_task_destroy(dmt);
 
@@ -534,22 +534,16 @@ int dm_status_device(const char *name)
 	int r = -EINVAL;
 
 	if (!(dmt = dm_task_create(DM_DEVICE_STATUS)))
-		return -EINVAL;
-
-	if (!dm_task_set_name(dmt, name)) {
-		r = -EINVAL;
 		goto out;
-	}
 
-	if (!dm_task_run(dmt)) {
-		r = -EINVAL;
+	if (!dm_task_set_name(dmt, name))
 		goto out;
-	}
 
-	if (!dm_task_get_info(dmt, &dmi)) {
-		r = -EINVAL;
+	if (!dm_task_run(dmt))
 		goto out;
-	}
+
+	if (!dm_task_get_info(dmt, &dmi))
+		goto out;
 
 	if (!dmi.exists) {
 		r = -ENODEV;
@@ -651,7 +645,7 @@ int dm_query_device(const char *name,
 
 	/* key */
 	if (key_size && key) {
-		*key = safe_alloc(*key_size);
+		*key = crypt_safe_alloc(*key_size);
 		if (!*key) {
 			r = -ENOMEM;
 			goto out;
@@ -662,7 +656,7 @@ int dm_query_device(const char *name,
 			memcpy(buffer, &key_[i * 2], 2);
 			(*key)[i] = strtoul(buffer, &endp, 16);
 			if (endp != &buffer[2]) {
-				safe_free(key);
+				crypt_safe_free(key);
 				*key = NULL;
 				goto out;
 			}
@@ -745,7 +739,7 @@ int dm_resume_and_reinstate_key(const char *name,
 	if (!_dm_crypt_wipe_key_supported)
 		return -ENOTSUP;
 
-	msg = safe_alloc(msg_size);
+	msg = crypt_safe_alloc(msg_size);
 	if (!msg)
 		return -ENOMEM;
 
@@ -757,7 +751,7 @@ int dm_resume_and_reinstate_key(const char *name,
 	    !_dm_simple(DM_DEVICE_RESUME, name, 1))
 		r = -EINVAL;
 
-	safe_free(msg);
+	crypt_safe_free(msg);
 	return r;
 }
 

@@ -11,12 +11,12 @@
 #include <inttypes.h>
 
 #include "nls.h"
+#include "utils_crypt.h"
 
 #define SECTOR_SHIFT		9
 #define SECTOR_SIZE		(1 << SECTOR_SHIFT)
-#define DEFAULT_ALIGNMENT	4096
-
-#define MAX_TTY_PASSWORD_LEN	512
+#define DEFAULT_DISK_ALIGNMENT	1048576 /* 1MiB */
+#define DEFAULT_MEM_ALIGNMENT	4096
 
 /* private struct crypt_options flags */
 
@@ -26,6 +26,8 @@
 #define CRYPT_FLAG_PRIVATE_MASK ((unsigned int)-1 << 24)
 
 #define at_least(a, b) ({ __typeof__(a) __at_least = (a); (__at_least >= (b))?__at_least:(b); })
+
+struct crypt_device;
 
 struct hash_type {
 	char		*name;
@@ -40,31 +42,27 @@ struct hash_backend {
 	void			(*free_hashes)(struct hash_type *hashes);
 };
 
-struct device_infos {
-	uint64_t	size;
-	int		readonly;
+struct volume_key {
+	size_t keylength;
+	char key[];
 };
 
-struct crypt_device;
+struct volume_key *crypt_alloc_volume_key(unsigned keylength, const char *key);
+struct volume_key *crypt_generate_volume_key(struct crypt_device *cd, unsigned keylength);
+void crypt_free_volume_key(struct volume_key *vk);
+
 int crypt_confirm(struct crypt_device *cd, const char *msg);
 
 void set_error_va(const char *fmt, va_list va);
 void set_error(const char *fmt, ...);
 const char *get_error(void);
-void *safe_alloc(size_t size);
-void safe_free(void *data);
-void *safe_realloc(void *data, size_t size);
-char *safe_strdup(const char *s);
-void set_debug_level(int level);
 
-int init_crypto(void);
+int init_crypto(struct crypt_device *ctx);
 struct hash_backend *get_hash_backend(const char *name);
 void put_hash_backend(struct hash_backend *backend);
 int hash(const char *backend_name, const char *hash_name,
          char *result, size_t size,
          const char *passphrase, size_t sizep);
-
-void hexprint(char *d, int n);
 
 /* Device mapper backend */
 const char *dm_get_dir(void);
@@ -98,14 +96,11 @@ ssize_t write_blockwise(int fd, const void *buf, size_t count);
 ssize_t read_blockwise(int fd, void *_buf, size_t count);
 ssize_t write_lseek_blockwise(int fd, const char *buf, size_t count, off_t offset);
 int device_ready(struct crypt_device *cd, const char *device, int mode);
-int get_device_infos(const char *device, struct device_infos *infos, struct crypt_device *cd);
+int get_device_infos(const char *device,
+		     int open_exclusive,
+		     int *readonly,
+		     uint64_t *size);
 int wipe_device_header(const char *device, int sectors);
-
-void get_key(char *prompt, char **key, unsigned int *passLen, int key_size,
-	     const char *key_file, int timeout, int how2verify,
-	     struct crypt_device *cd);
-
-int parse_into_name_and_mode(const char *nameAndMode, char *name, char *mode);
 
 void logger(struct crypt_device *cd, int class, const char *file, int line, const char *format, ...);
 #define log_dbg(x...) logger(NULL, CRYPT_LOG_DEBUG, __FILE__, __LINE__, x)
@@ -125,5 +120,11 @@ void get_topology_alignment(const char *device,
 			    unsigned long *required_alignment, /* bytes */
 			    unsigned long *alignment_offset,   /* bytes */
 			    unsigned long default_alignment);
+
+enum { CRYPT_RND_NORMAL = 0, CRYPT_RND_KEY = 1 };
+int crypt_random_init(struct crypt_device *ctx);
+int crypt_random_get(struct crypt_device *ctx, char *buf, size_t len, int quality);
+void crypt_random_exit(void);
+int crypt_random_default_key_rng(void);
 
 #endif /* INTERNAL_H */

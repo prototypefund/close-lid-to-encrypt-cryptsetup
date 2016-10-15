@@ -3,7 +3,7 @@
  * Copyright 2004, Clemens Fruhwirth <clemens@endorphin.org>
  * Copyright (C) 2009 Red Hat, Inc. All rights reserved.
  *
- * AFsplitter diffuses information over a large stripe of data, 
+ * AFsplitter diffuses information over a large stripe of data,
  * therefor supporting secure data destruction.
  *
  * This program is free software; you can redistribute it and/or
@@ -19,14 +19,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
- 
+
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <netinet/in.h>
 #include <errno.h>
 #include <gcrypt.h>
-#include "random.h"
+#include "internal.h"
 
 static void XORblock(char const *src1, char const *src2, char *dst, size_t n)
 {
@@ -81,7 +81,7 @@ static int diffuse(char *src, char *dst, size_t size, int hash_id)
 
 /*
  * Information splitting. The amount of data is multiplied by
- * blocknumbers. The same blocksize and blocknumbers values 
+ * blocknumbers. The same blocksize and blocknumbers values
  * must be supplied to AF_merge to recover information.
  */
 
@@ -99,7 +99,7 @@ int AF_split(char *src, char *dst, size_t blocksize, unsigned int blocknumbers, 
 
 	/* process everything except the last block */
 	for(i=0; i<blocknumbers-1; i++) {
-		r = getRandom(dst+(blocksize*i),blocksize);
+		r = crypt_random_get(NULL, dst+(blocksize*i), blocksize, CRYPT_RND_NORMAL);
 		if(r < 0) goto out;
 
 		XORblock(dst+(blocksize*i),bufblock,bufblock,blocksize);
@@ -124,7 +124,8 @@ int AF_merge(char *src, char *dst, size_t blocksize, unsigned int blocknumbers, 
 	if (!(hash_id = gcry_md_map_name(hash)))
 		return -EINVAL;
 
-	if((bufblock = calloc(blocksize, 1)) == NULL) return -ENOMEM;
+	if((bufblock = calloc(blocksize, 1)) == NULL)
+		return -ENOMEM;
 
 	memset(bufblock,0,blocksize);
 	for(i=0; i<blocknumbers-1; i++) {
@@ -136,5 +137,5 @@ int AF_merge(char *src, char *dst, size_t blocksize, unsigned int blocknumbers, 
 	r = 0;
 out:
 	free(bufblock);
-	return 0;
+	return r;
 }

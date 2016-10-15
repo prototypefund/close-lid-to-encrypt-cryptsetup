@@ -86,9 +86,9 @@ void crypt_set_confirm_callback(struct crypt_device *cd,
  * @length - size of buffer
  *
  * - Note that if this function is defined, verify option is ignored
- *   (caller whch provided callback is responsible fo password verification)
- * - Only zero terminated passwords can be enteted this way, for complex
- *   API functions directly.
+ *   (caller which provided callback is responsible for password verification)
+ * - Only zero terminated passwords can be entered this way, for complex
+ *   use API functions directly.
  * - Maximal length of password is limited to @length-1 (minimal 511 chars)
  */
 void crypt_set_password_callback(struct crypt_device *cd,
@@ -99,7 +99,7 @@ void crypt_set_password_callback(struct crypt_device *cd,
  * Various crypt device parameters
  *
  * @cd - crypt device handle
- * @timeout - timeout in secons for password entry if compiled-in function used
+ * @timeout - timeout in seconds for password entry if compiled-in function used
  * @password_retry - number of tries for password if not verified
  * @iteration_time - iteration time for LUKS header in miliseconds
  * @password_verify - for compiled-in password query always verify passwords twice
@@ -108,6 +108,27 @@ void crypt_set_timeout(struct crypt_device *cd, uint64_t timeout_sec);
 void crypt_set_password_retry(struct crypt_device *cd, int tries);
 void crypt_set_iterarion_time(struct crypt_device *cd, uint64_t iteration_time_ms);
 void crypt_set_password_verify(struct crypt_device *cd, int password_verify);
+
+/**
+ * Set which RNG (random number generator) is used for generating long term key
+ * @cd - crypt device handle
+ * @rng_type - kernel random number generator to use
+ *
+ * CRYPT_RNG_URANDOM - use /dev/urandom
+ * CRYPT_RNG_RANDOM  - use /dev/random (waits if no entropy in system)
+ */
+#define CRYPT_RNG_URANDOM 0
+#define CRYPT_RNG_RANDOM  1
+void crypt_set_rng_type(struct crypt_device *cd, int rng_type);
+
+/**
+ * Get which RNG (random number generator) is used for generating long term key
+ *
+ * Returns RNG type on success or negative errno value otherwise.
+ *
+ * @cd - crypt device handle
+ */
+int crypt_get_rng_type(struct crypt_device *cd);
 
 /**
  * Helper to lock/unlock memory to avoid swap sensitive data to disk
@@ -122,6 +143,15 @@ int crypt_memory_lock(struct crypt_device *cd, int lock);
 
 #define CRYPT_PLAIN "PLAIN" /* regular crypt device, no on-disk header */
 #define CRYPT_LUKS1 "LUKS1" /* LUKS version 1 header on-disk */
+
+/**
+ * Get device type
+ *
+ * @cd - crypt device handle
+ *
+ * Returns string according to device type or NULL if not known.
+ */
+const char *crypt_get_type(struct crypt_device *cd);
 
 struct crypt_params_plain {
 	const char *hash; /* password hash function */
@@ -145,12 +175,11 @@ struct crypt_params_luks1 {
  * @cipher_mode - including IV specification (e.g. "xts-plain")
  * @uuid - requested UUID or NULL if it should be generated
  * @volume_key - pre-generated volume key or NULL if it should be generated (only for LUKS)
- * @volume_key_size - size og volume key in bytes.
+ * @volume_key_size - size of volume key in bytes.
  * @params - crypt type specific parameters
  *
- * Note that crypt_format do not enable any keyslot, but it stores volume key internally
+ * Note that crypt_format does not enable any keyslot, but it stores volume key internally
  * and subsequent crypt_keyslot_add_* calls can be used.
- * (It is the only situation when crypt_keyslot_add_* do not require active key slots.)
  */
 int crypt_format(struct crypt_device *cd,
 	const char *type,
@@ -160,6 +189,17 @@ int crypt_format(struct crypt_device *cd,
 	const char *volume_key,
 	size_t volume_key_size,
 	void *params);
+
+/**
+ * Set new UUID for already existing device (if format supports it)
+ *
+ * Returns 0 on success or negative errno value otherwise.
+ *
+ * @cd - crypt device handle
+ * @uuid - requested UUID or NULL if it should be generated
+ */
+int crypt_set_uuid(struct crypt_device *cd,
+		   const char *uuid);
 
 /**
  * Load crypt device parameters from on-disk header
@@ -173,6 +213,19 @@ int crypt_format(struct crypt_device *cd,
 int crypt_load(struct crypt_device *cd,
 	       const char *requested_type,
 	       void *params);
+
+/**
+ * Resize crypt device
+ *
+ * Returns 0 on success or negative errno value otherwise.
+ *
+ * @cd - crypt device handle
+ * @name - name of device to resize
+ * @new_size - new device size in sectors or 0 to use underlying device size
+ */
+int crypt_resize(struct crypt_device *cd,
+		 const char *name,
+		 uint64_t new_size);
 
 /**
  * Suspends crypt device.
@@ -247,6 +300,16 @@ int crypt_keyslot_add_by_passphrase(struct crypt_device *cd,
 	size_t new_passphrase_size);
 
 /**
+ * Get number of keyslots supported for device type.
+ *
+ * Returns slot count or negative errno otherwise if device
+ * doesn't not support keyslots.
+ *
+ * @type - crypt device type
+ */
+int crypt_keyslot_max(const char *type);
+
+/**
 * Add key slot using provided key file path
  *
  * Returns allocated key slot number or negative errno otherwise.
@@ -305,6 +368,29 @@ int crypt_keyslot_destroy(struct crypt_device *cd, int keyslot);
 #define CRYPT_ACTIVATE_NO_UUID  (1 << 1)
 
 /**
+ * Active device runtime attributes
+ */
+struct crypt_active_device {
+	uint64_t offset;	/* offset in sectors */
+	uint64_t iv_offset;	/* IV initilisation sector */
+	uint64_t size;		/* active device size */
+	uint32_t flags;		/* activation flags */
+};
+
+/**
+ * Receives runtime attributes of active crypt device
+ *
+ * Returns 0 on success or negative errno value otherwise.
+ *
+ * @cd - crypt device handle (can be NULL)
+ * @name - name of active device
+ * @cad - preallocated active device attributes to fill
+ */
+int crypt_get_active_device(struct crypt_device *cd,
+			    const char *name,
+			    struct crypt_active_device *cad);
+
+/**
  * Activate device or check passphrase
  *
  * Returns unlocked key slot number or negative errno otherwise.
@@ -349,9 +435,12 @@ int crypt_activate_by_keyfile(struct crypt_device *cd,
  *
  * @cd - crypt device handle
  * @name - name of device to create, if NULL only check volume key
- * @volume_key - provided volume key
+ * @volume_key - provided volume key (or NULL to use internal)
  * @volume_key_size - size of @volume_key
  * @flags - activation flags
+ *
+ * If NULL is used for volume_key, device has to be initialized
+ * by previous operation (like crypt_format() or crypt_init_by_name())
  */
 int crypt_activate_by_volume_key(struct crypt_device *cd,
 	const char *name,
@@ -425,7 +514,7 @@ crypt_status_info crypt_status(struct crypt_device *cd, const char *name);
  *
  * Returns 0 on success or negative errno value otherwise.
  *
- * @cd - crypt device handle, can be NULL
+ * @cd - crypt device handle
  */
 int crypt_dump(struct crypt_device *cd);
 
@@ -437,12 +526,14 @@ int crypt_dump(struct crypt_device *cd);
  * cipher - used cipher, e.g. "aes" or NULL otherwise
  * cipher_mode - used cipher mode including IV, e.g. "xts-plain" or NULL otherwise
  * uuid - device UUID or NULL if not set
+ * device_name - underlying device name or NULL if not yet set
  * data_offset - device offset in sectors where real data starts on underlying device)
  * volume_key_size - size (in bytes) of volume key for crypt device
  */
 const char *crypt_get_cipher(struct crypt_device *cd);
 const char *crypt_get_cipher_mode(struct crypt_device *cd);
 const char *crypt_get_uuid(struct crypt_device *cd);
+const char *crypt_get_device_name(struct crypt_device *cd);
 uint64_t crypt_get_data_offset(struct crypt_device *cd);
 int crypt_get_volume_key_size(struct crypt_device *cd);
 

@@ -1,5 +1,5 @@
 /*
- * LUKS - Linux Unified Key Setup 
+ * LUKS - Linux Unified Key Setup
  *
  * Copyright (C) 2004-2006, Clemens Fruhwirth <clemens@endorphin.org>
  *
@@ -29,13 +29,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <uuid/uuid.h>
 
 #include "luks.h"
 #include "af.h"
 #include "pbkdf.h"
-#include "random.h"
-#include <uuid/uuid.h>
-#include <../lib/internal.h>
+#include "internal.h"
 
 #define div_round_up(a,b) ({           \
 	typeof(a) __a = (a);          \
@@ -45,38 +44,6 @@
 
 static inline int round_up_modulo(int x, int m) {
 	return div_round_up(x, m) * m;
-}
-
-struct luks_masterkey *LUKS_alloc_masterkey(int keylength, const char *key)
-{ 
-	struct luks_masterkey *mk=malloc(sizeof(*mk) + keylength);
-	if(NULL == mk) return NULL;
-	mk->keyLength=keylength;
-	if (key)
-		memcpy(&mk->key, key, keylength);
-	return mk;
-}
-
-void LUKS_dealloc_masterkey(struct luks_masterkey *mk)
-{
-	if(NULL != mk) {
-		memset(mk->key,0,mk->keyLength);
-		mk->keyLength=0;
-		free(mk);
-	}
-}
-
-struct luks_masterkey *LUKS_generate_masterkey(int keylength)
-{
-	struct luks_masterkey *mk=LUKS_alloc_masterkey(keylength, NULL);
-	if(NULL == mk) return NULL;
-
-	int r = getRandom(mk->key,keylength);
-	if(r < 0) {
-		LUKS_dealloc_masterkey(mk);
-		return NULL;
-	}
-	return mk;
 }
 
 int LUKS_hdr_backup(
@@ -95,12 +62,12 @@ int LUKS_hdr_backup(
 		return -EINVAL;
 	}
 
-	r = LUKS_read_phdr(device, hdr, 0, ctx);
+	r = LUKS_read_phdr(device, hdr, 1, ctx);
 	if (r)
 		return r;
 
 	buffer_size = hdr->payloadOffset << SECTOR_SHIFT;
-	buffer = safe_alloc(buffer_size);
+	buffer = crypt_safe_alloc(buffer_size);
 	if (!buffer || buffer_size < LUKS_ALIGN_KEYSLOTS) {
 		r = -ENOMEM;
 		goto out;
@@ -141,7 +108,7 @@ int LUKS_hdr_backup(
 out:
 	if (devfd != -1)
 		close(devfd);
-	safe_free(buffer);
+	crypt_safe_free(buffer);
 	return r;
 }
 
@@ -171,7 +138,7 @@ int LUKS_hdr_restore(
 		goto out;
 	}
 
-	buffer = safe_alloc(buffer_size);
+	buffer = crypt_safe_alloc(buffer_size);
 	if (!buffer) {
 		r = -ENOMEM;
 		goto out;
@@ -238,7 +205,7 @@ int LUKS_hdr_restore(
 out:
 	if (devfd != -1)
 		close(devfd);
-	safe_free(buffer);
+	crypt_safe_free(buffer);
 	return r;
 }
 
@@ -360,8 +327,8 @@ int LUKS_write_phdr(const char *device,
 		    struct luks_phdr *hdr,
 		    struct crypt_device *ctx)
 {
-	int devfd = 0; 
-	unsigned int i; 
+	int devfd = 0;
+	unsigned int i;
 	struct luks_phdr convHdr;
 	int r;
 
@@ -369,7 +336,7 @@ int LUKS_write_phdr(const char *device,
 		sizeof(struct luks_phdr), device);
 
 	devfd = open(device,O_RDWR | O_DIRECT | O_SYNC);
-	if(-1 == devfd) { 
+	if(-1 == devfd) {
 		log_err(ctx, _("Cannot open device %s.\n"), device);
 		return -EINVAL;
 	}
@@ -420,7 +387,7 @@ static int LUKS_PBKDF2_performance_check(const char *hashSpec,
 }
 
 int LUKS_generate_phdr(struct luks_phdr *header,
-		       const struct luks_masterkey *mk,
+		       const struct volume_key *vk,
 		       const char *cipherName, const char *cipherMode, const char *hashSpec,
 		       const char *uuid, unsigned int stripes,
 		       unsigned int alignPayload,
@@ -430,14 +397,26 @@ int LUKS_generate_phdr(struct luks_phdr *header,
 		       struct crypt_device *ctx)
 {
 	unsigned int i=0;
-	unsigned int blocksPerStripeSet = div_round_up(mk->keyLength*stripes,SECTOR_SIZE);
+	unsigned int blocksPerStripeSet = div_round_up(vk->keylength*stripes,SECTOR_SIZE);
 	int r;
 	char luksMagic[] = LUKS_MAGIC;
 	uuid_t partitionUuid;
 	int currentSector;
-	int alignSectors = LUKS_ALIGN_KEYSLOTS / SECTOR_SIZE;
+
 	if (alignPayload == 0)
-		alignPayload = alignSectors;
+		alignPayload = DEFAULT_DISK_ALIGNMENT / SECTOR_SIZE;
+
+	if (PBKDF2_HMAC_ready(hashSpec) < 0) {
+		log_err(ctx, _("Requested LUKS hash %s is not supported.\n"), hashSpec);
+		return -EINVAL;
+	}
+
+	if (uuid && uuid_parse(uuid, partitionUuid) == -1) {
+		log_err(ctx, _("Wrong LUKS UUID format provided.\n"));
+		return -EINVAL;
+	}
+	if (!uuid)
+		uuid_generate(partitionUuid);
 
 	memset(header,0,sizeof(struct luks_phdr));
 
@@ -448,7 +427,7 @@ int LUKS_generate_phdr(struct luks_phdr *header,
 	strncpy(header->cipherMode,cipherMode,LUKS_CIPHERMODE_L);
 	strncpy(header->hashSpec,hashSpec,LUKS_HASHSPEC_L);
 
-	header->keyBytes=mk->keyLength;
+	header->keyBytes=vk->keylength;
 
 	LUKS_fix_header_compatible(header);
 
@@ -456,7 +435,7 @@ int LUKS_generate_phdr(struct luks_phdr *header,
 		header->version, header->hashSpec ,header->cipherName, header->cipherMode,
 		header->keyBytes);
 
-	r = getRandom(header->mkDigestSalt,LUKS_SALTSIZE);
+	r = crypt_random_get(ctx, header->mkDigestSalt, LUKS_SALTSIZE, CRYPT_RND_NORMAL);
 	if(r < 0) {
 		log_err(ctx,  _("Cannot create LUKS header: reading random salt failed.\n"));
 		return r;
@@ -470,7 +449,7 @@ int LUKS_generate_phdr(struct luks_phdr *header,
 	header->mkDigestIterations = at_least((uint32_t)(*PBKDF2_per_sec/1024) * iteration_time_ms,
 					      LUKS_MKD_ITERATIONS_MIN);
 
-	r = PBKDF2_HMAC(header->hashSpec,mk->key,mk->keyLength,
+	r = PBKDF2_HMAC(header->hashSpec,vk->key,vk->keylength,
 			header->mkDigestSalt,LUKS_SALTSIZE,
 			header->mkDigestIterations,
 			header->mkDigest,LUKS_DIGESTSIZE);
@@ -480,24 +459,19 @@ int LUKS_generate_phdr(struct luks_phdr *header,
 		return r;
 	}
 
-	currentSector = round_up_modulo(LUKS_PHDR_SIZE, alignSectors);
+	currentSector = round_up_modulo(LUKS_PHDR_SIZE, LUKS_ALIGN_KEYSLOTS / SECTOR_SIZE);
 	for(i = 0; i < LUKS_NUMKEYS; ++i) {
 		header->keyblock[i].active = LUKS_KEY_DISABLED;
 		header->keyblock[i].keyMaterialOffset = currentSector;
 		header->keyblock[i].stripes = stripes;
-		currentSector = round_up_modulo(currentSector + blocksPerStripeSet, alignSectors);
+		currentSector = round_up_modulo(currentSector + blocksPerStripeSet,
+						LUKS_ALIGN_KEYSLOTS / SECTOR_SIZE);
 	}
 	currentSector = round_up_modulo(currentSector, alignPayload);
 
 	/* alignOffset - offset from natural device alignment provided by topology info */
 	header->payloadOffset = currentSector + alignOffset;
 
-	if (uuid && !uuid_parse(uuid, partitionUuid)) {
-		log_err(ctx, _("Wrong UUID format provided, generating new one.\n"));
-		uuid = NULL;
-	}
-	if (!uuid)
-		uuid_generate(partitionUuid);
         uuid_unparse(partitionUuid, header->uuid);
 
 	log_dbg("Data offset %d, UUID %s, digest iterations %" PRIu32,
@@ -506,9 +480,29 @@ int LUKS_generate_phdr(struct luks_phdr *header,
 	return 0;
 }
 
+int LUKS_hdr_uuid_set(
+	const char *device,
+	struct luks_phdr *hdr,
+	const char *uuid,
+	struct crypt_device *ctx)
+{
+	uuid_t partitionUuid;
+
+	if (uuid && uuid_parse(uuid, partitionUuid) == -1) {
+		log_err(ctx, _("Wrong LUKS UUID format provided.\n"));
+		return -EINVAL;
+	}
+	if (!uuid)
+		uuid_generate(partitionUuid);
+
+	uuid_unparse(partitionUuid, hdr->uuid);
+
+	return LUKS_write_phdr(device, hdr, ctx);
+}
+
 int LUKS_set_key(const char *device, unsigned int keyIndex,
 		 const char *password, size_t passwordLen,
-		 struct luks_phdr *hdr, struct luks_masterkey *mk,
+		 struct luks_phdr *hdr, struct volume_key *vk,
 		 uint32_t iteration_time_ms,
 		 uint64_t *PBKDF2_per_sec,
 		 struct crypt_device *ctx)
@@ -548,10 +542,11 @@ int LUKS_set_key(const char *device, unsigned int keyIndex,
 
 	log_dbg("Key slot %d use %d password iterations.", keyIndex, hdr->keyblock[keyIndex].passwordIterations);
 
-	r = getRandom(hdr->keyblock[keyIndex].passwordSalt, LUKS_SALTSIZE);
+	r = crypt_random_get(ctx, hdr->keyblock[keyIndex].passwordSalt,
+		       LUKS_SALTSIZE, CRYPT_RND_NORMAL);
 	if(r < 0) return r;
 
-//	assert((mk->keyLength % TWOFISH_BLOCKSIZE) == 0); FIXME
+//	assert((vk->keylength % TWOFISH_BLOCKSIZE) == 0); FIXME
 
 	r = PBKDF2_HMAC(hdr->hashSpec, password,passwordLen,
 			hdr->keyblock[keyIndex].passwordSalt,LUKS_SALTSIZE,
@@ -560,15 +555,15 @@ int LUKS_set_key(const char *device, unsigned int keyIndex,
 	if(r < 0) return r;
 
 	/*
-	 * AF splitting, the masterkey stored in mk->key is splitted to AfMK
+	 * AF splitting, the masterkey stored in vk->key is splitted to AfMK
 	 */
-	AFEKSize = hdr->keyblock[keyIndex].stripes*mk->keyLength;
+	AFEKSize = hdr->keyblock[keyIndex].stripes*vk->keylength;
 	AfKey = (char *)malloc(AFEKSize);
 	if(AfKey == NULL) return -ENOMEM;
 
 	log_dbg("Using hash %s for AF in key slot %d, %d stripes",
 		hdr->hashSpec, keyIndex, hdr->keyblock[keyIndex].stripes);
-	r = AF_split(mk->key,AfKey,mk->keyLength,hdr->keyblock[keyIndex].stripes,hdr->hashSpec);
+	r = AF_split(vk->key,AfKey,vk->keylength,hdr->keyblock[keyIndex].stripes,hdr->hashSpec);
 	if(r < 0) goto out;
 
 	log_dbg("Updating key slot %d [0x%04x] area on device %s.", keyIndex,
@@ -601,13 +596,13 @@ out:
 	return r;
 }
 
-/* Check whether a master key is invalid. */
-int LUKS_verify_master_key(const struct luks_phdr *hdr,
-			   const struct luks_masterkey *mk)
+/* Check whether a volume key is invalid. */
+int LUKS_verify_volume_key(const struct luks_phdr *hdr,
+			   const struct volume_key *vk)
 {
 	char checkHashBuf[LUKS_DIGESTSIZE];
 
-	if (PBKDF2_HMAC(hdr->hashSpec, mk->key, mk->keyLength,
+	if (PBKDF2_HMAC(hdr->hashSpec, vk->key, vk->keylength,
 			hdr->mkDigestSalt, LUKS_SALTSIZE,
 			hdr->mkDigestIterations, checkHashBuf,
 			LUKS_DIGESTSIZE) < 0)
@@ -625,7 +620,7 @@ static int LUKS_open_key(const char *device,
 		  const char *password,
 		  size_t passwordLen,
 		  struct luks_phdr *hdr,
-		  struct luks_masterkey *mk,
+		  struct volume_key *vk,
 		  struct crypt_device *ctx)
 {
 	crypt_keyslot_info ki = LUKS_keyslot_info(hdr, keyIndex);
@@ -639,9 +634,9 @@ static int LUKS_open_key(const char *device,
 	if (ki < CRYPT_SLOT_ACTIVE)
 		return -ENOENT;
 
-	// assert((mk->keyLength % TWOFISH_BLOCKSIZE) == 0); FIXME
+	// assert((vk->keylength % TWOFISH_BLOCKSIZE) == 0); FIXME
 
-	AFEKSize = hdr->keyblock[keyIndex].stripes*mk->keyLength;
+	AFEKSize = hdr->keyblock[keyIndex].stripes*vk->keylength;
 	AfKey = (char *)malloc(AFEKSize);
 	if(AfKey == NULL) return -ENOMEM;
 
@@ -665,11 +660,11 @@ static int LUKS_open_key(const char *device,
 		goto out;
 	}
 
-	r = AF_merge(AfKey,mk->key,mk->keyLength,hdr->keyblock[keyIndex].stripes,hdr->hashSpec);
+	r = AF_merge(AfKey,vk->key,vk->keylength,hdr->keyblock[keyIndex].stripes,hdr->hashSpec);
 	if(r < 0) goto out;
 
-	r = LUKS_verify_master_key(hdr, mk);
-	if (r >= 0)
+	r = LUKS_verify_volume_key(hdr, vk);
+	if (!r)
 		log_verbose(ctx, _("Key slot %d unlocked.\n"), keyIndex);
 out:
 	free(AfKey);
@@ -681,25 +676,27 @@ int LUKS_open_key_with_hdr(const char *device,
 			   const char *password,
 			   size_t passwordLen,
 			   struct luks_phdr *hdr,
-			   struct luks_masterkey **mk,
+			   struct volume_key **vk,
 			   struct crypt_device *ctx)
 {
 	unsigned int i;
 	int r;
 
-	*mk = LUKS_alloc_masterkey(hdr->keyBytes, NULL);
+	*vk = crypt_alloc_volume_key(hdr->keyBytes, NULL);
 
-	if (keyIndex >= 0)
-		return LUKS_open_key(device, keyIndex, password, passwordLen, hdr, *mk, ctx);
+	if (keyIndex >= 0) {
+		r = LUKS_open_key(device, keyIndex, password, passwordLen, hdr, *vk, ctx);
+		return (r < 0) ? r : keyIndex;
+	}
 
 	for(i = 0; i < LUKS_NUMKEYS; i++) {
-		r = LUKS_open_key(device, i, password, passwordLen, hdr, *mk, ctx);
+		r = LUKS_open_key(device, i, password, passwordLen, hdr, *vk, ctx);
 		if(r == 0)
 			return i;
 
 		/* Do not retry for errors that are no -EPERM or -ENOENT,
 		   former meaning password wrong, latter key slot inactive */
-		if ((r != -EPERM) && (r != -ENOENT)) 
+		if ((r != -EPERM) && (r != -ENOENT))
 			return r;
 	}
 	/* Warning, early returns above */
@@ -746,12 +743,15 @@ static int wipe(const char *device, unsigned int from, unsigned int to)
 		return -EINVAL;
 
 	buffer = (char *) malloc(bufLen);
-	if(!buffer) return -ENOMEM;
+	if(!buffer) {
+		close(devfd);
+		return -ENOMEM;
+	}
 
 	for(i = 0; i < 39; ++i) {
-		if     (i >=  0 && i <  5) getRandom(buffer, bufLen);
+		if     (i >=  0 && i <  5) crypt_random_get(NULL, buffer, bufLen, CRYPT_RND_NORMAL);
 		else if(i >=  5 && i < 32) wipeSpecial(buffer, bufLen, i - 5);
-		else if(i >= 32 && i < 38) getRandom(buffer, bufLen);
+		else if(i >= 32 && i < 38) crypt_random_get(NULL, buffer, bufLen, CRYPT_RND_NORMAL);
 		else if(i >= 38 && i < 39) memset(buffer, 0xFF, bufLen);
 
 		if(write_lseek_blockwise(devfd, buffer, bufLen, from * SECTOR_SIZE) < 0) {
@@ -795,6 +795,10 @@ int LUKS_del_key(const char *device,
 		log_err(ctx, _("Cannot wipe device %s.\n"), device);
 		return r;
 	}
+
+	/* Wipe keyslot info */
+	memset(&hdr->keyblock[keyIndex].passwordSalt, 0, LUKS_SALTSIZE);
+	hdr->keyblock[keyIndex].passwordIterations = 0;
 
 	r = LUKS_write_phdr(device, hdr, ctx);
 
