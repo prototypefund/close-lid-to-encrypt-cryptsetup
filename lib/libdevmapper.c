@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <linux/fs.h>
 #include <uuid/uuid.h>
+#include <sys/utsname.h>
 
 #include "internal.h"
 
@@ -99,6 +100,18 @@ static void set_dm_error(int level,
 
 static int _dm_simple(int task, const char *name, int udev_wait);
 
+static int _dm_satisfies_version(unsigned target_maj, unsigned target_min,
+				 unsigned actual_maj, unsigned actual_min)
+{
+	if (actual_maj > target_maj)
+		return 1;
+
+	if (actual_maj == target_maj && actual_min >= target_min)
+		return 1;
+
+	return 0;
+}
+
 static void _dm_set_crypt_compat(const char *dm_version, unsigned crypt_maj,
 				 unsigned crypt_min, unsigned crypt_patch)
 {
@@ -110,23 +123,26 @@ static void _dm_set_crypt_compat(const char *dm_version, unsigned crypt_maj,
 	log_dbg("Detected dm-crypt version %i.%i.%i, dm-ioctl version %u.%u.%u.",
 		crypt_maj, crypt_min, crypt_patch, dm_maj, dm_min, dm_patch);
 
-	if (crypt_maj >= 1 && crypt_min >= 2)
+	if (_dm_satisfies_version(1, 2, crypt_maj, crypt_min))
 		_dm_crypt_flags |= DM_KEY_WIPE_SUPPORTED;
 	else
 		log_dbg("Suspend and resume disabled, no wipe key support.");
 
-	if (crypt_maj >= 1 && crypt_min >= 10)
+	if (_dm_satisfies_version(1, 10, crypt_maj, crypt_min))
 		_dm_crypt_flags |= DM_LMK_SUPPORTED;
 
-	if (dm_maj >= 4 && dm_min >= 20)
+	if (_dm_satisfies_version(4, 20, dm_maj, dm_min))
 		_dm_crypt_flags |= DM_SECURE_SUPPORTED;
 
 	/* not perfect, 2.6.33 supports with 1.7.0 */
-	if (crypt_maj >= 1 && crypt_min >= 8)
+	if (_dm_satisfies_version(1, 8, crypt_maj, crypt_min))
 		_dm_crypt_flags |= DM_PLAIN64_SUPPORTED;
 
-	if (crypt_maj >= 1 && crypt_min >= 11)
+	if (_dm_satisfies_version(1, 11, crypt_maj, crypt_min))
 		_dm_crypt_flags |= DM_DISCARDS_SUPPORTED;
+
+	if (_dm_satisfies_version(1, 13, crypt_maj, crypt_min))
+		_dm_crypt_flags |= DM_TCW_SUPPORTED;
 
 	/* Repeat test if dm-crypt is not present */
 	if (crypt_maj > 0)
@@ -143,6 +159,16 @@ static void _dm_set_verity_compat(const char *dm_version, unsigned verity_maj,
 		verity_maj, verity_min, verity_patch);
 }
 
+static void _dm_kernel_info(void)
+{
+	struct utsname uts;
+
+	if (!uname(&uts))
+		log_dbg("Detected kernel %s %s %s.",
+			uts.sysname, uts.release, uts.machine);
+
+}
+
 static int _dm_check_versions(void)
 {
 	struct dm_task *dmt;
@@ -152,6 +178,8 @@ static int _dm_check_versions(void)
 
 	if (_dm_crypt_checked)
 		return 1;
+
+	_dm_kernel_info();
 
 	/* Shut up DM while checking */
 	_quiet_log = 1;
@@ -503,7 +531,7 @@ static int dm_prepare_uuid(const char *name, const char *type, const char *uuid,
 	if (uuid) {
 		if (uuid_parse(uuid, uu) < 0) {
 			log_dbg("Requested UUID %s has invalid format.", uuid);
-			return -EINVAL;
+			return 0;
 		}
 
 		for (ptr = uuid2, i = 0; i < UUID_LEN; i++)
@@ -522,7 +550,7 @@ static int dm_prepare_uuid(const char *name, const char *type, const char *uuid,
 	if (i >= buflen)
 		log_err(NULL, _("DM-UUID for device %s was truncated.\n"), name);
 
-	return 0;
+	return 1;
 }
 
 static int _dm_create_device(const char *name, const char *type,
@@ -549,9 +577,8 @@ static int _dm_create_device(const char *name, const char *type,
 		if (!dm_task_set_name(dmt, name))
 			goto out_no_removal;
 	} else {
-		r = dm_prepare_uuid(name, type, uuid, dev_uuid, sizeof(dev_uuid));
-		if (r < 0)
-			return r;
+		if (!dm_prepare_uuid(name, type, uuid, dev_uuid, sizeof(dev_uuid)))
+			goto out_no_removal;
 
 		if (!(dmt = dm_task_create(DM_DEVICE_CREATE)))
 			goto out_no_removal;

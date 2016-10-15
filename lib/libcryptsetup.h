@@ -4,7 +4,7 @@
  * Copyright (C) 2004, Christophe Saout <christophe@saout.de>
  * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
  * Copyright (C) 2009-2012, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2009-2012, Milan Broz
+ * Copyright (C) 2009-2014, Milan Broz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1019,6 +1019,9 @@ int crypt_get_verity_info(struct crypt_device *cd,
  * @param decryption_mbs measured decryption speed in MiB/s
  *
  * @return @e 0 on success or negative errno value otherwise.
+ *
+ * @note If encryption_buffer_size is too small and encryption time
+ *       cannot be properly measured, -ERANGE is returned.
  */
 int crypt_benchmark(struct crypt_device *cd,
 	const char *cipher,

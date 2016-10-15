@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2004-2006, Clemens Fruhwirth <clemens@endorphin.org>
  * Copyright (C) 2009-2012, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2013, Milan Broz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -153,6 +154,7 @@ int LUKS_hdr_backup(
 {
 	struct device *device = crypt_metadata_device(ctx);
 	int r = 0, devfd = -1;
+	ssize_t hdr_size;
 	ssize_t buffer_size;
 	char *buffer = NULL;
 
@@ -160,15 +162,19 @@ int LUKS_hdr_backup(
 	if (r)
 		return r;
 
-	buffer_size = LUKS_device_sectors(hdr->keyBytes) << SECTOR_SHIFT;
+	hdr_size = LUKS_device_sectors(hdr->keyBytes) << SECTOR_SHIFT;
+	buffer_size = size_round_up(hdr_size, crypt_getpagesize());
+
 	buffer = crypt_safe_alloc(buffer_size);
-	if (!buffer || buffer_size < LUKS_ALIGN_KEYSLOTS) {
+	if (!buffer || hdr_size < LUKS_ALIGN_KEYSLOTS || hdr_size > buffer_size) {
 		r = -ENOMEM;
 		goto out;
 	}
 
 	log_dbg("Storing backup of header (%u bytes) and keyslot area (%u bytes).",
-		sizeof(*hdr), buffer_size - LUKS_ALIGN_KEYSLOTS);
+		sizeof(*hdr), hdr_size - LUKS_ALIGN_KEYSLOTS);
+
+	log_dbg("Output backup file size: %u bytes.", buffer_size);
 
 	devfd = device_open(device, O_RDONLY);
 	if(devfd == -1) {
@@ -177,7 +183,7 @@ int LUKS_hdr_backup(
 		goto out;
 	}
 
-	if (read_blockwise(devfd, device_block_size(device), buffer, buffer_size) < buffer_size) {
+	if (read_blockwise(devfd, device_block_size(device), buffer, hdr_size) < hdr_size) {
 		r = -EIO;
 		goto out;
 	}
@@ -594,6 +600,28 @@ int LUKS_write_phdr(struct luks_phdr *hdr,
 	return r;
 }
 
+/* Check that kernel supports requested cipher by decryption of one sector */
+static int LUKS_check_cipher(struct luks_phdr *hdr, struct crypt_device *ctx)
+{
+	int r;
+	struct volume_key *empty_key;
+	char buf[SECTOR_SIZE];
+
+	log_dbg("Checking if cipher %s-%s is usable.", hdr->cipherName, hdr->cipherMode);
+
+	empty_key = crypt_alloc_volume_key(hdr->keyBytes, NULL);
+	if (!empty_key)
+		return -ENOMEM;
+
+	r = LUKS_decrypt_from_storage(buf, sizeof(buf),
+				      hdr->cipherName, hdr->cipherMode,
+				      empty_key, 0, ctx);
+
+	crypt_free_volume_key(empty_key);
+	memset(buf, 0, sizeof(buf));
+	return r;
+}
+
 int LUKS_generate_phdr(struct luks_phdr *header,
 		       const struct volume_key *vk,
 		       const char *cipherName, const char *cipherMode, const char *hashSpec,
@@ -605,7 +633,7 @@ int LUKS_generate_phdr(struct luks_phdr *header,
 		       int detached_metadata_device,
 		       struct crypt_device *ctx)
 {
-	unsigned int i=0;
+	unsigned int i = 0, hdr_sectors = LUKS_device_sectors(vk->keylength);
 	size_t blocksPerStripeSet, currentSector;
 	int r;
 	uuid_t partitionUuid;
@@ -614,6 +642,13 @@ int LUKS_generate_phdr(struct luks_phdr *header,
 	/* For separate metadata device allow zero alignment */
 	if (alignPayload == 0 && !detached_metadata_device)
 		alignPayload = DEFAULT_DISK_ALIGNMENT / SECTOR_SIZE;
+
+	if (alignPayload && detached_metadata_device && alignPayload < hdr_sectors) {
+		log_err(ctx, _("Data offset for detached LUKS header must be "
+			       "either 0 or higher than header size (%d sectors).\n"),
+			       hdr_sectors);
+		return -EINVAL;
+	}
 
 	if (crypt_hmac_size(hashSpec) < LUKS_DIGESTSIZE) {
 		log_err(ctx, _("Requested LUKS hash %s is not supported.\n"), hashSpec);
@@ -639,6 +674,10 @@ int LUKS_generate_phdr(struct luks_phdr *header,
 	header->keyBytes=vk->keylength;
 
 	LUKS_fix_header_compatible(header);
+
+	r = LUKS_check_cipher(header, ctx);
+	if (r < 0)
+		return r;
 
 	log_dbg("Generating LUKS header version %d using hash %s, %s, %s, MK %d bytes",
 		header->version, header->hashSpec ,header->cipherName, header->cipherMode,

@@ -64,6 +64,13 @@ A. Contributors
   installers after a complete backup of all LUKS containers has been
   made.
 
+  UBUNTU INSTALLER: In particular the Ubuntu installer seems to be
+  quite willing to kill LUKS containers in several different ways.
+  Those responsible at Ubuntu seem not to care very much (it is very
+  easy to recognize a LUKS container), so treat the process of
+  installing Ubuntu as a severe hazard to any LUKS container you may
+  have.
+
   NO WARNING ON NON-INTERACTIVE FORMAT: If you feed cryptsetup from
   STDIN (e.g. via GnuPG) on LUKS format, it does not give you the
   warning that you are about to format (and e.g. will lose any
@@ -104,8 +111,11 @@ A. Contributors
   This issue has been acknowledged by the Ubuntu dev team, see here:
   http://launchpad.net/bugs/420080
 
-  Update 7/2012: I am unsure whether this has been fixed by now, best
-  be careful.
+  Update 4/2013: I am still unsure whether this has been fixed by
+  now, best be careful. They also seem to have added even more LUKS
+  killer functionality to the Ubuntu installer. I can only strongly
+  recommended to not install Ubuntu on a system with existing LUKS
+  containers without complete backups.
 
 
  * 1.4 My LUKS-device is broken! Help!
@@ -136,13 +146,17 @@ A. Contributors
 
  * 1.5 Who wrote this?
 
-  Current FAQ maintainer is Arno Wagner <arno@wagner.name>. Other
-  contributors are listed at the end. If you want to contribute, send
-  your article, including a descriptive headline, to the maintainer,
-  or the dm-crypt mailing list with something like "FAQ ..." in the
-  subject. You can also send more raw information and have me write
-  the section. Please note that by contributing to this FAQ, you
-  accept the license described below.
+  Current FAQ maintainer is Arno Wagner <arno@wagner.name>. If you
+  want to send me encrypted email, my current PGP key is DSA key
+  CB5D9718, fingerprint 12D6 C03B 1B30 33BB 13CF B774 E35C 5FA1 CB5D
+  9718.
+
+  Other contributors are listed at the end. If you want to contribute,
+  send your article, including a descriptive headline, to the
+  maintainer, or the dm-crypt mailing list with something like "FAQ
+  ..." in the subject. You can also send more raw information and
+  have me write the section. Please note that by contributing to this
+  FAQ, you accept the license described below.
 
   This work is under the "Attribution-Share Alike 3.0 Unported"
   license, which means distribution is unlimited, you may create
@@ -157,14 +171,14 @@ A. Contributors
   least problems.
 
 
- * 1.5 Where is the project website?
+ * 1.6 Where is the project website?
 
   There is the project website at http://code.google.com/p/cryptsetup/
   Please do not post questions there, nobody will read them. Use
   the mailing-list instead.
 
 
- * 1.6 Is there a mailing-list?
+ * 1.7 Is there a mailing-list?
 
   Instructions on how to subscribe to the mailing-list are at on the
   project website. People are generally helpful and friendly on the
@@ -184,7 +198,7 @@ A. Contributors
   http://dir.gmane.org/gmane.linux.kernel.device-mapper.dm-crypt
 
 
- * 1.7 Unsubscribe from the mailing-list
+ * 1.8 Unsubscribe from the mailing-list
 
   Send mail to dm-crypt-unsubscribe@saout.de from the subscribed
   account. You will get an email with instructions.
@@ -259,6 +273,25 @@ A. Contributors
  
   Just follow the on-screen instructions.
 
+  Note: Passphrase iteration is determined by cryptsetup depending on
+  CPU power. On a slow device, this may be lower than you want. I
+  recently benchmarked this on a Raspberry Pi and it came out at
+  about 1/15 of the iteration count for a typical PC. If security is
+  paramount, you may want to increase the time spent in iteration, at
+  the cost of a slower unlock later. For the Raspberry Pi, using
+
+   cryptsetup luksFormat -i 15000 <target device>
+ 
+  gives you an iteration count and security level equal to an average
+  PC for passphrase iteration and master-key iteration. If in doubt,
+  check the iteration counts with
+
+   cryptsetup luksDump <target device>
+ 
+  and adjust the iteration count accordingly by creating the container
+  again with a different iteration time (the number after '-i' is the
+  iteration time in milicesonds) until your requirements are met.
+
   05) Map the container. Here it will be mapped to /dev/mapper/c1:
      cryptsetup luksOpen <target device> c1 
  
@@ -289,7 +322,63 @@ A. Contributors
   easy to make, but will compromise your security.
 
 
- * 2.2 What is the difference between "plain" and LUKS format?
+ * 2.2 How do I set up encrypted swap?
+
+  As things that are confidential can end up in swap (keys,
+  passphrases, etc. are usually protected against being swapped to
+  disk, but other things may not be), it may be advisable to do
+  something about the issue. One option is to run without swap, which
+  generally works well in a desktop-context. It may cause problems
+  in a server-setting or under special circumstances. The solution to
+  that is to encrypt swap with a random key at boot-time.
+
+  NOTE: This is for Debian, and should work for Debian-derived
+  distributions. For others you may have to write your own startup
+  script or use other mechanisms.
+
+  01) Add the swap partition to /etc/crypttab. A line like the following
+  should do it:
+
+      swap  /dev/<partition>  /dev/urandom   swap,noearly
+ 
+  Warning: While Debian refuses to overwrite partitions with a
+  filesystem or RAID signature on it, if your disk IDs may change
+  (adding or removing disks, failure of disk during boot, etc.), you
+  may want to take additional precautions. Yes, this means that your
+  kernel device names like sda, sdb, ... can change between reboots!
+  This is not a concern if you have only one disk. One possibility is
+  to make sure the partition number is not present on additional
+  disks or also swap there. Another is to encapsulate the swap
+  partition (by making it a 1-disk RAID1 or by using LVM), so that it
+  gets a persistent identifier. Specifying it directly by UUID does
+  not work, unfortunately, as the UUID is part of the swap signature
+  and that is not visible from the outside due to the encryption and
+  in addition changes on each reboot with this setup.
+
+  Note: Use /dev/random if you are paranoid or in a potential
+  low-entropy situation (embedded system, etc.). This may cause the
+  operation to take a long time during boot. If you are in a "no
+  entropy" situation, you cannot encrypt swap securely. In this
+  situation you should find some entropy, also because nothing else
+  using crypto will be secure, like ssh, ssl or GnuPG.
+
+  Note: The "noearly" option makes sure things like LVM, RAID, etc.
+  are running. As swap is non-critical for boot, it is fine to start
+  it late.
+
+  02) Add the swap partition to /etc/fstab. A line like the following
+  should do it:
+
+      /dev/mapper/swap none swap sw 0 0
+ 
+  That is it. Reboot or start it manually to activate encrypted swap.
+  Manual start would look like this:
+
+      /etc/init.d/crypdisks start
+      swapon /dev/mapper/swap
+ 
+
+ * 2.3 What is the difference between "plain" and LUKS format?
 
   First, unless you happen to understand the cryptographic background
   well, you should use LUKS. It does protect the user from a lot of
@@ -309,13 +398,24 @@ A. Contributors
 
   Side-note: That has limited value against the authorities. In
   civilized countries, they cannot force you to give up a crypto-key
-  anyways. In the US, the UK and dictatorships around the world,
-  they can force you to give up the keys (using imprisonment or worse
-  to pressure you), and in the worst case, they only need a
-  nebulous "suspicion" about the presence of encrypted data. My
-  advice is to either be ready to give up the keys or to not have
+  anyways. In quite a few countries around the world, they can force
+  you to give up the keys (using imprisonment or worse to pressure
+  you, sometimes without due process), and in the worst case, they
+  only need a nebulous "suspicion" about the presence of encrypted
+  data. Sometimes this applies to everybody, sometimes only when you
+  are suspected of having "illicit data" (definition subject to
+  change) and sometimes specifically when crossing a border. Note
+  that this is going on in countries like the US and the UK, to
+  different degrees and sometimes with courts restricting what the
+  authorities can actually demand.
+
+  My advice is to either be ready to give up the keys or to not have
   encrypted data when traveling to those countries, especially when
-  crossing the borders.
+  crossing the borders. The latter also means not having any
+  high-entropy (random) data areas on your disk, unless you can
+  explain them and demonstrate that explanation. Hence doing a
+  zero-wipe of all free space, including unused space, may be a good
+  idea.
 
   Disadvantages are that you do not have all the nice features that
   the LUKS metadata offers, like multiple passphrases that can be
@@ -343,7 +443,7 @@ A. Contributors
   non-default XTS mode).
 
 
- * 2.3 Can I encrypt an already existing, non-empty partition to use
+ * 2.4 Can I encrypt an already existing, non-empty partition to use
    LUKS?
 
   There is no converter, and it is not really needed. The way to do
@@ -358,7 +458,7 @@ A. Contributors
   to be in a filesystem.
 
 
- * 2.4 How do I use LUKS with a loop-device?
+ * 2.5 How do I use LUKS with a loop-device?
 
   This can be very handy for experiments. Setup is just the same as
   with any block device. If you want, for example, to use a 100MiB
@@ -372,7 +472,7 @@ A. Contributors
   To unmap the file when done, use "losetup -d /dev/loop0".
 
 
- * 2.5 When I add a new key-slot to LUKS, it asks for a passphrase but
+ * 2.6 When I add a new key-slot to LUKS, it asks for a passphrase but
    then complains about there not being a key-slot with that
    passphrase?
 
@@ -384,7 +484,7 @@ A. Contributors
   new key-slot.
 
 
- * 2.6 Encryption on top of RAID or the other way round?
+ * 2.7 Encryption on top of RAID or the other way round?
 
   Unless you have special needs, place encryption between RAID and
   filesystem, i.e. encryption on top of RAID. You can do it the other
@@ -393,16 +493,39 @@ A. Contributors
   not work anymore. Therefore it is better to encrypt the RAID
   device, e.g. /dev/dm0 .
 
+  This means that the typical layering looks like this:
 
- * 2.7 How do I read a dm-crypt key from file?
+  Filesystem     <- top
+  |
+  Encryption
+  |
+  RAID
+  |
+  Raw partitions
+  |
+  Raw disks      <- bottom
+ 
+  The big advantage is that you can manage the RAID container just
+  like any RAID container, it does not care that what is in it is
+  encrypted.
 
-  Note that the file will still be hashed first, just like keyboard
-  input. Use the --key-file option, like this:
+
+ * 2.8 How do I read a dm-crypt key from file?
+
+  Use the --key-file option, like this:
 
       cryptsetup create --key-file keyfile e1 /dev/loop0
  
+  This will read the binary key from file, i.e. no hashing or
+  transformation will be applied to the keyfile before its bits are
+  used as key. Extra bits (beyond the length of the key) at the end
+  are ignored. Note that if you read from STDIN, the data will still
+  be hashed, just as a key read interactively from the terminal. See
+  the man-page sections "NOTES ON PASSPHRASE PROCESSING..." for more
+  detail.
 
- * 2.8 How do I read a LUKS slot key from file?
+
+ * 2.9 How do I read a LUKS slot key from file?
 
   What you really do here is to read a passphrase from file, just as
   you would with manual entry of a passphrase for a key-slot. You can
@@ -428,7 +551,7 @@ A. Contributors
       cryptsetup luksOpen --key-file keyfile /dev/loop0 e1
  
 
- * 2.9 How do I read the LUKS master key from file?
+ * 2.10 How do I read the LUKS master key from file?
 
   The question you should ask yourself first is why you would want to
   do this. The only legitimate reason I can think of is if you want
@@ -439,7 +562,7 @@ A. Contributors
   do this here.
 
 
- * 2.10 What are the security requirements for a key read from file?
+ * 2.11 What are the security requirements for a key read from file?
 
   A file-stored key or passphrase has the same security requirements
   as one entered interactively, however you can use random bytes and
@@ -451,7 +574,7 @@ A. Contributors
       head -c 256 /dev/random > keyfile
  
 
- * 2.11 If I map a journaled file system using dm-crypt/LUKS, does it
+ * 2.12 If I map a journaled file system using dm-crypt/LUKS, does it
    still provide its usual transactional guarantees?
 
   Yes, it does, unless a very old kernel is used. The required flags
@@ -479,7 +602,7 @@ A. Contributors
   should improve further and eventually the problem should go away.
 
 
- * 2.12 Can I use LUKS or cryptsetup with a more secure (external)
+ * 2.13 Can I use LUKS or cryptsetup with a more secure (external)
    medium for key storage, e.g. TPM or a smartcard?
 
   Yes, see the answers on using a file-supplied key. You do have to
@@ -488,8 +611,12 @@ A. Contributors
   own tool that in turn gets the key from the more secure key
   storage.
 
+  For TPM support, you may want to have a look at tpm-luks at
+  https://github.com/shpedoikal/tpm-luks. Note that tpm-luks is not
+  related to the cryptsetup project.
 
- * 2.13 Can I resize a dm-crypt or LUKS partition?
+
+ * 2.14 Can I resize a dm-crypt or LUKS partition?
 
   Yes, you can, as neither dm-crypt nor LUKS stores partition size.
   Whether you should is a different question. Personally I recommend
@@ -509,7 +636,7 @@ A. Contributors
   for that.
 
 
- * 2.14 How do I Benchmark the Ciphers, Hashes and Modes?
+ * 2.15 How do I Benchmark the Ciphers, Hashes and Modes?
 
   Since version 1.60 cryptsetup supports the "benchmark" command.
   Simply run as root:
@@ -523,6 +650,43 @@ A. Contributors
   man-page for the relevant parameters. Note that XTS mode takes two
   keys, hence the listed key sizes are double that for other modes
   and half of it is the cipher key, the other half is the XTS key.
+
+
+ * 2.16 How do I Verify I have an Authentic cryptsetup Source Package?
+
+  Current maintainer is Milan Broz and he signs the release packages
+  with his PGP key. The key he currently uses is the "RSA key ID
+  D93E98FC", fingerprint 2A29 1824 3FDE 4664 8D06 86F9 D9B0 577B
+  D93E 98FC. While I have every confidence this really is his key and
+  that he is who he claims to be, don't depend on it if your life is
+  at stake. For that matter, if your life is at stake, don't depend
+  on me being who I claim to be either.
+
+  That said, as cryptsetup is under good version control, a malicious
+  change should be noticed sooner or later, but it may take a while.
+  Also, the attacker model makes compromising the sources in a
+  non-obvious way pretty hard. Sure, you could put the master-key
+  somewhere on disk, but that is rather obvious as soon as somebody
+  looks as there would be data in an empty LUKS container in a place
+  it should not be. Doing this in a more nefarious way, for example
+  hiding the master-key in the salts, would need a look at the
+  sources to be discovered, but I think that somebody would find that
+  sooner or later as well.
+
+  That said, this discussion is really a lot more complicated and
+  longer as an FAQ can sustain. If in doubt, ask on the mailing list.
+
+
+ * 2.17 Is there a concern with 4k Sectors?
+
+  Not from dm-crypt itself. Encryption will be done in 512B blocks,
+  but if the partition and filesystem are aligned correctly and the
+  filesystem uses multiples of 4kiB as block size, the dm-crypt layer
+  will just process 8 x 512B = 4096B at a time with negligible
+  overhead. LUKS does place data at an offset, which is 2MiB per
+  default and will not break alignment. See also Item 6.12 of this
+  FAQ for more details. Note that if your partition or filesystem is
+  misaligned, dm-crypt can make the effect worse though.
 
 
 3. Common Problems 
@@ -633,7 +797,38 @@ A. Contributors
   diagnosing and (if still possible) repairing this.
 
 
- * 4.2 Can a bad RAM module cause problems?
+ * 4.2 I cannot unlock my LUKS container! What could be the problem?
+
+  First, make sure you have a correct passphrase. Then make sure you
+  have the correct key-map and correct keyboard. And then make sure
+  you have the correct character set and encoding, see also
+  "PASSPHRASE CHARACTER SET" under Section 1.2.
+
+  If you are sure you are entering the passphrase right, there is the
+  possibility that the respective key-slot has been damaged. There
+  is no way to recover a damaged key-slot, except from a header
+  backup (see Section 6). For security reasons, there is also no
+  checksum in the key-slots that could tell you whether a key-slot has
+  been damaged. The only checksum present allows recognition of a
+  correct passphrase, but that only works if the passphrase is
+  correct and the respective key-slot is intact.
+
+  In order to find out whether a key-slot is damaged one has to look
+  for "non-random looking" data in it. There is a tool that
+  automatizes this in the cryptsetup distribution from version 1.6.0
+  onwards. It is located in misc/keyslot_checker/. Instructions how
+  to use and how to interpret results are in the README file. Note
+  that this tool requires a libcryptsetup from cryptsetup 1.6.0 or
+  later (which means libcryptsetup.so.4.5.0 or later). If the tool
+  complains about missing functions in libcryptsetup, you likely
+  have an earlier version from your distribution still installed. You
+  can either point the symbolic link(s) from libcryptsetup.so.4 to
+  the new version manually, or you can uninstall the distribution
+  version of cryptsetup and re-install that from cryptsetup >= 1.6.0
+  again to fix this.
+
+
+ * 4.3 Can a bad RAM module cause problems?
 
   LUKS and dm-crypt can give the RAM quite a workout, especially when
   combined with software RAID. In particular the combination RAID5 +
@@ -675,7 +870,7 @@ A. Contributors
   did a verify.
 
 
- * 4.3 How do I test RAM?
+ * 4.4 How do I test RAM?
 
   First you should know that overclocking often makes memory
   problems worse. So if you overclock (which I strongly recommend
@@ -749,8 +944,8 @@ A. Contributors
   is easier than it actually is is fine. An attacker may still have
   vastly higher cost than estimated here.
 
-  LUKS uses SHA1 for hasing per default. The claim in the reference is
-  63 billion tries/second for SHA1. We will leave aside the check
+  LUKS uses SHA1 for hashing per default. The claim in the reference
+  is 63 billion tries/second for SHA1. We will leave aside the check
   whether a try actually decrypts a key-slot. Now, the machine has 25
   GPUs, which I will estimate at an overall lifetime cost of USD/EUR
   1000 each, and an useful lifetime of 2 years. (This is on the low
@@ -1197,7 +1392,9 @@ A. Contributors
 
   XTS mode is potentially even more secure than cbc-essiv (but only if
   cbc-essiv is insecure in your scenario). It is a NIST standard and
-  used, e.g. in Truecrypt. At the moment, if you want to use it, you
+  used, e.g. in Truecrypt. From version 1.6.0 of cryptsetup onwards,
+  aes-xts-plain64 is the default for LUKS. If you want to use it
+  with a cryptsetup before version 1.6.0 or with plain dm-crypt, you
   have to specify it manually as "aes-xts-plain", i.e.
 
       cryptsetup -c aes-xts-plain luksFormat <device>
@@ -1288,7 +1485,7 @@ A. Contributors
   foot, you can figure out how to do it yourself.
 
 
- * 5.19 What about SSDs or Flash Drives?
+ * 5.19 What about SSDs, Flash and Hybrid Drives?
 
   The problem is that you cannot reliably erase parts of these
   devices, mainly due to wear-leveling and possibly defect
@@ -1302,7 +1499,7 @@ A. Contributors
   done in some fashion so that larger writes do not cause a lot of
   small internal updates.
 
-  The thing is that the mappings between outside-adressable sectors
+  The thing is that the mappings between outside-addressable sectors
   and inside sectors is arbitrary (and the vendors are not talking).
   Also the discarded sectors are not necessarily erased immediately.
   They may linger a long time.
@@ -1331,28 +1528,107 @@ A. Contributors
 
   If you trust the device vendor (you probably should not...) you can
   try an ATA "secure erase" command for SSDs. That does not work for
-  USB keys though. And if it finishes after a few seconds, it was
-  possibly faked by the SSD.
+  USB keys though and may or may not be secure for a hybrid drive. If
+  it finishes on an SSD after a few seconds, it was possibly faked.
+  Unfortunately, for hybrid drives that indicator does not work, as
+  the drive may well take the time to truly erase the magnetic part,
+  but only mark the SSD/Flash part as erased while data is still in
+  there.
 
   If you can do without password management and are fine with doing
-  physical destruction for permenently deleting data (allways after
+  physical destruction for permanently deleting data (always after
   one or several full overwrites!), you can use plain dm-crypt or
   LUKS.
 
-  If you want or need the original LUKS security features to work,
+  If you want or need all the original LUKS security features to work,
   you can use a detached LUKS header and put that on a conventional,
   magnetic disk. That leaves potentially old encrypted data in the
   pools on the disk, but otherwise you get LUKS with the same
   security as on a magnetic disk.
 
   If you are concerned about your laptop being stolen, you are likely
-  fine using LUKS on an SSD. An attacker would need to have access
-  to an old passphrase (and the key-slot for this old passphrase
-  would actually need to still be somewhere in the SSD) for your
-  data to be at risk. So unless you pasted your old passphrase all
-  over the Internet or the attacker has knowledge of it from some
-  other source and does a targetted laptop theft to get at your
-  data, you should be fine.
+  fine using LUKS on an SSD or hybrid drive. An attacker would need
+  to have access to an old passphrase (and the key-slot for this old
+  passphrase would actually need to still be somewhere in the SSD)
+  for your data to be at risk. So unless you pasted your old
+  passphrase all over the Internet or the attacker has knowledge of
+  it from some other source and does a targeted laptop theft to get
+  at your data, you should be fine.
+
+
+ * 5.20 LUKS is broken! It uses SHA-1!
+
+  No, it is not. SHA-1 is (academically) broken for finding
+  collisions, but not for using it in a key-derivation function. And
+  that collision vulnerability is for non-iterated use only. And you
+  need the hash-value in verbatim.
+
+  This basically means that if you already have a slot-key, and you
+  have set the PBKDF2 iteration count to 1 (it is > 10'000 normally),
+  you could (maybe) derive a different passphrase that gives you the
+  the same slot-key. But if you have the slot-key, you can already
+  unlock the key-slot and get the master key, breaking everything. So
+  basically, this SHA-1 vulnerability allows you to open a LUKS
+  container with high effort when you already have it open.
+
+  The real problem here is people that do not understand crypto and
+  claim things are broken just because some mechanism is used that
+  has been broken for a specific different use. The way the mechanism
+  is used matters very much. A hash that is broken for one use can be
+  completely secure for other uses and here it is.
+
+
+ * 5.21 Why is there no "Nuke-Option"?
+
+  A "Nuke-Option" or "Kill-switch" is a password that when entered
+  upon unlocking instead wipes the header and all passwords. So when
+  somebody forces you to enter your password, you can destroy the
+  data instead.
+
+  While this sounds attractive at first glance, it does not make sense
+  once a real security analysis is done. One problem is that you have
+  to have some kind of HSM (Hardware Security Module) in order to
+  implement it securely. In the movies, a HSM starts to smoke and
+  melt once the Nuke-Option has been activated. In reality, it just
+  wipes some battery-backed RAM cells. A proper HSM costs something
+  like 20'000...100'000 EUR/USD and there a Nuke-Option may make some
+  sense. BTW, a chipcard or a TPM is not a HSM, although some
+  vendors are promoting that myth.
+
+  Now, a proper HSMs will have a wipe option but not a Nuke-Option,
+  i.e. you can explicitly wipe the HSM, but by a different process
+  than unlocking it takes. Why is that? Simple: If somebody can force
+  you to reveal passwords, then they can also do bad things to you if
+  you do not or if you enter a nuke password instead. Think locking
+  you up for a few years for "destroying evidence" or for far longer
+  and without trial for being a "terrorist suspect". No HSM maker
+  will want to expose its customers to that risk.
+
+  Now think of the typical LUKS application scenario, i.e. disk
+  encryption. Usually the ones forcing you to hand over your password
+  will have access to the disk as well, and, if they have any real
+  suspicion, they will mirror your disk before entering anything
+  supplied by you. This neatly negates any Nuke-Option. If they have
+  no suspicion (just harassing people that cross some border for
+  example), the Nuke-Option would work, but see above about likely
+  negative consequences and remember that a Nuke-Option may not work
+  reliably on SSD and hybrid drives anyways.
+
+  Hence my advice is to never take data that you do not want to reveal
+  into any such situation in the first place. There is no need to
+  transfer data on physical carriers today. The Internet makes it
+  quite possible to transfer data between arbitrary places and modern
+  encryption makes it secure. If you do it right, nobody will even be
+  able to identify source or destination. (How to do that is out of
+  scope of this document. It does require advanced skills in this age
+  of pervasive surveillance.)
+
+  Hence, LUKS has not kill option because it would do much more harm
+  than good.
+
+  Still, if you have a good use-case (i.e. non-abstract real-world
+  situation) where a Nuke-Option would actually be beneficial, please
+  let me know.
 
 
 6. Backup and Data Recovery 
@@ -1633,7 +1909,7 @@ http://code.google.com/p/cryptsetup/source/browse/misc/luks-header-from-active
   change the password, you basically have to create a second
   encrypted device with the new passphrase and copy your data over.
   On the plus side, if you accidentally overwrite any part of a
-  dm-crypt device, the damage will be limited to the are you
+  dm-crypt device, the damage will be limited to the area you
   overwrote.
 
 
@@ -1903,6 +2179,16 @@ http://code.google.com/p/cryptsetup/source/browse/misc/luks-header-from-active
   is broken in its kernel as a result. There may be a very old
   version of cryptsetup (1.0.x) provided by SLED, which should also
   not be used anymore as well. My advice would be to drop SLED 10.
+
+
+ * 8.3 Gcrypt after 1.5.3 breaks Whirlpool
+
+  It is the other way round: In gcrypt 1.5.3 and before Whirlpool is
+  broken and it was fixed in the next version. If you selected
+  whirlpool as hash on creation of a LUKS container, it does not work
+  anymore with the fixed library. Currently, the only work-around is
+  to decrypt with the old version. This also shows one risk of using
+  rarely used settings.
 
 
 9. References and Further Reading 

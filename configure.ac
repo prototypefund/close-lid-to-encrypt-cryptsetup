@@ -1,17 +1,24 @@
 AC_PREREQ([2.67])
-AC_INIT([cryptsetup],[1.6.1])
+AC_INIT([cryptsetup],[1.6.4])
 
 dnl library version from <major>.<minor>.<release>[-<suffix>]
 LIBCRYPTSETUP_VERSION=$(echo $PACKAGE_VERSION | cut -f1 -d-)
 LIBCRYPTSETUP_VERSION_INFO=9:0:5
 dnl library file name for FIPS selfcheck
 LIBCRYPTSETUP_VERSION_FIPS="libcryptsetup.so.4"
+FIPS_MODULE_FILE="/etc/system-fips"
 
 AC_CONFIG_SRCDIR(src/cryptsetup.c)
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CONFIG_HEADERS([config.h:config.h.in])
-AM_INIT_AUTOMAKE(dist-bzip2)
+
+# We do not want to run test in parallel. Really.
+# http://lists.gnu.org/archive/html/automake/2013-01/msg00060.html
+
+# For old automake use this
+#AM_INIT_AUTOMAKE(dist-bzip2)
+AM_INIT_AUTOMAKE([dist-bzip2 1.12 serial-tests])
 
 if test "x$prefix" = "xNONE"; then
 	sysconfdir=/etc
@@ -32,7 +39,7 @@ PKG_PROG_PKG_CONFIG
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS(fcntl.h malloc.h inttypes.h sys/ioctl.h sys/mman.h \
-	ctype.h unistd.h locale.h)
+	ctype.h unistd.h locale.h byteswap.h endian.h)
 
 AC_CHECK_HEADERS(uuid/uuid.h,,[AC_MSG_ERROR([You need the uuid library.])])
 AC_CHECK_HEADER(libdevmapper.h,,[AC_MSG_ERROR([You need the device-mapper library.])])
@@ -42,13 +49,18 @@ AC_CHECK_LIB(uuid, uuid_clear, ,[AC_MSG_ERROR([You need the uuid library.])])
 AC_SUBST(UUID_LIBS, $LIBS)
 LIBS=$saved_LIBS
 
-AC_CHECK_FUNCS([posix_memalign])
+AC_SEARCH_LIBS([clock_gettime],[rt posix4])
+AC_CHECK_FUNCS([posix_memalign clock_gettime])
+
+if test "x$enable_largefile" = "xno" ; then
+  AC_MSG_ERROR([Building with --disable-largefile is not supported, it can cause data corruption.])
+fi
 
 AC_C_CONST
 AC_C_BIGENDIAN
 AC_TYPE_OFF_T
 AC_SYS_LARGEFILE
-
+AC_FUNC_FSEEKO
 AC_PROG_GCC_TRADITIONAL
 
 dnl ==========================================================================
@@ -74,6 +86,8 @@ if test "x$with_fips" = "xyes"; then
 	AC_DEFINE(ENABLE_FIPS, 1, [Enable FIPS mode restrictions])
 	AC_DEFINE_UNQUOTED(LIBCRYPTSETUP_VERSION_FIPS, ["$LIBCRYPTSETUP_VERSION_FIPS"],
 		[library file name for FIPS selfcheck])
+	AC_DEFINE_UNQUOTED(FIPS_MODULE_FILE, ["$FIPS_MODULE_FILE"],
+		[file checked to determine if running in FIPS mode])
 
 	if test "x$enable_static" = "xyes" -o "x$enable_static_cryptsetup" = "xyes" ; then
 		AC_MSG_ERROR([Static build is not compatible with FIPS.])
@@ -118,8 +132,12 @@ AC_DEFUN([CONFIGURE_GCRYPT], [
 	fi
 	dnl Check if we can use gcrypt PBKDF2 (1.6.0 supports empty password)
 	AC_ARG_ENABLE([gcrypt-pbkdf2], AS_HELP_STRING([--enable-gcrypt-pbkdf2],[force enable internal gcrypt PBKDF2]),
-		[use_internal_pbkdf2=0],
-		[AM_PATH_LIBGCRYPT([1.6.0], [use_internal_pbkdf2=0], [use_internal_pbkdf2=1])])
+		if test "x$enableval" = "xyes"; then
+			[use_internal_pbkdf2=0]
+		else
+			[use_internal_pbkdf2=1]
+		fi,
+		[AM_PATH_LIBGCRYPT([1.6.1], [use_internal_pbkdf2=0], [use_internal_pbkdf2=1])])
 	AM_PATH_LIBGCRYPT($GCRYPT_REQ_VERSION,,[AC_MSG_ERROR([You need the gcrypt library.])])
 
 	if test x$enable_static_cryptsetup = xyes; then
@@ -149,8 +167,8 @@ AC_DEFUN([CONFIGURE_OPENSSL], [
 	if test x$enable_static_cryptsetup = xyes; then
 		saved_PKG_CONFIG=$PKG_CONFIG
 		PKG_CONFIG="$PKG_CONFIG --static"
-		PKG_CHECK_MODULES([OPENSSL], [openssl])
-		CRYPTO_STATIC_LIBS=$OPENSSL_LIBS
+		PKG_CHECK_MODULES([OPENSSL_STATIC], [openssl])
+		CRYPTO_STATIC_LIBS=$OPENSSL_STATIC_LIBS
 		PKG_CONFIG=$saved_PKG_CONFIG
 	fi
 	NO_FIPS([])
@@ -337,6 +355,7 @@ AC_SUBST([CRYPTO_STATIC_LIBS])
 AC_SUBST([LIBCRYPTSETUP_VERSION])
 AC_SUBST([LIBCRYPTSETUP_VERSION_INFO])
 AC_SUBST([LIBCRYPTSETUP_VERSION_FIPS])
+AC_SUBST([FIPS_MODULE_FILE])
 
 dnl ==========================================================================
 AC_ARG_ENABLE([dev-random], AS_HELP_STRING([--enable-dev-random],

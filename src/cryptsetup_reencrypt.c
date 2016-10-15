@@ -2,7 +2,7 @@
  * cryptsetup-reencrypt - crypt utility for offline re-encryption
  *
  * Copyright (C) 2012, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2012-2013, Milan Broz All rights reserved.
+ * Copyright (C) 2012-2014, Milan Broz All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -47,6 +47,7 @@ static int opt_tries = 3;
 static int opt_key_slot = CRYPT_ANY_SLOT;
 static int opt_key_size = 0;
 static int opt_new = 0;
+static int opt_keep_key = 0;
 
 static const char *opt_reduce_size_str = NULL;
 static uint64_t opt_reduce_size = 0;
@@ -122,6 +123,12 @@ static int alignment(int fd)
 	return alignment;
 }
 
+static size_t pagesize(void)
+{
+	long r = sysconf(_SC_PAGESIZE);
+	return r < 0 ? 4096 : (size_t)r;
+}
+
 /* Depends on the first two fields of LUKS1 header format, magic and version */
 static int device_check(struct reenc_ctx *rc, header_magic set_magic)
 {
@@ -129,6 +136,7 @@ static int device_check(struct reenc_ctx *rc, header_magic set_magic)
 	int r, devfd;
 	ssize_t s;
 	uint16_t version;
+	size_t buf_size = pagesize();
 
 	devfd = open(rc->device, O_RDWR | O_EXCL | O_DIRECT);
 	if (devfd == -1) {
@@ -146,14 +154,14 @@ static int device_check(struct reenc_ctx *rc, header_magic set_magic)
 		goto out;
 	}
 
-	if (posix_memalign((void *)&buf, alignment(devfd), SECTOR_SIZE)) {
+	if (posix_memalign((void *)&buf, alignment(devfd), buf_size)) {
 		log_err(_("Allocation of aligned memory failed.\n"));
 		r = -ENOMEM;
 		goto out;
 	}
 
-	s = read(devfd, buf, SECTOR_SIZE);
-	if (s < 0 || s != SECTOR_SIZE) {
+	s = read(devfd, buf, buf_size);
+	if (s < 0 || s != buf_size) {
 		log_err(_("Cannot read device %s.\n"), rc->device);
 		r = -EIO;
 		goto out;
@@ -184,8 +192,8 @@ static int device_check(struct reenc_ctx *rc, header_magic set_magic)
 	if (!r) {
 		if (lseek(devfd, 0, SEEK_SET) == -1)
 			goto out;
-		s = write(devfd, buf, SECTOR_SIZE);
-		if (s < 0 || s != SECTOR_SIZE) {
+		s = write(devfd, buf, buf_size);
+		if (s < 0 || s != buf_size) {
 			log_err(_("Cannot write device %s.\n"), rc->device);
 			r = -EIO;
 		}
@@ -193,7 +201,7 @@ static int device_check(struct reenc_ctx *rc, header_magic set_magic)
 		log_dbg("LUKS signature check failed for %s.", rc->device);
 out:
 	if (buf)
-		memset(buf, 0, SECTOR_SIZE);
+		memset(buf, 0, buf_size);
 	free(buf);
 	close(devfd);
 	return r;
@@ -417,7 +425,8 @@ out:
 
 static int create_new_header(struct reenc_ctx *rc, const char *cipher,
 			     const char *cipher_mode, const char *uuid,
-			     int key_size, struct crypt_params_luks1 *params)
+			     const char *key, int key_size,
+			     struct crypt_params_luks1 *params)
 {
 	struct crypt_device *cd_new = NULL;
 	int i, r;
@@ -434,7 +443,7 @@ static int create_new_header(struct reenc_ctx *rc, const char *cipher,
 		crypt_set_iteration_time(cd_new, opt_iteration_time);
 
 	if ((r = crypt_format(cd_new, CRYPT_LUKS1, cipher, cipher_mode,
-			      uuid, NULL, key_size, params)))
+			      uuid, key, key_size, params)))
 		goto out;
 	log_verbose(_("New LUKS header for device %s created.\n"), rc->device);
 
@@ -457,6 +466,8 @@ static int backup_luks_headers(struct reenc_ctx *rc)
 	struct crypt_device *cd = NULL;
 	struct crypt_params_luks1 params = {0};
 	char cipher [MAX_CIPHER_LEN], cipher_mode[MAX_CIPHER_LEN];
+	char *old_key = NULL;
+	size_t old_key_size;
 	int r;
 
 	log_dbg("Creating LUKS header backup for device %s.", rc->device);
@@ -487,14 +498,30 @@ static int backup_luks_headers(struct reenc_ctx *rc)
 		}
 	}
 
+	if (opt_keep_key) {
+		log_dbg("Keeping key from old header.");
+		old_key_size  = crypt_get_volume_key_size(cd);
+		old_key = crypt_safe_alloc(old_key_size);
+		if (!old_key) {
+			r = -ENOMEM;
+			goto out;
+		}
+		r = crypt_volume_key_get(cd, CRYPT_ANY_SLOT, old_key, &old_key_size,
+			rc->p[rc->keyslot].password, rc->p[rc->keyslot].passwordLen);
+		if (r < 0)
+			goto out;
+	}
+
 	r = create_new_header(rc,
 		opt_cipher ? cipher : crypt_get_cipher(cd),
 		opt_cipher ? cipher_mode : crypt_get_cipher_mode(cd),
 		crypt_get_uuid(cd),
+		old_key,
 		opt_key_size ? opt_key_size / 8 : crypt_get_volume_key_size(cd),
 		&params);
 out:
 	crypt_free(cd);
+	crypt_safe_free(old_key);
 	if (r)
 		log_err(_("Creation of LUKS backup headers failed.\n"));
 	return r;
@@ -539,8 +566,8 @@ static int backup_fake_header(struct reenc_ctx *rc)
 	if (r < 0)
 		goto out;
 
-	r = crypt_keyslot_add_by_volume_key(cd_new, 0, NULL, 0,
-			rc->p[0].password, rc->p[0].passwordLen);
+	r = crypt_keyslot_add_by_volume_key(cd_new, rc->keyslot, NULL, 0,
+			rc->p[rc->keyslot].password, rc->p[rc->keyslot].passwordLen);
 	if (r < 0)
 		goto out;
 
@@ -552,7 +579,7 @@ static int backup_fake_header(struct reenc_ctx *rc)
 	r = create_new_header(rc,
 		opt_cipher ? cipher : DEFAULT_LUKS1_CIPHER,
 		opt_cipher ? cipher_mode : DEFAULT_LUKS1_MODE,
-		NULL,
+		NULL, NULL,
 		(opt_key_size ? opt_key_size : DEFAULT_LUKS1_KEYBITS) / 8,
 		&params);
 out:
@@ -844,15 +871,14 @@ static int initialize_uuid(struct reenc_ctx *rc)
 static int init_passphrase1(struct reenc_ctx *rc, struct crypt_device *cd,
 			    const char *msg, int slot_to_check, int check)
 {
-	int r = -EINVAL, slot, retry_count;
-
-	slot = (slot_to_check == CRYPT_ANY_SLOT) ? 0 : slot_to_check;
+	char *password;
+	int r = -EINVAL, retry_count;
+	size_t passwordLen;
 
 	retry_count = opt_tries ?: 1;
 	while (retry_count--) {
 		set_int_handler(0);
-		r = crypt_get_key(msg, &rc->p[slot].password,
-			&rc->p[slot].passwordLen,
+		r = crypt_get_key(msg, &password, &passwordLen,
 			0, 0, NULL /*opt_key_file*/,
 			0, 0, cd);
 		if (r < 0)
@@ -864,42 +890,49 @@ static int init_passphrase1(struct reenc_ctx *rc, struct crypt_device *cd,
 		set_int_block(1);
 		if (check)
 			r = crypt_activate_by_passphrase(cd, NULL, slot_to_check,
-				rc->p[slot].password, rc->p[slot].passwordLen, 0);
+				password, passwordLen, 0);
 		else
-			r = slot;
+			r = (slot_to_check == CRYPT_ANY_SLOT) ? 0 : slot_to_check;
 
 		if (r < 0) {
-			crypt_safe_free(rc->p[slot].password);
-			rc->p[slot].password = NULL;
-			rc->p[slot].passwordLen = 0;
+			crypt_safe_free(password);
+			password = NULL;
+			passwordLen = 0;
 		}
 		if (r < 0 && r != -EPERM)
 			return r;
 		if (r >= 0) {
-			rc->keyslot = slot;
+			rc->keyslot = r;
+			rc->p[r].password = password;
+			rc->p[r].passwordLen = passwordLen;
 			break;
 		}
 		log_err(_("No key available with this passphrase.\n"));
 	}
+
+	password = NULL;
+	passwordLen = 0;
+
 	return r;
 }
 
 static int init_keyfile(struct reenc_ctx *rc, struct crypt_device *cd, int slot_check)
 {
-	int r, slot;
+	char *password;
+	int r;
+	size_t passwordLen;
 
-	slot = (slot_check == CRYPT_ANY_SLOT) ? 0 : slot_check;
-	r = crypt_get_key(NULL, &rc->p[slot].password, &rc->p[slot].passwordLen,
-		opt_keyfile_offset, opt_keyfile_size, opt_key_file, 0, 0, cd);
+	r = crypt_get_key(NULL, &password, &passwordLen, opt_keyfile_offset,
+			  opt_keyfile_size, opt_key_file, 0, 0, cd);
 	if (r < 0)
 		return r;
 
-	r = crypt_activate_by_passphrase(cd, NULL, slot_check,
-		rc->p[slot].password, rc->p[slot].passwordLen, 0);
+	r = crypt_activate_by_passphrase(cd, NULL, slot_check, password,
+					 passwordLen, 0);
 
 	/*
 	 * Allow keyslot only if it is last slot or if user explicitly
-	 * specify whch slot to use (IOW others will be disabled).
+	 * specify which slot to use (IOW others will be disabled).
 	 */
 	if (r >= 0 && opt_key_slot == CRYPT_ANY_SLOT &&
 	    crypt_keyslot_status(cd, r) != CRYPT_SLOT_ACTIVE_LAST) {
@@ -909,14 +942,17 @@ static int init_keyfile(struct reenc_ctx *rc, struct crypt_device *cd, int slot_
 	}
 
 	if (r < 0) {
-		crypt_safe_free(rc->p[slot].password);
-		rc->p[slot].password = NULL;
-		rc->p[slot].passwordLen = 0;
+		crypt_safe_free(password);
 		if (r == -EPERM)
 			log_err(_("No key available with this passphrase.\n"));
-		return r;
-	} else
-		rc->keyslot = slot;
+	} else {
+		rc->keyslot = r;
+		rc->p[r].password = password;
+		rc->p[r].passwordLen = passwordLen;
+	}
+
+	password = NULL;
+	passwordLen = 0;
 
 	return r;
 }
@@ -931,7 +967,7 @@ static int initialize_passphrase(struct reenc_ctx *rc, const char *device)
 	log_dbg("Passhrases initialization.");
 
 	if (opt_new && !rc->in_progress) {
-		r = init_passphrase1(rc, cd, _("Enter new passphrase: "), 0, 0);
+		r = init_passphrase1(rc, cd, _("Enter new passphrase: "), opt_key_slot, 0);
 		return r > 0 ? 0 : r;
 	}
 
@@ -942,11 +978,16 @@ static int initialize_passphrase(struct reenc_ctx *rc, const char *device)
 		return r;
 	}
 
+	if (opt_key_slot != CRYPT_ANY_SLOT)
+		snprintf(msg, sizeof(msg),
+			 _("Enter passphrase for key slot %u: "), opt_key_slot);
+	else
+		snprintf(msg, sizeof(msg), _("Enter any existing passphrase: "));
+
 	if (opt_key_file) {
 		r = init_keyfile(rc, cd, opt_key_slot);
-	} else if (rc->in_progress) {
-		r = init_passphrase1(rc, cd, _("Enter any existing passphrase: "),
-				     CRYPT_ANY_SLOT, 1);
+	} else if (rc->in_progress || opt_key_slot != CRYPT_ANY_SLOT) {
+		r = init_passphrase1(rc, cd, msg, opt_key_slot, 1);
 	} else for (i = 0; i < MAX_SLOT; i++) {
 		ki = crypt_keyslot_status(cd, i);
 		if (ki != CRYPT_SLOT_ACTIVE && ki != CRYPT_SLOT_ACTIVE_LAST)
@@ -1066,11 +1107,15 @@ static int run_reencrypt(const char *device)
 			goto out;
 	}
 
-	if ((r = activate_luks_headers(&rc)))
-		goto out;
+	if (!opt_keep_key) {
+		log_dbg("Running data area reencryption.");
+		if ((r = activate_luks_headers(&rc)))
+			goto out;
 
-	if ((r = copy_data(&rc)))
-		goto out;
+		if ((r = copy_data(&rc)))
+			goto out;
+	} else
+		log_dbg("Keeping existing key, skipping data area reencryption.");
 
 	r = restore_luks_header(&rc);
 out:
@@ -1109,6 +1154,7 @@ int main(int argc, const char **argv)
 		{ "cipher",            'c',  POPT_ARG_STRING, &opt_cipher,              0, N_("The cipher used to encrypt the disk (see /proc/crypto)"), NULL },
 		{ "key-size",          's',  POPT_ARG_INT, &opt_key_size,               0, N_("The size of the encryption key"), N_("BITS") },
 		{ "hash",              'h',  POPT_ARG_STRING, &opt_hash,                0, N_("The hash used to create the encryption key from the passphrase"), NULL },
+		{ "keep-key",          '\0', POPT_ARG_NONE, &opt_keep_key,              0, N_("Do not change key, no data area reencryption."), NULL },
 		{ "key-file",          'd',  POPT_ARG_STRING, &opt_key_file,            0, N_("Read the key from a file."), NULL },
 		{ "iter-time",         'i',  POPT_ARG_INT, &opt_iteration_time,         0, N_("PBKDF2 iteration time for LUKS (in ms)"), N_("msecs") },
 		{ "batch-mode",        'q',  POPT_ARG_NONE, &opt_batch_mode,            0, N_("Do not ask for confirmation"), NULL },
@@ -1212,6 +1258,10 @@ int main(int argc, const char **argv)
 
 	if (opt_new && !opt_reduce_size)
 		usage(popt_context, EXIT_FAILURE, _("Option --new must be used together with --reduce-device-size."),
+		      poptGetInvocationName(popt_context));
+
+	if (opt_keep_key && ((!opt_hash && !opt_iteration_time) || opt_cipher || opt_new))
+		usage(popt_context, EXIT_FAILURE, _("Option --keep-key can be used only with --hash or --iter-time."),
 		      poptGetInvocationName(popt_context));
 
 	if (opt_debug) {
