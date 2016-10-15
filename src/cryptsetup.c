@@ -138,23 +138,27 @@ static int yesDialog(char *msg)
 }
 
 static void cmdLineLog(int level, char *msg) {
-    switch(level) {
+	switch(level) {
 
-    case CRYPT_LOG_NORMAL:
-            fputs(msg, stdout);
-            break;
-    case CRYPT_LOG_ERROR:
-            fputs(msg, stderr);
-            break;
-    default:
-            fprintf(stderr, "Internal error on logging class for msg: %s", msg);
-            break;
-    }
+	case CRYPT_LOG_NORMAL:
+		fputs(msg, stdout);
+		break;
+	case CRYPT_LOG_VERBOSE:
+		if (opt_verbose)
+			fputs(msg, stdout);
+		break;
+	case CRYPT_LOG_ERROR:
+		fputs(msg, stderr);
+		break;
+	default:
+		fprintf(stderr, "Internal error on logging class for msg: %s", msg);
+		break;
+	}
 }
 
 static struct interface_callbacks cmd_icb = {
-        .yesDialog = yesDialog,
-        .log = cmdLineLog,
+	.yesDialog = yesDialog,
+	.log = cmdLineLog,
 };
 
 static void _log(int level, const char *msg, void *usrptr)
@@ -278,7 +282,7 @@ static int action_status(int arg)
 		log_std("%s/%s is active:\n", crypt_get_dir(), options.name);
 		log_std("  cipher:  %s\n", options.cipher);
 		log_std("  keysize: %d bits\n", options.key_size * 8);
-		log_std("  device:  %s\n", options.device);
+		log_std("  device:  %s\n", options.device ?: "");
 		log_std("  offset:  %" PRIu64 " sectors\n", options.offset);
 		log_std("  size:    %" PRIu64 " sectors\n", options.size);
 		if (options.skip)
@@ -299,7 +303,7 @@ static int _action_luksFormat_generateMK()
 		.device = action_argv[0],
 		.cipher = opt_cipher ?: DEFAULT_CIPHER(LUKS1),
 		.hash = opt_hash ?: DEFAULT_LUKS1_HASH,
-		.new_key_file = action_argc > 1 ? action_argv[1] : NULL,
+		.new_key_file = opt_key_file ?: (action_argc > 1 ? action_argv[1] : NULL),
 		.flags = opt_verify_passphrase ? CRYPT_FLAG_VERIFY : (!opt_batch_mode?CRYPT_FLAG_VERIFY_IF_POSSIBLE :  0),
 		.iteration_time = opt_iteration_time,
 		.timeout = opt_timeout,
@@ -386,6 +390,9 @@ static int action_luksFormat(int arg)
 		log_err("Options --offset and --skip are not supported for luksFormat.\n"); 
 		return -EINVAL;
 	}
+
+	if (action_argc > 1 && opt_key_file)
+		log_err(_("Option --key-file takes precedence over specified key file argument.\n"));
 
 	if(asprintf(&msg, _("This will overwrite data on %s irrevocably."), action_argv[0]) == -1) {
 		log_err(_("memory allocation error in action_luksFormat"));
