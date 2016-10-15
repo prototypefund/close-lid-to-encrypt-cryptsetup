@@ -28,6 +28,7 @@ static const char *opt_hash = NULL;
 static int opt_verify_passphrase = 0;
 
 static const char *opt_key_file = NULL;
+static const char *opt_keyfile_stdin = NULL;
 static int opt_keyfiles_count = 0;
 static const char *opt_keyfiles[MAX_KEYFILES];
 
@@ -239,11 +240,14 @@ static int tcrypt_load(struct crypt_device *cd, struct crypt_params_tcrypt *para
 {
 	int r, tries = opt_tries, eperm = 0;
 
+	if (opt_keyfile_stdin)
+		tries = 1;
+
 	do {
 		/* TCRYPT header is encrypted, get passphrase now */
 		r = tools_get_key(_("Enter passphrase: "),
 				  CONST_CAST(char**)&params->passphrase,
-				  &params->passphrase_size, 0, 0, NULL, opt_timeout,
+				  &params->passphrase_size, 0, 0, opt_keyfile_stdin, opt_timeout,
 				 _verify_passphrase(0), 0, cd);
 		if (r < 0)
 			continue;
@@ -827,7 +831,8 @@ static int verify_keyslot(struct crypt_device *cd, int key_slot,
 	int i, r;
 
 	ki = crypt_keyslot_status(cd, key_slot);
-	if (ki == CRYPT_SLOT_ACTIVE_LAST && msg_last && !yesDialog(msg_last, NULL))
+	if (ki == CRYPT_SLOT_ACTIVE_LAST && !opt_batch_mode && !key_file &&
+	    msg_last && !yesDialog(msg_last, NULL))
 		return -EPERM;
 
 	r = tools_get_key(msg_pass, &password, &passwordLen,
@@ -853,6 +858,10 @@ static int verify_keyslot(struct crypt_device *cd, int key_slot,
 				break;
 		}
 	}
+
+	/* Handle inactive keyslots the same as bad password here */
+	if (r == -ENOENT)
+		r = -EPERM;
 
 	if (r == -EPERM)
 		log_err(_("No key available with this passphrase.\n"));
@@ -887,7 +896,7 @@ static int action_luksKillSlot(void)
 		goto out;
 	}
 
-	if (!opt_batch_mode) {
+	if (!opt_batch_mode || opt_key_file || !isatty(STDIN_FILENO)) {
 		r = verify_keyslot(cd, opt_key_slot,
 			_("This is the last keyslot. Device will become unusable after purging this key."),
 			_("Enter any remaining passphrase: "),
@@ -1372,7 +1381,7 @@ static struct action_type {
 	{ "close",        action_close,        1, 1, N_("<name>"), N_("close device (remove mapping)") },
 	{ "resize",       action_resize,       1, 1, N_("<name>"), N_("resize active device") },
 	{ "status",       action_status,       1, 0, N_("<name>"), N_("show device status") },
-	{ "benchmark",    action_benchmark,    0, 0, N_("<name>"), N_("benchmark cipher") },
+	{ "benchmark",    action_benchmark,    0, 0, N_("[--cipher <cipher>]"), N_("benchmark cipher") },
 	{ "repair",       action_luksRepair,   1, 1, N_("<device>"), N_("try to repair on-disk metadata") },
 	{ "erase",        action_luksErase ,   1, 1, N_("<device>"), N_("erase all keyslots (remove encryption key)") },
 	{ "luksFormat",   action_luksFormat,   1, 1, N_("<device> [<new key file>]"), N_("formats a LUKS device") },
@@ -1529,7 +1538,7 @@ int main(int argc, const char **argv)
 	poptContext popt_context;
 	struct action_type *action;
 	const char *aname;
-	int r;
+	int r, total_keyfiles = 0;
 
 	crypt_set_log_callback(NULL, tool_log, NULL);
 
@@ -1543,11 +1552,15 @@ int main(int argc, const char **argv)
 
 	while((r = poptGetNextOpt(popt_context)) > 0) {
 		unsigned long long ull_value;
-		char *endp;
+		char *endp, *kf;
 
 		if (r == 5) {
-			if (opt_keyfiles_count < MAX_KEYFILES)
-				opt_keyfiles[opt_keyfiles_count++] = poptGetOptArg(popt_context);
+			kf = poptGetOptArg(popt_context);
+			if (tools_is_stdin(kf))
+				opt_keyfile_stdin = kf;
+			else if (opt_keyfiles_count < MAX_KEYFILES)
+				opt_keyfiles[opt_keyfiles_count++] = kf;
+			total_keyfiles++;
 			continue;
 		}
 
@@ -1697,6 +1710,10 @@ int main(int argc, const char **argv)
 	    opt_keyfile_offset < 0 || opt_new_keyfile_offset < 0)
 		usage(popt_context, EXIT_FAILURE,
 		      _("Negative number for option not permitted."),
+		      poptGetInvocationName(popt_context));
+
+	if (total_keyfiles > 1 && strcmp(opt_type, "tcrypt"))
+		usage(popt_context, EXIT_FAILURE, _("Only one --key-file argument is allowed."),
 		      poptGetInvocationName(popt_context));
 
 	if (opt_random && opt_urandom)

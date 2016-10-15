@@ -2,7 +2,7 @@
  * Linux kernel userspace API crypto backend implementation
  *
  * Copyright (C) 2010-2012, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2010-2014, Milan Broz
+ * Copyright (C) 2010-2016, Milan Broz
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -68,8 +68,34 @@ struct crypt_hmac {
 	int hash_len;
 };
 
-/* Defined in crypt_kernel_ciphers.c */
-extern int crypt_kernel_socket_init(struct sockaddr_alg *sa, int *tfmfd, int *opfd);
+static int crypt_kernel_socket_init(struct sockaddr_alg *sa, int *tfmfd, int *opfd,
+				    const void *key, size_t key_length)
+{
+	*tfmfd = socket(AF_ALG, SOCK_SEQPACKET, 0);
+	if (*tfmfd < 0)
+		return -ENOTSUP;
+
+	if (bind(*tfmfd, (struct sockaddr *)sa, sizeof(*sa)) < 0) {
+		close(*tfmfd);
+		*tfmfd = -1;
+		return -ENOENT;
+	}
+
+	if (key && setsockopt(*tfmfd, SOL_ALG, ALG_SET_KEY, key, key_length) < 0) {
+		close(*tfmfd);
+		*tfmfd = -1;
+		return -EINVAL;
+	}
+
+	*opfd = accept(*tfmfd, NULL, 0);
+	if (*opfd < 0) {
+		close(*tfmfd);
+		*tfmfd = -1;
+		return -EINVAL;
+	}
+
+	return 0;
+}
 
 int crypt_backend_init(struct crypt_device *ctx)
 {
@@ -87,7 +113,7 @@ int crypt_backend_init(struct crypt_device *ctx)
 	if (uname(&uts) == -1 || strcmp(uts.sysname, "Linux"))
 		return -EINVAL;
 
-	if (crypt_kernel_socket_init(&sa, &tfmfd, &opfd) < 0)
+	if (crypt_kernel_socket_init(&sa, &tfmfd, &opfd, NULL, 0) < 0)
 		return -EINVAL;
 
 	close(tfmfd);
@@ -152,7 +178,7 @@ int crypt_hash_init(struct crypt_hash **ctx, const char *name)
 
 	strncpy((char *)sa.salg_name, ha->kernel_name, sizeof(sa.salg_name));
 
-	if (crypt_kernel_socket_init(&sa, &h->tfmfd, &h->opfd) < 0) {
+	if (crypt_kernel_socket_init(&sa, &h->tfmfd, &h->opfd, NULL, 0) < 0) {
 		free(h);
 		return -EINVAL;
 	}
@@ -188,9 +214,9 @@ int crypt_hash_final(struct crypt_hash *ctx, char *buffer, size_t length)
 
 int crypt_hash_destroy(struct crypt_hash *ctx)
 {
-	if (ctx->tfmfd != -1)
+	if (ctx->tfmfd >= 0)
 		close(ctx->tfmfd);
-	if (ctx->opfd != -1)
+	if (ctx->opfd >= 0)
 		close(ctx->opfd);
 	memset(ctx, 0, sizeof(*ctx));
 	free(ctx);
@@ -227,13 +253,8 @@ int crypt_hmac_init(struct crypt_hmac **ctx, const char *name,
 	snprintf((char *)sa.salg_name, sizeof(sa.salg_name),
 		 "hmac(%s)", ha->kernel_name);
 
-	if (crypt_kernel_socket_init(&sa, &h->tfmfd, &h->opfd) < 0) {
+	if (crypt_kernel_socket_init(&sa, &h->tfmfd, &h->opfd, buffer, length) < 0) {
 		free(h);
-		return -EINVAL;
-	}
-
-	if (setsockopt(h->tfmfd, SOL_ALG, ALG_SET_KEY, buffer, length) == -1) {
-		crypt_hmac_destroy(h);
 		return -EINVAL;
 	}
 
@@ -268,9 +289,9 @@ int crypt_hmac_final(struct crypt_hmac *ctx, char *buffer, size_t length)
 
 int crypt_hmac_destroy(struct crypt_hmac *ctx)
 {
-	if (ctx->tfmfd != -1)
+	if (ctx->tfmfd >= 0)
 		close(ctx->tfmfd);
-	if (ctx->opfd != -1)
+	if (ctx->opfd >= 0)
 		close(ctx->opfd);
 	memset(ctx, 0, sizeof(*ctx));
 	free(ctx);

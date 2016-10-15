@@ -50,8 +50,10 @@ static int device_block_size_fd(int fd, size_t *min_size)
 	if (fstat(fd, &st) < 0)
 		return -EINVAL;
 
-	if (S_ISREG(st.st_mode))
+	if (S_ISREG(st.st_mode)) {
 		r = (int)crypt_getpagesize();
+		bsize = r;
+	}
 	else if (ioctl(fd, BLKSSZGET, &bsize) >= 0)
 		r = bsize;
 	else
@@ -527,4 +529,9 @@ size_t size_round_up(size_t size, unsigned int block)
 {
 	size_t s = (size + (block - 1)) / block;
 	return s * block;
+}
+
+void device_disable_direct_io(struct device *device)
+{
+	device->o_direct = 0;
 }

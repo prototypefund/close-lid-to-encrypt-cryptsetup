@@ -1,7 +1,7 @@
 /*
  * cryptsetup-reencrypt - crypt utility for offline re-encryption
  *
- * Copyright (C) 2012, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2012-2016, Red Hat, Inc. All rights reserved.
  * Copyright (C) 2012-2015, Milan Broz All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 #include <sys/time.h>
 #include <linux/fs.h>
 #include <arpa/inet.h>
+#include <uuid/uuid.h>
 
 #define PACKAGE_REENC "crypt_reencrypt"
 
@@ -33,6 +34,7 @@
 static const char *opt_cipher = NULL;
 static const char *opt_hash = NULL;
 static const char *opt_key_file = NULL;
+static const char *opt_uuid = NULL;
 static long opt_keyfile_size = 0;
 static long opt_keyfile_offset = 0;
 static int opt_iteration_time = 1000;
@@ -68,6 +70,7 @@ struct reenc_ctx {
 	uint64_t device_offset;
 	uint64_t device_shift;
 
+	int stained:1;
 	int in_progress:1;
 	enum { FORWARD = 0, BACKWARD = 1 } reencrypt_direction;
 	enum { REENCRYPT = 0, ENCRYPT = 1, DECRYPT = 2 } reencrypt_mode;
@@ -148,7 +151,7 @@ static int device_check(struct reenc_ctx *rc, header_magic set_magic)
 				rc->device);
 			return -EBUSY;
 		}
-		log_err(_("Cannot open device %s\n"), rc->device);
+		log_err(_("Cannot open device %s.\n"), rc->device);
 		return -EINVAL;
 	}
 
@@ -179,11 +182,6 @@ static int device_check(struct reenc_ctx *rc, header_magic set_magic)
 		log_verbose(_("Marking LUKS device %s unusable.\n"), rc->device);
 		memcpy(buf, NOMAGIC, MAGIC_L);
 		r = 0;
-	} else if (set_magic == MAKE_USABLE && !memcmp(buf, NOMAGIC, MAGIC_L) &&
-		   version == 1) {
-		log_verbose(_("Marking LUKS device %s usable.\n"), rc->device);
-		memcpy(buf, MAGIC, MAGIC_L);
-		r = 0;
 	} else if (set_magic == CHECK_UNUSABLE && version == 1) {
 		r = memcmp(buf, NOMAGIC, MAGIC_L) ? -EINVAL : 0;
 		if (!r)
@@ -200,6 +198,8 @@ static int device_check(struct reenc_ctx *rc, header_magic set_magic)
 			log_err(_("Cannot write device %s.\n"), rc->device);
 			r = -EIO;
 		}
+		if (s > 0 && set_magic == MAKE_UNUSABLE)
+			rc->stained = 1;
 	} else
 		log_dbg("LUKS signature check failed for %s.", rc->device);
 out:
@@ -370,6 +370,7 @@ static int open_log(struct reenc_ctx *rc)
 	rc->log_fd = open(rc->log_file, O_RDWR|O_EXCL|O_CREAT|flags, S_IRUSR|S_IWUSR);
 	if (rc->log_fd != -1) {
 		log_dbg("Created LUKS reencryption log file %s.", rc->log_file);
+		rc->stained = 0;
 	} else if (errno == EEXIST) {
 		log_std(_("Log file %s exists, resuming reencryption.\n"), rc->log_file);
 		rc->log_fd = open(rc->log_file, O_RDWR|flags);
@@ -653,8 +654,10 @@ static int restore_luks_header(struct reenc_ctx *rc)
 	crypt_free(cd);
 	if (r)
 		log_err(_("Cannot restore LUKS header on device %s.\n"), rc->device);
-	else
+	else {
 		log_verbose(_("LUKS header on device %s restored.\n"), rc->device);
+		rc->stained = 0;
+	}
 	return r;
 }
 
@@ -790,6 +793,9 @@ static int copy_data_backward(struct reenc_ctx *rc, int fd_old, int fd_new,
 
 	if (write_log(rc) < 0)
 		return -EIO;
+
+	/* dirty the device during ENCRYPT mode */
+	rc->stained = 1;
 
 	while (!quit && rc->device_offset) {
 		if (rc->device_offset < block_size) {
@@ -955,12 +961,23 @@ static int initialize_uuid(struct reenc_ctx *rc)
 {
 	struct crypt_device *cd = NULL;
 	int r;
+	uuid_t device_uuid;
 
 	log_dbg("Initialising UUID.");
 
 	if (opt_new) {
 		rc->device_uuid = strdup(NO_UUID);
 		return 0;
+	}
+
+	if (opt_decrypt && opt_uuid) {
+		r = uuid_parse(opt_uuid, device_uuid);
+		if (!r)
+			rc->device_uuid = strdup(opt_uuid);
+		else
+			log_err(_("Passed UUID is invalid.\n"));
+
+		return r;
 	}
 
 	/* Try to load LUKS from device */
@@ -993,8 +1010,12 @@ static int init_passphrase1(struct reenc_ctx *rc, struct crypt_device *cd,
 			0, 0, cd);
 		if (r < 0)
 			return r;
-		if (quit)
+		if (quit) {
+			crypt_safe_free(password);
+			password = NULL;
+			passwordLen = 0;
 			return -EAGAIN;
+		}
 
 		/* library uses sigint internally, until it is fixed...*/
 		set_int_block(1);
@@ -1119,7 +1140,7 @@ static int initialize_context(struct reenc_ctx *rc, const char *device)
 {
 	log_dbg("Initialising reencryption context.");
 
-	rc->log_fd =-1;
+	rc->log_fd = -1;
 
 	if (!(rc->device = strndup(device, PATH_MAX)))
 		return -ENOMEM;
@@ -1159,6 +1180,11 @@ static int initialize_context(struct reenc_ctx *rc, const char *device)
 	}
 
 	if (!rc->in_progress) {
+		if (opt_uuid) {
+			log_err(_("Cannot use passed UUID unless decryption in progress.\n"));
+			return -EINVAL;
+		}
+
 		if (!opt_reduce_size)
 			rc->reencrypt_direction = FORWARD;
 		else {
@@ -1186,10 +1212,7 @@ static void destroy_context(struct reenc_ctx *rc)
 	close_log(rc);
 	remove_headers(rc);
 
-	if ((rc->reencrypt_direction == FORWARD &&
-	     rc->device_offset == rc->device_size) ||
-	    (rc->reencrypt_direction == BACKWARD &&
-	     (rc->device_offset == 0 || rc->device_offset == (uint64_t)~0))) {
+	if (!rc->stained) {
 		unlink(rc->log_file);
 		unlink(rc->header_file_org);
 		unlink(rc->header_file_new);
@@ -1205,7 +1228,9 @@ static void destroy_context(struct reenc_ctx *rc)
 static int run_reencrypt(const char *device)
 {
 	int r = -EINVAL;
-	static struct reenc_ctx rc = {};
+	static struct reenc_ctx rc = {
+		.stained = 1
+	};
 
 	if (initialize_context(&rc, device))
 		goto out;
@@ -1231,7 +1256,7 @@ static int run_reencrypt(const char *device)
 				goto out;
 		}
 	} else {
-		if ((r = initialize_passphrase(&rc, rc.header_file_new)))
+		if ((r = initialize_passphrase(&rc, opt_decrypt ? rc.header_file_org : rc.header_file_new)))
 			goto out;
 	}
 
@@ -1248,6 +1273,8 @@ static int run_reencrypt(const char *device)
 	// FIXME: fix error path above to not skip this
 	if (rc.reencrypt_mode != DECRYPT)
 		r = restore_luks_header(&rc);
+	else
+		rc.stained = 0;
 out:
 	destroy_context(&rc);
 	return r;
@@ -1301,6 +1328,7 @@ int main(int argc, const char **argv)
 		{ "device-size",       '\0', POPT_ARG_STRING, &opt_device_size_str,     0, N_("Use only specified device size (ignore rest of device). DANGEROUS!"), N_("bytes") },
 		{ "new",               'N',  POPT_ARG_NONE, &opt_new,                   0, N_("Create new header on not encrypted device."), NULL },
 		{ "decrypt",           '\0', POPT_ARG_NONE, &opt_decrypt,               0, N_("Permanently decrypt device (remove encryption)."), NULL },
+		{ "uuid",              '\0', POPT_ARG_STRING, &opt_uuid,                0, N_("The uuid used to resume decryption."), NULL },
 		POPT_TABLEEND
 	};
 	poptContext popt_context;
@@ -1399,6 +1427,10 @@ int main(int argc, const char **argv)
 
 	if (opt_decrypt && (opt_cipher || opt_hash || opt_reduce_size || opt_keep_key || opt_device_size))
 		usage(popt_context, EXIT_FAILURE, _("Option --decrypt is incompatible with specified parameters."),
+		      poptGetInvocationName(popt_context));
+
+	if (opt_uuid && !opt_decrypt)
+		usage(popt_context, EXIT_FAILURE, _("Option --uuid is allowed only together with --decrypt."),
 		      poptGetInvocationName(popt_context));
 
 	if (opt_debug) {

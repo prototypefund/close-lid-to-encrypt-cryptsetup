@@ -28,6 +28,9 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#ifdef HAVE_SYS_SYSMACROS_H
+# include <sys/sysmacros.h>     /* for major, minor */
+#endif
 #include <linux/loop.h>
 
 #include "utils_loop.h"
@@ -100,6 +103,7 @@ int crypt_loop_attach(const char *loop, const char *file, int offset,
 		      int autoclear, int *readonly)
 {
 	struct loop_info64 lo64 = {0};
+	char *lo_file_name;
 	int loop_fd = -1, file_fd = -1, r = 1;
 
 	file_fd = open(file, (*readonly ? O_RDONLY : O_RDWR) | O_EXCL);
@@ -114,7 +118,9 @@ int crypt_loop_attach(const char *loop, const char *file, int offset,
 	if (loop_fd < 0)
 		goto out;
 
-	strncpy((char*)lo64.lo_file_name, file, LO_NAME_SIZE);
+	lo_file_name = (char*)lo64.lo_file_name;
+	lo_file_name[LO_NAME_SIZE-1] = '\0';
+	strncpy(lo_file_name, file, LO_NAME_SIZE-1);
 	lo64.lo_offset = offset;
 	if (autoclear)
 		lo64.lo_flags |= LO_FLAGS_AUTOCLEAR;

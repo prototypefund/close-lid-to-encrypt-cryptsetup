@@ -62,7 +62,7 @@ int LUKS_keyslot_area(struct luks_phdr *hdr,
 	if(keyslot >= LUKS_NUMKEYS || keyslot < 0)
 		return -EINVAL;
 
-	*offset = hdr->keyblock[keyslot].keyMaterialOffset * SECTOR_SIZE;
+	*offset = (uint64_t)hdr->keyblock[keyslot].keyMaterialOffset * SECTOR_SIZE;
 	*length = AF_split_sectors(hdr->keyBytes, LUKS_STRIPES) * SECTOR_SIZE;
 
 	return 0;
@@ -206,7 +206,6 @@ int LUKS_hdr_backup(const char *backup_file, struct crypt_device *ctx)
 		r = -EIO;
 		goto out;
 	}
-	close(devfd);
 
 	r = 0;
 out:
@@ -260,6 +259,7 @@ int LUKS_hdr_restore(
 		goto out;
 	}
 	close(devfd);
+	devfd = -1;
 
 	r = LUKS_read_phdr(hdr, 0, 0, ctx);
 	if (r == 0) {
@@ -306,6 +306,7 @@ int LUKS_hdr_restore(
 		goto out;
 	}
 	close(devfd);
+	devfd = -1;
 
 	/* Be sure to reload new data */
 	r = LUKS_read_phdr(hdr, 1, 0, ctx);
@@ -545,6 +546,16 @@ int LUKS_read_phdr(struct luks_phdr *hdr,
 	if (!r)
 		r = LUKS_check_device_size(ctx, hdr->keyBytes);
 
+	/*
+	 * Cryptsetup 1.0.0 did not align keyslots to 4k (very rare version).
+	 * Disable direct-io to avoid possible IO errors if underlying device
+	 * has bigger sector size.
+	 */
+	if (!r && hdr->keyblock[0].keyMaterialOffset * SECTOR_SIZE < LUKS_ALIGN_KEYSLOTS) {
+		log_dbg("Old unaligned LUKS keyslot detected, disabling direct-io.");
+		device_disable_direct_io(device);
+	}
+
 	close(devfd);
 	return r;
 }
@@ -674,9 +685,9 @@ int LUKS_generate_phdr(struct luks_phdr *header,
 	/* Set Magic */
 	memcpy(header->magic,luksMagic,LUKS_MAGIC_L);
 	header->version=1;
-	strncpy(header->cipherName,cipherName,LUKS_CIPHERNAME_L);
-	strncpy(header->cipherMode,cipherMode,LUKS_CIPHERMODE_L);
-	strncpy(header->hashSpec,hashSpec,LUKS_HASHSPEC_L);
+	strncpy(header->cipherName,cipherName,LUKS_CIPHERNAME_L-1);
+	strncpy(header->cipherMode,cipherMode,LUKS_CIPHERMODE_L-1);
+	strncpy(header->hashSpec,hashSpec,LUKS_HASHSPEC_L-1);
 
 	header->keyBytes=vk->keylength;
 
