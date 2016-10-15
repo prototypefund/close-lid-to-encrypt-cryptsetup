@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #include <string.h>
@@ -27,6 +27,7 @@
 #include <inttypes.h>
 #include <errno.h>
 #include <unistd.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <assert.h>
 #include <limits.h>
@@ -378,9 +379,14 @@ static int action_status(int arg __attribute__((unused)))
 	crypt_status_info ci;
 	struct crypt_active_device cad;
 	struct crypt_device *cd = NULL;
+	struct stat st;
 	char *backing_file;
 	const char *device;
-	int r = 0;
+	int path = 0, r = 0;
+
+	/* perhaps a path, not a dm device name */
+	if (strchr(action_argv[0], '/') && !stat(action_argv[0], &st))
+		path = 1;
 
 	ci = crypt_status(NULL, action_argv[0]);
 	switch (ci) {
@@ -388,13 +394,20 @@ static int action_status(int arg __attribute__((unused)))
 		r = -EINVAL;
 		break;
 	case CRYPT_INACTIVE:
-		log_std("%s/%s is inactive.\n", crypt_get_dir(), action_argv[0]);
+		if (path)
+			log_std("%s is inactive.\n", action_argv[0]);
+		else
+			log_std("%s/%s is inactive.\n", crypt_get_dir(), action_argv[0]);
 		r = -ENODEV;
 		break;
 	case CRYPT_ACTIVE:
 	case CRYPT_BUSY:
-		log_std("%s/%s is active%s.\n", crypt_get_dir(), action_argv[0],
-			ci == CRYPT_BUSY ? " and is in use" : "");
+		if (path)
+			log_std("%s is active%s.\n", action_argv[0],
+				ci == CRYPT_BUSY ? " and is in use" : "");
+		else
+			log_std("%s/%s is active%s.\n", crypt_get_dir(), action_argv[0],
+				ci == CRYPT_BUSY ? " and is in use" : "");
 		r = crypt_init_by_name(&cd, action_argv[0]);
 		if (r < 0 || !crypt_get_type(cd))
 			goto out;
@@ -499,7 +512,7 @@ static int action_luksFormat(int arg __attribute__((unused)))
 	crypt_set_password_verify(cd, 1);
 	crypt_set_timeout(cd, opt_timeout);
 	if (opt_iteration_time)
-		crypt_set_iterarion_time(cd, opt_iteration_time);
+		crypt_set_iteration_time(cd, opt_iteration_time);
 
 	if (opt_random)
 		crypt_set_rng_type(cd, CRYPT_RNG_RANDOM);
@@ -569,7 +582,7 @@ static int action_luksOpen(int arg __attribute__((unused)))
 	crypt_set_password_retry(cd, opt_tries);
 
 	if (opt_iteration_time)
-		crypt_set_iterarion_time(cd, opt_iteration_time);
+		crypt_set_iteration_time(cd, opt_iteration_time);
 
 	if (opt_readonly)
 		flags |= CRYPT_ACTIVATE_READONLY;
@@ -742,7 +755,7 @@ static int action_luksAddKey(int arg __attribute__((unused)))
 	crypt_set_password_verify(cd, opt_verify_passphrase ? 1 : 0);
 	crypt_set_timeout(cd, opt_timeout);
 	if (opt_iteration_time)
-		crypt_set_iterarion_time(cd, opt_iteration_time);
+		crypt_set_iteration_time(cd, opt_iteration_time);
 
 	if (opt_master_key_file) {
 		r = _read_mk(opt_master_key_file, &key, keysize);
@@ -791,7 +804,7 @@ static int action_luksChangeKey(int arg __attribute__((unused)))
 		goto out;
 
 	if (opt_iteration_time)
-		crypt_set_iterarion_time(cd, opt_iteration_time);
+		crypt_set_iteration_time(cd, opt_iteration_time);
 
 	r = crypt_get_key(_("Enter LUKS passphrase to be changed: "),
 		      &password, &passwordLen,
