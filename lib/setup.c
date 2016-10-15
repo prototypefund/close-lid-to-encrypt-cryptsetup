@@ -30,7 +30,7 @@ struct crypt_device {
 	char *plain_uuid;
 
 	/* callbacks definitions */
-	void (*log)(int class, const char *msg, void *usrptr);
+	void (*log)(int level, const char *msg, void *usrptr);
 	void *log_usrptr;
 	int (*confirm)(const char *msg, void *usrptr);
 	void *confirm_usrptr;
@@ -39,7 +39,7 @@ struct crypt_device {
 };
 
 /* Log helper */
-static void (*_default_log)(int class, const char *msg, void *usrptr) = NULL;
+static void (*_default_log)(int level, const char *msg, void *usrptr) = NULL;
 static int _debug_level = 0;
 
 void crypt_set_debug_level(int level)
@@ -52,15 +52,15 @@ int crypt_get_debug_level()
 	return _debug_level;
 }
 
-void crypt_log(struct crypt_device *cd, int class, const char *msg)
+void crypt_log(struct crypt_device *cd, int level, const char *msg)
 {
 	if (cd && cd->log)
-		cd->log(class, msg, cd->log_usrptr);
+		cd->log(level, msg, cd->log_usrptr);
 	else if (_default_log)
-		_default_log(class, msg, NULL);
+		_default_log(level, msg, NULL);
 }
 
-void logger(struct crypt_device *cd, int class, const char *file,
+void logger(struct crypt_device *cd, int level, const char *file,
 	    int line, const char *format, ...)
 {
 	va_list argp;
@@ -69,8 +69,8 @@ void logger(struct crypt_device *cd, int class, const char *file,
 	va_start(argp, format);
 
 	if (vasprintf(&target, format, argp) > 0) {
-		if (class >= 0) {
-			crypt_log(cd, class, target);
+		if (level >= 0) {
+			crypt_log(cd, level, target);
 #ifdef CRYPT_DEBUG
 		} else if (_debug_level)
 			printf("# %s:%d %s\n", file ?: "?", line, target);
@@ -112,7 +112,8 @@ static char *process_key(struct crypt_device *cd, const char *hash_name,
 	/* key is coming from tty, fd or binary stdin */
 	if (hash_name) {
 		if (hash(NULL, hash_name, key, key_size, pass, passLen) < 0) {
-			log_err(cd, _("Key processing error.\n"));
+			log_err(cd, _("Key processing error (using hash algorithm %s).\n"),
+				hash_name);
 			safe_free(key);
 			return NULL;
 		}
@@ -419,10 +420,10 @@ static int open_from_hdr_and_mk(struct crypt_device *cd,
 	return r;
 }
 
-static void log_wrapper(int class, const char *msg, void *usrptr)
+static void log_wrapper(int level, const char *msg, void *usrptr)
 {
-	void (*xlog)(int class, char *msg) = usrptr;
-	xlog(class, (char *)msg);
+	void (*xlog)(int level, char *msg) = usrptr;
+	xlog(level, (char *)msg);
 }
 
 static int yesDialog_wrapper(const char *msg, void *usrptr)
@@ -556,7 +557,7 @@ static int _crypt_init(struct crypt_device **cd,
 }
 
 void crypt_set_log_callback(struct crypt_device *cd,
-	void (*log)(int class, const char *msg, void *usrptr),
+	void (*log)(int level, const char *msg, void *usrptr),
 	void *usrptr)
 {
 	if (!cd)
@@ -823,7 +824,7 @@ int crypt_luksOpen(struct crypt_options *options)
 	if (options->flags & CRYPT_FLAG_NON_EXCLUSIVE_ACCESS)
 		flags |= CRYPT_ACTIVATE_NO_UUID;
 
-	if (options->key_file)
+	if (options->key_file && strcmp(options->key_file, "-"))
 		r = crypt_activate_by_keyfile(cd, options->name,
 			CRYPT_ANY_SLOT, options->key_file, options->key_size,
 			flags);
@@ -920,6 +921,11 @@ int crypt_isLuks(struct crypt_options *options)
 	int r;
 
 	log_dbg("Check device %s for LUKS header.", options->device);
+
+	if (init_crypto()) {
+		log_err(cd, _("Cannot initialize crypto backend.\n"));
+		return -ENOSYS;
+	}
 
 	r = crypt_init(&cd, options->device);
 	if (r < 0)
@@ -1056,7 +1062,7 @@ static int _crypt_format_plain(struct crypt_device *cd,
 			       const char *uuid,
 			       struct crypt_params_plain *params)
 {
-	if (!cipher || !cipher_mode || !params || !params->hash) {
+	if (!cipher || !cipher_mode) {
 		log_err(cd, _("Invalid plain crypt parameters.\n"));
 		return -EINVAL;
 	}
@@ -1072,14 +1078,13 @@ static int _crypt_format_plain(struct crypt_device *cd,
 	if (uuid)
 		cd->plain_uuid = strdup(uuid);
 
-	if (params->hash)
+	if (params && params->hash)
 		cd->plain_hdr.hash = strdup(params->hash);
 
-	cd->plain_hdr.offset = params->offset;
-	cd->plain_hdr.skip = params->skip;
+	cd->plain_hdr.offset = params ? params->offset : 0;
+	cd->plain_hdr.skip = params ? params->skip : 0;
 
-	if ((params->hash && !cd->plain_hdr.hash) ||
-	    !cd->plain_cipher || !cd->plain_cipher_mode)
+	if (!cd->plain_cipher || !cd->plain_cipher_mode)
 		return -ENOMEM;
 
 	return 0;
@@ -1092,16 +1097,25 @@ static int _crypt_format_luks1(struct crypt_device *cd,
 			       struct crypt_params_luks1 *params)
 {
 	int r;
+	unsigned long required_alignment = DEFAULT_ALIGNMENT;
+	unsigned long alignment_offset = 0;
 
 	if (!cd->device) {
 		log_err(cd, _("Can't format LUKS without device.\n"));
 		return -EINVAL;
 	}
 
+	if (params && params->data_alignment)
+		required_alignment = params->data_alignment * SECTOR_SIZE;
+	else
+		get_topology_alignment(cd->device, &required_alignment,
+				       &alignment_offset, DEFAULT_ALIGNMENT);
+
 	r = LUKS_generate_phdr(&cd->hdr, cd->volume_key, cipher, cipher_mode,
 			       (params && params->hash) ? params->hash : "sha1",
 			       uuid, LUKS_STRIPES,
-			       params ? params->data_alignment: DEFAULT_ALIGNMENT,
+			       required_alignment / SECTOR_SIZE,
+			       alignment_offset / SECTOR_SIZE,
 			       cd->iteration_time, &cd->PBKDF2_per_sec, cd);
 	if(r < 0)
 		return r;
@@ -1213,6 +1227,12 @@ int crypt_header_backup(struct crypt_device *cd,
 	if ((requested_type && !isLUKS(requested_type)) || !backup_file)
 		return -EINVAL;
 
+	/* Some hash functions need initialized gcrypt library */
+	if (init_crypto()) {
+		log_err(cd, _("Cannot initialize crypto backend.\n"));
+		return -ENOSYS;
+	}
+
 	log_dbg("Requested header backup of device %s (%s) to "
 		"file %s.", cd->device, requested_type, backup_file);
 
@@ -1225,6 +1245,12 @@ int crypt_header_restore(struct crypt_device *cd,
 {
 	if (requested_type && !isLUKS(requested_type))
 		return -EINVAL;
+
+	/* Some hash functions need initialized gcrypt library */
+	if (init_crypto()) {
+		log_err(cd, _("Cannot initialize crypto backend.\n"));
+		return -ENOSYS;
+	}
 
 	log_dbg("Requested header restore to device %s (%s) from "
 		"file %s.", cd->device, requested_type, backup_file);
@@ -1283,7 +1309,9 @@ int crypt_suspend(struct crypt_device *cd,
 	}
 
 	r = dm_suspend_and_wipe_key(name);
-	if (r)
+	if (r == -ENOTSUP)
+		log_err(cd, "Suspend is not supported for device %s.\n", name);
+	else if (r)
 		log_err(cd, "Error during suspending device %s.\n", name);
 out:
 	if (!cd)
@@ -1327,7 +1355,9 @@ int crypt_resume_by_passphrase(struct crypt_device *cd,
 	if (r >= 0) {
 		keyslot = r;
 		r = dm_resume_and_reinstate_key(name, mk->keyLength, mk->key);
-		if (r)
+		if (r == -ENOTSUP)
+			log_err(cd, "Resume is not supported for device %s.\n", name);
+		else if (r)
 			log_err(cd, "Error during resuming device %s.\n", name);
 	} else
 		r = keyslot;
@@ -1511,7 +1541,7 @@ int crypt_keyslot_add_by_keyfile(struct crypt_device *cd,
 				      keyfile, keyfile_size);
 		else
 			key_from_terminal(cd, _("Enter any passphrase: "),
-					&password, &passwordLen, 1);
+					&password, &passwordLen, 0);
 
 		if (!password)
 			return -EINVAL;
@@ -1838,7 +1868,7 @@ int crypt_volume_key_get(struct crypt_device *cd,
 		return -ENOMEM;
 	}
 
-	if (isPLAIN(cd->type)) {
+	if (isPLAIN(cd->type) && cd->plain_hdr.hash) {
 		processed_key = process_key(cd, cd->plain_hdr.hash, NULL, key_len,
 					    passphrase, passphrase_size);
 		if (!processed_key) {
