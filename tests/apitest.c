@@ -20,10 +20,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <linux/fs.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 
 #include "libcryptsetup.h"
 
@@ -78,7 +80,7 @@ static void _remove_keyfiles(void)
 }
 
 // Decode key from its hex representation
-static int crypt_decode_key(unsigned char *key, const char *hex, unsigned int size)
+static int crypt_decode_key(char *key, char *hex, unsigned int size)
 {
 	char buffer[3];
 	char *endp;
@@ -501,7 +503,7 @@ static void AddDevicePlain(void)
 		.offset = 0,
 	};
 	int fd;
-	unsigned char key[128], key2[128], path[128];
+	char key[128], key2[128], path[128];
 
 	char *passphrase = "blabla";
 	char *mk_hex = "bb21158c733229347bd4e681891e213d94c685be6a5b84818afe7a78a6de7a1a";
@@ -518,17 +520,17 @@ static void AddDevicePlain(void)
 	OK_(crypt_activate_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, passphrase, strlen(passphrase), 0));
 
 	// device status check
-	EQ_(crypt_status(cd, CDEVICE_1), ACTIVE);
+	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 	snprintf(path, sizeof(path), "%s/%s", crypt_get_dir(), CDEVICE_1);
 	fd = open(path, O_RDONLY);
-	EQ_(crypt_status(cd, CDEVICE_1), BUSY);
+	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_BUSY);
 	FAIL_(crypt_deactivate(cd, CDEVICE_1), "Device is busy");
 	close(fd);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	EQ_(crypt_status(cd, CDEVICE_1), INACTIVE);
+	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_INACTIVE);
 
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0));
-	EQ_(crypt_status(cd, CDEVICE_1), ACTIVE);
+	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 
 	// retrieve volume key check
 	memset(key2, 0, key_size);
@@ -552,14 +554,13 @@ static void UseLuksDevice(void)
 	struct crypt_device *cd;
 	char key[128];
 	size_t key_size;
-	int fd;
 
 	OK_(crypt_init(&cd, DEVICE_1));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
-	EQ_(crypt_status(cd, CDEVICE_1), INACTIVE);
+	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_INACTIVE);
 	OK_(crypt_activate_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, KEY1, strlen(KEY1), 0));
 	FAIL_(crypt_activate_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, KEY1, strlen(KEY1), 0), "already open");
-	EQ_(crypt_status(cd, CDEVICE_1), ACTIVE);
+	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
 	FAIL_(crypt_deactivate(cd, CDEVICE_1), "no such device");
 
@@ -573,7 +574,7 @@ static void UseLuksDevice(void)
 	EQ_(0, crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key, &key_size, KEY1, strlen(KEY1)));
 	OK_(crypt_volume_key_verify(cd, key, key_size));
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0));
-	EQ_(crypt_status(cd, CDEVICE_1), ACTIVE);
+	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
 
 	key[1] = ~key[1];
@@ -585,9 +586,6 @@ static void UseLuksDevice(void)
 static void SuspendDevice(void)
 {
 	struct crypt_device *cd;
-	char key[128];
-	size_t key_size;
-	int fd;
 
 	OK_(crypt_init(&cd, DEVICE_1));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
@@ -618,8 +616,7 @@ static void AddDeviceLuks(void)
 		.hash = "sha512",
 		.data_alignment = 2048, // 4M, data offset will be 4096
 	};
-	int fd;
-	unsigned char key[128], key2[128], path[128];
+	char key[128], key2[128];
 
 	char *passphrase = "blabla";
 	char *mk_hex = "bb21158c733229347bd4e681891e213d94c685be6a5b84818afe7a78a6de7a1a";
@@ -635,14 +632,14 @@ static void AddDeviceLuks(void)
 	// even with no keyslots defined it can be activated by volume key
 	OK_(crypt_volume_key_verify(cd, key, key_size));
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_2, key, key_size, 0));
-	EQ_(crypt_status(cd, CDEVICE_2), ACTIVE);
+	EQ_(crypt_status(cd, CDEVICE_2), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_2));
 
 	// now with keyslot
 	EQ_(7, crypt_keyslot_add_by_volume_key(cd, 7, key, key_size, passphrase, strlen(passphrase)));
-	EQ_(SLOT_ACTIVE_LAST, crypt_keyslot_status(cd, 7));
+	EQ_(CRYPT_SLOT_ACTIVE_LAST, crypt_keyslot_status(cd, 7));
 	EQ_(7, crypt_activate_by_passphrase(cd, CDEVICE_2, CRYPT_ANY_SLOT, passphrase, strlen(passphrase), 0));
-	EQ_(crypt_status(cd, CDEVICE_2), ACTIVE);
+	EQ_(crypt_status(cd, CDEVICE_2), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_2));
 
 	FAIL_(crypt_keyslot_add_by_volume_key(cd, 7, key, key_size, passphrase, strlen(passphrase)), "slot used");
@@ -650,14 +647,14 @@ static void AddDeviceLuks(void)
 	FAIL_(crypt_keyslot_add_by_volume_key(cd, 6, key, key_size, passphrase, strlen(passphrase)), "key mismatch");
 	key[1] = ~key[1];
 	EQ_(6, crypt_keyslot_add_by_volume_key(cd, 6, key, key_size, passphrase, strlen(passphrase)));
-	EQ_(SLOT_ACTIVE, crypt_keyslot_status(cd, 6));
+	EQ_(CRYPT_SLOT_ACTIVE, crypt_keyslot_status(cd, 6));
 
 	FAIL_(crypt_keyslot_destroy(cd, 8), "invalid keyslot");
 	FAIL_(crypt_keyslot_destroy(cd, CRYPT_ANY_SLOT), "invalid keyslot");
 	FAIL_(crypt_keyslot_destroy(cd, 0), "keyslot not used");
 	OK_(crypt_keyslot_destroy(cd, 7));
-	EQ_(SLOT_INACTIVE, crypt_keyslot_status(cd, 7));
-	EQ_(SLOT_ACTIVE_LAST, crypt_keyslot_status(cd, 6));
+	EQ_(CRYPT_SLOT_INACTIVE, crypt_keyslot_status(cd, 7));
+	EQ_(CRYPT_SLOT_ACTIVE_LAST, crypt_keyslot_status(cd, 6));
 
 	EQ_(6, crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key2, &key_size, passphrase, strlen(passphrase)));
 	OK_(crypt_volume_key_verify(cd, key2, key_size));
@@ -676,6 +673,23 @@ static void AddDeviceLuks(void)
 	reset_log();
 
 	FAIL_(crypt_deactivate(cd, CDEVICE_2), "not active");
+	crypt_free(cd);
+}
+
+// Check that gcrypt is properly initialised in format
+static void NonFIPSAlg(void)
+{
+	struct crypt_device *cd;
+	struct crypt_params_luks1 params = {
+		.hash = "whirlpool",
+	};
+	char key[128] = "";
+	size_t key_size = 128;
+	char *cipher = "aes";
+	char *cipher_mode = "cbc-essiv:sha256";
+
+	OK_(crypt_init(&cd, DEVICE_2));
+	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
 	crypt_free(cd);
 }
 
@@ -700,6 +714,7 @@ int main (int argc, char *argv[])
 
 	crypt_set_debug_level(_debug ? CRYPT_DEBUG_ALL : CRYPT_DEBUG_NONE);
 
+	RUN_(NonFIPSAlg, "Crypto is properly initialised in format"); //must be the first!
 	RUN_(LuksUUID, "luksUUID API call");
 	RUN_(IsLuks, "isLuks API call");
 	RUN_(LuksOpen, "luksOpen API call");

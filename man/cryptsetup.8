@@ -92,7 +92,7 @@ returns true, if <device> is a LUKS partition. Otherwise, false. No options.
 .IP
 dumps the header information of a LUKS partition. No options.
 .PP
-\fIluksHeaderBackup\fR <device> --header-backup-file <file>
+\fIluksHeaderBackup\fR <device> \-\-header-backup-file <file>
 .IP
 Stores binary backup of LUKS header and keyslot areas.
 
@@ -100,7 +100,7 @@ Stores binary backup of LUKS header and keyslot areas.
 
 Also note that anti-forensic splitter is not used during manipulation with backup file.
 .PP
-\fIluksHeaderRestore\fR <device> --header-backup-file <file>
+\fIluksHeaderRestore\fR <device> \-\-header-backup-file <file>
 .IP
 
 Restores binary backup of LUKS header and keyslot areas from specified file.
@@ -122,12 +122,24 @@ For \fIluksFormat\fR action specifies hash used in LUKS key setup scheme and vol
 \fBWARNING:\fR setting hash other than \fBsha1\fR causes LUKS device incompatible with older version of cryptsetup.
 
 The hash string is passed to libgcrypt, so all hashes accepted by gcrypt are supported.
-Default is \fB"ripemd160"\fR for \fIcreate\fR action and \fB"sha1"\fR for \fIluksFormat\fR.
+Default is set during compilation, compatible values with old version of cryptsetup are
+\fB"ripemd160"\fR for \fIcreate\fR action and \fB"sha1"\fR for \fIluksFormat\fR.
+
+Use \fIcryptsetup --help\fR to show defaults.
 .TP
 .B "\-\-cipher, \-c"
-set cipher specification string. For plain dm-crypt mappings, the default is "aes-cbc-plain", for LUKS mappings it's "aes-cbc-essiv:sha256". For pre-2.6.10 kernels, use "aes-plain" as they don't understand the new cipher spec strings. To use ESSIV, use "aes-cbc-essiv:sha256".
+set cipher specification string.
 
-For XTS mode, kernel version 2.6.24 or more recent is required. Use "aes-xts-plain" cipher specification and set key size to 256 (or 512) bits (see \-s option).
+Default mode is configurable during compilation,
+you can see compiled-in default using \fIcryptsetup --help\fR.
+If not changed, the default is for plain dm-crypt and LUKS mappings
+"aes-cbc-essiv:sha256".
+
+For pre-2.6.10 kernels, use "aes-plain" as they don't understand
+the new cipher spec strings. To use ESSIV, use "aes-cbc-essiv:sha256".
+
+For XTS mode, kernel version 2.6.24 or more recent is required.
+Use "aes-xts-plain" cipher specification and set key size to 256 (or 512) bits (see \-s option).
 .TP
 .B "\-\-verify-passphrase, \-y"
 query for passwords twice. Useful when creating a (regular) mapping for the first time, or when running \fIluksFormat\fR.
@@ -146,7 +158,13 @@ For \fIluksAddKey\fR it allows adding new passphrase with only master key knowle
 For LUKS operations that add key material, this options allows to you specify which key slot is selected for the new key. This option can be used for \fIluksFormat\fR and \fIluksAddKey\fR.
 .TP
 .B "\-\-key-size, \-s"
-set key size in bits. Has to be a multiple of 8 bits. The key size is limited by the used cipher. See output of /proc/crypto for more information. Can be used for \fIcreate\fR or \fIluksFormat\fR, all other LUKS actions will use key-size specified by the LUKS header. Default is 128 for \fIluksFormat\fR and 256 for \fIcreate\fR.
+set key size in bits.
+
+Has to be a multiple of 8 bits. The key size is limited by the used cipher. See output of /proc/crypto for more information.
+Can be used for \fIcreate\fR or \fIluksFormat\fR, all other LUKS actions will use key-size specified by the LUKS header.
+Default is set during compilation, if not changed it is 256 bits.
+
+Use \fIcryptsetup --help\fR to show defaults.
 
 For \fIluksOpen\fR this option specifies number of bits read from the key-file (default is exhaustive read from key-file).
 .TP
@@ -205,10 +223,12 @@ For any password creation action (luksAddKey, or luksFormat), the user may speci
 Increasing the time will lead to a more secure password, but also will take luksOpen longer to complete. The default setting of one second is sufficient for good security.
 .SH INCOHERENT BEHAVIOUR FOR INVALID PASSWORDS/KEYS
 LUKS checks for a valid password or key when an encrypted partition is unlocked. Thus the luksOpen action fails with invalid password or key, contrary to the plain dm-crypt create action.
+
+Please also be sure that you are using the same keyboard and language setting as during device format.
 .SH NOTES ON SUPPORTED CIPHERS, MODES, HASHES AND KEY SIZES
 The available combinations of ciphers, modes, hashes and key sizes depend on kernel support. See /proc/crypto for a list of available options. You might need to load additional kernel crypto modules in order to get more options.
 
-For --hash option all algorithms supported by gcrypt library are available.
+For \-\-hash option all algorithms supported by gcrypt library are available.
 .SH NOTES ON PASSWORDS
 Mathematics can't be bribed. Make sure you keep your passwords safe. There are a few nice tricks for constructing a fallback, when suddenly out of (or after being) blue, your brain refuses to cooperate. These fallbacks are possible with LUKS, as it's only possible with LUKS to have multiple passwords.
 .SH AUTHORS
@@ -244,7 +264,11 @@ functionality, see dmsetup reload.
 identical to luksKillSlot, but deprecated action name. This option was
 renamed, as we introduced luksRemoveKey, a softer method for disabling
 password slots. To make a clear distinction that luksDelKey was more brutal than luksRemoveKey
-
+.PP
+\fI\-\-non-exclusive\fR
+.IP
+This option is ignored. Non-exclusive access to the same block device
+can cause data corruption thus this mode is no longer supported by cryptsetup.
 
 .SH "REPORTING BUGS"
 Report bugs to <dm-crypt@saout.de>.
@@ -252,6 +276,8 @@ Report bugs to <dm-crypt@saout.de>.
 Copyright \(co 2004 Christophe Saout
 .br
 Copyright \(co 2004-2006 Clemens Fruhwirth
+.br
+Copyright \(co 2009 Red Hat, Inc.
 
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

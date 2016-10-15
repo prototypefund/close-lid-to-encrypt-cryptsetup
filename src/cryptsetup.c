@@ -203,10 +203,10 @@ static int action_create(int reload)
 	struct crypt_options options = {
 		.name = action_argv[0],
 		.device = action_argv[1],
-		.cipher = opt_cipher?opt_cipher:DEFAULT_CIPHER,
-		.hash = opt_hash ?: DEFAULT_HASH,
+		.cipher = opt_cipher ? opt_cipher : DEFAULT_CIPHER(PLAIN),
+		.hash = opt_hash ?: DEFAULT_PLAIN_HASH,
 		.key_file = opt_key_file,
-		.key_size = ((opt_key_size)?opt_key_size:DEFAULT_KEY_SIZE)/8,
+		.key_size = (opt_key_size ?: DEFAULT_PLAIN_KEYBITS) / 8,
 		.key_slot = opt_key_slot,
 		.flags = 0,
 		.size = opt_size,
@@ -294,11 +294,11 @@ static int action_status(int arg)
 static int _action_luksFormat_generateMK()
 {
 	struct crypt_options options = {
-		.key_size = (opt_key_size ?: DEFAULT_LUKS_KEY_SIZE) / 8,
+		.key_size = (opt_key_size ?: DEFAULT_LUKS1_KEYBITS) / 8,
 		.key_slot = opt_key_slot,
 		.device = action_argv[0],
-		.cipher = opt_cipher ?: DEFAULT_LUKS_CIPHER,
-		.hash = opt_hash ?: DEFAULT_LUKS_HASH,
+		.cipher = opt_cipher ?: DEFAULT_CIPHER(LUKS1),
+		.hash = opt_hash ?: DEFAULT_LUKS1_HASH,
 		.new_key_file = action_argc > 1 ? action_argv[1] : NULL,
 		.flags = opt_verify_passphrase ? CRYPT_FLAG_VERIFY : (!opt_batch_mode?CRYPT_FLAG_VERIFY_IF_POSSIBLE :  0),
 		.iteration_time = opt_iteration_time,
@@ -340,18 +340,18 @@ static int _action_luksFormat_useMK()
 	char *key = NULL, cipher [MAX_CIPHER_LEN], cipher_mode[MAX_CIPHER_LEN];
 	struct crypt_device *cd = NULL;
 	struct crypt_params_luks1 params = {
-		.hash = opt_hash ?: DEFAULT_LUKS_HASH,
+		.hash = opt_hash ?: DEFAULT_LUKS1_HASH,
 		.data_alignment = opt_align_payload,
 	};
 
-	if (sscanf(opt_cipher ?: DEFAULT_LUKS_CIPHER,
+	if (sscanf(opt_cipher ?: DEFAULT_CIPHER(LUKS1),
 		   "%" MAX_CIPHER_LEN_STR "[^-]-%" MAX_CIPHER_LEN_STR "s",
 		   cipher, cipher_mode) != 2) {
 		log_err("No known cipher specification pattern detected.\n");
 		return -EINVAL;
 	}
 
-	keysize = (opt_key_size ?: DEFAULT_LUKS_KEY_SIZE) / 8;
+	keysize = (opt_key_size ?: DEFAULT_LUKS1_KEYBITS) / 8;
 	if (_read_mk(opt_master_key_file, &key, keysize) < 0)
 		return -EINVAL;
 
@@ -646,6 +646,12 @@ static void help(poptContext popt_context, enum poptCallbackReason reason,
 			 "<key slot> is the LUKS key slot number to modify\n"
 			 "<key file> optional key file for the new key for luksAddKey action\n"),
 			crypt_get_dir());
+
+		log_std(_("\nDefault compiled-in device cipher parameters:\n"
+			 "\tplain: %s, Key: %d bits, Password hashing: %s\n"
+			 "\tLUKS1: %s, Key: %d bits, LUKS header hashing: %s\n"),
+			 DEFAULT_CIPHER(PLAIN), DEFAULT_PLAIN_KEYBITS, DEFAULT_PLAIN_HASH,
+			 DEFAULT_CIPHER(LUKS1), DEFAULT_LUKS1_KEYBITS, DEFAULT_LUKS1_HASH);
 		exit(0);
 	} else
 		usage(popt_context, 0, NULL, NULL);
@@ -693,29 +699,28 @@ int main(int argc, char **argv)
 		POPT_TABLEEND
 	};
 	static struct poptOption popt_options[] = {
-		{ NULL,                '\0', POPT_ARG_INCLUDE_TABLE,                      popt_help_options,      0, N_("Help options:"),                                                   NULL },
-		{ "verbose",           'v',  POPT_ARG_NONE,                               &opt_verbose,           0, N_("Shows more detailed error messages"),                              NULL },
-		{ "debug",             '\0', POPT_ARG_NONE,                               &opt_debug,             0, N_("Show debug messages"),                                             NULL },
-		{ "cipher",            'c',  POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &opt_cipher,            0, N_("The cipher used to encrypt the disk (see /proc/crypto)"),          NULL },
-		{ "hash",              'h',  POPT_ARG_STRING | POPT_ARGFLAG_SHOW_DEFAULT, &opt_hash,              0, N_("The hash used to create the encryption key from the passphrase"),  NULL },
-		{ "verify-passphrase", 'y',  POPT_ARG_NONE,                               &opt_verify_passphrase, 0, N_("Verifies the passphrase by asking for it twice"),                  NULL },
-		{ "key-file",          'd',  POPT_ARG_STRING,                             &opt_key_file,          0, N_("Read the key from a file (can be /dev/random)"),                   NULL },
-		{ "master-key-file",  '\0',  POPT_ARG_STRING,                             &opt_master_key_file,   0, N_("Read the volume (master) key from file."),                         NULL },
-		{ "key-size",          's',  POPT_ARG_INT    | POPT_ARGFLAG_SHOW_DEFAULT, &opt_key_size,          0, N_("The size of the encryption key"),                                  N_("BITS") },
-		{ "key-slot",          'S',  POPT_ARG_INT,                                &opt_key_slot,          0, N_("Slot number for new key (default is first free)"),      NULL },
-		{ "size",              'b',  POPT_ARG_STRING,                             &popt_tmp,              1, N_("The size of the device"),                                          N_("SECTORS") },
-		{ "offset",            'o',  POPT_ARG_STRING,                             &popt_tmp,              2, N_("The start offset in the backend device"),                          N_("SECTORS") },
-		{ "skip",              'p',  POPT_ARG_STRING,                             &popt_tmp,              3, N_("How many sectors of the encrypted data to skip at the beginning"), N_("SECTORS") },
-		{ "readonly",          'r',  POPT_ARG_NONE,                               &opt_readonly,          0, N_("Create a readonly mapping"),                                       NULL },
-		{ "iter-time",         'i',  POPT_ARG_INT,                                &opt_iteration_time,    0, N_("PBKDF2 iteration time for LUKS (in ms)"),
-		  N_("msecs") },
-		{ "batch-mode",        'q',  POPT_ARG_NONE,                               &opt_batch_mode,        0, N_("Do not ask for confirmation"),                                     NULL },
-		{ "version",        '\0',  POPT_ARG_NONE,                                 &opt_version_mode,        0, N_("Print package version"),                                     NULL },
-		{ "timeout",           't',  POPT_ARG_INT,                                &opt_timeout,           0, N_("Timeout for interactive passphrase prompt (in seconds)"),          N_("secs") },
-		{ "tries",             'T',  POPT_ARG_INT,                                &opt_tries,             0, N_("How often the input of the passphrase canbe retried"),            NULL },
-		{ "align-payload",     '\0',  POPT_ARG_INT,                               &opt_align_payload,     0, N_("Align payload at <n> sector boundaries - for luksFormat"),         N_("SECTORS") },
-		{ "non-exclusive",     '\0',  POPT_ARG_NONE,                              &opt_non_exclusive,     0, N_("Allows non-exclusive access for luksOpen, WARNING see manpage."),        NULL },
-		{ "header-backup-file",'\0',  POPT_ARG_STRING,                            &opt_header_backup_file,0, N_("File with LUKS header and keyslots backup."),        NULL },
+		{ NULL,                '\0', POPT_ARG_INCLUDE_TABLE, popt_help_options, 0, N_("Help options:"), NULL },
+		{ "verbose",           'v',  POPT_ARG_NONE, &opt_verbose,               0, N_("Shows more detailed error messages"), NULL },
+		{ "debug",             '\0', POPT_ARG_NONE, &opt_debug,                 0, N_("Show debug messages"), NULL },
+		{ "cipher",            'c',  POPT_ARG_STRING, &opt_cipher,              0, N_("The cipher used to encrypt the disk (see /proc/crypto)"), NULL },
+		{ "hash",              'h',  POPT_ARG_STRING, &opt_hash,                0, N_("The hash used to create the encryption key from the passphrase"), NULL },
+		{ "verify-passphrase", 'y',  POPT_ARG_NONE, &opt_verify_passphrase,     0, N_("Verifies the passphrase by asking for it twice"), NULL },
+		{ "key-file",          'd',  POPT_ARG_STRING, &opt_key_file,            0, N_("Read the key from a file (can be /dev/random)"), NULL },
+		{ "master-key-file",  '\0',  POPT_ARG_STRING, &opt_master_key_file,     0, N_("Read the volume (master) key from file."), NULL },
+		{ "key-size",          's',  POPT_ARG_INT, &opt_key_size,               0, N_("The size of the encryption key"), N_("BITS") },
+		{ "key-slot",          'S',  POPT_ARG_INT, &opt_key_slot,               0, N_("Slot number for new key (default is first free)"), NULL },
+		{ "size",              'b',  POPT_ARG_STRING, &popt_tmp,                1, N_("The size of the device"), N_("SECTORS") },
+		{ "offset",            'o',  POPT_ARG_STRING, &popt_tmp,                2, N_("The start offset in the backend device"), N_("SECTORS") },
+		{ "skip",              'p',  POPT_ARG_STRING, &popt_tmp,                3, N_("How many sectors of the encrypted data to skip at the beginning"), N_("SECTORS") },
+		{ "readonly",          'r',  POPT_ARG_NONE, &opt_readonly,              0, N_("Create a readonly mapping"), NULL },
+		{ "iter-time",         'i',  POPT_ARG_INT, &opt_iteration_time,         0, N_("PBKDF2 iteration time for LUKS (in ms)"), N_("msecs") },
+		{ "batch-mode",        'q',  POPT_ARG_NONE, &opt_batch_mode,            0, N_("Do not ask for confirmation"), NULL },
+		{ "version",           '\0', POPT_ARG_NONE, &opt_version_mode,          0, N_("Print package version"), NULL },
+		{ "timeout",           't',  POPT_ARG_INT, &opt_timeout,                0, N_("Timeout for interactive passphrase prompt (in seconds)"), N_("secs") },
+		{ "tries",             'T',  POPT_ARG_INT, &opt_tries,                  0, N_("How often the input of the passphrase can be retried"), NULL },
+		{ "align-payload",     '\0', POPT_ARG_INT, &opt_align_payload,          0, N_("Align payload at <n> sector boundaries - for luksFormat"), N_("SECTORS") },
+		{ "non-exclusive",     '\0', POPT_ARG_NONE, &opt_non_exclusive,         0, N_("(Obsoleted, see man page.)"), NULL },
+		{ "header-backup-file",'\0', POPT_ARG_STRING, &opt_header_backup_file,  0, N_("File with LUKS header and keyslots backup."), NULL },
 		POPT_TABLEEND
 	};
 	poptContext popt_context;

@@ -1,3 +1,35 @@
+2010-01-17  Milan Broz  <mbroz@redhat.com>
+	* If gcrypt compiled with capabilities, document workaround for cryptsetup (see lib/gcrypt.c).
+	* Version 1.1.0.
+
+2010-01-10  Milan Broz  <mbroz@redhat.com>
+	* Fix initialisation of gcrypt duting luksFormat.
+	* Convert hash name to lower case in header (fix sha1 backward comatible header)
+	* Check for minimum required gcrypt version.
+
+2009-12-30  Milan Broz  <mbroz@redhat.com>
+	* Fix key slot iteration count calculation (small -i value was the same as default).
+	* The slot and key digest iteration minimun is now 1000.
+	* The key digest iteration # is calculated from iteration time (approx 1/8 of that).
+	* Version 1.1.0-rc4.
+
+2009-12-11  Milan Broz  <mbroz@redhat.com>
+	* Fix error handling during reading passhrase.
+
+2009-12-01  Milan Broz  <mbroz@redhat.com>
+	* Allow changes of default compiled-in cipher parameters through configure.
+	* Switch default key size for LUKS to 256bits.
+	* Switch default plain mode to aes-cbc-essiv:sha256 (default is backward incompatible!).
+
+2009-11-14  Milan Broz  <mbroz@redhat.com>
+	* Add CRYPT_ prefix to enum defined in libcryptsetup.h.
+	* Fix status call to fail when running as non-root user.
+	* Check in configure if selinux libraries are required in static version.
+	* Add temporary debug code to find processes locking internal device.
+	* Simplify build system, use autopoint and clean gettext processing.
+	* Use proper NLS macros and detection (so the message translation works again).
+	* Version 1.1.0-rc3.
+
 2009-09-30  Milan Broz  <mbroz@redhat.com>
 	* Fix exported symbols and versions in libcryptsetup.
 	* Do not use internal lib functions in cryptsetup.

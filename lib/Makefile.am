@@ -25,10 +25,10 @@ libcryptsetup_la_DEPENDENCIES = libcryptsetup.sym
 
 libcryptsetup_la_LDFLAGS = \
 	$(_STATIC_LIBRARY) \
-	-Wl,--version-script=libcryptsetup.sym \
+	-Wl,--version-script=$(top_srcdir)/lib/libcryptsetup.sym \
 	-version-info 1:0:0
 
-libcryptsetup_la_CFLAGS = -Wall
+libcryptsetup_la_CFLAGS = -Wall @LIBGCRYPT_CFLAGS@
 
 libcryptsetup_la_LIBADD = \
 	@UUID_LIBS@				\
@@ -39,9 +39,11 @@ libcryptsetup_la_LIBADD = \
 libcryptsetup_la_SOURCES = \
 	setup.c					\
 	internal.h				\
+	nls.h					\
 	blockdev.h				\
 	libcryptsetup.h				\
 	utils.c					\
+	utils_debug.c				\
 	backends.c				\
 	libdevmapper.c				\
 	gcrypt.c

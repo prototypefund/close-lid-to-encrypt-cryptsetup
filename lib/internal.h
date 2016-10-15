@@ -10,9 +10,7 @@
 #include <unistd.h>
 #include <inttypes.h>
 
-#include <libintl.h>
-#include <locale.h>
-#define _(String) gettext((String))
+#include "nls.h"
 
 #define SECTOR_SHIFT		9
 #define SECTOR_SIZE		(1 << SECTOR_SHIFT)
@@ -27,7 +25,7 @@
 
 #define CRYPT_FLAG_PRIVATE_MASK ((unsigned int)-1 << 24)
 
-#define at_least_one(a) ({ __typeof__(a) __at_least_one=(a); (__at_least_one)?__at_least_one:1; })
+#define at_least(a, b) ({ __typeof__(a) __at_least = (a); (__at_least >= (b))?__at_least:(b); })
 
 struct hash_type {
 	char		*name;
@@ -116,7 +114,10 @@ void logger(struct crypt_device *cd, int class, const char *file, int line, cons
 	logger(c, CRYPT_LOG_ERROR, __FILE__, __LINE__, x); \
 	set_error(x); } while(0)
 
-int memlock_inc(struct crypt_device *ctx);
-int memlock_dec(struct crypt_device *ctx);
+int crypt_get_debug_level(void);
+void debug_processes_using_device(const char *name);
+
+int crypt_memlock_inc(struct crypt_device *ctx);
+int crypt_memlock_dec(struct crypt_device *ctx);
 
 #endif /* INTERNAL_H */
