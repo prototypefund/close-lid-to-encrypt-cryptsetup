@@ -58,6 +58,8 @@ static int _verbose = 1;
 static char global_log[4096];
 static int global_lines = 0;
 
+static int gcrypt_compatible = 0;
+
 // Helpers
 static int _prepare_keyfile(const char *name, const char *passphrase)
 {
@@ -109,15 +111,15 @@ static int yesDialog(char *msg)
 	return 1;
 }
 
-static void cmdLineLog(int class, char *msg)
+static void cmdLineLog(int level, char *msg)
 {
-	strncat(global_log, msg, sizeof(global_log));
+	strncat(global_log, msg, sizeof(global_log) - strlen(global_log));
 	global_lines++;
 }
 
-static void new_log(int class, const char *msg, void *usrptr)
+static void new_log(int level, const char *msg, void *usrptr)
 {
-	cmdLineLog(class, (char*)msg);
+	cmdLineLog(level, (char*)msg);
 }
 
 
@@ -134,41 +136,46 @@ static struct interface_callbacks cmd_icb = {
 
 static void _cleanup(void)
 {
+	int r;
 	struct stat st;
 
-	//system("udevadm settle");
+	//r = system("udevadm settle");
 
 	if (!stat(DMDIR CDEVICE_1, &st))
-		system("dmsetup remove " CDEVICE_1);
+		r = system("dmsetup remove " CDEVICE_1);
 
 	if (!stat(DMDIR CDEVICE_2, &st))
-		system("dmsetup remove " CDEVICE_2);
+		r = system("dmsetup remove " CDEVICE_2);
 
 	if (!stat(DEVICE_EMPTY, &st))
-		system("dmsetup remove " DEVICE_EMPTY_name);
+		r = system("dmsetup remove " DEVICE_EMPTY_name);
 
 	if (!stat(DEVICE_ERROR, &st))
-		system("dmsetup remove " DEVICE_ERROR_name);
+		r = system("dmsetup remove " DEVICE_ERROR_name);
 
 	if (!strncmp("/dev/loop", DEVICE_1, 9))
-		system("losetup -d " DEVICE_1);
+		r = system("losetup -d " DEVICE_1);
 
 	if (!strncmp("/dev/loop", DEVICE_2, 9))
-		system("losetup -d " DEVICE_2);
+		r = system("losetup -d " DEVICE_2);
 
-	system("rm -f " IMAGE_EMPTY);
+	r = system("rm -f " IMAGE_EMPTY);
 	_remove_keyfiles();
 }
 
 static void _setup(void)
 {
-	system("dmsetup create " DEVICE_EMPTY_name " --table \"0 10000 zero\"");
-	system("dmsetup create " DEVICE_ERROR_name " --table \"0 10000 error\"");
-	if (!strncmp("/dev/loop", DEVICE_1, 9))
-		system("losetup " DEVICE_1 " " IMAGE1);
+	int r;
+
+	r = system("dmsetup create " DEVICE_EMPTY_name " --table \"0 10000 zero\"");
+	r = system("dmsetup create " DEVICE_ERROR_name " --table \"0 10000 error\"");
+	if (!strncmp("/dev/loop", DEVICE_1, 9)) {
+		r = system(" [ ! -e " IMAGE1 " ] && bzip2 -dk " IMAGE1 ".bz2");
+		r = system("losetup " DEVICE_1 " " IMAGE1);
+	}
 	if (!strncmp("/dev/loop", DEVICE_2, 9)) {
-		system("dd if=/dev/zero of=" IMAGE_EMPTY " bs=1M count=4");
-		system("losetup " DEVICE_2 " " IMAGE_EMPTY);
+		r = system("dd if=/dev/zero of=" IMAGE_EMPTY " bs=1M count=4");
+		r = system("losetup " DEVICE_2 " " IMAGE_EMPTY);
 	}
 
 }
@@ -473,7 +480,7 @@ void DeviceResizeGame(void)
 	co.size = 0;
 	co.offset = 444;
 	co.skip = 555;
-	co.cipher = "aes-cbc-benbi";
+	co.cipher = "aes-cbc-essiv:sha256";
 	OK_(crypt_update_device(&co));
 	EQ_(_get_device_size(DMDIR CDEVICE_2), (orig_size - 444));
 
@@ -481,7 +488,7 @@ void DeviceResizeGame(void)
 	co.icb = &cmd_icb,
 	co.name = CDEVICE_2;
 	EQ_(crypt_query_device(&co), 1);
-	EQ_(strcmp(co.cipher, "aes-cbc-benbi"), 0);
+	EQ_(strcmp(co.cipher, "aes-cbc-essiv:sha256"), 0);
 	EQ_(co.key_size, 128 / 8);
 	EQ_(co.offset, 444);
 	EQ_(co.skip, 555);
@@ -515,6 +522,18 @@ static void AddDevicePlain(void)
 
 	FAIL_(crypt_init(&cd, ""), "empty device string");
 
+	// default is "plain" hash - no password hash
+	OK_(crypt_init(&cd, DEVICE_1));
+	OK_(crypt_format(cd, CRYPT_PLAIN, cipher, cipher_mode, NULL, NULL, key_size, NULL));
+	OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0));
+	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
+	// FIXME: this should get key from active device?
+	//OK_(crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key2, &key_size, passphrase, strlen(passphrase)));
+	//OK_(memcmp(key, key2, key_size));
+	OK_(crypt_deactivate(cd, CDEVICE_1));
+	crypt_free(cd);
+
+	// Now use hashed password
 	OK_(crypt_init(&cd, DEVICE_1));
 	OK_(crypt_format(cd, CRYPT_PLAIN, cipher, cipher_mode, NULL, NULL, key_size, &params));
 	OK_(crypt_activate_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, passphrase, strlen(passphrase), 0));
@@ -585,13 +604,19 @@ static void UseLuksDevice(void)
 
 static void SuspendDevice(void)
 {
+	int suspend_status;
 	struct crypt_device *cd;
 
 	OK_(crypt_init(&cd, DEVICE_1));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
 	OK_(crypt_activate_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, KEY1, strlen(KEY1), 0));
 
-	OK_(crypt_suspend(cd, CDEVICE_1));
+	suspend_status = crypt_suspend(cd, CDEVICE_1);
+	if (suspend_status == -ENOTSUP) {
+		printf("WARNING: Suspend/Resume not supported, skipping test.\n");
+		goto out;
+	}
+	OK_(suspend_status);
 	FAIL_(crypt_suspend(cd, CDEVICE_1), "already suspended");
 
 	FAIL_(crypt_resume_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, KEY1, strlen(KEY1)-1), "wrong key");
@@ -604,7 +629,7 @@ static void SuspendDevice(void)
 	OK_(crypt_resume_by_keyfile(cd, CDEVICE_1, CRYPT_ANY_SLOT, KEYFILE1, 0));
 	FAIL_(crypt_resume_by_keyfile(cd, CDEVICE_1, CRYPT_ANY_SLOT, KEYFILE1, 0), "not suspended");
 	_remove_keyfiles();
-
+out:
 	OK_(crypt_deactivate(cd, CDEVICE_1));
 	crypt_free(cd);
 }
@@ -688,9 +713,32 @@ static void NonFIPSAlg(void)
 	char *cipher = "aes";
 	char *cipher_mode = "cbc-essiv:sha256";
 
+	if (!gcrypt_compatible) {
+		printf("WARNING: old libgcrypt, skipping test.\n");
+		return;
+	}
 	OK_(crypt_init(&cd, DEVICE_2));
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
 	crypt_free(cd);
+}
+
+
+static void _gcrypt_compatible()
+{
+	int maj, min, patch;
+	FILE *f;
+
+	if (!(f = popen("libgcrypt-config --version", "r")))
+		return;
+
+	if (fscanf(f, "%d.%d.%d", &maj, &min, &patch) == 3 &&
+	    maj >= 1 && min >= 4)
+		gcrypt_compatible = 1;
+	if (_debug)
+		printf("libgcrypt version %d.%d.%d detected.\n", maj, min, patch);
+
+	(void)fclose(f);
+	return;
 }
 
 int main (int argc, char *argv[])
@@ -711,6 +759,7 @@ int main (int argc, char *argv[])
 
 	_cleanup();
 	_setup();
+	_gcrypt_compatible();
 
 	crypt_set_debug_level(_debug ? CRYPT_DEBUG_ALL : CRYPT_DEBUG_NONE);
 
@@ -728,7 +777,6 @@ int main (int argc, char *argv[])
 	RUN_(AddDeviceLuks, "Format and use LUKS device");
 	RUN_(UseLuksDevice, "Use pre-formated LUKS device");
 	RUN_(SuspendDevice, "Suspend/Resume test");
-
 
 	_cleanup();
 	return 0;

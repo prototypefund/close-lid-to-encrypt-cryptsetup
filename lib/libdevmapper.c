@@ -1,11 +1,9 @@
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <unistd.h>
+#include <sys/stat.h>
+#include <stdio.h>
 #include <dirent.h>
 #include <errno.h>
 #include <libdevmapper.h>
-#include <linux/dm-ioctl.h>
 #include <fcntl.h>
 #include <linux/fs.h>
 #include <uuid/uuid.h>
@@ -14,13 +12,38 @@
 #include "luks.h"
 
 #define DEVICE_DIR		"/dev"
+#define DM_UUID_LEN		129
 #define DM_UUID_PREFIX		"CRYPT-"
 #define DM_UUID_PREFIX_LEN	6
 #define DM_CRYPT_TARGET		"crypt"
 #define RETRY_COUNT		5
 
+/* Set if dm-crypt version was probed */
+static int _dm_crypt_checked = 0;
+static int _dm_crypt_wipe_key_supported = 0;
+
 static int _dm_use_count = 0;
 static struct crypt_device *_context = NULL;
+
+/* Compatibility for old device-mapper without udev support */
+#ifndef HAVE_DM_TASK_SET_COOKIE
+#define CRYPT_TEMP_UDEV_FLAGS	0
+static int dm_task_set_cookie(struct dm_task *dmt, uint32_t *cookie, uint16_t flags) { return 0; }
+static int dm_udev_wait(uint32_t cookie) { return 0; };
+#else
+#define CRYPT_TEMP_UDEV_FLAGS	DM_UDEV_DISABLE_SUBSYSTEM_RULES_FLAG | \
+				DM_UDEV_DISABLE_DISK_RULES_FLAG | \
+				DM_UDEV_DISABLE_OTHER_RULES_FLAG
+#endif
+
+static int _dm_use_udev()
+{
+#ifdef USE_UDEV /* cannot be enabled if devmapper is too old */
+	return dm_udev_get_sync_support();
+#else
+	return 0;
+#endif
+}
 
 static void set_dm_error(int level, const char *file, int line,
 			 const char *f, ...)
@@ -40,14 +63,58 @@ static void set_dm_error(int level, const char *file, int line,
 	va_end(va);
 }
 
-static int _dm_simple(int task, const char *name);
+static int _dm_simple(int task, const char *name, int udev_wait);
+
+static void _dm_set_crypt_compat(int maj, int min, int patch)
+{
+	log_dbg("Detected dm-crypt target of version %i.%i.%i.", maj, min, patch);
+
+	if (maj >= 1 && min >=2)
+		_dm_crypt_wipe_key_supported = 1;
+	else
+		log_dbg("Suspend and resume disabled, no wipe key support.");
+
+	_dm_crypt_checked = 1;
+}
+
+static int _dm_check_versions(void)
+{
+	struct dm_task *dmt;
+	struct dm_versions *target, *last_target;
+
+	if (_dm_crypt_checked)
+		return 1;
+
+	if (!(dmt = dm_task_create(DM_DEVICE_LIST_VERSIONS)))
+		return 0;
+
+	if (!dm_task_run(dmt)) {
+		dm_task_destroy(dmt);
+		return 0;
+	}
+
+	target = dm_task_get_versions(dmt);
+	do {
+		last_target = target;
+		if (!strcmp(DM_CRYPT_TARGET, target->name)) {
+			_dm_set_crypt_compat((int)target->version[0],
+					     (int)target->version[1],
+					     (int)target->version[2]);
+		}
+		target = (void *) target + target->next;
+	} while (last_target != target);
+
+	dm_task_destroy(dmt);
+	return 1;
+}
 
 int dm_init(struct crypt_device *context, int check_kernel)
 {
 	if (!_dm_use_count++) {
-		log_dbg("Initialising device-mapper backend%s.",
-			check_kernel ? "" : " (NO kernel check requested)");
-		if (check_kernel && !_dm_simple(DM_DEVICE_LIST_VERSIONS, NULL)) {
+		log_dbg("Initialising device-mapper backend%s, UDEV is %sabled.",
+			check_kernel ? "" : " (NO kernel check requested)",
+			_dm_use_udev() ? "en" : "dis");
+		if (check_kernel && !_dm_check_versions()) {
 			log_err(context, _("Cannot initialize device-mapper. Is dm_mod kernel module loaded?\n"));
 			return -1;
 		}
@@ -75,7 +142,7 @@ void dm_exit(void)
 	}
 }
 
-static char *__lookup_dev(char *path, dev_t dev)
+static char *__lookup_dev(char *path, dev_t dev, int dir_level, const int max_level)
 {
 	struct dirent *entry;
 	struct stat st;
@@ -83,6 +150,10 @@ static char *__lookup_dev(char *path, dev_t dev)
 	char *result = NULL;
 	DIR *dir;
 	int space;
+
+	/* Ignore strange nested directories */
+	if (dir_level > max_level)
+		return NULL;
 
 	path[PATH_MAX - 1] = '\0';
 	ptr = path + strlen(path);
@@ -95,20 +166,22 @@ static char *__lookup_dev(char *path, dev_t dev)
 		return NULL;
 
 	while((entry = readdir(dir))) {
-		if (entry->d_name[0] == '.' &&
-		    (entry->d_name[1] == '\0' || (entry->d_name[1] == '.' &&
-		                                  entry->d_name[2] == '\0')))
+		if (entry->d_name[0] == '.' ||
+		    !strncmp(entry->d_name, "..", 2))
 			continue;
 
 		strncpy(ptr, entry->d_name, space);
-		if (lstat(path, &st) < 0)
+		if (stat(path, &st) < 0)
 			continue;
 
 		if (S_ISDIR(st.st_mode)) {
-			result = __lookup_dev(path, dev);
+			result = __lookup_dev(path, dev, dir_level + 1, max_level);
 			if (result)
 				break;
 		} else if (S_ISBLK(st.st_mode)) {
+			/* workaround: ignore dm-X devices, these are internal kernel names */
+			if (dir_level == 0 && !strncmp(entry->d_name, "dm-", 3))
+				continue;
 			if (st.st_rdev == dev) {
 				result = strdup(path);
 				break;
@@ -117,22 +190,38 @@ static char *__lookup_dev(char *path, dev_t dev)
 	}
 
 	closedir(dir);
-
 	return result;
 }
 
-static char *lookup_dev(const char *dev)
+static char *lookup_dev(const char *dev_id)
 {
 	uint32_t major, minor;
-	char buf[PATH_MAX + 1];
+	dev_t dev;
+	char *result, buf[PATH_MAX + 1];
 
-	if (sscanf(dev, "%" PRIu32 ":%" PRIu32, &major, &minor) != 2)
+	if (sscanf(dev_id, "%" PRIu32 ":%" PRIu32, &major, &minor) != 2)
 		return NULL;
 
+	dev = makedev(major, minor);
 	strncpy(buf, DEVICE_DIR, PATH_MAX);
 	buf[PATH_MAX] = '\0';
 
-	return __lookup_dev(buf, makedev(major, minor));
+	/* First try low level device */
+	if ((result = __lookup_dev(buf, dev, 0, 0)))
+		return result;
+
+	/* If it is dm, try DM dir  */
+	if (dm_is_dm_major(major)) {
+		strncpy(buf, dm_dir(), PATH_MAX);
+		if ((result = __lookup_dev(buf, dev, 0, 0)))
+			return result;
+	}
+
+	strncpy(buf, DEVICE_DIR, PATH_MAX);
+	result = __lookup_dev(buf, dev, 0, 4);
+
+	/* If not found, return major:minor */
+	return result ?: strdup(dev_id);
 }
 
 static int _dev_read_ahead(const char *dev, uint32_t *read_ahead)
@@ -185,10 +274,14 @@ out:
 }
 
 /* DM helpers */
-static int _dm_simple(int task, const char *name)
+static int _dm_simple(int task, const char *name, int udev_wait)
 {
 	int r = 0;
 	struct dm_task *dmt;
+	uint32_t cookie = 0;
+
+	if (!_dm_use_udev())
+		udev_wait = 0;
 
 	if (!(dmt = dm_task_create(task)))
 		return 0;
@@ -196,7 +289,13 @@ static int _dm_simple(int task, const char *name)
 	if (name && !dm_task_set_name(dmt, name))
 		goto out;
 
+	if (udev_wait && !dm_task_set_cookie(dmt, &cookie, 0))
+		goto out;
+
 	r = dm_task_run(dmt);
+
+	if (udev_wait)
+		(void)dm_udev_wait(cookie);
 
       out:
 	dm_task_destroy(dmt);
@@ -226,8 +325,8 @@ static int _error_device(const char *name, size_t size)
 	if (!dm_task_run(dmt))
 		goto error;
 
-	if (!_dm_simple(DM_DEVICE_RESUME, name)) {
-		_dm_simple(DM_DEVICE_CLEAR, name);
+	if (!_dm_simple(DM_DEVICE_RESUME, name, 1)) {
+		_dm_simple(DM_DEVICE_CLEAR, name, 0);
 		goto error;
 	}
 
@@ -248,7 +347,7 @@ int dm_remove_device(const char *name, int force, uint64_t size)
 		return -EINVAL;
 
 	do {
-		r = _dm_simple(DM_DEVICE_REMOVE, name) ? 0 : -EINVAL;
+		r = _dm_simple(DM_DEVICE_REMOVE, name, 1) ? 0 : -EINVAL;
 		if (--retries && r) {
 			log_dbg("WARNING: other process locked internal device %s, %s.",
 				name, retries ? "retrying remove" : "giving up");
@@ -321,17 +420,21 @@ int dm_create_device(const char *name,
 		     int reload)
 {
 	struct dm_task *dmt = NULL;
-	struct dm_task *dmt_query = NULL;
 	struct dm_info dmi;
 	char *params = NULL;
 	char *error = NULL;
 	char dev_uuid[DM_UUID_LEN] = {0};
 	int r = -EINVAL;
 	uint32_t read_ahead = 0;
+	uint32_t cookie = 0;
+	uint16_t udev_flags = 0;
 
 	params = get_params(device, skip, offset, cipher, key_size, key);
 	if (!params)
 		goto out_no_removal;
+
+	if (type && !strncmp(type, "TEMP", 4))
+		udev_flags = CRYPT_TEMP_UDEV_FLAGS;
 
 	/* All devices must have DM_UUID, only resize on old device is exception */
 	if (reload) {
@@ -351,8 +454,10 @@ int dm_create_device(const char *name,
 
 		if (!dm_task_set_uuid(dmt, dev_uuid))
 			goto out_no_removal;
-	}
 
+		if (_dm_use_udev() && !dm_task_set_cookie(dmt, &cookie, udev_flags))
+			goto out_no_removal;
+	}
 
 	if (read_only && !dm_task_set_ro(dmt))
 		goto out_no_removal;
@@ -376,6 +481,8 @@ int dm_create_device(const char *name,
 			goto out;
 		if (uuid && !dm_task_set_uuid(dmt, dev_uuid))
 			goto out;
+		if (_dm_use_udev() && !dm_task_set_cookie(dmt, &cookie, udev_flags))
+			goto out;
 		if (!dm_task_run(dmt))
 			goto out;
 	}
@@ -385,6 +492,11 @@ int dm_create_device(const char *name,
 
 	r = 0;
 out:
+	if (_dm_use_udev()) {
+		(void)dm_udev_wait(cookie);
+		cookie = 0;
+	}
+
 	if (r < 0 && !reload) {
 		if (get_error())
 			error = strdup(get_error());
@@ -398,12 +510,14 @@ out:
 	}
 
 out_no_removal:
+	if (cookie && _dm_use_udev())
+		(void)dm_udev_wait(cookie);
+
 	if (params)
 		safe_free(params);
 	if (dmt)
 		dm_task_destroy(dmt);
-	if(dmt_query)
-		dm_task_destroy(dmt_query);
+
 	dm_task_update_nodes();
 	return r;
 }
@@ -598,11 +712,17 @@ static int _dm_message(const char *name, const char *msg)
 
 int dm_suspend_and_wipe_key(const char *name)
 {
-	if (!_dm_simple(DM_DEVICE_SUSPEND, name))
+	if (!_dm_check_versions())
+		return -ENOTSUP;
+
+	if (!_dm_crypt_wipe_key_supported)
+		return -ENOTSUP;
+
+	if (!_dm_simple(DM_DEVICE_SUSPEND, name, 0))
 		return -EINVAL;
 
 	if (!_dm_message(name, "key wipe")) {
-		_dm_simple(DM_DEVICE_RESUME, name);
+		_dm_simple(DM_DEVICE_RESUME, name, 1);
 		return -EINVAL;
 	}
 
@@ -617,6 +737,12 @@ int dm_resume_and_reinstate_key(const char *name,
 	char *msg;
 	int r = 0;
 
+	if (!_dm_check_versions())
+		return -ENOTSUP;
+
+	if (!_dm_crypt_wipe_key_supported)
+		return -ENOTSUP;
+
 	msg = safe_alloc(msg_size);
 	if (!msg)
 		return -ENOMEM;
@@ -626,7 +752,7 @@ int dm_resume_and_reinstate_key(const char *name,
 	hex_key(&msg[8], key_size, key);
 
 	if (!_dm_message(name, msg) ||
-	    !_dm_simple(DM_DEVICE_RESUME, name))
+	    !_dm_simple(DM_DEVICE_RESUME, name, 1))
 		r = -EINVAL;
 
 	safe_free(msg);
