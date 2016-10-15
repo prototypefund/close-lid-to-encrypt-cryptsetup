@@ -1,9 +1,11 @@
 AC_PREREQ([2.67])
-AC_INIT([cryptsetup],[1.4.3])
+AC_INIT([cryptsetup],[1.6.1])
 
 dnl library version from <major>.<minor>.<release>[-<suffix>]
 LIBCRYPTSETUP_VERSION=$(echo $PACKAGE_VERSION | cut -f1 -d-)
-LIBCRYPTSETUP_VERSION_INFO=6:0:2
+LIBCRYPTSETUP_VERSION_INFO=9:0:5
+dnl library file name for FIPS selfcheck
+LIBCRYPTSETUP_VERSION_FIPS="libcryptsetup.so.4"
 
 AC_CONFIG_SRCDIR(src/cryptsetup.c)
 AC_CONFIG_MACRO_DIR([m4])
@@ -25,6 +27,7 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_ENABLE_STATIC(no)
 LT_INIT
+PKG_PROG_PKG_CONFIG
 
 AC_HEADER_DIRENT
 AC_HEADER_STDC
@@ -69,6 +72,8 @@ AC_ARG_ENABLE([fips], AS_HELP_STRING([--enable-fips],[enable FIPS mode restricti
 
 if test "x$with_fips" = "xyes"; then
 	AC_DEFINE(ENABLE_FIPS, 1, [Enable FIPS mode restrictions])
+	AC_DEFINE_UNQUOTED(LIBCRYPTSETUP_VERSION_FIPS, ["$LIBCRYPTSETUP_VERSION_FIPS"],
+		[library file name for FIPS selfcheck])
 
 	if test "x$enable_static" = "xyes" -o "x$enable_static_cryptsetup" = "xyes" ; then
 		AC_MSG_ERROR([Static build is not compatible with FIPS.])
@@ -88,6 +93,21 @@ AC_DEFUN([NO_FIPS], [
 ])
 
 dnl ==========================================================================
+dnl pwquality library (cryptsetup CLI only)
+AC_ARG_ENABLE([pwquality], AS_HELP_STRING([--enable-pwquality],[enable password quality checking]),
+[with_pwquality=$enableval],
+[with_pwquality=no])
+
+if test "x$with_pwquality" = "xyes"; then
+	AC_DEFINE(ENABLE_PWQUALITY, 1, [Enable password quality checking])
+	PKG_CHECK_MODULES([PWQUALITY], [pwquality >= 1.0.0],,
+		AC_MSG_ERROR([You need pwquality library.]))
+
+	dnl FIXME: this is really hack for now
+	PWQUALITY_STATIC_LIBS="$PWQUALITY_LIBS -lcrack -lz"
+fi
+
+dnl ==========================================================================
 dnl Crypto backend functions
 
 AC_DEFUN([CONFIGURE_GCRYPT], [
@@ -96,6 +116,10 @@ AC_DEFUN([CONFIGURE_GCRYPT], [
 	else
 		GCRYPT_REQ_VERSION=1.1.42
 	fi
+	dnl Check if we can use gcrypt PBKDF2 (1.6.0 supports empty password)
+	AC_ARG_ENABLE([gcrypt-pbkdf2], AS_HELP_STRING([--enable-gcrypt-pbkdf2],[force enable internal gcrypt PBKDF2]),
+		[use_internal_pbkdf2=0],
+		[AM_PATH_LIBGCRYPT([1.6.0], [use_internal_pbkdf2=0], [use_internal_pbkdf2=1])])
 	AM_PATH_LIBGCRYPT($GCRYPT_REQ_VERSION,,[AC_MSG_ERROR([You need the gcrypt library.])])
 
 	if test x$enable_static_cryptsetup = xyes; then
@@ -120,6 +144,7 @@ AC_DEFUN([CONFIGURE_OPENSSL], [
 		AC_MSG_ERROR([You need openssl library.]))
 	CRYPTO_CFLAGS=$OPENSSL_CFLAGS
 	CRYPTO_LIBS=$OPENSSL_LIBS
+	use_internal_pbkdf2=0
 
 	if test x$enable_static_cryptsetup = xyes; then
 		saved_PKG_CONFIG=$PKG_CONFIG
@@ -148,15 +173,17 @@ AC_DEFUN([CONFIGURE_NSS], [
 
 	CRYPTO_CFLAGS=$NSS_CFLAGS
 	CRYPTO_LIBS=$NSS_LIBS
+	use_internal_pbkdf2=1
 	NO_FIPS([])
 ])
 
 AC_DEFUN([CONFIGURE_KERNEL], [
 	AC_CHECK_HEADERS(linux/if_alg.h,,
-		[AC_MSG_ERROR([You need Linux kernel with userspace crypto interface.])])
+		[AC_MSG_ERROR([You need Linux kernel headers with userspace crypto interface.])])
 #	AC_CHECK_DECLS([AF_ALG],,
 #		[AC_MSG_ERROR([You need Linux kernel with userspace crypto interface.])],
 #		[#include <sys/socket.h>])
+	use_internal_pbkdf2=1
 	NO_FIPS([])
 ])
 
@@ -171,6 +198,7 @@ AC_DEFUN([CONFIGURE_NETTLE], [
 	LIBS=$saved_LIBS
 
 	CRYPTO_STATIC_LIBS=$CRYPTO_LIBS
+	use_internal_pbkdf2=1
 	NO_FIPS([])
 ])
 
@@ -186,7 +214,17 @@ if test x$enable_static_cryptsetup = xyes; then
 		enable_static=yes
 	fi
 fi
-AM_CONDITIONAL(STATIC_CRYPTSETUP, test x$enable_static_cryptsetup = xyes)
+AM_CONDITIONAL(STATIC_TOOLS, test x$enable_static_cryptsetup = xyes)
+
+AC_ARG_ENABLE(veritysetup,
+	AS_HELP_STRING([--disable-veritysetup],
+	[disable veritysetup support]),[], [enable_veritysetup=yes])
+AM_CONDITIONAL(VERITYSETUP, test x$enable_veritysetup = xyes)
+
+AC_ARG_ENABLE([cryptsetup-reencrypt],
+	AS_HELP_STRING([--enable-cryptsetup-reencrypt],
+	[enable cryptsetup-reencrypt tool]))
+AM_CONDITIONAL(REENCRYPT, test x$enable_cryptsetup_reencrypt = xyes)
 
 AC_ARG_ENABLE(selinux,
 	AS_HELP_STRING([--disable-selinux],
@@ -224,6 +262,19 @@ AC_ARG_WITH([crypto_backend],
 	AS_HELP_STRING([--with-crypto_backend=BACKEND], [crypto backend (gcrypt/openssl/nss/kernel/nettle) [gcrypt]]),
 	[], with_crypto_backend=gcrypt
 )
+
+dnl Kernel crypto API backend needed for benchmark and tcrypt
+AC_ARG_ENABLE([kernel_crypto], AS_HELP_STRING([--disable-kernel_crypto],
+	[disable kernel userspace crypto (no benchmark and tcrypt)]),
+	[with_kernel_crypto=$enableval],
+	[with_kernel_crypto=yes])
+
+if test "x$with_kernel_crypto" = "xyes"; then
+	AC_CHECK_HEADERS(linux/if_alg.h,,
+		[AC_MSG_ERROR([You need Linux kernel headers with userspace crypto interface. (Or use --disable-kernel_crypto.)])])
+	AC_DEFINE(ENABLE_AF_ALG, 1, [Enable using of kernel userspace crypto])
+fi
+
 case $with_crypto_backend in
 	gcrypt)  CONFIGURE_GCRYPT([]) ;;
 	openssl) CONFIGURE_OPENSSL([]) ;;
@@ -237,6 +288,9 @@ AM_CONDITIONAL(CRYPTO_BACKEND_OPENSSL, test $with_crypto_backend = openssl)
 AM_CONDITIONAL(CRYPTO_BACKEND_NSS,     test $with_crypto_backend = nss)
 AM_CONDITIONAL(CRYPTO_BACKEND_KERNEL,  test $with_crypto_backend = kernel)
 AM_CONDITIONAL(CRYPTO_BACKEND_NETTLE,  test $with_crypto_backend = nettle)
+
+AM_CONDITIONAL(CRYPTO_INTERNAL_PBKDF2, test $use_internal_pbkdf2 = 1)
+AC_DEFINE_UNQUOTED(USE_INTERNAL_PBKDF2, [$use_internal_pbkdf2], [Use internal PBKDF2])
 
 dnl Magic for cryptsetup.static build.
 if test x$enable_static_cryptsetup = xyes; then
@@ -273,12 +327,16 @@ fi
 AC_SUBST([DEVMAPPER_LIBS])
 AC_SUBST([DEVMAPPER_STATIC_LIBS])
 
+AC_SUBST([PWQUALITY_LIBS])
+AC_SUBST([PWQUALITY_STATIC_LIBS])
+
 AC_SUBST([CRYPTO_CFLAGS])
 AC_SUBST([CRYPTO_LIBS])
 AC_SUBST([CRYPTO_STATIC_LIBS])
 
 AC_SUBST([LIBCRYPTSETUP_VERSION])
 AC_SUBST([LIBCRYPTSETUP_VERSION_INFO])
+AC_SUBST([LIBCRYPTSETUP_VERSION_FIPS])
 
 dnl ==========================================================================
 AC_ARG_ENABLE([dev-random], AS_HELP_STRING([--enable-dev-random],
@@ -329,14 +387,20 @@ CS_NUM_WITH([plain-keybits],[key length in bits for plain mode], [256])
 
 CS_STR_WITH([luks1-hash],   [hash function for LUKS1 header], [sha1])
 CS_STR_WITH([luks1-cipher], [cipher for LUKS1], [aes])
-CS_STR_WITH([luks1-mode],   [cipher mode for LUKS1], [cbc-essiv:sha256])
+CS_STR_WITH([luks1-mode],   [cipher mode for LUKS1], [xts-plain64])
 CS_NUM_WITH([luks1-keybits],[key length in bits for LUKS1], [256])
+CS_NUM_WITH([luks1-iter-time],[PBKDF2 iteration time for LUKS1 (in ms)], [1000])
 
 CS_STR_WITH([loopaes-cipher], [cipher for loop-AES mode], [aes])
 CS_NUM_WITH([loopaes-keybits],[key length in bits for loop-AES mode], [256])
 
-CS_NUM_WITH([keyfile-size-maxkb],[maximum keyfile size (in kilobytes)], [8192])
-CS_NUM_WITH([passphrase-size-max],[maximum keyfile size (in kilobytes)], [512])
+CS_NUM_WITH([keyfile-size-maxkb],[maximum keyfile size (in KiB)], [8192])
+CS_NUM_WITH([passphrase-size-max],[maximum keyfile size (in characters)], [512])
+
+CS_STR_WITH([verity-hash],       [hash function for verity mode], [sha256])
+CS_NUM_WITH([verity-data-block], [data block size for verity mode], [4096])
+CS_NUM_WITH([verity-hash-block], [hash block size for verity mode], [4096])
+CS_NUM_WITH([verity-salt-size],  [salt size for verity mode], [32])
 
 dnl ==========================================================================
 
@@ -346,6 +410,8 @@ lib/libcryptsetup.pc
 lib/crypto_backend/Makefile
 lib/luks1/Makefile
 lib/loopaes/Makefile
+lib/verity/Makefile
+lib/tcrypt/Makefile
 src/Makefile
 po/Makefile.in
 man/Makefile
