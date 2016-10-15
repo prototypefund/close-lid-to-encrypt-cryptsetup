@@ -18,8 +18,8 @@ Importing a new upstream release
        as a remote in the Git repository where you're doing the packaging
        work and it's up to date:
 
-           git remote add upstream-repo git+ssh://gitlab.com/cryptsetup/cryptsetup.git
-           git fetch upstream-repo
+           git remote add upstream git+ssh://gitlab.com/cryptsetup/cryptsetup.git
+           git fetch upstream --tags
 
     2. Determine the release tag corresponding to the new release. At the time
        of this wriging, upstream uses tags in the form:
