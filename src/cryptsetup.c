@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <limits.h>
 #include <libcryptsetup.h>
 #include <popt.h>
 
@@ -36,13 +37,14 @@
 
 static int opt_verbose = 0;
 static int opt_debug = 0;
-static char *opt_cipher = NULL;
-static char *opt_hash = NULL;
+static const char *opt_cipher = NULL;
+static const char *opt_hash = NULL;
 static int opt_verify_passphrase = 0;
-static char *opt_key_file = NULL;
-static char *opt_master_key_file = NULL;
-static char *opt_header_backup_file = NULL;
-static char *opt_uuid = NULL;
+static const char *opt_key_file = NULL;
+static const char *opt_master_key_file = NULL;
+static const char *opt_header_backup_file = NULL;
+static const char *opt_uuid = NULL;
+static const char *opt_header_device = NULL;
 static int opt_key_size = 0;
 static long opt_keyfile_size = 0;
 static long opt_new_keyfile_size = 0;
@@ -61,6 +63,8 @@ static int opt_align_payload = 0;
 static int opt_random = 0;
 static int opt_urandom = 0;
 static int opt_dump_master_key = 0;
+static int opt_shared = 0;
+static int opt_allow_discards = 0;
 
 static const char **action_argv;
 static int action_argc;
@@ -116,6 +120,7 @@ static struct action_type {
 	{ NULL, NULL, 0, 0, 0, NULL, NULL }
 };
 
+__attribute__((format(printf, 5, 6)))
 static void clogger(struct crypt_device *cd, int level, const char *file,
 		   int line, const char *format, ...)
 {
@@ -140,7 +145,7 @@ static void clogger(struct crypt_device *cd, int level, const char *file,
 	free(target);
 }
 
-static int _yesDialog(const char *msg, void *usrptr)
+static int _yesDialog(const char *msg, void *usrptr __attribute__((unused)))
 {
 	char *answer = NULL;
 	size_t size = 0;
@@ -162,7 +167,7 @@ static int _yesDialog(const char *msg, void *usrptr)
 	return r;
 }
 
-static void _log(int level, const char *msg, void *usrptr)
+static void _log(int level, const char *msg, void *usrptr __attribute__((unused)))
 {
 	switch(level) {
 
@@ -184,6 +189,13 @@ static void _log(int level, const char *msg, void *usrptr)
 		fprintf(stderr, "Internal error on logging class for msg: %s", msg);
 		break;
 	}
+}
+
+static void _quiet_log(int level, const char *msg, void *usrptr)
+{
+	if (!opt_verbose && (level == CRYPT_LOG_ERROR || level == CRYPT_LOG_NORMAL))
+		level = CRYPT_LOG_VERBOSE;
+	_log(level, msg, usrptr);
 }
 
 static void show_status(int errcode)
@@ -215,7 +227,7 @@ static void show_status(int errcode)
 		log_err(".\n");
 }
 
-static int action_create(int arg)
+static int action_create(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	char cipher[MAX_CIPHER_LEN], cipher_mode[MAX_CIPHER_LEN];
@@ -223,10 +235,12 @@ static int action_create(int arg)
 		.hash = opt_hash ?: DEFAULT_PLAIN_HASH,
 		.skip = opt_skip,
 		.offset = opt_offset,
+		.size = opt_size,
 	};
 	char *password = NULL;
 	size_t passwordLen;
 	size_t key_size = (opt_key_size ?: DEFAULT_PLAIN_KEYBITS) / 8;
+	uint32_t activate_flags = 0;
 	int r;
 
 	if (params.hash && !strcmp(params.hash, "plain"))
@@ -261,10 +275,20 @@ static int action_create(int arg)
 	if (r < 0)
 		goto out;
 
+	if (opt_readonly)
+		activate_flags |= CRYPT_ACTIVATE_READONLY;
+
+	if (opt_shared)
+		activate_flags |= CRYPT_ACTIVATE_SHARED;
+
+	if (opt_allow_discards)
+		activate_flags |= CRYPT_ACTIVATE_ALLOW_DISCARDS;
+
 	if (opt_key_file)
+		/* With hashing, read the whole keyfile */
 		r = crypt_activate_by_keyfile(cd, action_argv[0],
-			CRYPT_ANY_SLOT, opt_key_file, key_size,
-			opt_readonly ?  CRYPT_ACTIVATE_READONLY : 0);
+			CRYPT_ANY_SLOT, opt_key_file, params.hash ? 0 : key_size,
+			activate_flags);
 	else {
 		r = crypt_get_key(_("Enter passphrase: "),
 				  &password, &passwordLen, opt_keyfile_size,
@@ -275,8 +299,7 @@ static int action_create(int arg)
 			goto out;
 
 		r = crypt_activate_by_passphrase(cd, action_argv[0],
-			CRYPT_ANY_SLOT, password, passwordLen,
-			opt_readonly ?  CRYPT_ACTIVATE_READONLY : 0);
+			CRYPT_ANY_SLOT, password, passwordLen, activate_flags);
 	}
 out:
 	crypt_free(cd);
@@ -285,7 +308,7 @@ out:
 	return r;
 }
 
-static int action_loopaesOpen(int arg)
+static int action_loopaesOpen(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	struct crypt_params_loopaes params = {
@@ -294,12 +317,19 @@ static int action_loopaesOpen(int arg)
 		.skip = opt_skip_valid ? opt_skip : opt_offset,
 	};
 	unsigned int key_size = (opt_key_size ?: DEFAULT_LOOPAES_KEYBITS) / 8;
+	uint32_t activate_flags = 0;
 	int r;
 
 	if (!opt_key_file) {
 		log_err(_("Option --key-file is required.\n"));
 		return -EINVAL;
 	}
+
+	if (opt_readonly)
+		activate_flags |= CRYPT_ACTIVATE_READONLY;
+
+	if (opt_allow_discards)
+		activate_flags |= CRYPT_ACTIVATE_ALLOW_DISCARDS;
 
 	if ((r = crypt_init(&cd, action_argv[0])))
 		goto out;
@@ -309,16 +339,15 @@ static int action_loopaesOpen(int arg)
 	if (r < 0)
 		goto out;
 
-	r = crypt_activate_by_keyfile(cd, action_argv[1],
-		CRYPT_ANY_SLOT, opt_key_file, opt_keyfile_size,
-		opt_readonly ?  CRYPT_ACTIVATE_READONLY : 0);
+	r = crypt_activate_by_keyfile(cd, action_argv[1], CRYPT_ANY_SLOT,
+				      opt_key_file, opt_keyfile_size, activate_flags);
 out:
 	crypt_free(cd);
 
 	return r;
 }
 
-static int action_remove(int arg)
+static int action_remove(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	int r;
@@ -331,12 +360,12 @@ static int action_remove(int arg)
 	return r;
 }
 
-static int action_resize(int arg)
+static int action_resize(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	int r;
 
-	r = crypt_init_by_name(&cd, action_argv[0]);
+	r = crypt_init_by_name_and_header(&cd, action_argv[0], opt_header_device);
 	if (r == 0)
 		r = crypt_resize(cd, action_argv[0], opt_size);
 
@@ -344,7 +373,7 @@ static int action_resize(int arg)
 	return r;
 }
 
-static int action_status(int arg)
+static int action_status(int arg __attribute__((unused)))
 {
 	crypt_status_info ci;
 	struct crypt_active_device cad;
@@ -356,10 +385,11 @@ static int action_status(int arg)
 	ci = crypt_status(NULL, action_argv[0]);
 	switch (ci) {
 	case CRYPT_INVALID:
-		r = -ENODEV;
+		r = -EINVAL;
 		break;
 	case CRYPT_INACTIVE:
 		log_std("%s/%s is inactive.\n", crypt_get_dir(), action_argv[0]);
+		r = -ENODEV;
 		break;
 	case CRYPT_ACTIVE:
 	case CRYPT_BUSY:
@@ -390,6 +420,8 @@ static int action_status(int arg)
 			log_std("  skipped: %" PRIu64 " sectors\n", cad.iv_offset);
 		log_std("  mode:    %s\n", cad.flags & CRYPT_ACTIVATE_READONLY ?
 					   "readonly" : "read/write");
+		if (cad.flags & CRYPT_ACTIVATE_ALLOW_DISCARDS)
+			log_std("  flags:   discards\n");
 	}
 out:
 	crypt_free(cd);
@@ -422,9 +454,10 @@ fail:
 	return -EINVAL;
 }
 
-static int action_luksFormat(int arg)
+static int action_luksFormat(int arg __attribute__((unused)))
 {
 	int r = -EINVAL, keysize;
+	const char *header_device;
 	char *msg = NULL, *key = NULL, cipher [MAX_CIPHER_LEN], cipher_mode[MAX_CIPHER_LEN];
 	char *password = NULL;
 	size_t passwordLen;
@@ -432,9 +465,13 @@ static int action_luksFormat(int arg)
 	struct crypt_params_luks1 params = {
 		.hash = opt_hash ?: DEFAULT_LUKS1_HASH,
 		.data_alignment = opt_align_payload,
+		.data_device = opt_header_device ? action_argv[0] : NULL,
 	};
 
-	if(asprintf(&msg, _("This will overwrite data on %s irrevocably."), action_argv[0]) == -1) {
+	header_device = opt_header_device ?: action_argv[0];
+
+	if(asprintf(&msg, _("This will overwrite data on %s irrevocably."),
+		    header_device) == -1) {
 		log_err(_("memory allocation error in action_luksFormat"));
 		r = -ENOMEM;
 		goto out;
@@ -447,12 +484,15 @@ static int action_luksFormat(int arg)
 	r = crypt_parse_name_and_mode(opt_cipher ?: DEFAULT_CIPHER(LUKS1),
 				      cipher, NULL, cipher_mode);
 	if (r < 0) {
-		log_err("No known cipher specification pattern detected.\n");
+		log_err(_("No known cipher specification pattern detected.\n"));
 		goto out;
 	}
 
-	if ((r = crypt_init(&cd, action_argv[0])))
+	if ((r = crypt_init(&cd, header_device))) {
+		if (opt_header_device)
+			log_err(_("Cannot use %s as on-disk header.\n"), header_device);
 		goto out;
+	}
 
 	keysize = (opt_key_size ?: DEFAULT_LUKS1_KEYBITS) / 8;
 
@@ -494,34 +534,57 @@ out:
 	return r;
 }
 
-static int action_luksOpen(int arg)
+static int action_luksOpen(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
+	const char *data_device, *header_device;
 	uint32_t flags = 0;
 	int r;
 
-	if ((r = crypt_init(&cd, action_argv[0])))
+	if (opt_header_device) {
+		header_device = opt_header_device;
+		data_device = action_argv[0];
+	} else {
+		header_device = action_argv[0];
+		data_device = NULL;
+	}
+
+	if ((r = crypt_init(&cd, header_device)))
 		goto out;
 
 	if ((r = crypt_load(cd, CRYPT_LUKS1, NULL)))
 		goto out;
+
+	if (data_device &&
+	    (r = crypt_set_data_device(cd, data_device)))
+		goto out;
+
+	if (!data_device && (crypt_get_data_offset(cd) < 8)) {
+		log_err(_("Reduced data offset is allowed only for detached LUKS header.\n"));
+		r = -EINVAL;
+		goto out;
+	}
 
 	crypt_set_timeout(cd, opt_timeout);
 	crypt_set_password_retry(cd, opt_tries);
 
 	if (opt_iteration_time)
 		crypt_set_iterarion_time(cd, opt_iteration_time);
+
 	if (opt_readonly)
 		flags |= CRYPT_ACTIVATE_READONLY;
+
+	if (opt_allow_discards)
+		flags |= CRYPT_ACTIVATE_ALLOW_DISCARDS;
 
 	if (opt_key_file) {
 		crypt_set_password_retry(cd, 1);
 		r = crypt_activate_by_keyfile(cd, action_argv[1],
-			CRYPT_ANY_SLOT, opt_key_file, opt_keyfile_size,
+			opt_key_slot, opt_key_file, opt_keyfile_size,
 			flags);
 	} else
 		r = crypt_activate_by_passphrase(cd, action_argv[1],
-			CRYPT_ANY_SLOT, NULL, 0, flags);
+			opt_key_slot, NULL, 0, flags);
 out:
 	crypt_free(cd);
 	return r;
@@ -571,7 +634,7 @@ out:
 	return r;
 }
 
-static int action_luksKillSlot(int arg)
+static int action_luksKillSlot(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	int r;
@@ -593,6 +656,7 @@ static int action_luksKillSlot(int arg)
 	case CRYPT_SLOT_INACTIVE:
 		log_err(_("Key %d not active. Can't wipe.\n"), opt_key_slot);
 	case CRYPT_SLOT_INVALID:
+		r = -EINVAL;
 		goto out;
 	}
 
@@ -611,7 +675,7 @@ out:
 	return r;
 }
 
-static int action_luksRemoveKey(int arg)
+static int action_luksRemoveKey(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	char *password = NULL;
@@ -659,7 +723,7 @@ out:
 	return r;
 }
 
-static int action_luksAddKey(int arg)
+static int action_luksAddKey(int arg __attribute__((unused)))
 {
 	int r = -EINVAL, keysize = 0;
 	char *key = NULL;
@@ -711,7 +775,7 @@ static int _slots_full(struct crypt_device *cd)
 	return 1;
 }
 
-static int action_luksChangeKey(int arg)
+static int action_luksChangeKey(int arg __attribute__((unused)))
 {
 	const char *opt_new_key_file = (action_argc > 1 ? action_argv[1] : NULL);
 	struct crypt_device *cd = NULL;
@@ -798,7 +862,7 @@ out:
 	return r;
 }
 
-static int action_isLuks(int arg)
+static int action_isLuks(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	int r;
@@ -806,13 +870,14 @@ static int action_isLuks(int arg)
 	if ((r = crypt_init(&cd, action_argv[0])))
 		goto out;
 
+	crypt_set_log_callback(cd, _quiet_log, NULL);
 	r = crypt_load(cd, CRYPT_LUKS1, NULL);
 out:
 	crypt_free(cd);
 	return r;
 }
 
-static int action_luksUUID(int arg)
+static int action_luksUUID(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	const char *existing_uuid = NULL;
@@ -843,7 +908,8 @@ static int luksDump_with_volume_key(struct crypt_device *cd)
 	char *vk = NULL, *password = NULL;
 	size_t passwordLen = 0;
 	size_t vk_size;
-	int i, r;
+	unsigned i;
+	int r;
 
 	crypt_set_confirm_callback(cd, _yesDialog, NULL);
 	if (!_yesDialog(
@@ -871,9 +937,9 @@ static int luksDump_with_volume_key(struct crypt_device *cd)
 	log_std("LUKS header information for %s\n", crypt_get_device_name(cd));
 	log_std("Cipher name:   \t%s\n", crypt_get_cipher(cd));
 	log_std("Cipher mode:   \t%s\n", crypt_get_cipher_mode(cd));
-	log_std("Payload offset:\t%d\n", crypt_get_data_offset(cd));
+	log_std("Payload offset:\t%d\n", (int)crypt_get_data_offset(cd));
 	log_std("UUID:          \t%s\n", crypt_get_uuid(cd));
-	log_std("MK bits:       \t%d\n", vk_size * 8);
+	log_std("MK bits:       \t%d\n", (int)vk_size * 8);
 	log_std("MK dump:\t");
 
 	for(i = 0; i < vk_size; i++) {
@@ -889,7 +955,7 @@ out:
 	return r;
 }
 
-static int action_luksDump(int arg)
+static int action_luksDump(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	int r;
@@ -909,12 +975,12 @@ out:
 	return r;
 }
 
-static int action_luksSuspend(int arg)
+static int action_luksSuspend(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	int r;
 
-	r = crypt_init_by_name(&cd, action_argv[0]);
+	r = crypt_init_by_name_and_header(&cd, action_argv[0], opt_header_device);
 	if (!r)
 		r = crypt_suspend(cd, action_argv[0]);
 
@@ -922,16 +988,16 @@ static int action_luksSuspend(int arg)
 	return r;
 }
 
-static int action_luksResume(int arg)
+static int action_luksResume(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	int r;
 
-	if ((r = crypt_init_by_name(&cd, action_argv[0])))
+	if ((r = crypt_init_by_name_and_header(&cd, action_argv[0], opt_header_device)))
 		goto out;
 
-	if ((r = crypt_load(cd, CRYPT_LUKS1, NULL)))
-		goto out;
+	crypt_set_timeout(cd, opt_timeout);
+	crypt_set_password_retry(cd, opt_tries);
 
 	if (opt_key_file)
 		r = crypt_resume_by_keyfile(cd, action_argv[0], CRYPT_ANY_SLOT,
@@ -944,7 +1010,7 @@ out:
 	return r;
 }
 
-static int action_luksBackup(int arg)
+static int action_luksBackup(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	int r;
@@ -965,7 +1031,7 @@ out:
 	return r;
 }
 
-static int action_luksRestore(int arg)
+static int action_luksRestore(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	int r = 0;
@@ -992,11 +1058,15 @@ static __attribute__ ((noreturn)) void usage(poptContext popt_context,
 	poptPrintUsage(popt_context, stderr, 0);
 	if (error)
 		log_err("%s: %s\n", more, error);
+	poptFreeContext(popt_context);
 	exit(exitcode);
 }
 
-static void help(poptContext popt_context, enum poptCallbackReason reason,
-                 struct poptOption *key, const char * arg, void *data)
+static void help(poptContext popt_context,
+		 enum poptCallbackReason reason __attribute__((unused)),
+		 struct poptOption *key,
+		 const char *arg __attribute__((unused)),
+		 void *data __attribute__((unused)))
 {
 	if (key->shortName == '?') {
 		struct action_type *action;
@@ -1036,7 +1106,7 @@ static void help(poptContext popt_context, enum poptCallbackReason reason,
 		usage(popt_context, EXIT_SUCCESS, NULL, NULL);
 }
 
-static void _dbg_version_and_cmd(int argc, char **argv)
+static void _dbg_version_and_cmd(int argc, const char **argv)
 {
 	int i;
 
@@ -1044,7 +1114,7 @@ static void _dbg_version_and_cmd(int argc, char **argv)
 	for (i = 0; i < argc; i++) {
 		if (i)
 			log_std(" ");
-		log_std(argv[i]);
+		log_std("%s", argv[i]);
 	}
 	log_std("\"\n");
 }
@@ -1086,7 +1156,7 @@ static int run_action(struct action_type *action)
 	return r;
 }
 
-int main(int argc, char **argv)
+int main(int argc, const char **argv)
 {
 	static char *popt_tmp;
 	static struct poptOption popt_help_options[] = {
@@ -1122,12 +1192,15 @@ int main(int argc, char **argv)
 		{ "header-backup-file",'\0', POPT_ARG_STRING, &opt_header_backup_file,  0, N_("File with LUKS header and keyslots backup."), NULL },
 		{ "use-random",        '\0', POPT_ARG_NONE, &opt_random,                0, N_("Use /dev/random for generating volume key."), NULL },
 		{ "use-urandom",       '\0', POPT_ARG_NONE, &opt_urandom,               0, N_("Use /dev/urandom for generating volume key."), NULL },
-		{ "uuid",              '\0',  POPT_ARG_STRING, &opt_uuid,               0, N_("UUID for device to use."), NULL },
+		{ "shared",            '\0', POPT_ARG_NONE, &opt_shared,                0, N_("Share device with another non-overlapping crypt segment."), NULL },
+		{ "uuid",              '\0', POPT_ARG_STRING, &opt_uuid,                0, N_("UUID for device to use."), NULL },
+		{ "allow-discards",    '\0', POPT_ARG_NONE, &opt_allow_discards,        0, N_("Allow discards (aka TRIM) requests for device."), NULL },
+		{ "header",            '\0', POPT_ARG_STRING, &opt_header_device,       0, N_("Device or file with separated LUKS header."), NULL },
 		POPT_TABLEEND
 	};
 	poptContext popt_context;
 	struct action_type *action;
-	char *aname;
+	const char *aname;
 	int r;
 	const char *null_action_argv[] = {NULL};
 
@@ -1137,8 +1210,7 @@ int main(int argc, char **argv)
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 
-	popt_context = poptGetContext(PACKAGE, argc, (const char **)argv,
-	                              popt_options, 0);
+	popt_context = poptGetContext(PACKAGE, argc, argv, popt_options, 0);
 	poptSetOtherOptionHelp(popt_context,
 	                       N_("[OPTION...] <action> <action-specific>]"));
 
@@ -1146,8 +1218,11 @@ int main(int argc, char **argv)
 		unsigned long long ull_value;
 		char *endp;
 
+		errno = 0;
 		ull_value = strtoull(popt_tmp, &endp, 0);
-		if (*endp || !*popt_tmp)
+		if (*endp || !*popt_tmp ||
+		    (errno == ERANGE && ull_value == ULLONG_MAX) ||
+		    (errno != 0 && ull_value == 0))
 			r = POPT_ERROR_BADNUMBER;
 
 		switch(r) {
@@ -1172,10 +1247,11 @@ int main(int argc, char **argv)
 		      poptBadOption(popt_context, POPT_BADOPTION_NOALIAS));
 	if (opt_version_mode) {
 		log_std("%s %s\n", PACKAGE_NAME, PACKAGE_VERSION);
+		poptFreeContext(popt_context);
 		exit(EXIT_SUCCESS);
 	}
 
-	if (!(aname = (char *)poptGetArg(popt_context)))
+	if (!(aname = poptGetArg(popt_context)))
 		usage(popt_context, EXIT_FAILURE, _("Argument <action> missing."),
 		      poptGetInvocationName(popt_context));
 	for(action = action_types; action->type; action++)
@@ -1204,6 +1280,21 @@ int main(int argc, char **argv)
 
 	/* FIXME: rewrite this from scratch */
 
+	if (opt_shared && strcmp(aname, "create")) {
+		usage(popt_context, EXIT_FAILURE,
+		      _("Option --shared is allowed only for create operation.\n"),
+		      poptGetInvocationName(popt_context));
+	}
+
+	if (opt_allow_discards &&
+	    strcmp(aname, "luksOpen") &&
+	    strcmp(aname, "create") &&
+	    strcmp(aname, "loopaesOpen")) {
+		usage(popt_context, EXIT_FAILURE,
+		      _("Option --allow-discards is allowed only for luksOpen, loopaesOpen and create operation.\n"),
+		      poptGetInvocationName(popt_context));
+	}
+
 	if (opt_key_size &&
 	   strcmp(aname, "luksFormat") &&
 	   strcmp(aname, "create") &&
@@ -1222,7 +1313,7 @@ int main(int argc, char **argv)
 	if (!strcmp(aname, "luksKillSlot") && action_argc > 1)
 		opt_key_slot = atoi(action_argv[1]);
 	if (opt_key_slot != CRYPT_ANY_SLOT &&
-	    (opt_key_slot < 0 || opt_key_slot > crypt_keyslot_max(CRYPT_LUKS1)))
+	    (opt_key_slot < 0 || opt_key_slot >= crypt_keyslot_max(CRYPT_LUKS1)))
 		usage(popt_context, EXIT_FAILURE, _("Key slot is invalid."),
 		      poptGetInvocationName(popt_context));
 
@@ -1232,7 +1323,7 @@ int main(int argc, char **argv)
 		if (opt_key_file)
 			log_err(_("Option --key-file takes precedence over specified key file argument.\n"));
 		else
-			opt_key_file = (char*)action_argv[1];
+			opt_key_file = action_argv[1];
 	}
 
 	if (opt_keyfile_size < 0 || opt_new_keyfile_size < 0 || opt_key_size < 0) {
@@ -1268,5 +1359,7 @@ int main(int argc, char **argv)
 		_dbg_version_and_cmd(argc, argv);
 	}
 
-	return run_action(action);
+	r = run_action(action);
+	poptFreeContext(popt_context);
+	return r;
 }

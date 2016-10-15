@@ -121,7 +121,7 @@ int crypt_hash_init(struct crypt_hash **ctx, const char *name)
 	return 0;
 }
 
-int crypt_hash_restart(struct crypt_hash *ctx)
+static int crypt_hash_restart(struct crypt_hash *ctx)
 {
 	if (PK11_DigestBegin(ctx->md) != SECSuccess)
 		return -EINVAL;
@@ -131,7 +131,7 @@ int crypt_hash_restart(struct crypt_hash *ctx)
 
 int crypt_hash_write(struct crypt_hash *ctx, const char *buffer, size_t length)
 {
-	if (PK11_DigestOp(ctx->md, (unsigned char *)buffer, length) != SECSuccess)
+	if (PK11_DigestOp(ctx->md, CONST_CAST(unsigned char *)buffer, length) != SECSuccess)
 		return -EINVAL;
 
 	return 0;
@@ -142,7 +142,7 @@ int crypt_hash_final(struct crypt_hash *ctx, char *buffer, size_t length)
 	unsigned char tmp[64];
 	unsigned int tmp_len;
 
-	if (length > ctx->hash->length)
+	if (length > (size_t)ctx->hash->length)
 		return -EINVAL;
 
 	if (PK11_DigestFinal(ctx->md, tmp, &tmp_len, length) != SECSuccess)
@@ -152,6 +152,9 @@ int crypt_hash_final(struct crypt_hash *ctx, char *buffer, size_t length)
 	memset(tmp, 0, sizeof(tmp));
 
 	if (tmp_len < length)
+		return -EINVAL;
+
+	if (crypt_hash_restart(ctx))
 		return -EINVAL;
 
 	return 0;
@@ -179,7 +182,7 @@ int crypt_hmac_init(struct crypt_hmac **ctx, const char *name,
 	SECItem noParams;
 
 	keyItem.type = siBuffer;
-	keyItem.data = (unsigned char *)buffer;
+	keyItem.data = CONST_CAST(unsigned char *)buffer;
 	keyItem.len = (int)length;
 
 	noParams.type = siBuffer;
@@ -220,7 +223,7 @@ bad:
 	return -EINVAL;
 }
 
-int crypt_hmac_restart(struct crypt_hmac *ctx)
+static int crypt_hmac_restart(struct crypt_hmac *ctx)
 {
 	if (PK11_DigestBegin(ctx->md) != SECSuccess)
 		return -EINVAL;
@@ -230,7 +233,7 @@ int crypt_hmac_restart(struct crypt_hmac *ctx)
 
 int crypt_hmac_write(struct crypt_hmac *ctx, const char *buffer, size_t length)
 {
-	if (PK11_DigestOp(ctx->md, (unsigned char *)buffer, length) != SECSuccess)
+	if (PK11_DigestOp(ctx->md, CONST_CAST(unsigned char *)buffer, length) != SECSuccess)
 		return -EINVAL;
 
 	return 0;
@@ -241,7 +244,7 @@ int crypt_hmac_final(struct crypt_hmac *ctx, char *buffer, size_t length)
 	unsigned char tmp[64];
 	unsigned int tmp_len;
 
-	if (length > ctx->hash->length)
+	if (length > (size_t)ctx->hash->length)
 		return -EINVAL;
 
 	if (PK11_DigestFinal(ctx->md, tmp, &tmp_len, length) != SECSuccess)
@@ -251,6 +254,9 @@ int crypt_hmac_final(struct crypt_hmac *ctx, char *buffer, size_t length)
 	memset(tmp, 0, sizeof(tmp));
 
 	if (tmp_len < length)
+		return -EINVAL;
+
+	if (crypt_hmac_restart(ctx))
 		return -EINVAL;
 
 	return 0;

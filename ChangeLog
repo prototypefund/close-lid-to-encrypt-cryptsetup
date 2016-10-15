@@ -1,3 +1,68 @@
+2011-10-25  Milan Broz  <mbroz@redhat.com>
+	* Print informative message in isLuks only in verbose mode.
+	* Version 1.4.0.
+
+2011-10-10  Milan Broz  <mbroz@redhat.com>
+	* Version 1.4.0-rc1.
+
+2011-10-05  Milan Broz  <mbroz@redhat.com>
+	* Support Nettle 2.4 crypto backend (for ripemd160).
+	* If device is not rotational, do not use Gutmann wipe method.
+	* Add crypt_last_error() API call.
+	* Fix luksKillSLot exit code if slot is inactive or invalid.
+	* Fix exit code if passphrases do not match in luksAddKey.
+	* Add LUKS on-disk format description into package.
+
+2011-09-22  Milan Broz  <mbroz@redhat.com>
+	* Support key-slot option for luksOpen (use only explicit keyslot).
+
+2011-08-22  Milan Broz  <mbroz@redhat.com>
+	* Add more paranoid checks for LUKS header and keyslot attributes.
+	* Fix crypt_load to properly check device size.
+	* Use new /dev/loop-control (kernel 3.1) if possible.
+	* Enhance check of device size before writing LUKS header.
+	* Do not allow context format of already formatted device.
+
+2011-07-25  Milan Broz  <mbroz@redhat.com>
+	* Remove hash/hmac restart from crypto backend and make it part of hash/hmac final.
+	* Improve check for invalid offset and size values.
+
+2011-07-19  Milan Broz  <mbroz@redhat.com>
+	* Revert default initialisation of volume key in crypt_init_by_name().
+	* Do not allow key retrieval while suspended (key could be wiped).
+	* Do not allow suspend for non-LUKS devices.
+	* Support retries and timeout parameters for luksSuspend.
+	* Add --header option for detached metadata (on-disk LUKS header) device.
+	* Add crypt_init_by_name_and_header() and crypt_set_data_device() to API.
+	* Allow different data offset setting for detached header.
+
+2011-07-07  Milan Broz  <mbroz@redhat.com>
+	* Remove old API functions (all functions using crypt_options).
+	* Add --enable-discards option to allow discards/TRIM requests.
+	* Add crypt_get_iv_offset() function to API.
+
+2011-07-01  Milan Broz  <mbroz@redhat.com>
+	* Add --shared option for creating non-overlapping crypt segments.
+	* Add shared flag to libcryptsetup api.
+	* Fix plain crypt format parameters to include size option (API change).
+
+2011-06-08  Milan Broz  <mbroz@redhat.com>
+	* Fix return code for status command when device doesn't exists.
+
+2011-05-24  Milan Broz  <mbroz@redhat.com>
+	* Version 1.3.1.
+
+2011-05-17  Milan Broz  <mbroz@redhat.com>
+	* Fix keyfile=- processing in create command (1.3.0).
+	* Simplify device path status check.
+
+2011-05-03  Milan Broz  <mbroz@redhat.com>
+	* Do not ignore size argument for create command (1.2.0).
+
+2011-04-18  Milan Broz  <mbroz@redhat.com>
+	* Fix error paths in blockwise code and lseek_write call.
+	* Add Nettle crypto backend support.
+
 2011-04-05  Milan Broz  <mbroz@redhat.com>
 	* Version 1.3.0.
 
@@ -349,7 +414,7 @@
 	* configure.in (AC_OUTPUT): Add m4/Makefile.
 	(AM_GNU_GETTEXT_VERSION): Bump to 0.15.
 
-2006-10-22  David H‰rdeman  <david@hardeman.nu>
+2006-10-22  David H√§rdeman  <david@hardeman.nu>
 
 	* Allow hashing of keys passed through stdin.
 
@@ -416,7 +481,7 @@
 
 2006-08-04  Clemens Fruhwirth  <clemens@endorphin.org>
 
-	* lib/setup.c (get_key): Applied patch from David H‰rdeman
+	* lib/setup.c (get_key): Applied patch from David H√§rdeman
 	<david@2gen.com> for reading binary keys from stdin using
 	the "-" as key file.
 
@@ -433,7 +498,7 @@
 
 2006-07-23  Clemens Fruhwirth  <clemens@endorphin.org>
 
-	* Applied patches from David H‰rdeman <david@2gen.com> to fix 64
+	* Applied patches from David H√§rdeman <david@2gen.com> to fix 64
 	bit compiler warning issues.
 
 2006-05-19  Clemens Fruhwirth  <clemens@endorphin.org>
@@ -452,7 +517,7 @@
 
 	* configure.in: Release 1.0.3.
 
-	* Applied patch by Johannes Weiﬂl for more meaningful exit codes
+	* Applied patch by Johannes Wei√ül for more meaningful exit codes
 	and password retries
 
 2006-03-30  Clemens Fruhwirth  <clemens@endorphin.org>

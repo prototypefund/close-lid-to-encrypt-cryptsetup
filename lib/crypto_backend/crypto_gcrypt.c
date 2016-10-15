@@ -39,7 +39,7 @@ struct crypt_hmac {
 	int hash_len;
 };
 
-int crypt_backend_init(struct crypt_device *ctx)
+int crypt_backend_init(struct crypt_device *ctx __attribute__((unused)))
 {
 	if (crypto_backend_initialised)
 		return 0;
@@ -117,10 +117,9 @@ int crypt_hash_init(struct crypt_hash **ctx, const char *name)
 	return 0;
 }
 
-int crypt_hash_restart(struct crypt_hash *ctx)
+static void crypt_hash_restart(struct crypt_hash *ctx)
 {
 	gcry_md_reset(ctx->hd);
-	return 0;
 }
 
 int crypt_hash_write(struct crypt_hash *ctx, const char *buffer, size_t length)
@@ -133,7 +132,7 @@ int crypt_hash_final(struct crypt_hash *ctx, char *buffer, size_t length)
 {
 	unsigned char *hash;
 
-	if (length > ctx->hash_len)
+	if (length > (size_t)ctx->hash_len)
 		return -EINVAL;
 
 	hash = gcry_md_read(ctx->hd, ctx->hash_id);
@@ -141,6 +140,8 @@ int crypt_hash_final(struct crypt_hash *ctx, char *buffer, size_t length)
 		return -EINVAL;
 
 	memcpy(buffer, hash, length);
+	crypt_hash_restart(ctx);
+
 	return 0;
 }
 
@@ -191,10 +192,9 @@ int crypt_hmac_init(struct crypt_hmac **ctx, const char *name,
 	return 0;
 }
 
-int crypt_hmac_restart(struct crypt_hmac *ctx)
+static void crypt_hmac_restart(struct crypt_hmac *ctx)
 {
 	gcry_md_reset(ctx->hd);
-	return 0;
 }
 
 int crypt_hmac_write(struct crypt_hmac *ctx, const char *buffer, size_t length)
@@ -207,7 +207,7 @@ int crypt_hmac_final(struct crypt_hmac *ctx, char *buffer, size_t length)
 {
 	unsigned char *hash;
 
-	if (length > ctx->hash_len)
+	if (length > (size_t)ctx->hash_len)
 		return -EINVAL;
 
 	hash = gcry_md_read(ctx->hd, ctx->hash_id);
@@ -215,6 +215,8 @@ int crypt_hmac_final(struct crypt_hmac *ctx, char *buffer, size_t length)
 		return -EINVAL;
 
 	memcpy(buffer, hash, length);
+	crypt_hmac_restart(ctx);
+
 	return 0;
 }
 

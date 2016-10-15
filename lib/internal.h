@@ -13,35 +13,20 @@
 #include "nls.h"
 #include "utils_crypt.h"
 #include "utils_loop.h"
+#include "utils_dm.h"
+
+/* to silent gcc -Wcast-qual for const cast */
+#define CONST_CAST(x) (x)(uintptr_t)
 
 #define SECTOR_SHIFT		9
 #define SECTOR_SIZE		(1 << SECTOR_SHIFT)
 #define DEFAULT_DISK_ALIGNMENT	1048576 /* 1MiB */
 #define DEFAULT_MEM_ALIGNMENT	4096
-
-/* private struct crypt_options flags */
-
-#define	CRYPT_FLAG_FREE_DEVICE	(1 << 24)
-#define	CRYPT_FLAG_FREE_CIPHER	(1 << 25)
-
-#define CRYPT_FLAG_PRIVATE_MASK ((unsigned int)-1 << 24)
+#define MAX_ERROR_LENGTH	512
 
 #define at_least(a, b) ({ __typeof__(a) __at_least = (a); (__at_least >= (b))?__at_least:(b); })
 
 struct crypt_device;
-
-struct hash_type {
-	char		*name;
-	void		*private;
-	int		(*fn)(void *data, int size, char *key,
-			      int sizep, const char *passphrase);
-};
-
-struct hash_backend {
-	const char		*name;
-	struct hash_type *	(*get_hashes)(void);
-	void			(*free_hashes)(struct hash_type *hashes);
-};
 
 struct volume_key {
 	size_t keylength;
@@ -54,67 +39,31 @@ void crypt_free_volume_key(struct volume_key *vk);
 
 int crypt_confirm(struct crypt_device *cd, const char *msg);
 
-void set_error_va(const char *fmt, va_list va);
-void set_error(const char *fmt, ...);
-const char *get_error(void);
-
-/* Device mapper backend - kernel support flags */
-#define DM_KEY_WIPE_SUPPORTED (1 << 0)	/* key wipe message */
-#define DM_LMK_SUPPORTED      (1 << 1)	/* lmk mode */
-#define DM_SECURE_SUPPORTED   (1 << 2)	/* wipe (secure) buffer flag */
-#define DM_PLAIN64_SUPPORTED  (1 << 3)	/* plain64 IV */
-uint32_t dm_flags(void);
-
-const char *dm_get_dir(void);
-int dm_init(struct crypt_device *context, int check_kernel);
-void dm_exit(void);
-int dm_remove_device(const char *name, int force, uint64_t size);
-int dm_status_device(const char *name);
-int dm_query_device(const char *name,
-		    char **device,
-		    uint64_t *size,
-		    uint64_t *skip,
-		    uint64_t *offset,
-		    char **cipher,
-		    int *key_size,
-		    char **key,
-		    int *read_only,
-		    int *suspended,
-		    char **uuid);
-int dm_create_device(const char *name, const char *device, const char *cipher,
-		     const char *type, const char *uuid,
-		     uint64_t size, uint64_t skip, uint64_t offset,
-		     size_t key_size, const char *key,
-		     int read_only, int reload);
-int dm_suspend_and_wipe_key(const char *name);
-int dm_resume_and_reinstate_key(const char *name,
-				size_t key_size,
-				const char *key);
+char *crypt_lookup_dev(const char *dev_id);
+int crypt_sysfs_check_crypt_segment(const char *device, uint64_t offset, uint64_t size);
+int crypt_sysfs_get_rotational(int major, int minor, int *rotational);
 
 int sector_size_for_device(const char *device);
-ssize_t write_blockwise(int fd, const void *buf, size_t count);
+int device_read_ahead(const char *dev, uint32_t *read_ahead);
+ssize_t write_blockwise(int fd, void *buf, size_t count);
 ssize_t read_blockwise(int fd, void *_buf, size_t count);
-ssize_t write_lseek_blockwise(int fd, const char *buf, size_t count, off_t offset);
+ssize_t write_lseek_blockwise(int fd, char *buf, size_t count, off_t offset);
 int device_ready(struct crypt_device *cd, const char *device, int mode);
-int get_device_infos(const char *device,
-		     int open_exclusive,
-		     int *readonly,
-		     uint64_t *size);
+int device_size(const char *device, uint64_t *size);
+
+enum devcheck { DEV_OK = 0, DEV_EXCL = 1, DEV_SHARED = 2 };
 int device_check_and_adjust(struct crypt_device *cd,
 			    const char *device,
-			    int open_exclusive,
+			    enum devcheck device_check,
 			    uint64_t *size,
 			    uint64_t *offset,
-			    int *read_only);
-int wipe_device_header(const char *device, int sectors);
+			    uint32_t *flags);
 
 void logger(struct crypt_device *cd, int class, const char *file, int line, const char *format, ...);
 #define log_dbg(x...) logger(NULL, CRYPT_LOG_DEBUG, __FILE__, __LINE__, x)
 #define log_std(c, x...) logger(c, CRYPT_LOG_NORMAL, __FILE__, __LINE__, x)
 #define log_verbose(c, x...) logger(c, CRYPT_LOG_VERBOSE, __FILE__, __LINE__, x)
-#define log_err(c, x...) do { \
-	logger(c, CRYPT_LOG_ERROR, __FILE__, __LINE__, x); \
-	set_error(x); } while(0)
+#define log_err(c, x...) logger(c, CRYPT_LOG_ERROR, __FILE__, __LINE__, x)
 
 int crypt_get_debug_level(void);
 void debug_processes_using_device(const char *name);
@@ -137,5 +86,29 @@ int crypt_plain_hash(struct crypt_device *ctx,
 		     const char *hash_name,
 		     char *key, size_t key_size,
 		     const char *passphrase, size_t passphrase_size);
+int PLAIN_activate(struct crypt_device *cd,
+		     const char *name,
+		     struct volume_key *vk,
+		     uint64_t size,
+		     uint32_t flags);
+
+/**
+ * Different methods used to erase sensitive data concerning
+ * either encrypted payload area or master key inside keyslot
+ * area
+ */
+typedef enum {
+	CRYPT_WIPE_ZERO, /**< overwrite area using zero blocks */
+	CRYPT_WIPE_DISK, /**< erase disk (using Gutmann method if it is rotational disk)*/
+	CRYPT_WIPE_SSD, /**< erase solid state disk (random write) */
+	CRYPT_WIPE_RANDOM /**< overwrite area using some up to now unspecified
+			    * random algorithm */
+} crypt_wipe_type;
+
+int crypt_wipe(const char *device,
+	       uint64_t offset,
+	       uint64_t sectors,
+	       crypt_wipe_type type,
+	       int flags);
 
 #endif /* INTERNAL_H */

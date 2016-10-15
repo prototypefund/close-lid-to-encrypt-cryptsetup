@@ -54,8 +54,6 @@ static int hash(const char *hash_name, size_t key_size, char *key,
 
 		key += len;
 		key_size -= len;
-		if (key_size && crypt_hash_restart(md))
-			r = 1;
 	}
 
 	crypt_hash_destroy(md);
@@ -64,7 +62,7 @@ static int hash(const char *hash_name, size_t key_size, char *key,
 
 #define PLAIN_HASH_LEN_MAX 256
 
-int crypt_plain_hash(struct crypt_device *ctx,
+int crypt_plain_hash(struct crypt_device *ctx __attribute__((unused)),
 		     const char *hash_name,
 		     char *key, size_t key_size,
 		     const char *passphrase, size_t passphrase_size)

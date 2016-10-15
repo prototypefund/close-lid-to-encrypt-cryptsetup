@@ -29,6 +29,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include "crypto_backend.h"
+#include "pbkdf.h"
 
 static volatile uint64_t __PBKDF2_global_j = 0;
 static volatile uint64_t __PBKDF2_performance = 0;
@@ -166,9 +167,6 @@ static int pkcs5_pbkdf2(const char *hash,
 		memset(T, 0, hLen);
 
 		for (u = 1; u <= c ; u++) {
-			if (crypt_hmac_restart(hmac))
-				goto out;
-
 			if (u == 1) {
 				memcpy(tmp, S, Slen);
 				tmp[Slen + 0] = (i & 0xff000000) >> 24;
@@ -223,7 +221,7 @@ int PBKDF2_HMAC_ready(const char *hash)
 	return 1;
 }
 
-static void sigvtalarm(int foo)
+static void sigvtalarm(int foo __attribute__((unused)))
 {
 	__PBKDF2_performance = __PBKDF2_global_j;
 }
