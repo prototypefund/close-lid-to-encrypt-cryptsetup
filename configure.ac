@@ -1,5 +1,5 @@
 AC_PREREQ([2.67])
-AC_INIT([cryptsetup],[1.6.1])
+AC_INIT([cryptsetup],[1.6.2])
 
 dnl library version from <major>.<minor>.<release>[-<suffix>]
 LIBCRYPTSETUP_VERSION=$(echo $PACKAGE_VERSION | cut -f1 -d-)
@@ -11,7 +11,13 @@ AC_CONFIG_SRCDIR(src/cryptsetup.c)
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CONFIG_HEADERS([config.h:config.h.in])
-AM_INIT_AUTOMAKE(dist-bzip2)
+
+# We do not want to run test in parallel. Really.
+# http://lists.gnu.org/archive/html/automake/2013-01/msg00060.html
+
+# For old automake use this
+#AM_INIT_AUTOMAKE(dist-bzip2)
+AM_INIT_AUTOMAKE([dist-bzip2 1.12 serial-tests])
 
 if test "x$prefix" = "xNONE"; then
 	sysconfdir=/etc
@@ -32,7 +38,7 @@ PKG_PROG_PKG_CONFIG
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS(fcntl.h malloc.h inttypes.h sys/ioctl.h sys/mman.h \
-	ctype.h unistd.h locale.h)
+	ctype.h unistd.h locale.h byteswap.h endian.h)
 
 AC_CHECK_HEADERS(uuid/uuid.h,,[AC_MSG_ERROR([You need the uuid library.])])
 AC_CHECK_HEADER(libdevmapper.h,,[AC_MSG_ERROR([You need the device-mapper library.])])
@@ -44,11 +50,15 @@ LIBS=$saved_LIBS
 
 AC_CHECK_FUNCS([posix_memalign])
 
+if test "x$enable_largefile" = "xno" ; then
+  AC_MSG_ERROR([Building with --disable-largefile is not supported, it can cause data corruption.])
+fi
+
 AC_C_CONST
 AC_C_BIGENDIAN
 AC_TYPE_OFF_T
 AC_SYS_LARGEFILE
-
+AC_FUNC_FSEEKO
 AC_PROG_GCC_TRADITIONAL
 
 dnl ==========================================================================

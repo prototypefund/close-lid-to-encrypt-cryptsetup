@@ -585,8 +585,13 @@ int TCRYPT_read_phdr(struct crypt_device *cd,
 	r = -EIO;
 	if (params->flags & CRYPT_TCRYPT_SYSTEM_HEADER) {
 		if (lseek(devfd, TCRYPT_HDR_SYSTEM_OFFSET, SEEK_SET) >= 0 &&
-		    read_blockwise(devfd, bs, hdr, hdr_size) == hdr_size)
+		    read_blockwise(devfd, bs, hdr, hdr_size) == hdr_size) {
 			r = TCRYPT_init_hdr(cd, hdr, params);
+			if (r == -EPERM && crypt_dev_is_partition(device_path(device)))
+				log_std(cd, _("WARNING: device %s is a partition, for TCRYPT "
+					      "system encryption you usually need to use "
+					      "whole block device path.\n"), device_path(device));
+		}
 	} else if (params->flags & CRYPT_TCRYPT_HIDDEN_HEADER) {
 		if (params->flags & CRYPT_TCRYPT_BACKUP_HEADER) {
 			if (lseek(devfd, TCRYPT_HDR_HIDDEN_OFFSET_BCK, SEEK_END) >= 0 &&
@@ -636,10 +641,12 @@ int TCRYPT_activate(struct crypt_device *cd,
 		     uint32_t flags)
 {
 	char cipher[MAX_CIPHER_LEN], dm_name[PATH_MAX], dm_dev_name[PATH_MAX];
-	struct device *device = NULL;
+	char *part_path;
+	struct device *device = NULL, *part_device = NULL;
 	unsigned int i;
 	int r;
 	struct tcrypt_algs *algs;
+	enum devcheck device_check;
 	struct crypt_dm_active_device dmd = {
 		.target = DM_CRYPT,
 		.size   = 0,
@@ -676,7 +683,30 @@ int TCRYPT_activate(struct crypt_device *cd,
 	else
 		dmd.size = hdr->d.volume_size / hdr->d.sector_size;
 
-	r = device_block_adjust(cd, dmd.data_device, DEV_EXCL,
+	/*
+	 * System encryption use the whole device mapping, there can
+	 * be active partitions.
+	 * FIXME: This will allow multiple mappings unexpectedly.
+	 */
+	if ((dmd.flags & CRYPT_ACTIVATE_SHARED) ||
+	    (params->flags & CRYPT_TCRYPT_SYSTEM_HEADER))
+		device_check = DEV_SHARED;
+	else
+		device_check = DEV_EXCL;
+
+	if ((params->flags & CRYPT_TCRYPT_SYSTEM_HEADER) &&
+		(part_path = crypt_get_partition_device(device_path(dmd.data_device),
+				 dmd.u.crypt.offset, dmd.size))) {
+		if (!device_alloc(&part_device, part_path)) {
+			log_verbose(cd, _("Activating TCRYPT system encryption for partition %s.\n"),
+				    part_path);
+			dmd.data_device = part_device;
+			dmd.u.crypt.offset = 0;
+		}
+		free(part_path);
+	}
+
+	r = device_block_adjust(cd, dmd.data_device, device_check,
 				dmd.u.crypt.offset, &dmd.size, &dmd.flags);
 	if (r)
 		return r;
@@ -727,6 +757,7 @@ int TCRYPT_activate(struct crypt_device *cd,
 		r = -ENOTSUP;
 	}
 
+	device_free(part_device);
 	crypt_free_volume_key(dmd.u.crypt.vk);
 	return r;
 }
