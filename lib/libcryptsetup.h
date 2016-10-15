@@ -85,6 +85,9 @@ void crypt_set_confirm_callback(struct crypt_device *cd,
  * @buf - buffer for password
  * @length - size of buffer
  *
+ * Calback should return length of password in buffer
+ * or negative errno value in case of error.
+ *
  * - Note that if this function is defined, verify option is ignored
  *   (caller which provided callback is responsible for password verification)
  * - Only zero terminated passwords can be entered this way, for complex
@@ -143,6 +146,7 @@ int crypt_memory_lock(struct crypt_device *cd, int lock);
 
 #define CRYPT_PLAIN "PLAIN" /* regular crypt device, no on-disk header */
 #define CRYPT_LUKS1 "LUKS1" /* LUKS version 1 header on-disk */
+#define CRYPT_LOOPAES "LOOPAES" /* loop-AES compatibility mode */
 
 /**
  * Get device type
@@ -164,6 +168,11 @@ struct crypt_params_luks1 {
 	size_t data_alignment; /* in sectors, data offset is multiple of this */
 };
 
+struct crypt_params_loopaes {
+	const char *hash; /* key hash function */
+	uint64_t offset;  /* offset in sectors */
+	uint64_t skip;    /* IV initilisation sector */
+};
 /**
  * Create (format) new crypt device (and possible header on-disk) but not activates it.
  *

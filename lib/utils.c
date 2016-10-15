@@ -1,3 +1,24 @@
+/*
+ * utils - miscellaneous device utilities for cryptsetup
+ *
+ * Copyright (C) 2004, Christophe Saout <christophe@saout.de>
+ * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
+ * Copyright (C) 2009-2011, Red Hat, Inc. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -238,15 +259,18 @@ ssize_t write_lseek_blockwise(int fd, const char *buf, size_t count, off_t offse
 
 int device_ready(struct crypt_device *cd, const char *device, int mode)
 {
-	int devfd, r = 1;
+	int devfd, r = 0;
 	ssize_t s;
 	struct stat st;
 	char buf[512];
 
 	if(stat(device, &st) < 0) {
 		log_err(cd, _("Device %s doesn't exist or access denied.\n"), device);
-		return 0;
+		return -EINVAL;
 	}
+
+	if (!S_ISBLK(st.st_mode))
+		return -ENOTBLK;
 
 	log_dbg("Trying to open and read device %s.", device);
 	devfd = open(device, mode | O_DIRECT | O_SYNC);
@@ -254,14 +278,14 @@ int device_ready(struct crypt_device *cd, const char *device, int mode)
 		log_err(cd, _("Cannot open device %s for %s%s access.\n"), device,
 			(mode & O_EXCL) ? _("exclusive ") : "",
 			(mode & O_RDWR) ? _("writable") : _("read-only"));
-		return 0;
+		return -EINVAL;
 	}
 
 	 /* Try to read first sector */
 	s = read_blockwise(devfd, buf, sizeof(buf));
 	if (s < 0 || s != sizeof(buf)) {
-		log_err(cd, _("Cannot read device %s.\n"), device);
-		r = 0;
+		log_verbose(cd, _("Cannot read device %s.\n"), device);
+		r = -EIO;
 	}
 
 	memset(buf, 0, sizeof(buf));
@@ -338,6 +362,52 @@ out:
 	return r;
 }
 
+int device_check_and_adjust(struct crypt_device *cd,
+			    const char *device,
+			    int open_exclusive,
+			    uint64_t *size,
+			    uint64_t *offset,
+			    int *read_only)
+{
+	int r, real_readonly;
+	uint64_t real_size;
+
+	if (!device)
+		return -ENOTBLK;
+
+	r = get_device_infos(device, open_exclusive, &real_readonly, &real_size);
+	if (r < 0) {
+		if (r == -EBUSY)
+			log_err(cd, _("Cannot use device %s which is in use "
+				      "(already mapped or mounted).\n"),
+				      device);
+		else
+			log_err(cd, _("Cannot get info about device %s.\n"),
+				device);
+		return r;
+	}
+
+	if (!*size) {
+		*size = real_size;
+		if (!*size) {
+			log_err(cd, _("Device %s has zero size.\n"), device);
+			return -ENOTBLK;
+		}
+		if (*size < *offset) {
+			log_err(cd, _("Device %s is too small.\n"), device);
+			return -EINVAL;
+		}
+		*size -= *offset;
+	}
+
+	if (real_readonly)
+		*read_only = 1;
+
+	log_dbg("Calculated device size is %" PRIu64 " sectors (%s), offset %" PRIu64 ".",
+		*size, *read_only ? "RO" : "RW", *offset);
+	return 0;
+}
+
 int wipe_device_header(const char *device, int sectors)
 {
 	struct stat st;
@@ -384,7 +454,7 @@ int crypt_memlock_inc(struct crypt_device *ctx)
 {
 	if (!_memlock_count++) {
 		log_dbg("Locking memory.");
-		if (mlockall(MCL_CURRENT | MCL_FUTURE)) {
+		if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
 			log_err(ctx, _("WARNING!!! Possibly insecure memory. Are you root?\n"));
 			_memlock_count--;
 			return 0;
@@ -394,7 +464,7 @@ int crypt_memlock_inc(struct crypt_device *ctx)
 			log_err(ctx, _("Cannot get process priority.\n"));
 		else
 			if (setpriority(PRIO_PROCESS, 0, DEFAULT_PROCESS_PRIORITY))
-				log_err(ctx, _("setpriority %u failed: %s"),
+				log_err(ctx, _("setpriority %d failed: %s\n"),
 					DEFAULT_PROCESS_PRIORITY, strerror(errno));
 	}
 	return _memlock_count ? 1 : 0;
@@ -404,10 +474,10 @@ int crypt_memlock_dec(struct crypt_device *ctx)
 {
 	if (_memlock_count && (!--_memlock_count)) {
 		log_dbg("Unlocking memory.");
-		if (munlockall())
-			log_err(ctx, _("Cannot unlock memory."));
+		if (munlockall() == -1)
+			log_err(ctx, _("Cannot unlock memory.\n"));
 		if (setpriority(PRIO_PROCESS, 0, _priority))
-			log_err(ctx, _("setpriority %u failed: %s"), _priority, strerror(errno));
+			log_err(ctx, _("setpriority %d failed: %s\n"), _priority, strerror(errno));
 	}
 	return _memlock_count ? 1 : 0;
 }

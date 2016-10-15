@@ -1,17 +1,12 @@
 moduledir = $(libdir)/cryptsetup
 
-noinst_LTLIBRARIES = libluks1.la
+noinst_LTLIBRARIES = libloopaes.la
 
-libluks1_la_CFLAGS = -Wall @CRYPTO_CFLAGS@
+libloopaes_la_CFLAGS = -Wall @CRYPTO_CFLAGS@
 
-libluks1_la_SOURCES = \
-	af.c \
-	pbkdf.c \
-	keymanage.c \
-	keyencryption.c \
-	pbkdf.h \
-	af.h \
-	luks.h
+libloopaes_la_SOURCES = \
+	loopaes.c \
+	loopaes.h
 
 INCLUDES = -D_GNU_SOURCE			\
 	-D_LARGEFILE64_SOURCE                   \

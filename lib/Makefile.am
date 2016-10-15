@@ -1,4 +1,4 @@
-SUBDIRS = luks1
+SUBDIRS = crypto_backend luks1 loopaes
 
 moduledir = $(libdir)/cryptsetup
 
@@ -7,7 +7,9 @@ pkgconfig_DATA = libcryptsetup.pc
 
 INCLUDES = \
 	-I$(top_srcdir)				\
+	-I$(top_srcdir)/lib/crypto_backend	\
 	-I$(top_srcdir)/lib/luks1		\
+	-I$(top_srcdir)/lib/loopaes		\
 	-DDATADIR=\""$(datadir)"\"		\
 	-DLIBDIR=\""$(libdir)"\"		\
 	-DPREFIX=\""$(prefix)"\"		\
@@ -19,19 +21,25 @@ INCLUDES = \
 
 lib_LTLIBRARIES = libcryptsetup.la
 
-libcryptsetup_la_DEPENDENCIES = libcryptsetup.sym
+common_ldadd = \
+	crypto_backend/libcrypto_backend.la	\
+	luks1/libluks1.la			\
+	loopaes/libloopaes.la
+
+libcryptsetup_la_DEPENDENCIES = $(common_ldadd) libcryptsetup.sym
 
 libcryptsetup_la_LDFLAGS = \
 	-Wl,--version-script=$(top_srcdir)/lib/libcryptsetup.sym \
 	-version-info @LIBCRYPTSETUP_VERSION_INFO@
 
-libcryptsetup_la_CFLAGS = -Wall @LIBGCRYPT_CFLAGS@
+libcryptsetup_la_CFLAGS = -Wall @CRYPTO_CFLAGS@
 
 libcryptsetup_la_LIBADD = \
 	@UUID_LIBS@				\
 	@DEVMAPPER_LIBS@			\
-	@LIBGCRYPT_LIBS@			\
-	luks1/libluks1.la
+	@CRYPTO_LIBS@				\
+	$(common_ldadd)
+
 
 libcryptsetup_la_SOURCES = \
 	setup.c					\
@@ -43,11 +51,12 @@ libcryptsetup_la_SOURCES = \
 	utils_crypt.c				\
 	utils_crypt.h				\
 	utils_debug.c				\
-	backends.c				\
+	utils_loop.c				\
+	utils_loop.h				\
 	libdevmapper.c				\
 	volumekey.c				\
 	random.c				\
-	gcrypt.c
+	crypt_plain.c
 
 include_HEADERS = libcryptsetup.h
 

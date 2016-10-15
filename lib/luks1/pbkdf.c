@@ -3,8 +3,8 @@
  * Copyright (C) 2004 Free Software Foundation
  *
  * LUKS code
- * Copyright (C) 2004 Clemens Fruhwirth <clemens@endorphin.org>
- * Copyright (C) 2009 Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2004, Clemens Fruhwirth <clemens@endorphin.org>
+ * Copyright (C) 2009-2011, Red Hat, Inc. All rights reserved.
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,13 +26,12 @@
 #include <errno.h>
 #include <signal.h>
 #include <alloca.h>
+#include <string.h>
 #include <sys/time.h>
-#include <gcrypt.h>
+#include "crypto_backend.h"
 
 static volatile uint64_t __PBKDF2_global_j = 0;
 static volatile uint64_t __PBKDF2_performance = 0;
-
-int init_crypto(void);
 
 /*
  * 5.2 PBKDF2
@@ -68,12 +67,11 @@ static int pkcs5_pbkdf2(const char *hash,
 			unsigned int c, unsigned int dkLen,
 			char *DK, int perfcheck)
 {
-	gcry_md_hd_t prf;
+	struct crypt_hmac *hmac;
 	char U[MAX_PRF_BLOCK_LEN];
 	char T[MAX_PRF_BLOCK_LEN];
-	int PRF, i, k, rc = -EINVAL;
+	int i, k, rc = -EINVAL;
 	unsigned int u, hLen, l, r;
-	unsigned char *p;
 	size_t tmplen = Slen + 4;
 	char *tmp;
 
@@ -81,14 +79,7 @@ static int pkcs5_pbkdf2(const char *hash,
 	if (tmp == NULL)
 		return -ENOMEM;
 
-	if (init_crypto())
-		return -ENOSYS;
-
-	PRF = gcry_md_map_name(hash);
-	if (PRF == 0)
-		return -EINVAL;
-
-	hLen = gcry_md_get_algo_dlen(PRF);
+	hLen = crypt_hmac_size(hash);
 	if (hLen == 0 || hLen > MAX_PRF_BLOCK_LEN)
 		return -EINVAL;
 
@@ -168,17 +159,15 @@ static int pkcs5_pbkdf2(const char *hash,
 	 *
 	 */
 
-	if(gcry_md_open(&prf, PRF, GCRY_MD_FLAG_HMAC))
+	if (crypt_hmac_init(&hmac, hash, P, Plen))
 		return -EINVAL;
-
-	if (gcry_md_setkey(prf, P, Plen))
-		goto out;
 
 	for (i = 1; (uint) i <= l; i++) {
 		memset(T, 0, hLen);
 
 		for (u = 1; u <= c ; u++) {
-			gcry_md_reset(prf);
+			if (crypt_hmac_restart(hmac))
+				goto out;
 
 			if (u == 1) {
 				memcpy(tmp, S, Slen);
@@ -187,16 +176,15 @@ static int pkcs5_pbkdf2(const char *hash,
 				tmp[Slen + 2] = (i & 0x0000ff00) >> 8;
 				tmp[Slen + 3] = (i & 0x000000ff) >> 0;
 
-				gcry_md_write(prf, tmp, tmplen);
+				if (crypt_hmac_write(hmac, tmp, tmplen))
+					goto out;
 			} else {
-				gcry_md_write(prf, U, hLen);
+				if (crypt_hmac_write(hmac, U, hLen))
+					goto out;
 			}
 
-			p = gcry_md_read(prf, PRF);
-			if (p == NULL)
+			if (crypt_hmac_final(hmac, U, hLen))
 				goto out;
-
-			memcpy(U, p, hLen);
 
 			for (k = 0; (uint) k < hLen; k++)
 				T[k] ^= U[k];
@@ -214,7 +202,7 @@ static int pkcs5_pbkdf2(const char *hash,
 	}
 	rc = 0;
 out:
-	gcry_md_close(prf);
+	crypt_hmac_destroy(hmac);
 	return rc;
 }
 
@@ -229,13 +217,7 @@ int PBKDF2_HMAC(const char *hash,
 
 int PBKDF2_HMAC_ready(const char *hash)
 {
-	int hash_id = gcry_md_map_name(hash);
-
-	if (!hash_id)
-		return -EINVAL;
-
-	/* Used hash must have at least 160 bits */
-	if (gcry_md_get_algo_dlen(hash_id) < 20)
+	if (crypt_hmac_size(hash) < 20)
 		return -EINVAL;
 
 	return 1;
@@ -249,22 +231,32 @@ static void sigvtalarm(int foo)
 /* This code benchmarks PBKDF2 and returns iterations/second using wth specified hash */
 int PBKDF2_performance_check(const char *hash, uint64_t *iter)
 {
-	int r;
+	int timer_type, r;
 	char buf;
 	struct itimerval it;
 
 	if (__PBKDF2_global_j)
 		return -EBUSY;
 
-	if (!PBKDF2_HMAC_ready(hash))
+	if (PBKDF2_HMAC_ready(hash) < 0)
 		return -EINVAL;
 
-	signal(SIGVTALRM,sigvtalarm);
+	/* If crypto backend is not implemented in userspace,
+	 * but uses some kernel part, we must measure also time
+	 * spent in kernel. */
+	if (crypt_backend_flags() & CRYPT_BACKEND_KERNEL) {
+		timer_type = ITIMER_PROF;
+		signal(SIGPROF,sigvtalarm);
+	} else {
+		timer_type = ITIMER_VIRTUAL;
+		signal(SIGVTALRM,sigvtalarm);
+	}
+
 	it.it_interval.tv_usec = 0;
 	it.it_interval.tv_sec = 0;
 	it.it_value.tv_usec = 0;
 	it.it_value.tv_sec =  1;
-	if (setitimer (ITIMER_VIRTUAL, &it, NULL) < 0)
+	if (setitimer(timer_type, &it, NULL) < 0)
 		return -EINVAL;
 
 	r = pkcs5_pbkdf2(hash, "foo", 3, "bar", 3, ~(0U), 1, &buf, 1);

@@ -1,3 +1,24 @@
+/*
+ * libdevmapper - device-mapper backend for cryptsetup
+ *
+ * Copyright (C) 2004, Christophe Saout <christophe@saout.de>
+ * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
+ * Copyright (C) 2009-2011, Red Hat, Inc. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <stdio.h>
@@ -20,10 +41,15 @@
 
 /* Set if dm-crypt version was probed */
 static int _dm_crypt_checked = 0;
-static int _dm_crypt_wipe_key_supported = 0;
+static uint32_t _dm_crypt_flags = 0;
 
 static int _dm_use_count = 0;
 static struct crypt_device *_context = NULL;
+
+/* Check if we have DM flag to instruct kernel to force wipe buffers */
+#if !HAVE_DECL_DM_TASK_SECURE_DATA
+static int dm_task_secure_data(struct dm_task *dmt) { return 1; }
+#endif
 
 /* Compatibility for old device-mapper without udev support */
 #if HAVE_DECL_DM_UDEV_DISABLE_DISK_RULES_FLAG
@@ -67,26 +93,47 @@ static void set_dm_error(int level, const char *file, int line,
 
 static int _dm_simple(int task, const char *name, int udev_wait);
 
-static void _dm_set_crypt_compat(int maj, int min, int patch)
+static void _dm_set_crypt_compat(const char *dm_version, unsigned crypt_maj,
+				 unsigned crypt_min, unsigned crypt_patch)
 {
-	log_dbg("Detected dm-crypt target of version %i.%i.%i.", maj, min, patch);
+	unsigned dm_maj, dm_min, dm_patch;
 
-	if (maj >= 1 && min >=2)
-		_dm_crypt_wipe_key_supported = 1;
+	if (sscanf(dm_version, "%u.%u.%u", &dm_maj, &dm_min, &dm_patch) != 3)
+		dm_maj = dm_min = dm_patch = 0;
+
+	log_dbg("Detected dm-crypt version %i.%i.%i, dm-ioctl version %u.%u.%u.",
+		crypt_maj, crypt_min, crypt_patch, dm_maj, dm_min, dm_patch);
+
+	if (crypt_maj >= 1 && crypt_min >= 2)
+		_dm_crypt_flags |= DM_KEY_WIPE_SUPPORTED;
 	else
 		log_dbg("Suspend and resume disabled, no wipe key support.");
 
-	_dm_crypt_checked = 1;
+	if (crypt_maj >= 1 && crypt_min >= 10)
+		_dm_crypt_flags |= DM_LMK_SUPPORTED;
+
+	if (dm_maj >= 4 && dm_min >= 20)
+		_dm_crypt_flags |= DM_SECURE_SUPPORTED;
+
+	/* not perfect, 2.6.33 supports with 1.7.0 */
+	if (crypt_maj >= 1 && crypt_min >= 8)
+		_dm_crypt_flags |= DM_PLAIN64_SUPPORTED;
+
+	/* Repeat test if dm-crypt is not present */
+	if (crypt_maj > 0)
+		_dm_crypt_checked = 1;
 }
 
 static int _dm_check_versions(void)
 {
 	struct dm_task *dmt;
 	struct dm_versions *target, *last_target;
+	char dm_version[16];
 
 	if (_dm_crypt_checked)
 		return 1;
 
+	/* FIXME: add support to DM so it forces crypt target module load here */
 	if (!(dmt = dm_task_create(DM_DEVICE_LIST_VERSIONS)))
 		return 0;
 
@@ -95,19 +142,33 @@ static int _dm_check_versions(void)
 		return 0;
 	}
 
+	if (!dm_task_get_driver_version(dmt, dm_version, sizeof(dm_version))) {
+		dm_task_destroy(dmt);
+		return 0;
+	}
+
 	target = dm_task_get_versions(dmt);
 	do {
 		last_target = target;
 		if (!strcmp(DM_CRYPT_TARGET, target->name)) {
-			_dm_set_crypt_compat((int)target->version[0],
-					     (int)target->version[1],
-					     (int)target->version[2]);
+			_dm_set_crypt_compat(dm_version,
+					     (unsigned)target->version[0],
+					     (unsigned)target->version[1],
+					     (unsigned)target->version[2]);
 		}
 		target = (void *) target + target->next;
 	} while (last_target != target);
 
 	dm_task_destroy(dmt);
 	return 1;
+}
+
+uint32_t dm_flags(void)
+{
+	if (!_dm_crypt_checked)
+		_dm_check_versions();
+
+	return _dm_crypt_flags;
 }
 
 int dm_init(struct crypt_device *context, int check_kernel)
@@ -461,6 +522,8 @@ int dm_create_device(const char *name,
 			goto out_no_removal;
 	}
 
+	if ((dm_flags() & DM_SECURE_SUPPORTED) && !dm_task_secure_data(dmt))
+		goto out_no_removal;
 	if (read_only && !dm_task_set_ro(dmt))
 		goto out_no_removal;
 	if (!dm_task_add_target(dmt, 0, size, DM_CRYPT_TARGET, params))
@@ -585,6 +648,8 @@ int dm_query_device(const char *name,
 
 	if (!(dmt = dm_task_create(DM_DEVICE_TABLE)))
 		goto out;
+	if ((dm_flags() & DM_SECURE_SUPPORTED) && !dm_task_secure_data(dmt))
+		goto out;
 	if (!dm_task_set_name(dmt, name))
 		goto out;
 	r = -ENODEV;
@@ -690,6 +755,9 @@ static int _dm_message(const char *name, const char *msg)
 	if (!(dmt = dm_task_create(DM_DEVICE_TARGET_MSG)))
 		return 0;
 
+	if ((dm_flags() & DM_SECURE_SUPPORTED) && !dm_task_secure_data(dmt))
+		goto out;
+
 	if (name && !dm_task_set_name(dmt, name))
 		goto out;
 
@@ -711,7 +779,7 @@ int dm_suspend_and_wipe_key(const char *name)
 	if (!_dm_check_versions())
 		return -ENOTSUP;
 
-	if (!_dm_crypt_wipe_key_supported)
+	if (!(_dm_crypt_flags & DM_KEY_WIPE_SUPPORTED))
 		return -ENOTSUP;
 
 	if (!_dm_simple(DM_DEVICE_SUSPEND, name, 0))
@@ -736,7 +804,7 @@ int dm_resume_and_reinstate_key(const char *name,
 	if (!_dm_check_versions())
 		return -ENOTSUP;
 
-	if (!_dm_crypt_wipe_key_supported)
+	if (!(_dm_crypt_flags & DM_KEY_WIPE_SUPPORTED))
 		return -ENOTSUP;
 
 	msg = crypt_safe_alloc(msg_size);

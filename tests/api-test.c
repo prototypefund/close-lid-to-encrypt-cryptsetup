@@ -29,12 +29,11 @@
 #include <sys/ioctl.h>
 
 #include "libcryptsetup.h"
+#include "utils_loop.h"
 
 #define DMDIR "/dev/mapper/"
 
-#define DEVICE_1 "/dev/loop5"
 #define DEVICE_1_UUID "28632274-8c8a-493f-835b-da802e1c576b"
-#define DEVICE_2 "/dev/loop6"
 #define DEVICE_EMPTY_name "crypt_zero"
 #define DEVICE_EMPTY DMDIR DEVICE_EMPTY_name
 #define DEVICE_ERROR_name "crypt_error"
@@ -63,7 +62,8 @@ static int _verbose = 1;
 static char global_log[4096];
 static int global_lines = 0;
 
-static int gcrypt_compatible = 0;
+static char *DEVICE_1 = NULL;
+static char *DEVICE_2 = NULL;
 
 // Helpers
 static int _prepare_keyfile(const char *name, const char *passphrase)
@@ -163,29 +163,45 @@ static void _cleanup(void)
 	if (!stat(DEVICE_ERROR, &st))
 		_system("dmsetup remove " DEVICE_ERROR_name, 0);
 
-	if (!strncmp("/dev/loop", DEVICE_1, 9))
-		_system("losetup -d " DEVICE_1, 0);
+	if (crypt_loop_device(DEVICE_1))
+		crypt_loop_detach(DEVICE_1);
 
-	if (!strncmp("/dev/loop", DEVICE_2, 9))
-		_system("losetup -d " DEVICE_2, 0);
+	if (crypt_loop_device(DEVICE_2))
+		crypt_loop_detach(DEVICE_2);
 
 	_system("rm -f " IMAGE_EMPTY, 0);
 	_remove_keyfiles();
 }
 
-static void _setup(void)
+static int _setup(void)
 {
+	int fd, ro = 0;
+
 	_system("dmsetup create " DEVICE_EMPTY_name " --table \"0 10000 zero\"", 1);
 	_system("dmsetup create " DEVICE_ERROR_name " --table \"0 10000 error\"", 1);
-	if (!strncmp("/dev/loop", DEVICE_1, 9)) {
+	if (!DEVICE_1)
+		DEVICE_1 = crypt_loop_get_device();
+	if (!DEVICE_1) {
+		printf("Cannot find free loop device.\n");
+		return 1;
+	}
+	if (crypt_loop_device(DEVICE_1)) {
 		_system(" [ ! -e " IMAGE1 " ] && bzip2 -dk " IMAGE1 ".bz2", 1);
-		_system("losetup " DEVICE_1 " " IMAGE1, 1);
+		fd = crypt_loop_attach(DEVICE_1, IMAGE1, 0, 0, &ro);
+		close(fd);
 	}
-	if (!strncmp("/dev/loop", DEVICE_2, 9)) {
+	if (!DEVICE_2)
+		DEVICE_2 = crypt_loop_get_device();
+	if (!DEVICE_2) {
+		printf("Cannot find free loop device.\n");
+		return 1;
+	}
+	if (crypt_loop_device(DEVICE_2)) {
 		_system("dd if=/dev/zero of=" IMAGE_EMPTY " bs=1M count=4", 1);
-		_system("losetup " DEVICE_2 " " IMAGE_EMPTY, 1);
+		fd = crypt_loop_attach(DEVICE_2, IMAGE_EMPTY, 0, 0, &ro);
+		close(fd);
 	}
-
+	return 0;
 }
 
 void check_ok(int status, int line, const char *func)
@@ -826,6 +842,7 @@ static void AddDeviceLuks(void)
 static void UseTempVolumes(void)
 {
 	struct crypt_device *cd;
+	char tmp[256];
 
 	// Tepmporary device without keyslot but with on-disk LUKS header
 	OK_(crypt_init(&cd, DEVICE_2));
@@ -844,19 +861,21 @@ static void UseTempVolumes(void)
 
 	// Dirty checks: device without UUID
 	// we should be able to remove it but not manuipulate with it
-	_system("dmsetup create " CDEVICE_2 " --table \""
+	snprintf(tmp, sizeof(tmp), "dmsetup create %s --table \""
 		"0 100 crypt aes-cbc-essiv:sha256 deadbabedeadbabedeadbabedeadbabe 0 "
-		DEVICE_2 " 2048\"", 1);
+		"%s 2048\"", CDEVICE_2, DEVICE_2);
+	_system(tmp, 1);
 	OK_(crypt_init_by_name(&cd, CDEVICE_2));
 	OK_(crypt_deactivate(cd, CDEVICE_2));
 	FAIL_(crypt_activate_by_volume_key(cd, CDEVICE_2, NULL, 0, 0), "No known device type");
 	crypt_free(cd);
 
 	// Dirty checks: device with UUID but LUKS header key fingerprint must fail)
-	_system("dmsetup create " CDEVICE_2 " --table \""
+	snprintf(tmp, sizeof(tmp), "dmsetup create %s --table \""
 		"0 100 crypt aes-cbc-essiv:sha256 deadbabedeadbabedeadbabedeadbabe 0 "
-		DEVICE_2 " 2048\" "
-		"-u CRYPT-LUKS1-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-ctest1", 1);
+		"%s 2048\" -u CRYPT-LUKS1-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa-ctest1",
+		 CDEVICE_2, DEVICE_2);
+	_system(tmp, 1);
 	OK_(crypt_init_by_name(&cd, CDEVICE_2));
 	OK_(crypt_deactivate(cd, CDEVICE_2));
 	FAIL_(crypt_activate_by_volume_key(cd, CDEVICE_2, NULL, 0, 0), "wrong volume key");
@@ -884,44 +903,29 @@ static void UseTempVolumes(void)
 static void NonFIPSAlg(void)
 {
 	struct crypt_device *cd;
-	struct crypt_params_luks1 params = {
-		.hash = "whirlpool",
-	};
+	struct crypt_params_luks1 params = {0};
 	char key[128] = "";
 	size_t key_size = 128;
 	char *cipher = "aes";
 	char *cipher_mode = "cbc-essiv:sha256";
+	int ret;
 
-	if (!gcrypt_compatible) {
-		printf("WARNING: old libgcrypt, skipping test.\n");
+	OK_(crypt_init(&cd, DEVICE_2));
+	params.hash = "sha256";
+	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
+
+	params.hash = "whirlpool";
+	ret = crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params);
+	if (ret < 0) {
+		printf("WARNING: whirlpool not supported, skipping test.\n");
+		crypt_free(cd);
 		return;
 	}
-	OK_(crypt_init(&cd, DEVICE_2));
-	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
 
 	params.hash = "md5";
 	FAIL_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params),
 	      "MD5 unsupported, too short");
 	crypt_free(cd);
-}
-
-
-static void _gcrypt_compatible()
-{
-	int maj, min, patch;
-	FILE *f;
-
-	if (!(f = popen("libgcrypt-config --version", "r")))
-		return;
-
-	if (fscanf(f, "%d.%d.%d", &maj, &min, &patch) == 3 &&
-	    maj >= 1 && min >= 4)
-		gcrypt_compatible = 1;
-	if (_debug)
-		printf("libgcrypt version %d.%d.%d detected.\n", maj, min, patch);
-
-	(void)fclose(f);
-	return;
 }
 
 int main (int argc, char *argv[])
@@ -941,8 +945,8 @@ int main (int argc, char *argv[])
 	}
 
 	_cleanup();
-	_setup();
-	_gcrypt_compatible();
+	if (_setup())
+		goto out;
 
 	crypt_set_debug_level(_debug ? CRYPT_DEBUG_ALL : CRYPT_DEBUG_NONE);
 
@@ -964,7 +968,7 @@ int main (int argc, char *argv[])
 	RUN_(UseTempVolumes, "Format and use temporary encrypted device");
 
 	RUN_(CallbacksTest, "API callbacks test");
-
+out:
 	_cleanup();
 	return 0;
 }

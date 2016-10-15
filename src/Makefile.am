@@ -11,6 +11,7 @@ INCLUDES = \
 
 cryptsetup_SOURCES = \
 	$(top_builddir)/lib/utils_crypt.c	\
+	$(top_builddir)/lib/utils_loop.c	\
 	cryptsetup.c				\
 	cryptsetup.h
 
@@ -28,7 +29,7 @@ cryptsetup_static_SOURCES = $(cryptsetup_SOURCES)
 cryptsetup_static_CFLAGS = $(cryptsetup_CFLAGS)
 cryptsetup_static_LDFLAGS = -all-static
 cryptsetup_static_LDADD = $(cryptsetup_LDADD)	\
-	@LIBGCRYPT_STATIC_LIBS@			\
+	@CRYPTO_STATIC_LIBS@			\
 	@DEVMAPPER_STATIC_LIBS@			\
 	@UUID_LIBS@
 endif

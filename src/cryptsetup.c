@@ -1,3 +1,24 @@
+/*
+ * cryptsetup - setup cryptographic volumes for dm-crypt
+ *
+ * Copyright (C) 2004, Christophe Saout <christophe@saout.de>
+ * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
+ * Copyright (C) 2009-2011, Red Hat, Inc. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,11 +29,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <assert.h>
-
 #include <libcryptsetup.h>
 #include <popt.h>
-
-#include "../config.h"
 
 #include "cryptsetup.h"
 
@@ -25,13 +43,14 @@ static char *opt_key_file = NULL;
 static char *opt_master_key_file = NULL;
 static char *opt_header_backup_file = NULL;
 static char *opt_uuid = NULL;
-static unsigned int opt_key_size = 0;
-static unsigned int opt_keyfile_size = 0;
-static unsigned int opt_new_keyfile_size = 0;
+static int opt_key_size = 0;
+static long opt_keyfile_size = 0;
+static long opt_new_keyfile_size = 0;
 static int opt_key_slot = CRYPT_ANY_SLOT;
 static uint64_t opt_size = 0;
 static uint64_t opt_offset = 0;
 static uint64_t opt_skip = 0;
+static int opt_skip_valid = 0;
 static int opt_readonly = 0;
 static int opt_iteration_time = 1000;
 static int opt_batch_mode = 0;
@@ -55,6 +74,7 @@ static int action_luksOpen(int arg);
 static int action_luksAddKey(int arg);
 static int action_luksKillSlot(int arg);
 static int action_luksRemoveKey(int arg);
+static int action_luksChangeKey(int arg);
 static int action_isLuks(int arg);
 static int action_luksUUID(int arg);
 static int action_luksDump(int arg);
@@ -62,6 +82,7 @@ static int action_luksSuspend(int arg);
 static int action_luksResume(int arg);
 static int action_luksBackup(int arg);
 static int action_luksRestore(int arg);
+static int action_loopaesOpen(int arg);
 
 static struct action_type {
 	const char *type;
@@ -80,15 +101,18 @@ static struct action_type {
 	{ "luksOpen",	action_luksOpen,	0, 2, 1, N_("<device> <name> "), N_("open LUKS device as mapping <name>") },
 	{ "luksAddKey",	action_luksAddKey,	0, 1, 1, N_("<device> [<new key file>]"), N_("add key to LUKS device") },
 	{ "luksRemoveKey",action_luksRemoveKey,	0, 1, 1, N_("<device> [<key file>]"), N_("removes supplied key or key file from LUKS device") },
+	{ "luksChangeKey",action_luksChangeKey,	0, 1, 1, N_("<device> [<key file>]"), N_("changes supplied key or key file of LUKS device") },
 	{ "luksKillSlot",  action_luksKillSlot, 0, 2, 1, N_("<device> <key slot>"), N_("wipes key with number <key slot> from LUKS device") },
 	{ "luksUUID",	action_luksUUID,	0, 1, 0, N_("<device>"), N_("print UUID of LUKS device") },
 	{ "isLuks",	action_isLuks,		0, 1, 0, N_("<device>"), N_("tests <device> for LUKS partition header") },
 	{ "luksClose",	action_remove,		0, 1, 1, N_("<name>"), N_("remove LUKS mapping") },
-	{ "luksDump",	action_luksDump,	0, 1, 0, N_("<device>"), N_("dump LUKS partition information") },
+	{ "luksDump",	action_luksDump,	0, 1, 1, N_("<device>"), N_("dump LUKS partition information") },
 	{ "luksSuspend",action_luksSuspend,	0, 1, 1, N_("<device>"), N_("Suspend LUKS device and wipe key (all IOs are frozen).") },
 	{ "luksResume",	action_luksResume,	0, 1, 1, N_("<device>"), N_("Resume suspended LUKS device.") },
 	{ "luksHeaderBackup",action_luksBackup,	0, 1, 1, N_("<device>"), N_("Backup LUKS device header and keyslots") },
 	{ "luksHeaderRestore",action_luksRestore,0,1, 1, N_("<device>"), N_("Restore LUKS device header and keyslots") },
+	{ "loopaesOpen",action_loopaesOpen,	0, 2, 1, N_("<device> <name> "), N_("open loop-AES device as mapping <name>") },
+	{ "loopaesClose",action_remove,		0, 1, 1, N_("<name>"), N_("remove loop-AES mapping") },
 	{ NULL, NULL, 0, 0, 0, NULL, NULL }
 };
 
@@ -152,6 +176,10 @@ static void _log(int level, const char *msg, void *usrptr)
 	case CRYPT_LOG_ERROR:
 		fputs(msg, stderr);
 		break;
+	case CRYPT_LOG_DEBUG:
+		if (opt_debug)
+			printf("# %s\n", msg);
+		break;
 	default:
 		fprintf(stderr, "Internal error on logging class for msg: %s", msg);
 		break;
@@ -197,8 +225,8 @@ static int action_create(int arg)
 		.offset = opt_offset,
 	};
 	char *password = NULL;
-	unsigned int passwordLen;
-	unsigned int key_size = (opt_key_size ?: DEFAULT_PLAIN_KEYBITS) / 8;
+	size_t passwordLen;
+	size_t key_size = (opt_key_size ?: DEFAULT_PLAIN_KEYBITS) / 8;
 	int r;
 
 	if (params.hash && !strcmp(params.hash, "plain"))
@@ -208,8 +236,12 @@ static int action_create(int arg)
 	if (opt_key_file && strcmp(opt_key_file, "-"))
 		params.hash = NULL;
 
+	if (opt_keyfile_size && opt_key_file)
+		log_std(("Ignoring keyfile size option, keyfile read size "
+			 "is always the same as encryption key size.\n"));
+
 	r = crypt_parse_name_and_mode(opt_cipher ?: DEFAULT_CIPHER(PLAIN),
-				      cipher, cipher_mode);
+				      cipher, NULL, cipher_mode);
 	if (r < 0) {
 		log_err("No known cipher specification pattern detected.\n");
 		goto out;
@@ -235,8 +267,8 @@ static int action_create(int arg)
 			opt_readonly ?  CRYPT_ACTIVATE_READONLY : 0);
 	else {
 		r = crypt_get_key(_("Enter passphrase: "),
-				  &password, &passwordLen, 0, NULL,
-				  opt_timeout,
+				  &password, &passwordLen, opt_keyfile_size,
+				  NULL, opt_timeout,
 				  opt_batch_mode ? 0 : opt_verify_passphrase,
 				  cd);
 		if (r < 0)
@@ -244,11 +276,44 @@ static int action_create(int arg)
 
 		r = crypt_activate_by_passphrase(cd, action_argv[0],
 			CRYPT_ANY_SLOT, password, passwordLen,
-			 opt_readonly ?  CRYPT_ACTIVATE_READONLY : 0);
+			opt_readonly ?  CRYPT_ACTIVATE_READONLY : 0);
 	}
 out:
 	crypt_free(cd);
 	crypt_safe_free(password);
+
+	return r;
+}
+
+static int action_loopaesOpen(int arg)
+{
+	struct crypt_device *cd = NULL;
+	struct crypt_params_loopaes params = {
+		.hash = opt_hash ?: NULL,
+		.offset = opt_offset,
+		.skip = opt_skip_valid ? opt_skip : opt_offset,
+	};
+	unsigned int key_size = (opt_key_size ?: DEFAULT_LOOPAES_KEYBITS) / 8;
+	int r;
+
+	if (!opt_key_file) {
+		log_err(_("Option --key-file is required.\n"));
+		return -EINVAL;
+	}
+
+	if ((r = crypt_init(&cd, action_argv[0])))
+		goto out;
+
+	r = crypt_format(cd, CRYPT_LOOPAES, opt_cipher ?: DEFAULT_LOOPAES_CIPHER,
+			 NULL, NULL, NULL, key_size, &params);
+	if (r < 0)
+		goto out;
+
+	r = crypt_activate_by_keyfile(cd, action_argv[1],
+		CRYPT_ANY_SLOT, opt_key_file, opt_keyfile_size,
+		opt_readonly ?  CRYPT_ACTIVATE_READONLY : 0);
+out:
+	crypt_free(cd);
 
 	return r;
 }
@@ -284,6 +349,8 @@ static int action_status(int arg)
 	crypt_status_info ci;
 	struct crypt_active_device cad;
 	struct crypt_device *cd = NULL;
+	char *backing_file;
+	const char *device;
 	int r = 0;
 
 	ci = crypt_status(NULL, action_argv[0]);
@@ -302,7 +369,7 @@ static int action_status(int arg)
 		if (r < 0 || !crypt_get_type(cd))
 			goto out;
 
-		log_std("  type:  %s\n", crypt_get_type(cd));
+		log_std("  type:    %s\n", crypt_get_type(cd));
 
 		r = crypt_get_active_device(cd, action_argv[0], &cad);
 		if (r < 0)
@@ -310,7 +377,13 @@ static int action_status(int arg)
 
 		log_std("  cipher:  %s-%s\n", crypt_get_cipher(cd), crypt_get_cipher_mode(cd));
 		log_std("  keysize: %d bits\n", crypt_get_volume_key_size(cd) * 8);
-		log_std("  device:  %s\n", crypt_get_device_name(cd));
+		device = crypt_get_device_name(cd);
+		log_std("  device:  %s\n", device);
+		if (crypt_loop_device(device)) {
+			backing_file = crypt_loop_backing_file(device);
+			log_std("  loop:    %s\n", backing_file);
+			free(backing_file);
+		}
 		log_std("  offset:  %" PRIu64 " sectors\n", cad.offset);
 		log_std("  size:    %" PRIu64 " sectors\n", cad.size);
 		if (cad.iv_offset)
@@ -354,7 +427,7 @@ static int action_luksFormat(int arg)
 	int r = -EINVAL, keysize;
 	char *msg = NULL, *key = NULL, cipher [MAX_CIPHER_LEN], cipher_mode[MAX_CIPHER_LEN];
 	char *password = NULL;
-	unsigned int passwordLen;
+	size_t passwordLen;
 	struct crypt_device *cd = NULL;
 	struct crypt_params_luks1 params = {
 		.hash = opt_hash ?: DEFAULT_LUKS1_HASH,
@@ -372,7 +445,7 @@ static int action_luksFormat(int arg)
 		goto out;
 
 	r = crypt_parse_name_and_mode(opt_cipher ?: DEFAULT_CIPHER(LUKS1),
-				      cipher, cipher_mode);
+				      cipher, NULL, cipher_mode);
 	if (r < 0) {
 		log_err("No known cipher specification pattern detected.\n");
 		goto out;
@@ -460,8 +533,8 @@ static int verify_keyslot(struct crypt_device *cd, int key_slot,
 {
 	crypt_keyslot_info ki;
 	char *password = NULL;
-	unsigned int passwordLen, i;
-	int r;
+	size_t passwordLen;
+	int i, r;
 
 	ki = crypt_keyslot_status(cd, key_slot);
 	if (ki == CRYPT_SLOT_ACTIVE_LAST && msg_last && !_yesDialog(msg_last, NULL))
@@ -542,7 +615,7 @@ static int action_luksRemoveKey(int arg)
 {
 	struct crypt_device *cd = NULL;
 	char *password = NULL;
-	unsigned int passwordLen;
+	size_t passwordLen;
 	int r;
 
 	if ((r = crypt_init(&cd, action_argv[0])))
@@ -608,9 +681,10 @@ static int action_luksAddKey(int arg)
 		crypt_set_iterarion_time(cd, opt_iteration_time);
 
 	if (opt_master_key_file) {
-		if (_read_mk(opt_master_key_file, &key, keysize) < 0)
+		r = _read_mk(opt_master_key_file, &key, keysize);
+		if (r < 0)
 			goto out;
-
+		//FIXME: process keyfile arg
 		r = crypt_keyslot_add_by_volume_key(cd, opt_key_slot,
 						    key, keysize, NULL, 0);
 	} else if (opt_key_file || opt_new_key_file) {
@@ -624,6 +698,103 @@ static int action_luksAddKey(int arg)
 out:
 	crypt_free(cd);
 	crypt_safe_free(key);
+	return r;
+}
+
+static int _slots_full(struct crypt_device *cd)
+{
+	int i;
+
+	for (i = 0; i < crypt_keyslot_max(crypt_get_type(cd)); i++)
+		if (crypt_keyslot_status(cd, i) == CRYPT_SLOT_INACTIVE)
+			return 0;
+	return 1;
+}
+
+static int action_luksChangeKey(int arg)
+{
+	const char *opt_new_key_file = (action_argc > 1 ? action_argv[1] : NULL);
+	struct crypt_device *cd = NULL;
+	char *vk = NULL, *password = NULL;
+	size_t passwordLen = 0;
+	size_t vk_size;
+	int new_key_slot, old_key_slot, r;
+
+	if ((r = crypt_init(&cd, action_argv[0])))
+		goto out;
+
+	if ((r = crypt_load(cd, CRYPT_LUKS1, NULL)))
+		goto out;
+
+	if (opt_iteration_time)
+		crypt_set_iterarion_time(cd, opt_iteration_time);
+
+	r = crypt_get_key(_("Enter LUKS passphrase to be changed: "),
+		      &password, &passwordLen,
+		      opt_keyfile_size, opt_key_file, opt_timeout,
+		      opt_batch_mode ? 0 : opt_verify_passphrase, cd);
+	if (r < 0)
+		goto out;
+
+	vk_size = crypt_get_volume_key_size(cd);
+	vk = crypt_safe_alloc(vk_size);
+	if (!vk) {
+		r = -ENOMEM;
+		goto out;
+	}
+
+	r = crypt_volume_key_get(cd, opt_key_slot, vk, &vk_size,
+				 password, passwordLen);
+	if (r < 0) {
+		if (opt_key_slot != CRYPT_ANY_SLOT)
+			log_err(_("No key available with this passphrase.\n"));
+		goto out;
+	}
+
+	if (opt_key_slot != CRYPT_ANY_SLOT || _slots_full(cd)) {
+		log_dbg("Key slot %d is going to be overwritten (%s).",
+			r, opt_key_slot != CRYPT_ANY_SLOT ?
+			"explicit key slot specified" : "no free key slot");
+		old_key_slot = r;
+		new_key_slot = r;
+	} else {
+		log_dbg("Allocating new key slot.");
+		old_key_slot = r;
+		new_key_slot = CRYPT_ANY_SLOT;
+	}
+
+	crypt_safe_free(password);
+	password = NULL;
+	passwordLen = 0;
+	r = crypt_get_key(_("Enter new LUKS passphrase: "),
+			  &password, &passwordLen,
+			  opt_new_keyfile_size, opt_new_key_file,
+			  opt_timeout, opt_batch_mode ? 0 : 1, cd);
+	if (r < 0)
+		goto out;
+
+	if (new_key_slot == old_key_slot) {
+		(void)crypt_keyslot_destroy(cd, old_key_slot);
+		r = crypt_keyslot_add_by_volume_key(cd, new_key_slot,
+						    vk, vk_size,
+						    password, passwordLen);
+		if (r >= 0)
+			log_verbose(_("Key slot %d changed.\n"), r);
+	} else {
+		r = crypt_keyslot_add_by_volume_key(cd, CRYPT_ANY_SLOT,
+						    vk, vk_size,
+						    password, passwordLen);
+		if (r >= 0) {
+			log_verbose(_("Replaced with key slot %d.\n"), r);
+			r = crypt_keyslot_destroy(cd, old_key_slot);
+		}
+	}
+	if (r < 0)
+		log_err(_("Failed to swap new key slot.\n"));
+out:
+	crypt_safe_free(vk);
+	crypt_safe_free(password);
+	crypt_free(cd);
 	return r;
 }
 
@@ -670,7 +841,7 @@ out:
 static int luksDump_with_volume_key(struct crypt_device *cd)
 {
 	char *vk = NULL, *password = NULL;
-	unsigned int passwordLen = 0;
+	size_t passwordLen = 0;
 	size_t vk_size;
 	int i, r;
 
@@ -847,9 +1018,16 @@ static void help(poptContext popt_context, enum poptCallbackReason reason,
 			 "<key file> optional key file for the new key for luksAddKey action\n"),
 			crypt_get_dir());
 
+		log_std(_("\nDefault compiled-in keyfile parameters:\n"
+			 "\tMaximum keyfile size: %dkB, "
+			 "Maximum interactive passphrase length %d (characters)\n"),
+			 DEFAULT_KEYFILE_SIZE_MAXKB, DEFAULT_PASSPHRASE_SIZE_MAX);
+
 		log_std(_("\nDefault compiled-in device cipher parameters:\n"
+			 "\tloop-AES: %s, Key %d bits\n"
 			 "\tplain: %s, Key: %d bits, Password hashing: %s\n"
 			 "\tLUKS1: %s, Key: %d bits, LUKS header hashing: %s, RNG: %s\n"),
+			 DEFAULT_LOOPAES_CIPHER, DEFAULT_LOOPAES_KEYBITS,
 			 DEFAULT_CIPHER(PLAIN), DEFAULT_PLAIN_KEYBITS, DEFAULT_PLAIN_HASH,
 			 DEFAULT_CIPHER(LUKS1), DEFAULT_LUKS1_KEYBITS, DEFAULT_LUKS1_HASH,
 			 DEFAULT_RNG);
@@ -874,6 +1052,8 @@ static void _dbg_version_and_cmd(int argc, char **argv)
 static int run_action(struct action_type *action)
 {
 	int r;
+
+	log_dbg("Running command %s.", action->type);
 
 	if (action->required_memlock)
 		crypt_memory_lock(NULL, 1);
@@ -927,8 +1107,8 @@ int main(int argc, char **argv)
 		{ "master-key-file",  '\0',  POPT_ARG_STRING, &opt_master_key_file,     0, N_("Read the volume (master) key from file."), NULL },
 		{ "dump-master-key",  '\0',  POPT_ARG_NONE, &opt_dump_master_key,       0, N_("Dump volume (master) key instead of keyslots info."), NULL },
 		{ "key-size",          's',  POPT_ARG_INT, &opt_key_size,               0, N_("The size of the encryption key"), N_("BITS") },
-		{ "keyfile-size",      'l',  POPT_ARG_INT, &opt_keyfile_size,           0, N_("Limits the read from keyfile"), N_("bytes") },
-		{ "new-keyfile-size", '\0',  POPT_ARG_INT, &opt_new_keyfile_size,       0, N_("Limits the read from newly added keyfile"), N_("bytes") },
+		{ "keyfile-size",      'l',  POPT_ARG_LONG, &opt_keyfile_size,          0, N_("Limits the read from keyfile"), N_("bytes") },
+		{ "new-keyfile-size", '\0',  POPT_ARG_LONG, &opt_new_keyfile_size,      0, N_("Limits the read from newly added keyfile"), N_("bytes") },
 		{ "key-slot",          'S',  POPT_ARG_INT, &opt_key_slot,               0, N_("Slot number for new key (default is first free)"), NULL },
 		{ "size",              'b',  POPT_ARG_STRING, &popt_tmp,                1, N_("The size of the device"), N_("SECTORS") },
 		{ "offset",            'o',  POPT_ARG_STRING, &popt_tmp,                2, N_("The start offset in the backend device"), N_("SECTORS") },
@@ -979,6 +1159,7 @@ int main(int argc, char **argv)
 				break;
 			case 3:
 				opt_skip = ull_value;
+				opt_skip_valid = 1;
 				break;
 		}
 
@@ -1025,9 +1206,10 @@ int main(int argc, char **argv)
 
 	if (opt_key_size &&
 	   strcmp(aname, "luksFormat") &&
-	   strcmp(aname, "create")) {
+	   strcmp(aname, "create") &&
+	   strcmp(aname, "loopaesOpen")) {
 		usage(popt_context, EXIT_FAILURE,
-		      _("Option --key-size is allowed only for luksFormat and create.\n"
+		      _("Option --key-size is allowed only for luksFormat, create and loopaesOpen.\n"
 		        "To limit read from keyfile use --keyfile-size=(bytes)."),
 		      poptGetInvocationName(popt_context));
 	}
@@ -1053,6 +1235,12 @@ int main(int argc, char **argv)
 			opt_key_file = (char*)action_argv[1];
 	}
 
+	if (opt_keyfile_size < 0 || opt_new_keyfile_size < 0 || opt_key_size < 0) {
+		usage(popt_context, EXIT_FAILURE,
+		      _("Negative number for option not permitted."),
+		      poptGetInvocationName(popt_context));
+	}
+
 	if (opt_random && opt_urandom)
 		usage(popt_context, EXIT_FAILURE, _("Only one of --use-[u]random options is allowed."),
 		      poptGetInvocationName(popt_context));
@@ -1064,9 +1252,15 @@ int main(int argc, char **argv)
 		usage(popt_context, EXIT_FAILURE, _("Option --uuid is allowed only for luksFormat and luksUUID."),
 		      poptGetInvocationName(popt_context));
 
-	if ((opt_offset || opt_skip) && strcmp(aname, "create"))
-		usage(popt_context, EXIT_FAILURE, _("Options --offset and --skip are supported only for create command.\n"),
-		      poptGetInvocationName(popt_context));
+	if (opt_skip && strcmp(aname, "create") && strcmp(aname, "loopaesOpen"))
+		usage(popt_context, EXIT_FAILURE,
+		_("Option --skip is supported only for create and loopaesOpen commands.\n"),
+		poptGetInvocationName(popt_context));
+
+	if (opt_offset && strcmp(aname, "create") && strcmp(aname, "loopaesOpen"))
+		usage(popt_context, EXIT_FAILURE,
+		_("Option --offset is supported only for create and loopaesOpen commands.\n"),
+		poptGetInvocationName(popt_context));
 
 	if (opt_debug) {
 		opt_verbose = 1;

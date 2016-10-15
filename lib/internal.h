@@ -12,6 +12,7 @@
 
 #include "nls.h"
 #include "utils_crypt.h"
+#include "utils_loop.h"
 
 #define SECTOR_SHIFT		9
 #define SECTOR_SIZE		(1 << SECTOR_SHIFT)
@@ -57,14 +58,13 @@ void set_error_va(const char *fmt, va_list va);
 void set_error(const char *fmt, ...);
 const char *get_error(void);
 
-int init_crypto(struct crypt_device *ctx);
-struct hash_backend *get_hash_backend(const char *name);
-void put_hash_backend(struct hash_backend *backend);
-int hash(const char *backend_name, const char *hash_name,
-         char *result, size_t size,
-         const char *passphrase, size_t sizep);
+/* Device mapper backend - kernel support flags */
+#define DM_KEY_WIPE_SUPPORTED (1 << 0)	/* key wipe message */
+#define DM_LMK_SUPPORTED      (1 << 1)	/* lmk mode */
+#define DM_SECURE_SUPPORTED   (1 << 2)	/* wipe (secure) buffer flag */
+#define DM_PLAIN64_SUPPORTED  (1 << 3)	/* plain64 IV */
+uint32_t dm_flags(void);
 
-/* Device mapper backend */
 const char *dm_get_dir(void);
 int dm_init(struct crypt_device *context, int check_kernel);
 void dm_exit(void);
@@ -100,6 +100,12 @@ int get_device_infos(const char *device,
 		     int open_exclusive,
 		     int *readonly,
 		     uint64_t *size);
+int device_check_and_adjust(struct crypt_device *cd,
+			    const char *device,
+			    int open_exclusive,
+			    uint64_t *size,
+			    uint64_t *offset,
+			    int *read_only);
 int wipe_device_header(const char *device, int sectors);
 
 void logger(struct crypt_device *cd, int class, const char *file, int line, const char *format, ...);
@@ -126,5 +132,10 @@ int crypt_random_init(struct crypt_device *ctx);
 int crypt_random_get(struct crypt_device *ctx, char *buf, size_t len, int quality);
 void crypt_random_exit(void);
 int crypt_random_default_key_rng(void);
+
+int crypt_plain_hash(struct crypt_device *ctx,
+		     const char *hash_name,
+		     char *key, size_t key_size,
+		     const char *passphrase, size_t passphrase_size);
 
 #endif /* INTERNAL_H */

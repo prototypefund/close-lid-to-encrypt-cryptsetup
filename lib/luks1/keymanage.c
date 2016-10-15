@@ -46,6 +46,21 @@ static inline int round_up_modulo(int x, int m) {
 	return div_round_up(x, m) * m;
 }
 
+const char *dbg_slot_state(crypt_keyslot_info ki)
+{
+	switch(ki) {
+	case CRYPT_SLOT_INACTIVE:
+		return "INACTIVE";
+	case CRYPT_SLOT_ACTIVE:
+		return "ACTIVE";
+	case CRYPT_SLOT_ACTIVE_LAST:
+		return "ACTIVE_LAST";
+	case CRYPT_SLOT_INVALID:
+	default:
+		return "INVALID";
+	}
+}
+
 int LUKS_hdr_backup(
 	const char *backup_file,
 	const char *device,
@@ -508,7 +523,7 @@ int LUKS_set_key(const char *device, unsigned int keyIndex,
 		 struct crypt_device *ctx)
 {
 	char derivedKey[hdr->keyBytes];
-	char *AfKey;
+	char *AfKey = NULL;
 	unsigned int AFEKSize;
 	uint64_t PBKDF2_temp;
 	int r;
@@ -544,7 +559,8 @@ int LUKS_set_key(const char *device, unsigned int keyIndex,
 
 	r = crypt_random_get(ctx, hdr->keyblock[keyIndex].passwordSalt,
 		       LUKS_SALTSIZE, CRYPT_RND_NORMAL);
-	if(r < 0) return r;
+	if (r < 0)
+		return r;
 
 //	assert((vk->keylength % TWOFISH_BLOCKSIZE) == 0); FIXME
 
@@ -552,19 +568,24 @@ int LUKS_set_key(const char *device, unsigned int keyIndex,
 			hdr->keyblock[keyIndex].passwordSalt,LUKS_SALTSIZE,
 			hdr->keyblock[keyIndex].passwordIterations,
 			derivedKey, hdr->keyBytes);
-	if(r < 0) return r;
+	if (r < 0)
+		goto out;
 
 	/*
-	 * AF splitting, the masterkey stored in vk->key is splitted to AfMK
+	 * AF splitting, the masterkey stored in vk->key is split to AfKey
 	 */
 	AFEKSize = hdr->keyblock[keyIndex].stripes*vk->keylength;
-	AfKey = (char *)malloc(AFEKSize);
-	if(AfKey == NULL) return -ENOMEM;
+	AfKey = crypt_safe_alloc(AFEKSize);
+	if (!AfKey) {
+		r = -ENOMEM;
+		goto out;
+	}
 
 	log_dbg("Using hash %s for AF in key slot %d, %d stripes",
 		hdr->hashSpec, keyIndex, hdr->keyblock[keyIndex].stripes);
 	r = AF_split(vk->key,AfKey,vk->keylength,hdr->keyblock[keyIndex].stripes,hdr->hashSpec);
-	if(r < 0) goto out;
+	if (r < 0)
+		goto out;
 
 	log_dbg("Updating key slot %d [0x%04x] area on device %s.", keyIndex,
 		hdr->keyblock[keyIndex].keyMaterialOffset << 9, device);
@@ -577,7 +598,7 @@ int LUKS_set_key(const char *device, unsigned int keyIndex,
 				    device,
 				    hdr->keyblock[keyIndex].keyMaterialOffset,
 				    ctx);
-	if(r < 0) {
+	if (r < 0) {
 		if(!get_error())
 			log_err(ctx, _("Failed to write to key storage.\n"));
 		goto out;
@@ -585,14 +606,17 @@ int LUKS_set_key(const char *device, unsigned int keyIndex,
 
 	/* Mark the key as active in phdr */
 	r = LUKS_keyslot_set(hdr, (int)keyIndex, 1);
-	if(r < 0) goto out;
+	if (r < 0)
+		goto out;
 
 	r = LUKS_write_phdr(device, hdr, ctx);
-	if(r < 0) goto out;
+	if (r < 0)
+		goto out;
 
 	r = 0;
 out:
-	free(AfKey);
+	crypt_safe_free(AfKey);
+	memset(derivedKey, 0, sizeof(derivedKey));
 	return r;
 }
 
@@ -629,7 +653,8 @@ static int LUKS_open_key(const char *device,
 	size_t AFEKSize;
 	int r;
 
-	log_dbg("Trying to open key slot %d [%d].", keyIndex, (int)ki);
+	log_dbg("Trying to open key slot %d [%s].", keyIndex,
+		dbg_slot_state(ki));
 
 	if (ki < CRYPT_SLOT_ACTIVE)
 		return -ENOENT;
@@ -637,14 +662,16 @@ static int LUKS_open_key(const char *device,
 	// assert((vk->keylength % TWOFISH_BLOCKSIZE) == 0); FIXME
 
 	AFEKSize = hdr->keyblock[keyIndex].stripes*vk->keylength;
-	AfKey = (char *)malloc(AFEKSize);
-	if(AfKey == NULL) return -ENOMEM;
+	AfKey = crypt_safe_alloc(AFEKSize);
+	if (!AfKey)
+		return -ENOMEM;
 
 	r = PBKDF2_HMAC(hdr->hashSpec, password,passwordLen,
 			hdr->keyblock[keyIndex].passwordSalt,LUKS_SALTSIZE,
 			hdr->keyblock[keyIndex].passwordIterations,
 			derivedKey, hdr->keyBytes);
-	if(r < 0) goto out;
+	if (r < 0)
+		goto out;
 
 	log_dbg("Reading key slot %d area.", keyIndex);
 	r = LUKS_decrypt_from_storage(AfKey,
@@ -655,19 +682,21 @@ static int LUKS_open_key(const char *device,
 				      device,
 				      hdr->keyblock[keyIndex].keyMaterialOffset,
 				      ctx);
-	if(r < 0) {
+	if (r < 0) {
 		log_err(ctx, _("Failed to read from key storage.\n"));
 		goto out;
 	}
 
 	r = AF_merge(AfKey,vk->key,vk->keylength,hdr->keyblock[keyIndex].stripes,hdr->hashSpec);
-	if(r < 0) goto out;
+	if (r < 0)
+		goto out;
 
 	r = LUKS_verify_volume_key(hdr, vk);
 	if (!r)
 		log_verbose(ctx, _("Key slot %d unlocked.\n"), keyIndex);
 out:
-	free(AfKey);
+	crypt_safe_free(AfKey);
+	memset(derivedKey, 0, sizeof(derivedKey));
 	return r;
 }
 
