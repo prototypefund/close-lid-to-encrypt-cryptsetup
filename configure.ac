@@ -1,5 +1,5 @@
 AC_PREREQ([2.67])
-AC_INIT([cryptsetup],[1.6.3])
+AC_INIT([cryptsetup],[1.6.4])
 
 dnl library version from <major>.<minor>.<release>[-<suffix>]
 LIBCRYPTSETUP_VERSION=$(echo $PACKAGE_VERSION | cut -f1 -d-)
@@ -49,7 +49,8 @@ AC_CHECK_LIB(uuid, uuid_clear, ,[AC_MSG_ERROR([You need the uuid library.])])
 AC_SUBST(UUID_LIBS, $LIBS)
 LIBS=$saved_LIBS
 
-AC_CHECK_FUNCS([posix_memalign])
+AC_SEARCH_LIBS([clock_gettime],[rt posix4])
+AC_CHECK_FUNCS([posix_memalign clock_gettime])
 
 if test "x$enable_largefile" = "xno" ; then
   AC_MSG_ERROR([Building with --disable-largefile is not supported, it can cause data corruption.])
@@ -131,8 +132,12 @@ AC_DEFUN([CONFIGURE_GCRYPT], [
 	fi
 	dnl Check if we can use gcrypt PBKDF2 (1.6.0 supports empty password)
 	AC_ARG_ENABLE([gcrypt-pbkdf2], AS_HELP_STRING([--enable-gcrypt-pbkdf2],[force enable internal gcrypt PBKDF2]),
-		[use_internal_pbkdf2=0],
-		[AM_PATH_LIBGCRYPT([1.6.0], [use_internal_pbkdf2=0], [use_internal_pbkdf2=1])])
+		if test "x$enableval" = "xyes"; then
+			[use_internal_pbkdf2=0]
+		else
+			[use_internal_pbkdf2=1]
+		fi,
+		[AM_PATH_LIBGCRYPT([1.6.1], [use_internal_pbkdf2=0], [use_internal_pbkdf2=1])])
 	AM_PATH_LIBGCRYPT($GCRYPT_REQ_VERSION,,[AC_MSG_ERROR([You need the gcrypt library.])])
 
 	if test x$enable_static_cryptsetup = xyes; then

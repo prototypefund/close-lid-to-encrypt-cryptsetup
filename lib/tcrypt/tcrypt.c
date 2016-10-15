@@ -2,7 +2,7 @@
  * TCRYPT (TrueCrypt-compatible) volume handling
  *
  * Copyright (C) 2012, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2012-2013, Milan Broz
+ * Copyright (C) 2012-2014, Milan Broz
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -536,13 +536,13 @@ static int TCRYPT_init_hdr(struct crypt_device *cd,
 		r = TCRYPT_decrypt_hdr(cd, hdr, key, legacy_modes);
 		if (r == -ENOENT) {
 			skipped++;
-			continue;
+			r = -EPERM;
 		}
 		if (r != -EPERM)
 			break;
 	}
 
-	if ((skipped && skipped == i) || r == -ENOTSUP) {
+	if ((r < 0 && r != -EPERM && skipped && skipped == i) || r == -ENOTSUP) {
 		log_err(cd, _("Required kernel crypto interface not available.\n"));
 #ifdef ENABLE_AF_ALG
 		log_err(cd, _("Ensure you have algif_skcipher kernel module loaded.\n"));
