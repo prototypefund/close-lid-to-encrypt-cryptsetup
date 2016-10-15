@@ -143,6 +143,7 @@ int yesDialog(const char *msg, void *usrptr __attribute__((unused)))
 	if(isatty(STDIN_FILENO) && !opt_batch_mode) {
 		log_std("\nWARNING!\n========\n");
 		log_std("%s\n\nAre you sure? (Type uppercase yes): ", msg);
+		fflush(stdout);
 		if(getline(&answer, &size, stdin) == -1) {
 			r = 0;
 			/* Aborted by signal */
@@ -163,7 +164,7 @@ int yesDialog(const char *msg, void *usrptr __attribute__((unused)))
 
 void show_status(int errcode)
 {
-	char error[256], *error_;
+	char error[256];
 
 	if(!opt_verbose)
 		return;
@@ -175,12 +176,16 @@ void show_status(int errcode)
 
 	crypt_get_error(error, sizeof(error));
 
-	if (!error[0]) {
-		error_ = strerror_r(-errcode, error, sizeof(error));
-		if (error_ != error) {
+	if (*error) {
+#ifdef STRERROR_R_CHAR_P /* GNU-specific strerror_r */
+		char *error_ = strerror_r(-errcode, error, sizeof(error));
+		if (error_ != error)
 			strncpy(error, error_, sizeof(error));
-			error[sizeof(error) - 1] = '\0';
-		}
+#else /* POSIX strerror_r variant */
+		if (strerror_r(-errcode, error, sizeof(error)))
+			*error = '\0';
+#endif
+		error[sizeof(error) - 1] = '\0';
 	}
 
 	log_err(_("Command failed with code %i"), -errcode);
@@ -256,4 +261,69 @@ int translate_errno(int r)
 	default:	r = EXIT_FAILURE;
 	}
 	return r;
+}
+
+/*
+ * Device size string parsing, suffixes:
+ * s|S - 512 bytes sectors
+ * k  |K  |m  |M  |g  |G  |t  |T   - 1024 base
+ * kiB|KiB|miB|MiB|giB|GiB|tiB|TiB - 1024 base
+ * kb |KB |mM |MB |gB |GB |tB |TB  - 1000 base
+ */
+int tools_string_to_size(struct crypt_device *cd, const char *s, uint64_t *size)
+{
+	char *endp = NULL;
+	size_t len;
+	uint64_t mult_base, mult, tmp;
+
+	*size = strtoull(s, &endp, 10);
+	if (!isdigit(s[0]) ||
+	    (errno == ERANGE && *size == ULLONG_MAX) ||
+	    (errno != 0 && *size == 0))
+		return -EINVAL;
+
+	if (!endp || !*endp)
+		return 0;
+
+	len = strlen(endp);
+	/* Allow "B" and "iB" suffixes */
+	if (len > 3 ||
+	   (len == 3 && (endp[1] != 'i' || endp[2] != 'B')) ||
+	   (len == 2 && endp[1] != 'B'))
+		return -EINVAL;
+
+	if (len == 1 || len == 3)
+		mult_base = 1024;
+	else
+		mult_base = 1000;
+
+	mult = 1;
+	switch (endp[0]) {
+	case 's':
+	case 'S': mult = 512;
+		break;
+	case 't':
+	case 'T': mult *= mult_base;
+		 /* Fall through */
+	case 'g':
+	case 'G': mult *= mult_base;
+		 /* Fall through */
+	case 'm':
+	case 'M': mult *= mult_base;
+		 /* Fall through */
+	case 'k':
+	case 'K': mult *= mult_base;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	tmp = *size * mult;
+	if ((tmp / *size) != mult) {
+		log_dbg("Device size overflow.");
+		return -EINVAL;
+	}
+
+	*size = tmp;
+	return 0;
 }

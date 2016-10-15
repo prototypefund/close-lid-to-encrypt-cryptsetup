@@ -81,6 +81,18 @@ int crypt_parse_name_and_mode(const char *s, char *cipher, int *key_nums,
 	return -EINVAL;
 }
 
+/*
+ * Replacement for memset(s, 0, n) on stack that can be optimized out
+ * Also used in safe allocations for explicit memory wipe.
+ */
+void crypt_memzero(void *s, size_t n)
+{
+	volatile uint8_t *p = (volatile uint8_t *)s;
+
+	while(n--)
+		*p++ = 0;
+}
+
 /* safe allocations */
 void *crypt_safe_alloc(size_t size)
 {
@@ -94,7 +106,7 @@ void *crypt_safe_alloc(size_t size)
 		return NULL;
 
 	alloc->size = size;
-	memset(&alloc->data, 0, size);
+	crypt_memzero(&alloc->data, size);
 
 	/* coverity[leaked_storage] */
 	return &alloc->data;
@@ -110,7 +122,7 @@ void crypt_safe_free(void *data)
 	alloc = (struct safe_allocation *)
 		((char *)data - offsetof(struct safe_allocation, data));
 
-	memset(data, 0, alloc->size);
+	crypt_memzero(data, alloc->size);
 
 	alloc->size = 0x55aa55aa;
 	free(alloc);
@@ -179,7 +191,7 @@ static int interactive_pass(const char *prompt, char *pass, size_t maxlen,
 	int infd, outfd;
 
 	if (maxlen < 1)
-		goto out_err;
+		return failed;
 
 	/* Read and write to /dev/tty if available */
 	infd = open("/dev/tty", O_RDWR);
@@ -322,7 +334,7 @@ int crypt_get_key(const char *prompt,
 		  struct crypt_device *cd)
 {
 	int fd, regular_file, read_stdin, char_read, unlimited_read = 0;
-	int r = -EINVAL;
+	int r = -EINVAL, newline;
 	char *pass = NULL;
 	size_t buflen, i, file_read_size;
 	struct stat st;
@@ -396,7 +408,7 @@ int crypt_get_key(const char *prompt,
 		goto out_err;
 	}
 
-	for(i = 0; i < keyfile_size_max; i++) {
+	for(i = 0, newline = 0; i < keyfile_size_max; i++) {
 		if(i == buflen) {
 			buflen += 4096;
 			pass = crypt_safe_realloc(pass, buflen);
@@ -414,12 +426,17 @@ int crypt_get_key(const char *prompt,
 		}
 
 		/* Stop on newline only if not requested read from keyfile */
-		if(char_read == 0 || (!key_file && pass[i] == '\n'))
+		if (char_read == 0)
 			break;
+		if (!key_file && pass[i] == '\n') {
+			newline = 1;
+			pass[i] = '\0';
+			break;
+		}
 	}
 
 	/* Fail if piped input dies reading nothing */
-	if(!i && !regular_file) {
+	if(!i && !regular_file && !newline) {
 		log_dbg("Nothing read on input.");
 		r = -EPIPE;
 		goto out_err;
@@ -472,69 +489,4 @@ ssize_t crypt_hex_to_bytes(const char *hex, char **result, int safe_alloc)
 	}
 	*result = bytes;
 	return i;
-}
-
-/*
- * Device size string parsing, suffixes:
- * s|S - 512 bytes sectors
- * k  |K  |m  |M  |g  |G  |t  |T   - 1024 base
- * kiB|KiB|miB|MiB|giB|GiB|tiB|TiB - 1024 base
- * kb |KB |mM |MB |gB |GB |tB |TB  - 1000 base
- */
-int crypt_string_to_size(struct crypt_device *cd, const char *s, uint64_t *size)
-{
-	char *endp = NULL;
-	size_t len;
-	uint64_t mult_base, mult, tmp;
-
-	*size = strtoull(s, &endp, 10);
-	if (!isdigit(s[0]) ||
-	    (errno == ERANGE && *size == ULLONG_MAX) ||
-	    (errno != 0 && *size == 0))
-		return -EINVAL;
-
-	if (!endp || !*endp)
-		return 0;
-
-	len = strlen(endp);
-	/* Allow "B" and "iB" suffixes */
-	if (len > 3 ||
-	   (len == 3 && (endp[1] != 'i' || endp[2] != 'B')) ||
-	   (len == 2 && endp[1] != 'B'))
-		return -EINVAL;
-
-	if (len == 1 || len == 3)
-		mult_base = 1024;
-	else
-		mult_base = 1000;
-
-	mult = 1;
-	switch (endp[0]) {
-	case 's':
-	case 'S': mult = 512;
-		break;
-	case 't':
-	case 'T': mult *= mult_base;
-		 /* Fall through */
-	case 'g':
-	case 'G': mult *= mult_base;
-		 /* Fall through */
-	case 'm':
-	case 'M': mult *= mult_base;
-		 /* Fall through */
-	case 'k':
-	case 'K': mult *= mult_base;
-		break;
-	default:
-		return -EINVAL;
-	}
-
-	tmp = *size * mult;
-	if ((tmp / *size) != mult) {
-		log_dbg("Device size overflow.");
-		return -EINVAL;
-	}
-
-	*size = tmp;
-	return 0;
 }

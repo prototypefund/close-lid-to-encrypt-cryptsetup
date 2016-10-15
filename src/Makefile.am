@@ -12,7 +12,6 @@ AM_CPPFLAGS = -include config.h \
 cryptsetup_SOURCES = \
 	$(top_builddir)/lib/utils_crypt.c	\
 	$(top_builddir)/lib/utils_loop.c	\
-	$(top_builddir)/lib/utils_fips.c	\
 	utils_tools.c				\
 	utils_password.c			\
 	cryptsetup.c				\
@@ -21,8 +20,8 @@ cryptsetup_SOURCES = \
 cryptsetup_LDADD = \
 	$(top_builddir)/lib/libcryptsetup.la	\
 	@POPT_LIBS@				\
-	@FIPSCHECK_LIBS@			\
-	@PWQUALITY_LIBS@
+	@PWQUALITY_LIBS@			\
+	@PASSWDQC_LIBS@
 
 cryptsetup_CFLAGS = $(AM_CFLAGS) -Wall
 

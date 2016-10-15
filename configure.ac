@@ -1,13 +1,11 @@
 AC_PREREQ([2.67])
-AC_INIT([cryptsetup],[1.6.6])
+AC_INIT([cryptsetup],[1.7.0])
 
 dnl library version from <major>.<minor>.<release>[-<suffix>]
 LIBCRYPTSETUP_VERSION=$(echo $PACKAGE_VERSION | cut -f1 -d-)
-LIBCRYPTSETUP_VERSION_INFO=10:0:6
-dnl library file name for FIPS selfcheck
-LIBCRYPTSETUP_VERSION_FIPS="libcryptsetup.so.4"
-FIPS_MODULE_FILE="/etc/system-fips"
+LIBCRYPTSETUP_VERSION_INFO=11:0:7
 
+AM_SILENT_RULES([yes])
 AC_CONFIG_SRCDIR(src/cryptsetup.c)
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -62,6 +60,7 @@ AC_TYPE_OFF_T
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 AC_PROG_GCC_TRADITIONAL
+AC_FUNC_STRERROR_R
 
 dnl ==========================================================================
 
@@ -77,27 +76,17 @@ AC_SUBST(POPT_LIBS, $LIBS)
 LIBS=$saved_LIBS
 
 dnl ==========================================================================
-dnl FIPS extensions
+dnl FIPS extensions (only for RHEL)
 AC_ARG_ENABLE([fips], AS_HELP_STRING([--enable-fips],[enable FIPS mode restrictions]),
 [with_fips=$enableval],
 [with_fips=no])
 
 if test "x$with_fips" = "xyes"; then
 	AC_DEFINE(ENABLE_FIPS, 1, [Enable FIPS mode restrictions])
-	AC_DEFINE_UNQUOTED(LIBCRYPTSETUP_VERSION_FIPS, ["$LIBCRYPTSETUP_VERSION_FIPS"],
-		[library file name for FIPS selfcheck])
-	AC_DEFINE_UNQUOTED(FIPS_MODULE_FILE, ["$FIPS_MODULE_FILE"],
-		[file checked to determine if running in FIPS mode])
 
 	if test "x$enable_static" = "xyes" -o "x$enable_static_cryptsetup" = "xyes" ; then
 		AC_MSG_ERROR([Static build is not compatible with FIPS.])
 	fi
-
-	saved_LIBS=$LIBS
-	AC_CHECK_LIB(fipscheck, FIPSCHECK_verify, ,[AC_MSG_ERROR([You need the fipscheck library.])])
-	AC_SUBST(FIPSCHECK_LIBS, $LIBS)
-	LIBS=$saved_LIBS
-
 fi
 
 AC_DEFUN([NO_FIPS], [
@@ -108,17 +97,44 @@ AC_DEFUN([NO_FIPS], [
 
 dnl ==========================================================================
 dnl pwquality library (cryptsetup CLI only)
-AC_ARG_ENABLE([pwquality], AS_HELP_STRING([--enable-pwquality],[enable password quality checking]),
-[with_pwquality=$enableval],
-[with_pwquality=no])
+AC_ARG_ENABLE([pwquality],
+	      AS_HELP_STRING([--enable-pwquality],
+			     [enable password quality checking using pwquality library]),
+	      [with_pwquality=$enableval],
+	      [with_pwquality=no])
 
 if test "x$with_pwquality" = "xyes"; then
-	AC_DEFINE(ENABLE_PWQUALITY, 1, [Enable password quality checking])
+	AC_DEFINE(ENABLE_PWQUALITY, 1, [Enable password quality checking using pwquality library])
 	PKG_CHECK_MODULES([PWQUALITY], [pwquality >= 1.0.0],,
 		AC_MSG_ERROR([You need pwquality library.]))
 
 	dnl FIXME: this is really hack for now
 	PWQUALITY_STATIC_LIBS="$PWQUALITY_LIBS -lcrack -lz"
+fi
+
+dnl ==========================================================================
+dnl passwdqc library (cryptsetup CLI only)
+AC_ARG_ENABLE([passwdqc],
+	      AS_HELP_STRING([--enable-passwdqc@<:@=CONFIG_PATH@:>@],
+			     [enable password quality checking using passwdqc library (optionally with CONFIG_PATH)]),
+	      [enable_passwdqc=$enableval],
+	      [enable_passwdqc=no])
+
+case "$enable_passwdqc" in
+	yes|no) use_passwdqc_config="" ;;
+	/*) use_passwdqc_config="$enable_passwdqc"; enable_passwdqc=yes ;;
+	*) AC_MSG_ERROR([Unrecognized --enable-passwdqc parameter.]) ;;
+esac
+AC_DEFINE_UNQUOTED([PASSWDQC_CONFIG_FILE], ["$use_passwdqc_config"], [passwdqc library config file])
+
+if test "x$enable_passwdqc" = "xyes"; then
+	AC_DEFINE(ENABLE_PASSWDQC, 1, [Enable password quality checking using passwdqc library])
+
+	PASSWDQC_LIBS="-lpasswdqc"
+fi
+
+if test "x$with_pwquality$enable_passwdqc" = "xyesyes"; then
+	AC_MSG_ERROR([--enable-pwquality and --enable-passwdqc are mutually incompatible.])
 fi
 
 dnl ==========================================================================
@@ -139,6 +155,14 @@ AC_DEFUN([CONFIGURE_GCRYPT], [
 		fi,
 		[AM_PATH_LIBGCRYPT([1.6.1], [use_internal_pbkdf2=0], [use_internal_pbkdf2=1])])
 	AM_PATH_LIBGCRYPT($GCRYPT_REQ_VERSION,,[AC_MSG_ERROR([You need the gcrypt library.])])
+
+	AC_MSG_CHECKING([if internal cryptsetup PBKDF2 is compiled-in])
+	if test $use_internal_pbkdf2 = 0; then
+		AC_MSG_RESULT([no])
+	else
+		AC_MSG_RESULT([yes])
+		NO_FIPS([])
+	fi
 
 	if test x$enable_static_cryptsetup = xyes; then
 		saved_LIBS=$LIBS
@@ -348,14 +372,14 @@ AC_SUBST([DEVMAPPER_STATIC_LIBS])
 AC_SUBST([PWQUALITY_LIBS])
 AC_SUBST([PWQUALITY_STATIC_LIBS])
 
+AC_SUBST([PASSWDQC_LIBS])
+
 AC_SUBST([CRYPTO_CFLAGS])
 AC_SUBST([CRYPTO_LIBS])
 AC_SUBST([CRYPTO_STATIC_LIBS])
 
 AC_SUBST([LIBCRYPTSETUP_VERSION])
 AC_SUBST([LIBCRYPTSETUP_VERSION_INFO])
-AC_SUBST([LIBCRYPTSETUP_VERSION_FIPS])
-AC_SUBST([FIPS_MODULE_FILE])
 
 dnl ==========================================================================
 AC_ARG_ENABLE([dev-random], AS_HELP_STRING([--enable-dev-random],
@@ -411,11 +435,11 @@ CS_STR_WITH([plain-cipher], [cipher for plain mode], [aes])
 CS_STR_WITH([plain-mode],   [cipher mode for plain mode], [cbc-essiv:sha256])
 CS_NUM_WITH([plain-keybits],[key length in bits for plain mode], [256])
 
-CS_STR_WITH([luks1-hash],   [hash function for LUKS1 header], [sha1])
+CS_STR_WITH([luks1-hash],   [hash function for LUKS1 header], [sha256])
 CS_STR_WITH([luks1-cipher], [cipher for LUKS1], [aes])
 CS_STR_WITH([luks1-mode],   [cipher mode for LUKS1], [xts-plain64])
 CS_NUM_WITH([luks1-keybits],[key length in bits for LUKS1], [256])
-CS_NUM_WITH([luks1-iter-time],[PBKDF2 iteration time for LUKS1 (in ms)], [1000])
+CS_NUM_WITH([luks1-iter-time],[PBKDF2 iteration time for LUKS1 (in ms)], [2000])
 
 CS_STR_WITH([loopaes-cipher], [cipher for loop-AES mode], [aes])
 CS_NUM_WITH([loopaes-keybits],[key length in bits for loop-AES mode], [256])

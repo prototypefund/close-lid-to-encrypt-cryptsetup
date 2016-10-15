@@ -212,7 +212,7 @@ int LUKS_hdr_backup(const char *backup_file, struct crypt_device *ctx)
 out:
 	if (devfd != -1)
 		close(devfd);
-	memset(&hdr, 0, sizeof(hdr));
+	crypt_memzero(&hdr, sizeof(hdr));
 	crypt_safe_free(buffer);
 	return r;
 }
@@ -398,7 +398,7 @@ static int _keyslot_repair(struct luks_phdr *phdr, struct crypt_device *ctx)
 	}
 out:
 	crypt_free_volume_key(vk);
-	memset(&temp_phdr, 0, sizeof(temp_phdr));
+	crypt_memzero(&temp_phdr, sizeof(temp_phdr));
 	return r;
 }
 
@@ -471,6 +471,13 @@ static void LUKS_fix_header_compatible(struct luks_phdr *header)
 	/* Old cryptsetup expects "sha1", gcrypt allows case insensistive names,
 	 * so always convert hash to lower case in header */
 	_to_lower(header->hashSpec, LUKS_HASHSPEC_L);
+
+	/* ECB mode does not use IV but dmcrypt silently allows it.
+	 * Drop any IV here if ECB is used (that is not secure anyway).*/
+	if (!strncmp(header->cipherMode, "ecb-", 4)) {
+		memset(header->cipherMode, 0, LUKS_CIPHERMODE_L);
+		strcpy(header->cipherMode, "ecb");
+	}
 }
 
 int LUKS_read_phdr_backup(const char *backup_file,
@@ -618,7 +625,7 @@ static int LUKS_check_cipher(struct luks_phdr *hdr, struct crypt_device *ctx)
 				      empty_key, 0, ctx);
 
 	crypt_free_volume_key(empty_key);
-	memset(buf, 0, sizeof(buf));
+	crypt_memzero(buf, sizeof(buf));
 	return r;
 }
 
@@ -797,14 +804,14 @@ int LUKS_set_key(unsigned int keyIndex,
 	 * Avoid floating point operation
 	 * Final iteration count is at least LUKS_SLOT_ITERATIONS_MIN
 	 */
-	PBKDF2_temp = (*PBKDF2_per_sec / 2) * (uint64_t)iteration_time_ms;
+	PBKDF2_temp = *PBKDF2_per_sec * (uint64_t)iteration_time_ms;
 	PBKDF2_temp /= 1024;
 	if (PBKDF2_temp > UINT32_MAX)
 		PBKDF2_temp = UINT32_MAX;
 	hdr->keyblock[keyIndex].passwordIterations = at_least((uint32_t)PBKDF2_temp,
 							      LUKS_SLOT_ITERATIONS_MIN);
 
-	log_dbg("Key slot %d use %d password iterations.", keyIndex, hdr->keyblock[keyIndex].passwordIterations);
+	log_dbg("Key slot %d use %" PRIu32 " password iterations.", keyIndex, hdr->keyblock[keyIndex].passwordIterations);
 
 	derived_key = crypt_alloc_volume_key(hdr->keyBytes, NULL);
 	if (!derived_key)
@@ -939,6 +946,11 @@ static int LUKS_open_key(unsigned int keyIndex,
 		goto out;
 
 	r = LUKS_verify_volume_key(hdr, vk);
+
+	/* Allow only empty passphrase with null cipher */
+	if (!r && !strcmp(hdr->cipherName, "cipher_null") && passwordLen)
+		r = -EPERM;
+
 	if (!r)
 		log_verbose(ctx, _("Key slot %d unlocked.\n"), keyIndex);
 out:

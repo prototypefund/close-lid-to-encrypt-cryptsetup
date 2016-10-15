@@ -29,7 +29,7 @@
 
 /*
  * Internal IV helper
- * IV documentation: https://code.google.com/p/cryptsetup/wiki/DMCrypt
+ * IV documentation: https://gitlab.com/cryptsetup/cryptsetup/wikis/DMCrypt
  */
 struct crypt_sector_iv {
 	enum { IV_NONE, IV_NULL, IV_PLAIN, IV_PLAIN64, IV_ESSIV, IV_BENBI } type;
@@ -55,8 +55,8 @@ static int int_log2(unsigned int x)
 }
 
 static int crypt_sector_iv_init(struct crypt_sector_iv *ctx,
-			 const char *cipher_name, const char *iv_name,
-			 char *key, size_t key_length)
+			 const char *cipher_name, const char *mode_name,
+			 const char *iv_name, char *key, size_t key_length)
 {
 	memset(ctx, 0, sizeof(*ctx));
 
@@ -64,7 +64,9 @@ static int crypt_sector_iv_init(struct crypt_sector_iv *ctx,
 	if (ctx->iv_size < 0)
 		return -ENOENT;
 
-	if (!iv_name || !strcmp(cipher_name, "cipher_null")) {
+	if (!iv_name ||
+	    !strcmp(cipher_name, "cipher_null") ||
+	    !strcmp(mode_name, "ecb")) {
 		ctx->type = IV_NONE;
 		ctx->iv_size = 0;
 		return 0;
@@ -103,13 +105,13 @@ static int crypt_sector_iv_init(struct crypt_sector_iv *ctx,
 		r = crypt_hash_final(h, tmp, hash_size);
 		crypt_hash_destroy(h);
 		if (r) {
-			memset(tmp, 0, sizeof(tmp));
+			crypt_backend_memzero(tmp, sizeof(tmp));
 			return r;
 		}
 
 		r = crypt_cipher_init(&ctx->essiv_cipher, cipher_name, "ecb",
 				      tmp, hash_size);
-		memset(tmp, 0, sizeof(tmp));
+		crypt_backend_memzero(tmp, sizeof(tmp));
 		if (r)
 			return r;
 
@@ -214,7 +216,7 @@ int crypt_storage_init(struct crypt_storage **ctx,
 		return r;
 	}
 
-	r = crypt_sector_iv_init(&s->cipher_iv, cipher, cipher_iv, key, key_length);
+	r = crypt_sector_iv_init(&s->cipher_iv, cipher, mode_name, cipher_iv, key, key_length);
 	if (r) {
 		crypt_storage_destroy(s);
 		return r;

@@ -81,6 +81,9 @@ int tools_get_key(const char *prompt,
 		  const char *key_file,
 		  int timeout, int verify, int pwquality,
 		  struct crypt_device *cd);
+int tools_is_stdin(const char *key_file);
+int tools_string_to_size(struct crypt_device *cd, const char *s, uint64_t *size);
+int tools_is_cipher_null(const char *cipher);
 
 /* Log */
 #define log_dbg(x...) clogger(NULL, CRYPT_LOG_DEBUG, __FILE__, __LINE__, x)
