@@ -1,7 +1,7 @@
 /*
  * libdevmapper - device-mapper backend for cryptsetup
  *
- * Copyright (C) 2004, Christophe Saout <christophe@saout.de>
+ * Copyright (C) 2004, Jana Saout <jana@saout.de>
  * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
  * Copyright (C) 2009-2012, Red Hat, Inc. All rights reserved.
  * Copyright (C) 2009-2012, Milan Broz
@@ -28,7 +28,6 @@
 #include <fcntl.h>
 #include <linux/fs.h>
 #include <uuid/uuid.h>
-#include <sys/utsname.h>
 
 #include "internal.h"
 
@@ -86,12 +85,12 @@ static void set_dm_error(int level,
 	va_start(va, f);
 	if (vasprintf(&msg, f, va) > 0) {
 		if (level < 4 && !_quiet_log) {
-			log_err(_context, msg);
+			log_err(_context, "%s", msg);
 			log_err(_context, "\n");
 		} else {
 			/* We do not use DM visual stack backtrace here */
 			if (strncmp(msg, "<backtrace>", 11))
-				log_dbg(msg);
+				log_dbg("%s", msg);
 		}
 	}
 	free(msg);
@@ -159,16 +158,6 @@ static void _dm_set_verity_compat(const char *dm_version, unsigned verity_maj,
 		verity_maj, verity_min, verity_patch);
 }
 
-static void _dm_kernel_info(void)
-{
-	struct utsname uts;
-
-	if (!uname(&uts))
-		log_dbg("Detected kernel %s %s %s.",
-			uts.sysname, uts.release, uts.machine);
-
-}
-
 static int _dm_check_versions(void)
 {
 	struct dm_task *dmt;
@@ -178,8 +167,6 @@ static int _dm_check_versions(void)
 
 	if (_dm_crypt_checked)
 		return 1;
-
-	_dm_kernel_info();
 
 	/* Shut up DM while checking */
 	_quiet_log = 1;
@@ -306,22 +293,19 @@ static void hex_key(char *hexkey, size_t key_size, const char *key)
 }
 
 /* http://code.google.com/p/cryptsetup/wiki/DMCrypt */
-static char *get_dm_crypt_params(struct crypt_dm_active_device *dmd)
+static char *get_dm_crypt_params(struct crypt_dm_active_device *dmd, uint32_t flags)
 {
 	int r, max_size, null_cipher = 0;
 	char *params, *hexkey;
-	const char *features = "";
+	const char *features;
 
 	if (!dmd)
 		return NULL;
 
-	if (dmd->flags & CRYPT_ACTIVATE_ALLOW_DISCARDS) {
-		if (dm_flags() & DM_DISCARDS_SUPPORTED) {
-			features = " 1 allow_discards";
-			log_dbg("Discard/TRIM is allowed.");
-		} else
-			log_dbg("Discard/TRIM is not supported by the kernel.");
-	}
+	if (flags & CRYPT_ACTIVATE_ALLOW_DISCARDS)
+		features = " 1 allow_discards";
+	else
+		features = "";
 
 	if (!strncmp(dmd->u.crypt.cipher, "cipher_null-", 12))
 		null_cipher = 1;
@@ -566,6 +550,9 @@ static int _dm_create_device(const char *name, const char *type,
 	uint32_t cookie = 0;
 	uint16_t udev_flags = 0;
 
+	if (!params)
+		return -EINVAL;
+
 	if (flags & CRYPT_ACTIVATE_PRIVATE)
 		udev_flags = CRYPT_TEMP_UDEV_FLAGS;
 
@@ -642,12 +629,14 @@ out_no_removal:
 	if (cookie && _dm_use_udev())
 		(void)_dm_udev_wait(cookie);
 
-	if (params)
-		crypt_safe_free(params);
 	if (dmt)
 		dm_task_destroy(dmt);
 
 	dm_task_update_nodes();
+
+	/* If code just loaded target module, update versions */
+	_dm_check_versions();
+
 	return r;
 }
 
@@ -657,7 +646,8 @@ int dm_create_device(struct crypt_device *cd, const char *name,
 		     int reload)
 {
 	char *table_params = NULL;
-	int r = -EINVAL;
+	uint32_t dmd_flags;
+	int r;
 
 	if (!type)
 		return -EINVAL;
@@ -665,15 +655,29 @@ int dm_create_device(struct crypt_device *cd, const char *name,
 	if (dm_init_context(cd))
 		return -ENOTSUP;
 
+	dmd_flags = dmd->flags;
+
 	if (dmd->target == DM_CRYPT)
-		table_params = get_dm_crypt_params(dmd);
+		table_params = get_dm_crypt_params(dmd, dmd_flags);
 	else if (dmd->target == DM_VERITY)
 		table_params = get_dm_verity_params(dmd->u.verity.vp, dmd);
 
-	if (table_params)
-		r = _dm_create_device(name, type, dmd->data_device,
-				      dmd->flags, dmd->uuid, dmd->size,
-				      table_params, reload);
+	r = _dm_create_device(name, type, dmd->data_device, dmd_flags,
+			      dmd->uuid, dmd->size, table_params, reload);
+
+	/* If discard not supported try to load without discard */
+	if (!reload && r && dmd->target == DM_CRYPT &&
+	    (dmd->flags & CRYPT_ACTIVATE_ALLOW_DISCARDS) &&
+	    !(dm_flags() & DM_DISCARDS_SUPPORTED)) {
+		log_dbg("Discard/TRIM is not supported, retrying activation.");
+		dmd_flags = dmd_flags & ~CRYPT_ACTIVATE_ALLOW_DISCARDS;
+		crypt_safe_free(table_params);
+		table_params = get_dm_crypt_params(dmd, dmd_flags);
+		r = _dm_create_device(name, type, dmd->data_device, dmd_flags,
+				      dmd->uuid, dmd->size, table_params, reload);
+	}
+
+	crypt_safe_free(table_params);
 	dm_exit_context();
 	return r;
 }

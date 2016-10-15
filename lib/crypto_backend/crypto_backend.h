@@ -2,7 +2,7 @@
  * crypto backend implementation
  *
  * Copyright (C) 2010-2012, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2010-2012, Milan Broz
+ * Copyright (C) 2010-2014, Milan Broz
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,7 @@ struct crypt_device;
 struct crypt_hash;
 struct crypt_hmac;
 struct crypt_cipher;
+struct crypt_storage;
 
 int crypt_backend_init(struct crypt_device *ctx);
 
@@ -72,13 +73,15 @@ int pkcs5_pbkdf2(const char *hash,
 		 const char *P, size_t Plen,
 		 const char *S, size_t Slen,
 		 unsigned int c,
-		 unsigned int dkLen,char *DK);
+		 unsigned int dkLen, char *DK,
+		 unsigned int hash_block_size);
 #endif
 
 /* CRC32 */
 uint32_t crypt_crc32(uint32_t seed, const unsigned char *buf, size_t len);
 
 /* ciphers */
+int crypt_cipher_blocksize(const char *name);
 int crypt_cipher_init(struct crypt_cipher **ctx, const char *name,
 		    const char *mode, const void *buffer, size_t length);
 int crypt_cipher_destroy(struct crypt_cipher *ctx);
@@ -88,5 +91,15 @@ int crypt_cipher_encrypt(struct crypt_cipher *ctx,
 int crypt_cipher_decrypt(struct crypt_cipher *ctx,
 			 const char *in, char *out, size_t length,
 			 const char *iv, size_t iv_length);
+
+/* storage encryption wrappers */
+int crypt_storage_init(struct crypt_storage **ctx, uint64_t sector_start,
+		       const char *cipher, const char *cipher_mode,
+		       char *key, size_t key_length);
+int crypt_storage_destroy(struct crypt_storage *ctx);
+int crypt_storage_decrypt(struct crypt_storage *ctx, uint64_t sector,
+			  size_t count, char *buffer);
+int crypt_storage_encrypt(struct crypt_storage *ctx, uint64_t sector,
+			  size_t count, char *buffer);
 
 #endif /* _CRYPTO_BACKEND_H */

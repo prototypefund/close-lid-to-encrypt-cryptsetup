@@ -1,7 +1,7 @@
 /*
  * cryptsetup - setup cryptographic volumes for dm-crypt
  *
- * Copyright (C) 2004, Christophe Saout <christophe@saout.de>
+ * Copyright (C) 2004, Jana Saout <jana@saout.de>
  * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
  * Copyright (C) 2009-2012, Red Hat, Inc. All rights reserved.
  * Copyright (C) 2009-2014, Milan Broz
@@ -57,7 +57,7 @@ extern int opt_force_password;
 
 /* Common tools */
 void clogger(struct crypt_device *cd, int level, const char *file, int line,
-	     const char *format, ...);
+	     const char *format, ...)  __attribute__ ((format (printf, 5, 6)));
 void tool_log(int level, const char *msg, void *usrptr __attribute__((unused)));
 void quiet_log(int level, const char *msg, void *usrptr);
 

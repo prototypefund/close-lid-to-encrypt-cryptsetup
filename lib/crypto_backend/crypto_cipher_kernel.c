@@ -2,7 +2,7 @@
  * Linux kernel userspace API crypto backend implementation (skcipher)
  *
  * Copyright (C) 2012, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2012, Milan Broz
+ * Copyright (C) 2012-2014, Milan Broz
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -43,6 +43,50 @@ struct crypt_cipher {
 	int tfmfd;
 	int opfd;
 };
+
+struct cipher_alg {
+	const char *name;
+	int blocksize;
+};
+
+/* FIXME: Getting block size should be dynamic from cipher backend. */
+static struct cipher_alg cipher_algs[] = {
+	{ "cipher_null", 16 },
+	{ "aes",         16 },
+	{ "serpent",     16 },
+	{ "twofish",     16 },
+	{ "anubis",      16 },
+	{ "blowfish",     8 },
+	{ "camellia",    16 },
+	{ "cast5",        8 },
+	{ "cast6",       16 },
+	{ "des",          8 },
+	{ "des3_ede",     8 },
+	{ "khazad",       8 },
+	{ "seed",        16 },
+	{ "tea",          8 },
+	{ "xtea",         8 },
+	{ NULL,           0 }
+};
+
+static struct cipher_alg *_get_alg(const char *name)
+{
+	int i = 0;
+
+	while (name && cipher_algs[i].name) {
+		if (!strcasecmp(name, cipher_algs[i].name))
+			return &cipher_algs[i];
+		i++;
+	}
+	return NULL;
+}
+
+int crypt_cipher_blocksize(const char *name)
+{
+	struct cipher_alg *ca = _get_alg(name);
+
+	return ca ? ca->blocksize : -EINVAL;
+}
 
 /* Shared with hash kernel backend */
 int crypt_kernel_socket_init(struct sockaddr_alg *sa, int *tfmfd, int *opfd);
@@ -99,7 +143,8 @@ int crypt_cipher_init(struct crypt_cipher **ctx, const char *name,
 		return r;
 	}
 
-	if (setsockopt(h->tfmfd, SOL_ALG, ALG_SET_KEY, buffer, length) == -1) {
+	if (length && strcmp(name, "cipher_null") &&
+	    setsockopt(h->tfmfd, SOL_ALG, ALG_SET_KEY, buffer, length) == -1) {
 		crypt_cipher_destroy(h);
 		return -EINVAL;
 	}
@@ -142,6 +187,9 @@ static int crypt_cipher_crypt(struct crypt_cipher *ctx,
 
 	/* Set encrypt/decrypt operation */
 	header = CMSG_FIRSTHDR(&msg);
+	if (!header)
+		return -EINVAL;
+
 	header->cmsg_level = SOL_ALG;
 	header->cmsg_type = ALG_SET_OP;
 	header->cmsg_len = CMSG_LEN(sizeof(*type));
@@ -201,6 +249,11 @@ int crypt_cipher_destroy(struct crypt_cipher *ctx)
 }
 
 #else /* ENABLE_AF_ALG */
+
+int crypt_cipher_blocksize(const char *name)
+{
+	return -EINVAL;
+}
 
 int crypt_cipher_init(struct crypt_cipher **ctx, const char *name,
 		    const char *mode, const void *buffer, size_t length)

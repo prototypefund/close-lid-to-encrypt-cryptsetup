@@ -1,7 +1,7 @@
 /*
  * cryptsetup - setup cryptographic volumes for dm-crypt
  *
- * Copyright (C) 2004, Christophe Saout <christophe@saout.de>
+ * Copyright (C) 2004, Jana Saout <jana@saout.de>
  * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
  * Copyright (C) 2009-2012, Red Hat, Inc. All rights reserved.
  * Copyright (C) 2009-2014, Milan Broz
@@ -202,7 +202,7 @@ static int action_open_loopaes(void)
 
 	r = crypt_activate_by_keyfile_offset(cd, action_argv[1], CRYPT_ANY_SLOT,
 				      opt_key_file, opt_keyfile_size,
-				      opt_keyfile_size, activate_flags);
+				      opt_keyfile_offset, activate_flags);
 out:
 	crypt_free(cd);
 
@@ -418,10 +418,10 @@ static int action_status(void)
 				ci == CRYPT_BUSY ? " and is in use" : "");
 
 		r = crypt_init_by_name_and_header(&cd, action_argv[0], opt_header_device);
-		if (r < 0 || !crypt_get_type(cd))
+		if (r < 0)
 			goto out;
 
-		log_std("  type:    %s\n", crypt_get_type(cd));
+		log_std("  type:    %s\n", crypt_get_type(cd) ?: "n/a");
 
 		r = crypt_get_active_device(cd, action_argv[0], &cad);
 		if (r < 0)
@@ -540,6 +540,9 @@ static int action_benchmark(void)
 		    strstr(cipher, "cast5"))
 			iv_size = 8;
 
+		if (!strcmp(cipher_mode, "ecb"))
+			iv_size = 0;
+
 		r = benchmark_cipher_loop(cipher, cipher_mode,
 					  key_size / 8, iv_size,
 					  &enc_mbr, &dec_mbr);
@@ -571,10 +574,10 @@ static int action_benchmark(void)
 			snprintf(cipher, MAX_CIPHER_LEN, "%s-%s",
 				 bciphers[i].cipher, bciphers[i].mode);
 			if (!r)
-				log_std("%12s  %4db  %6.1f MiB/s  %6.1f MiB/s\n",
+				log_std("%12s  %4zub  %6.1f MiB/s  %6.1f MiB/s\n",
 					cipher, bciphers[i].key_size*8, enc_mbr, dec_mbr);
 			else
-				log_std("%12s  %4db %13s %13s\n", cipher,
+				log_std("%12s  %4zub %13s %13s\n", cipher,
 					bciphers[i].key_size*8, _("N/A"), _("N/A"));
 		}
 		if (skipped && skipped == i)
@@ -1484,9 +1487,6 @@ int main(int argc, const char **argv)
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 
-	if (crypt_fips_mode())
-		crypt_log(NULL, CRYPT_LOG_VERBOSE, _("Running in FIPS mode.\n"));
-
 	popt_context = poptGetContext(PACKAGE, argc, argv, popt_options, 0);
 	poptSetOtherOptionHelp(popt_context,
 	                       _("[OPTION...] <action> <action-specific>"));
@@ -1528,6 +1528,10 @@ int main(int argc, const char **argv)
 	if (r < -1)
 		usage(popt_context, EXIT_FAILURE, poptStrerror(r),
 		      poptBadOption(popt_context, POPT_BADOPTION_NOALIAS));
+
+	if (crypt_fips_mode())
+		crypt_log(NULL, CRYPT_LOG_VERBOSE, _("Running in FIPS mode.\n"));
+
 	if (opt_version_mode) {
 		log_std("%s %s\n", PACKAGE_NAME, PACKAGE_VERSION);
 		poptFreeContext(popt_context);

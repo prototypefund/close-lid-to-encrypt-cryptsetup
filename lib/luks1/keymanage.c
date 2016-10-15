@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2004-2006, Clemens Fruhwirth <clemens@endorphin.org>
  * Copyright (C) 2009-2012, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2013, Milan Broz
+ * Copyright (C) 2013-2014, Milan Broz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -83,11 +83,12 @@ static int LUKS_check_device_size(struct crypt_device *ctx, size_t keyLength)
 
 	dev_sectors >>= SECTOR_SHIFT;
 	hdr_sectors = LUKS_device_sectors(keyLength);
-	log_dbg("Key length %u, device size %" PRIu64 " sectors, header size %"
+	log_dbg("Key length %zu, device size %" PRIu64 " sectors, header size %"
 		PRIu64 " sectors.",keyLength, dev_sectors, hdr_sectors);
 
 	if (hdr_sectors > dev_sectors) {
-		log_err(ctx, _("Device %s is too small.\n"), device_path(device));
+		log_err(ctx, _("Device %s is too small. (LUKS requires at least %" PRIu64 " bytes.)\n"),
+			device_path(device), hdr_sectors * SECTOR_SIZE);
 		return -EINVAL;
 	}
 
@@ -147,22 +148,20 @@ static const char *dbg_slot_state(crypt_keyslot_info ki)
 	}
 }
 
-int LUKS_hdr_backup(
-	const char *backup_file,
-	struct luks_phdr *hdr,
-	struct crypt_device *ctx)
+int LUKS_hdr_backup(const char *backup_file, struct crypt_device *ctx)
 {
 	struct device *device = crypt_metadata_device(ctx);
+	struct luks_phdr hdr;
 	int r = 0, devfd = -1;
 	ssize_t hdr_size;
 	ssize_t buffer_size;
 	char *buffer = NULL;
 
-	r = LUKS_read_phdr(hdr, 1, 0, ctx);
+	r = LUKS_read_phdr(&hdr, 1, 0, ctx);
 	if (r)
 		return r;
 
-	hdr_size = LUKS_device_sectors(hdr->keyBytes) << SECTOR_SHIFT;
+	hdr_size = LUKS_device_sectors(hdr.keyBytes) << SECTOR_SHIFT;
 	buffer_size = size_round_up(hdr_size, crypt_getpagesize());
 
 	buffer = crypt_safe_alloc(buffer_size);
@@ -171,10 +170,10 @@ int LUKS_hdr_backup(
 		goto out;
 	}
 
-	log_dbg("Storing backup of header (%u bytes) and keyslot area (%u bytes).",
-		sizeof(*hdr), hdr_size - LUKS_ALIGN_KEYSLOTS);
+	log_dbg("Storing backup of header (%zu bytes) and keyslot area (%zu bytes).",
+		sizeof(hdr), hdr_size - LUKS_ALIGN_KEYSLOTS);
 
-	log_dbg("Output backup file size: %u bytes.", buffer_size);
+	log_dbg("Output backup file size: %zu bytes.", buffer_size);
 
 	devfd = device_open(device, O_RDONLY);
 	if(devfd == -1) {
@@ -190,8 +189,8 @@ int LUKS_hdr_backup(
 	close(devfd);
 
 	/* Wipe unused area, so backup cannot contain old signatures */
-	if (hdr->keyblock[0].keyMaterialOffset * SECTOR_SIZE == LUKS_ALIGN_KEYSLOTS)
-		memset(buffer + sizeof(*hdr), 0, LUKS_ALIGN_KEYSLOTS - sizeof(*hdr));
+	if (hdr.keyblock[0].keyMaterialOffset * SECTOR_SIZE == LUKS_ALIGN_KEYSLOTS)
+		memset(buffer + sizeof(hdr), 0, LUKS_ALIGN_KEYSLOTS - sizeof(hdr));
 
 	devfd = open(backup_file, O_CREAT|O_EXCL|O_WRONLY, S_IRUSR);
 	if (devfd == -1) {
@@ -213,6 +212,7 @@ int LUKS_hdr_backup(
 out:
 	if (devfd != -1)
 		close(devfd);
+	memset(&hdr, 0, sizeof(hdr));
 	crypt_safe_free(buffer);
 	return r;
 }
@@ -287,7 +287,7 @@ int LUKS_hdr_restore(
 		goto out;
 	}
 
-	log_dbg("Storing backup of header (%u bytes) and keyslot area (%u bytes) to device %s.",
+	log_dbg("Storing backup of header (%zu bytes) and keyslot area (%zu bytes) to device %s.",
 		sizeof(*hdr), buffer_size - LUKS_ALIGN_KEYSLOTS, device_path(device));
 
 	devfd = device_open(device, O_RDWR);
@@ -520,7 +520,7 @@ int LUKS_read_phdr(struct luks_phdr *hdr,
 	if (repair && !require_luks_device)
 		return -EINVAL;
 
-	log_dbg("Reading LUKS header of size %d from device %s",
+	log_dbg("Reading LUKS header of size %zu from device %s",
 		hdr_size, device_path(device));
 
 	devfd = device_open(device, O_RDONLY);
@@ -552,7 +552,7 @@ int LUKS_write_phdr(struct luks_phdr *hdr,
 	struct luks_phdr convHdr;
 	int r;
 
-	log_dbg("Updating LUKS header of size %d on device %s",
+	log_dbg("Updating LUKS header of size %zu on device %s",
 		sizeof(struct luks_phdr), device_path(device));
 
 	r = LUKS_check_device_size(ctx, hdr->keyBytes);

@@ -1,9 +1,9 @@
 AC_PREREQ([2.67])
-AC_INIT([cryptsetup],[1.6.4])
+AC_INIT([cryptsetup],[1.6.6])
 
 dnl library version from <major>.<minor>.<release>[-<suffix>]
 LIBCRYPTSETUP_VERSION=$(echo $PACKAGE_VERSION | cut -f1 -d-)
-LIBCRYPTSETUP_VERSION_INFO=9:0:5
+LIBCRYPTSETUP_VERSION_INFO=10:0:6
 dnl library file name for FIPS selfcheck
 LIBCRYPTSETUP_VERSION_FIPS="libcryptsetup.so.4"
 FIPS_MODULE_FILE="/etc/system-fips"
@@ -17,8 +17,8 @@ AC_CONFIG_HEADERS([config.h:config.h.in])
 # http://lists.gnu.org/archive/html/automake/2013-01/msg00060.html
 
 # For old automake use this
-#AM_INIT_AUTOMAKE(dist-bzip2)
-AM_INIT_AUTOMAKE([dist-bzip2 1.12 serial-tests])
+#AM_INIT_AUTOMAKE(dist-xz)
+AM_INIT_AUTOMAKE([dist-xz 1.12 serial-tests])
 
 if test "x$prefix" = "xNONE"; then
 	sysconfdir=/etc
@@ -210,13 +210,13 @@ AC_DEFUN([CONFIGURE_NETTLE], [
 		[AC_MSG_ERROR([You need Nettle cryptographic library.])])
 
 	saved_LIBS=$LIBS
-	AC_CHECK_LIB(nettle, nettle_ripemd160_init,,
-		[AC_MSG_ERROR([You need Nettle library version 2.4 or more recent.])])
+	AC_CHECK_LIB(nettle, nettle_pbkdf2_hmac_sha256,,
+		[AC_MSG_ERROR([You need Nettle library version 2.6 or more recent.])])
 	CRYPTO_LIBS=$LIBS
 	LIBS=$saved_LIBS
 
 	CRYPTO_STATIC_LIBS=$CRYPTO_LIBS
-	use_internal_pbkdf2=1
+	use_internal_pbkdf2=0
 	NO_FIPS([])
 ])
 
@@ -386,8 +386,12 @@ AC_ARG_ENABLE([python], AS_HELP_STRING([--enable-python],[enable Python bindings
 [with_python=$enableval],
 [with_python=no])
 
+AC_ARG_WITH([python_version],
+	AS_HELP_STRING([--with-python_version=VERSION], [required Python version [2.6]]),
+	[PYTHON_VERSION=$withval], [PYTHON_VERSION=2.6])
+
 if test "x$with_python" = "xyes"; then
-	AM_PATH_PYTHON([2.4])
+	AM_PATH_PYTHON([$PYTHON_VERSION])
 
 	if ! test -x "$PYTHON-config" ; then
             AC_MSG_ERROR([Cannot find python development packages to build bindings])
@@ -395,6 +399,9 @@ if test "x$with_python" = "xyes"; then
 
 	PYTHON_INCLUDES=$($PYTHON-config --includes)
 	AC_SUBST(PYTHON_INCLUDES)
+
+	PYTHON_LIBS=$($PYTHON-config --libs)
+	AC_SUBST(PYTHON_LIBS)
 fi
 AM_CONDITIONAL([PYTHON_CRYPTSETUP], [test "x$with_python" = "xyes"])
 
