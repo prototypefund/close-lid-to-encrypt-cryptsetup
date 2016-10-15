@@ -2,18 +2,20 @@
  * GCRYPT crypto backend implementation
  *
  * Copyright (C) 2010-2012, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2010-2012, Milan Broz
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * version 2 as published by the Free Software Foundation.
+ * This file is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
+ * This file is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this file; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
@@ -250,4 +252,38 @@ int crypt_backend_rng(char *buffer, size_t length, int quality, int fips)
 		break;
 	}
 	return 0;
+}
+
+/* PBKDF */
+int crypt_pbkdf(const char *kdf, const char *hash,
+		const char *password, size_t password_length,
+		const char *salt, size_t salt_length,
+		char *key, size_t key_length,
+		unsigned int iterations)
+{
+#if USE_INTERNAL_PBKDF2
+	if (!kdf || strncmp(kdf, "pbkdf2", 6))
+		return -EINVAL;
+
+	return pkcs5_pbkdf2(hash, password, password_length, salt, salt_length,
+			    iterations, key_length, key);
+
+#else /* USE_INTERNAL_PBKDF2 */
+	int hash_id = gcry_md_map_name(hash);
+	int kdf_id;
+
+	if (!hash_id)
+		return -EINVAL;
+
+	if (kdf && !strncmp(kdf, "pbkdf2", 6))
+		kdf_id = GCRY_KDF_PBKDF2;
+	else
+		return -EINVAL;
+
+	if (gcry_kdf_derive(password, password_length, kdf_id, hash_id,
+	    salt, salt_length, iterations, key_length, key))
+		return -EINVAL;
+
+	return 0;
+#endif /* USE_INTERNAL_PBKDF2 */
 }

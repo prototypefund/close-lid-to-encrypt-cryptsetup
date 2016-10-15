@@ -4,7 +4,8 @@ noinst_LTLIBRARIES = libcrypto_backend.la
 
 libcrypto_backend_la_CFLAGS = -Wall @CRYPTO_CFLAGS@
 
-libcrypto_backend_la_SOURCES = crypto_backend.h
+libcrypto_backend_la_SOURCES = crypto_backend.h \
+	crypto_cipher_kernel.c pbkdf_check.c crc32.c
 
 if CRYPTO_BACKEND_GCRYPT
 libcrypto_backend_la_SOURCES += crypto_gcrypt.c
@@ -22,4 +23,8 @@ if CRYPTO_BACKEND_NETTLE
 libcrypto_backend_la_SOURCES += crypto_nettle.c
 endif
 
-INCLUDES = -D_GNU_SOURCE -I$(top_srcdir)/lib
+if CRYPTO_INTERNAL_PBKDF2
+libcrypto_backend_la_SOURCES += pbkdf2_generic.c
+endif
+
+AM_CPPFLAGS = -D_GNU_SOURCE -I$(top_srcdir)/lib
