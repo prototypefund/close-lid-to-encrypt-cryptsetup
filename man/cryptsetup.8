@@ -1,4 +1,4 @@
-.TH CRYPTSETUP "8" "May 2012" "cryptsetup" "Maintenance Commands"
+.TH CRYPTSETUP "8" "December 2013" "cryptsetup" "Maintenance Commands"
 .SH NAME
 cryptsetup - manage plain dm-crypt and LUKS encrypted volumes
 .SH SYNOPSIS
@@ -423,11 +423,25 @@ The \fBtcryptDump\fR command should work for all recognized TCRYPT devices
 and doesn't require superuser privilege.
 
 To map system device (device with boot loader where the whole encrypted
-system resides) use \fB\-\-tcrypt\-system\fR option. Use the whole
-device not the system partition as the device parameter.
+system resides) use \fB\-\-tcrypt\-system\fR option.
+You can use partition device as the parameter (parameter must be real partition
+device, not image in file), then only this partition is mapped.
+
+If you have whole TCRYPT device as a file image and you want to map multiple
+partition encrypted with system encryption, please create loopback mapping
+with partitions first (\fBlosetup -P\fR, see \fPlosetup(8)\fR man page for more info),
+and use loop partition as the device parameter.
+
+If you use whole base device as parameter, one device for the whole system
+encryption is mapped. This mode is available only for backward compatibility
+with older cryptsetup versions which mapped TCRYPT system encryption
+using whole device.
 
 To use hidden header (and map hidden device, if available),
 use \fB\-\-tcrypt\-hidden\fR option.
+
+To explicitly use backup (secondary) header, use \fB\-\-tcrypt\-backup\fR
+option.
 
 \fBNOTE:\fR There is no protection for a hidden volume if
 the outer volume is mounted. The reason is that if there
@@ -444,7 +458,7 @@ Opens the TCRYPT (a TrueCrypt-compatible) <device> and sets up
 a mapping <name>.
 
 \fB<options>\fR can be [\-\-key\-file, \-\-tcrypt\-hidden, 
-\-\-tcrypt\-system, \-\-readonly, \-\-test\-passphrase].
+\-\-tcrypt\-system, \-\-tcrypt\-backup, \-\-readonly, \-\-test\-passphrase].
 
 The keyfile parameter allows combination of file content with the
 passphrase and can be repeated. Note that using keyfiles is compatible
@@ -463,7 +477,7 @@ This means that if the master key is compromised, the whole device has
 to be erased to prevent further access. Use this option carefully.
 
 \fB<options>\fR can be [\-\-dump\-master\-key, \-\-key\-file, 
-\-\-tcrypt\-hidden, \-\-tcrypt\-system].
+\-\-tcrypt\-hidden, \-\-tcrypt\-system, \-\-tcrypt\-backup].
 
 The keyfile parameter allows combination of file content with the
 passphrase and can be repeated.
@@ -680,17 +694,14 @@ This option is only relevant for the \fIopen\fR action with plain
 or loopaes device types.
 .TP
 .B "\-\-skip, \-p <number of 512 byte sectors>"
-How many sectors of the encrypted data to skip at the beginning.
+Start offset used in IV calculation in 512-byte sectors
+(how many sectors of the encrypted data to skip at the beginning).
 This option is only relevant for the \fIopen\fR action with plain
 or loopaes device types.
 
-This is different from the \-\-offset options with respect to
-the sector numbers used in IV calculation.
-Using \-\-offset will shift the IV calculation by the same negative amount.
-Hence, if \-\-offset \fIn\fR, sector \fIn\fR will get a sector
-number of \fI0\fR for the IV calculation.
-Using \-\-skip causes sector \fIn\fR to also be the first sector
-of the mapped device, but with its number for IV generation is \fIn\fR.
+Hence, if \-\-offset \fIn\fR, and \-\-skip \fIs\fR, sector \fIn\fR
+(the first sector of encrypted device) will get a sector number
+of \fIs\fR for the IV calculation.
 .TP
 .B "\-\-readonly, \-r"
 set up a read-only mapping.

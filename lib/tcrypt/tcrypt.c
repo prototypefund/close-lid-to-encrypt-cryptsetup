@@ -51,6 +51,7 @@ struct tcrypt_alg {
 		unsigned int iv_size;
 		unsigned int key_offset;
 		unsigned int iv_offset; /* or tweak key offset */
+		unsigned int key_extra_size;
 };
 
 struct tcrypt_algs {
@@ -66,101 +67,107 @@ struct tcrypt_algs {
 static struct tcrypt_algs tcrypt_cipher[] = {
 /* XTS mode */
 {0,1,64,"aes","xts-plain64",
-	{{"aes",    64,16,0,32}}},
+	{{"aes",    64,16,0,32,0}}},
 {0,1,64,"serpent","xts-plain64",
-	{{"serpent",64,16,0,32}}},
+	{{"serpent",64,16,0,32,0}}},
 {0,1,64,"twofish","xts-plain64",
-	{{"twofish",64,16,0,32}}},
+	{{"twofish",64,16,0,32,0}}},
 {0,2,128,"twofish-aes","xts-plain64",
-	{{"twofish",64,16, 0,64},
-	 {"aes",    64,16,32,96}}},
+	{{"twofish",64,16, 0,64,0},
+	 {"aes",    64,16,32,96,0}}},
 {0,3,192,"serpent-twofish-aes","xts-plain64",
-	{{"serpent",64,16, 0, 96},
-	 {"twofish",64,16,32,128},
-	 {"aes",    64,16,64,160}}},
+	{{"serpent",64,16, 0, 96,0},
+	 {"twofish",64,16,32,128,0},
+	 {"aes",    64,16,64,160,0}}},
 {0,2,128,"aes-serpent","xts-plain64",
-	{{"aes",    64,16, 0,64},
-	 {"serpent",64,16,32,96}}},
+	{{"aes",    64,16, 0,64,0},
+	 {"serpent",64,16,32,96,0}}},
 {0,3,192,"aes-twofish-serpent","xts-plain64",
-	{{"aes",    64,16, 0, 96},
-	 {"twofish",64,16,32,128},
-	 {"serpent",64,16,64,160}}},
+	{{"aes",    64,16, 0, 96,0},
+	 {"twofish",64,16,32,128,0},
+	 {"serpent",64,16,64,160,0}}},
 {0,2,128,"serpent-twofish","xts-plain64",
-	{{"serpent",64,16, 0,64},
-	 {"twofish",64,16,32,96}}},
+	{{"serpent",64,16, 0,64,0},
+	 {"twofish",64,16,32,96,0}}},
+
 /* LRW mode */
 {0,1,48,"aes","lrw-benbi",
-	{{"aes",    48,16,32,0}}},
+	{{"aes",    48,16,32,0,0}}},
 {0,1,48,"serpent","lrw-benbi",
-	{{"serpent",48,16,32,0}}},
+	{{"serpent",48,16,32,0,0}}},
 {0,1,48,"twofish","lrw-benbi",
-	{{"twofish",48,16,32,0}}},
+	{{"twofish",48,16,32,0,0}}},
 {0,2,96,"twofish-aes","lrw-benbi",
-	{{"twofish",48,16,32,0},
-	 {"aes",    48,16,64,0}}},
+	{{"twofish",48,16,32,0,0},
+	 {"aes",    48,16,64,0,0}}},
 {0,3,144,"serpent-twofish-aes","lrw-benbi",
-	{{"serpent",48,16,32,0},
-	 {"twofish",48,16,64,0},
-	 {"aes",    48,16,96,0}}},
+	{{"serpent",48,16,32,0,0},
+	 {"twofish",48,16,64,0,0},
+	 {"aes",    48,16,96,0,0}}},
 {0,2,96,"aes-serpent","lrw-benbi",
-	{{"aes",    48,16,32,0},
-	 {"serpent",48,16,64,0}}},
+	{{"aes",    48,16,32,0,0},
+	 {"serpent",48,16,64,0,0}}},
 {0,3,144,"aes-twofish-serpent","lrw-benbi",
-	{{"aes",    48,16,32,0},
-	 {"twofish",48,16,64,0},
-	 {"serpent",48,16,96,0}}},
+	{{"aes",    48,16,32,0,0},
+	 {"twofish",48,16,64,0,0},
+	 {"serpent",48,16,96,0,0}}},
 {0,2,96,"serpent-twofish", "lrw-benbi",
-	{{"serpent",48,16,32,0},
-	 {"twofish",48,16,64,0}}},
+	{{"serpent",48,16,32,0,0},
+	 {"twofish",48,16,64,0,0}}},
+
 /* Kernel LRW block size is fixed to 16 bytes for GF(2^128)
  * thus cannot be used with blowfish where block is 8 bytes.
  * There also no GF(2^64) support.
 {1,1,64,"blowfish_le","lrw-benbi",
-	 {{"blowfish_le",64,8,32,0}}},
+	 {{"blowfish_le",64,8,32,0,0}}},
 {1,2,112,"blowfish_le-aes","lrw-benbi",
-	 {{"blowfish_le",64, 8,32,0},
-	  {"aes",        48,16,88,0}}},
+	 {{"blowfish_le",64, 8,32,0,0},
+	  {"aes",        48,16,88,0,0}}},
 {1,3,160,"serpent-blowfish_le-aes","lrw-benbi",
-	  {{"serpent",    48,16, 32,0},
-	   {"blowfish_le",64, 8, 64,0},
-	   {"aes",        48,16,120,0}}},*/
-/* CBC + "outer" CBC (both with whitening) */
-{1,1,32,"aes","cbc-tcrypt",
-	{{"aes",    32,16,32,0}}},
-{1,1,32,"serpent","cbc-tcrypt",
-	{{"serpent",32,16,32,0}}},
-{1,1,32,"twofish","cbc-tcrypt",
-	{{"twofish",32,16,32,0}}},
-{1,2,64,"twofish-aes","cbci-tcrypt",
-	{{"twofish",32,16,32,0},
-	 {"aes",    32,16,64,0}}},
-{1,3,96,"serpent-twofish-aes","cbci-tcrypt",
-	{{"serpent",32,16,32,0},
-	 {"twofish",32,16,64,0},
-	 {"aes",    32,16,96,0}}},
-{1,2,64,"aes-serpent","cbci-tcrypt",
-	{{"aes",    32,16,32,0},
-	 {"serpent",32,16,64,0}}},
-{1,3,96,"aes-twofish-serpent", "cbci-tcrypt",
-	{{"aes",    32,16,32,0},
-	 {"twofish",32,16,64,0},
-	 {"serpent",32,16,96,0}}},
-{1,2,64,"serpent-twofish", "cbci-tcrypt",
-	{{"serpent",32,16,32,0},
-	 {"twofish",32,16,64,0}}},
-{1,1,16,"cast5","cbc-tcrypt",
-	{{"cast5",   16,8,32,0}}},
-{1,1,24,"des3_ede","cbc-tcrypt",
-	{{"des3_ede",24,8,32,0}}},
-{1,1,56,"blowfish_le","cbc-tcrypt",
-	{{"blowfish_le",56,8,32,0}}},
-{1,2,88,"blowfish_le-aes","cbc-tcrypt",
-	{{"blowfish_le",56, 8,32,0},
-	 {"aes",        32,16,88,0}}},
-{1,3,120,"serpent-blowfish_le-aes","cbc-tcrypt",
-	{{"serpent",    32,16, 32,0},
-	 {"blowfish_le",56, 8, 64,0},
-	 {"aes",        32,16,120,0}}},
+	  {{"serpent",    48,16, 32,0,0},
+	   {"blowfish_le",64, 8, 64,0,0},
+	   {"aes",        48,16,120,0,0}}},*/
+
+/*
+ * CBC + "outer" CBC (both with whitening)
+ * chain_key_size: alg_keys_bytes + IV_seed_bytes + whitening_bytes
+ */
+{1,1,32+16+16,"aes","cbc-tcw",
+	{{"aes",    32,16,32,0,32}}},
+{1,1,32+16+16,"serpent","cbc-tcw",
+	{{"serpent",32,16,32,0,32}}},
+{1,1,32+16+16,"twofish","cbc-tcw",
+	{{"twofish",32,16,32,0,32}}},
+{1,2,64+16+16,"twofish-aes","cbci-tcrypt",
+	{{"twofish",32,16,32,0,0},
+	 {"aes",    32,16,64,0,32}}},
+{1,3,96+16+16,"serpent-twofish-aes","cbci-tcrypt",
+	{{"serpent",32,16,32,0,0},
+	 {"twofish",32,16,64,0,0},
+	 {"aes",    32,16,96,0,32}}},
+{1,2,64+16+16,"aes-serpent","cbci-tcrypt",
+	{{"aes",    32,16,32,0,0},
+	 {"serpent",32,16,64,0,32}}},
+{1,3,96+16+16,"aes-twofish-serpent", "cbci-tcrypt",
+	{{"aes",    32,16,32,0,0},
+	 {"twofish",32,16,64,0,0},
+	 {"serpent",32,16,96,0,32}}},
+{1,2,64+16+16,"serpent-twofish", "cbci-tcrypt",
+	{{"serpent",32,16,32,0,0},
+	 {"twofish",32,16,64,0,32}}},
+{1,1,16+8+16,"cast5","cbc-tcw",
+	{{"cast5",   16,8,32,0,24}}},
+{1,1,24+8+16,"des3_ede","cbc-tcw",
+	{{"des3_ede",24,8,32,0,24}}},
+{1,1,56+8+16,"blowfish_le","cbc-tcrypt",
+	{{"blowfish_le",56,8,32,0,24}}},
+{1,2,88+16+16,"blowfish_le-aes","cbc-tcrypt",
+	{{"blowfish_le",56, 8,32,0,0},
+	 {"aes",        32,16,88,0,32}}},
+{1,3,120+16+16,"serpent-blowfish_le-aes","cbc-tcrypt",
+	{{"serpent",    32,16, 32,0,0},
+	 {"blowfish_le",56, 8, 64,0,0},
+	 {"aes",        32,16,120,0,32}}},
 {}
 };
 
@@ -289,6 +296,9 @@ static void TCRYPT_copy_key(struct tcrypt_alg *alg, const char *mode,
 		memcpy(&out_key[ks2], key, TCRYPT_LRW_IKEY_LEN);
 	} else if (!strncmp(mode, "cbc", 3)) {
 		memcpy(out_key, &key[alg->key_offset], alg->key_size);
+		/* IV + whitening */
+		memcpy(&out_key[alg->key_size], &key[alg->iv_offset],
+		       alg->key_extra_size);
 	}
 }
 
@@ -563,8 +573,9 @@ int TCRYPT_read_phdr(struct crypt_device *cd,
 		     struct tcrypt_phdr *hdr,
 		     struct crypt_params_tcrypt *params)
 {
-	struct device *device = crypt_metadata_device(cd);
+	struct device *base_device, *device = crypt_metadata_device(cd);
 	ssize_t hdr_size = sizeof(struct tcrypt_phdr);
+	char *base_device_path;
 	int devfd = 0, r, bs;
 
 	assert(sizeof(struct tcrypt_phdr) == 512);
@@ -576,7 +587,23 @@ int TCRYPT_read_phdr(struct crypt_device *cd,
 	if (bs < 0)
 		return bs;
 
-	devfd = device_open(device, O_RDONLY);
+	if (params->flags & CRYPT_TCRYPT_SYSTEM_HEADER &&
+	    crypt_dev_is_partition(device_path(device))) {
+		base_device_path = crypt_get_base_device(device_path(device));
+
+		log_dbg("Reading TCRYPT system header from device %s.", base_device_path ?: "?");
+		if (!base_device_path)
+			return -EINVAL;
+
+		r = device_alloc(&base_device, base_device_path);
+		if (r < 0)
+			return r;
+		devfd = device_open(base_device, O_RDONLY);
+		free(base_device_path);
+		device_free(base_device);
+	} else
+		devfd = device_open(device, O_RDONLY);
+
 	if (devfd == -1) {
 		log_err(cd, _("Cannot open device %s.\n"), device_path(device));
 		return -EINVAL;
@@ -587,10 +614,6 @@ int TCRYPT_read_phdr(struct crypt_device *cd,
 		if (lseek(devfd, TCRYPT_HDR_SYSTEM_OFFSET, SEEK_SET) >= 0 &&
 		    read_blockwise(devfd, bs, hdr, hdr_size) == hdr_size) {
 			r = TCRYPT_init_hdr(cd, hdr, params);
-			if (r == -EPERM && crypt_dev_is_partition(device_path(device)))
-				log_std(cd, _("WARNING: device %s is a partition, for TCRYPT "
-					      "system encryption you usually need to use "
-					      "whole block device path.\n"), device_path(device));
 		}
 	} else if (params->flags & CRYPT_TCRYPT_HIDDEN_HEADER) {
 		if (params->flags & CRYPT_TCRYPT_BACKUP_HEADER) {
@@ -645,6 +668,7 @@ int TCRYPT_activate(struct crypt_device *cd,
 	struct device *device = NULL, *part_device = NULL;
 	unsigned int i;
 	int r;
+	uint32_t req_flags;
 	struct tcrypt_algs *algs;
 	enum devcheck device_check;
 	struct crypt_dm_active_device dmd = {
@@ -674,36 +698,45 @@ int TCRYPT_activate(struct crypt_device *cd,
 		return -ENOTSUP;
 	}
 
+	if (strstr(params->mode, "-tcw"))
+		req_flags = DM_TCW_SUPPORTED;
+	else
+		req_flags = DM_PLAIN64_SUPPORTED;
+
 	algs = TCRYPT_get_algs(params->cipher, params->mode);
 	if (!algs)
 		return -EINVAL;
 
-	if (params->flags & CRYPT_TCRYPT_HIDDEN_HEADER)
+	if (params->flags & CRYPT_TCRYPT_SYSTEM_HEADER)
+		dmd.size = 0;
+	else if (params->flags & CRYPT_TCRYPT_HIDDEN_HEADER)
 		dmd.size = hdr->d.hidden_volume_size / hdr->d.sector_size;
 	else
 		dmd.size = hdr->d.volume_size / hdr->d.sector_size;
 
-	/*
-	 * System encryption use the whole device mapping, there can
-	 * be active partitions.
-	 * FIXME: This will allow multiple mappings unexpectedly.
-	 */
-	if ((dmd.flags & CRYPT_ACTIVATE_SHARED) ||
-	    (params->flags & CRYPT_TCRYPT_SYSTEM_HEADER))
+	if (dmd.flags & CRYPT_ACTIVATE_SHARED)
 		device_check = DEV_SHARED;
 	else
 		device_check = DEV_EXCL;
 
 	if ((params->flags & CRYPT_TCRYPT_SYSTEM_HEADER) &&
-		(part_path = crypt_get_partition_device(device_path(dmd.data_device),
-				 dmd.u.crypt.offset, dmd.size))) {
-		if (!device_alloc(&part_device, part_path)) {
-			log_verbose(cd, _("Activating TCRYPT system encryption for partition %s.\n"),
-				    part_path);
-			dmd.data_device = part_device;
-			dmd.u.crypt.offset = 0;
-		}
-		free(part_path);
+	     !crypt_dev_is_partition(device_path(dmd.data_device))) {
+		part_path = crypt_get_partition_device(device_path(dmd.data_device),
+						       dmd.u.crypt.offset, dmd.size);
+		if (part_path) {
+			if (!device_alloc(&part_device, part_path)) {
+				log_verbose(cd, _("Activating TCRYPT system encryption for partition %s.\n"),
+					    part_path);
+				dmd.data_device = part_device;
+				dmd.u.crypt.offset = 0;
+			}
+			free(part_path);
+		} else
+			/*
+			 * System encryption use the whole device mapping, there can
+			 * be active partitions.
+			 */
+			device_check = DEV_SHARED;
 	}
 
 	r = device_block_adjust(cd, dmd.data_device, device_check,
@@ -712,7 +745,8 @@ int TCRYPT_activate(struct crypt_device *cd,
 		return r;
 
 	/* Frome here, key size for every cipher must be the same */
-	dmd.u.crypt.vk = crypt_alloc_volume_key(algs->cipher[0].key_size, NULL);
+	dmd.u.crypt.vk = crypt_alloc_volume_key(algs->cipher[0].key_size +
+						algs->cipher[0].key_extra_size, NULL);
 	if (!dmd.u.crypt.vk)
 		return -ENOMEM;
 
@@ -752,8 +786,8 @@ int TCRYPT_activate(struct crypt_device *cd,
 			break;
 	}
 
-	if (r < 0 && !(dm_flags() & DM_PLAIN64_SUPPORTED)) {
-		log_err(cd, _("Kernel doesn't support plain64 IV.\n"));
+	if (r < 0 && !(dm_flags() & req_flags)) {
+		log_err(cd, _("Kernel doesn't support TCRYPT compatible mapping.\n"));
 		r = -ENOTSUP;
 	}
 
@@ -907,8 +941,11 @@ uint64_t TCRYPT_get_data_offset(struct crypt_device *cd,
 		goto hdr_offset;
 
 	/* Mapping through whole device, not partition! */
-	if (params->flags & CRYPT_TCRYPT_SYSTEM_HEADER)
+	if (params->flags & CRYPT_TCRYPT_SYSTEM_HEADER) {
+		if (crypt_dev_is_partition(device_path(crypt_metadata_device(cd))))
+			return 0;
 		goto hdr_offset;
+	}
 
 	if (params->mode && !strncmp(params->mode, "xts", 3)) {
 		if (hdr->d.version < 3)
@@ -938,15 +975,21 @@ hdr_offset:
 
 uint64_t TCRYPT_get_iv_offset(struct crypt_device *cd,
 			      struct tcrypt_phdr *hdr,
-			      struct crypt_params_tcrypt *params
-)
+			      struct crypt_params_tcrypt *params)
 {
-	if (params->mode && !strncmp(params->mode, "xts", 3))
-		return TCRYPT_get_data_offset(cd, hdr, params);
-	else if (params->mode && !strncmp(params->mode, "lrw", 3))
-		return 0;
+	uint64_t iv_offset;
 
-	return hdr->d.mk_offset / hdr->d.sector_size;
+	if (params->mode && !strncmp(params->mode, "xts", 3))
+		iv_offset = TCRYPT_get_data_offset(cd, hdr, params);
+	else if (params->mode && !strncmp(params->mode, "lrw", 3))
+		iv_offset = 0;
+	else
+		iv_offset = hdr->d.mk_offset / hdr->d.sector_size;
+
+	if (params->flags & CRYPT_TCRYPT_SYSTEM_HEADER)
+		iv_offset += crypt_dev_partition_offset(device_path(crypt_metadata_device(cd)));
+
+	return iv_offset;
 }
 
 int TCRYPT_get_volume_key(struct crypt_device *cd,

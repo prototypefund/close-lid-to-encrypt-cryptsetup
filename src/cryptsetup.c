@@ -60,6 +60,7 @@ static int opt_allow_discards = 0;
 static int opt_test_passphrase = 0;
 static int opt_tcrypt_hidden = 0;
 static int opt_tcrypt_system = 0;
+static int opt_tcrypt_backup = 0;
 
 static const char **action_argv;
 static int action_argc;
@@ -239,6 +240,9 @@ static int action_open_tcrypt(void)
 	if (opt_tcrypt_system)
 		params.flags |= CRYPT_TCRYPT_SYSTEM_HEADER;
 
+	if (opt_tcrypt_backup)
+		params.flags |= CRYPT_TCRYPT_BACKUP_HEADER;
+
 	r = crypt_load(cd, CRYPT_TCRYPT, &params);
 	check_signal(&r);
 	if (r < 0)
@@ -325,6 +329,9 @@ static int action_tcryptDump(void)
 
 	if (opt_tcrypt_system)
 		params.flags |= CRYPT_TCRYPT_SYSTEM_HEADER;
+
+	if (opt_tcrypt_backup)
+		params.flags |= CRYPT_TCRYPT_BACKUP_HEADER;
 
 	r = crypt_load(cd, CRYPT_TCRYPT, &params);
 	check_signal(&r);
@@ -453,6 +460,29 @@ static int action_benchmark_kdf(const char *hash)
 	return r;
 }
 
+static int benchmark_cipher_loop(const char *cipher, const char *cipher_mode,
+				 size_t volume_key_size, size_t iv_size,
+				 double *encryption_mbs, double *decryption_mbs)
+{
+	int r, buffer_size = 1024 * 1024;
+
+	do {
+		r = crypt_benchmark(NULL, cipher, cipher_mode,
+				    volume_key_size, iv_size, buffer_size,
+				    encryption_mbs, decryption_mbs);
+		if (r == -ERANGE) {
+			if (buffer_size < 1024 * 1024 * 65)
+				buffer_size *= 2;
+			else {
+				log_err(_("Result of benchmark is not reliable.\n"));
+				r = -ENOENT;
+			}
+		}
+	} while (r == -ERANGE);
+
+	return r;
+}
+
 static int action_benchmark(void)
 {
 	static struct {
@@ -482,7 +512,6 @@ static int action_benchmark(void)
 	double enc_mbr = 0, dec_mbr = 0;
 	int key_size = (opt_key_size ?: DEFAULT_PLAIN_KEYBITS);
 	int iv_size = 16, skipped = 0;
-	int buffer_size = 1024 * 1024;
 	char *c;
 	int i, r;
 
@@ -504,9 +533,9 @@ static int action_benchmark(void)
 		    strstr(cipher, "cast5"))
 			iv_size = 8;
 
-		r = crypt_benchmark(NULL, cipher, cipher_mode,
-				    key_size / 8, iv_size, buffer_size,
-				    &enc_mbr, &dec_mbr);
+		r = benchmark_cipher_loop(cipher, cipher_mode,
+					  key_size / 8, iv_size,
+					  &enc_mbr, &dec_mbr);
 		if (!r) {
 			log_std(N_("#  Algorithm | Key |  Encryption |  Decryption\n"));
 			log_std("%8s-%s  %4db  %6.1f MiB/s  %6.1f MiB/s\n",
@@ -521,9 +550,9 @@ static int action_benchmark(void)
 				break;
 		}
 		for (i = 0; bciphers[i].cipher; i++) {
-			r = crypt_benchmark(NULL, bciphers[i].cipher, bciphers[i].mode,
+			r = benchmark_cipher_loop(bciphers[i].cipher, bciphers[i].mode,
 					    bciphers[i].key_size, bciphers[i].iv_size,
-					    buffer_size, &enc_mbr, &dec_mbr);
+					    &enc_mbr, &dec_mbr);
 			check_signal(&r);
 			if (r == -ENOTSUP || r == -EINTR)
 				break;
@@ -1390,6 +1419,7 @@ int main(int argc, const char **argv)
 		{ "test-passphrase",   '\0', POPT_ARG_NONE, &opt_test_passphrase,       0, N_("Do not activate device, just check passphrase."), NULL },
 		{ "tcrypt-hidden",     '\0', POPT_ARG_NONE, &opt_tcrypt_hidden,         0, N_("Use hidden header (hidden TCRYPT device)."), NULL },
 		{ "tcrypt-system",     '\0', POPT_ARG_NONE, &opt_tcrypt_system,         0, N_("Device is system TCRYPT drive (with bootloader)."), NULL },
+		{ "tcrypt-backup",     '\0', POPT_ARG_NONE, &opt_tcrypt_backup,         0, N_("Use backup (secondary) TCRYPT header."), NULL },
 		{ "type",               'M', POPT_ARG_STRING, &opt_type,                0, N_("Type of device metadata: luks, plain, loopaes, tcrypt."), NULL },
 		{ "force-password",    '\0', POPT_ARG_NONE, &opt_force_password,        0, N_("Disable password quality check (if enabled)."), NULL },
 		POPT_TABLEEND
@@ -1405,7 +1435,8 @@ int main(int argc, const char **argv)
 	bindtextdomain(PACKAGE, LOCALEDIR);
 	textdomain(PACKAGE);
 
-	crypt_fips_self_check(NULL);
+	if (crypt_fips_mode())
+		crypt_log(NULL, CRYPT_LOG_VERBOSE, _("Running in FIPS mode.\n"));
 
 	popt_context = poptGetContext(PACKAGE, argc, argv, popt_options, 0);
 	poptSetOtherOptionHelp(popt_context,
@@ -1591,10 +1622,10 @@ int main(int argc, const char **argv)
 		_("Option --offset is supported only for open of plain and loopaes devices.\n"),
 		poptGetInvocationName(popt_context));
 
-	if ((opt_tcrypt_hidden || opt_tcrypt_system) && strcmp(aname, "tcryptDump") &&
+	if ((opt_tcrypt_hidden || opt_tcrypt_system || opt_tcrypt_backup) && strcmp(aname, "tcryptDump") &&
 	    (strcmp(aname, "open") || strcmp(opt_type, "tcrypt")))
 		usage(popt_context, EXIT_FAILURE,
-		_("Option --tcrypt-hidden or --tcrypt-system is supported only for TCRYPT device.\n"),
+		_("Option --tcrypt-hidden, --tcrypt-system or --tcrypt-backup is supported only for TCRYPT device.\n"),
 		poptGetInvocationName(popt_context));
 
 	if (opt_debug) {
