@@ -12,10 +12,11 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <termios.h>
+#include <sys/mman.h>
+#include <sys/resource.h>
 
 #include "libcryptsetup.h"
 #include "internal.h"
-
 
 struct safe_allocation {
 	size_t	size;
@@ -26,18 +27,24 @@ static char *error=NULL;
 
 void set_error_va(const char *fmt, va_list va)
 {
+	int r;
 
 	if(error) {
-	    free(error);
-	    error=NULL;
+		free(error);
+		error = NULL;
 	}
 
 	if(!fmt) return;
 
-	if (vasprintf(&error, fmt, va) < 0) {
+	r = vasprintf(&error, fmt, va);
+	if (r < 0) {
 		free(error);
 		error = NULL;
+		return;
 	}
+
+	if (r && error[r - 1] == '\n')
+		error[r - 1] = '\0';
 }
 
 void set_error(const char *fmt, ...)
@@ -116,10 +123,24 @@ char *safe_strdup(const char *s)
 	return strcpy(s2, s);
 }
 
-/* Credits go to Michal's padlock patches for this alignment code */
-
-static void *aligned_malloc(char **base, int size, int alignment) 
+static int get_alignment(int fd)
 {
+	int alignment = DEFAULT_ALIGNMENT;
+
+#ifdef _PC_REC_XFER_ALIGN
+	alignment = fpathconf(fd, _PC_REC_XFER_ALIGN);
+	if (alignment < 0)
+		alignment = DEFAULT_ALIGNMENT;
+#endif
+	return alignment;
+}
+
+static void *aligned_malloc(void **base, int size, int alignment)
+{
+#ifdef HAVE_POSIX_MEMALIGN
+	return posix_memalign(base, alignment, size) ? NULL : *base;
+#else
+/* Credits go to Michal's padlock patches for this alignment code */
 	char *ptr;
 
 	ptr  = malloc(size + alignment);
@@ -130,8 +151,8 @@ static void *aligned_malloc(char **base, int size, int alignment)
 		ptr += alignment - ((long)(ptr) & (alignment - 1));
 	}
 	return ptr;
+#endif
 }
-
 static int sector_size(int fd) 
 {
 	int bsize;
@@ -152,74 +173,98 @@ int sector_size_for_device(const char *device)
 	return r;
 }
 
-ssize_t write_blockwise(int fd, const void *orig_buf, size_t count) 
+ssize_t write_blockwise(int fd, const void *orig_buf, size_t count)
 {
-	char *padbuf; char *padbuf_base;
-	char *buf = (char *)orig_buf;
-	int r = 0;
-	int hangover; int solid; int bsize;
+	void *hangover_buf, *hangover_buf_base = NULL;
+	void *buf, *buf_base = NULL;
+	int r, hangover, solid, bsize, alignment;
+	ssize_t ret = -1;
 
 	if ((bsize = sector_size(fd)) < 0)
 		return bsize;
 
 	hangover = count % bsize;
 	solid = count - hangover;
+	alignment = get_alignment(fd);
 
-	padbuf = aligned_malloc(&padbuf_base, bsize, bsize);
-	if(padbuf == NULL) return -ENOMEM;
+	if ((long)orig_buf & (alignment - 1)) {
+		buf = aligned_malloc(&buf_base, count, alignment);
+		if (!buf)
+			goto out;
+		memcpy(buf, orig_buf, count);
+	} else
+		buf = (void *)orig_buf;
 
-	while(solid) {
-		memcpy(padbuf, buf, bsize);
-		r = write(fd, padbuf, bsize);
+	r = write(fd, buf, solid);
+	if (r < 0 || r != solid)
+		goto out;
+
+	if (hangover) {
+		hangover_buf = aligned_malloc(&hangover_buf_base, bsize, alignment);
+		if (!hangover_buf)
+			goto out;
+
+		r = read(fd, hangover_buf, bsize);
 		if(r < 0 || r != bsize) goto out;
 
-		solid -= bsize;
-		buf += bsize;
+		r = lseek(fd, -bsize, SEEK_CUR);
+		if (r < 0)
+			goto out;
+		memcpy(hangover_buf, buf + solid, hangover);
+
+		r = write(fd, hangover_buf, bsize);
+		if(r < 0 || r != bsize) goto out;
+		free(hangover_buf_base);
 	}
-	if(hangover) {
-		r = read(fd,padbuf,bsize);
-		if(r < 0 || r != bsize) goto out;
-
-		lseek(fd,-bsize,SEEK_CUR);
-		memcpy(padbuf,buf,hangover);
-
-		r = write(fd,padbuf, bsize);
-		if(r < 0 || r != bsize) goto out;
-		buf += hangover;
-	}
+	ret = count;
  out:
-	free(padbuf_base);
-	return (buf-(char *)orig_buf)?(buf-(char *)orig_buf):r;
-
+	if (buf != orig_buf)
+		free(buf_base);
+	return ret;
 }
 
 ssize_t read_blockwise(int fd, void *orig_buf, size_t count) {
-	char *padbuf; char *padbuf_base;
-	char *buf = (char *)orig_buf;
-	int r = 0;
-	int step;
-	int bsize;
+	void *hangover_buf, *hangover_buf_base;
+	void *buf, *buf_base = NULL;
+	int r, hangover, solid, bsize, alignment;
+	ssize_t ret = -1;
 
 	if ((bsize = sector_size(fd)) < 0)
 		return bsize;
 
-	padbuf = aligned_malloc(&padbuf_base, bsize, bsize);
-	if(padbuf == NULL) return -ENOMEM;
+	hangover = count % bsize;
+	solid = count - hangover;
+	alignment = get_alignment(fd);
 
-	while(count) {
-		r = read(fd,padbuf,bsize);
-		if(r < 0 || r != bsize) {
-			set_error("read failed in read_blockwise.\n");
+	if ((long)orig_buf & (alignment - 1)) {
+		buf = aligned_malloc(&buf_base, count, alignment);
+		if (!buf)
 			goto out;
-		}
-		step = count<bsize?count:bsize;
-		memcpy(buf,padbuf,step);
-		buf += step;
-		count -= step;
+	} else
+		buf = orig_buf;
+
+	r = read(fd, buf, solid);
+	if(r < 0 || r != solid)
+		goto out;
+
+	if (hangover) {
+		hangover_buf = aligned_malloc(&hangover_buf_base, bsize, alignment);
+		if (!hangover_buf)
+			goto out;
+		r = read(fd, hangover_buf, bsize);
+		if (r <  0 || r != bsize)
+			goto out;
+
+		memcpy(buf + solid, hangover_buf, hangover);
+		free(hangover_buf_base);
 	}
+	ret = count;
  out:
-	free(padbuf_base); 
-	return (buf-(char *)orig_buf)?(buf-(char *)orig_buf):r;
+	if (buf != orig_buf) {
+		memcpy(orig_buf, buf, count);
+		free(buf_base);
+	}
+	return ret;
 }
 
 /* 
@@ -289,8 +334,7 @@ static int timed_read(int fd, char *pass, size_t maxlen, long timeout)
 
 	if (select(fd+1, &fds, NULL, NULL, &t) > 0)
 		failed = untimed_read(fd, pass, maxlen);
-	else
-		set_error("Operation timed out");
+
 	return failed;
 }
 
@@ -310,10 +354,9 @@ static int interactive_pass(const char *prompt, char *pass, size_t maxlen,
 		outfd = STDERR_FILENO;
 	}
 
-	if (tcgetattr(infd, &orig)) {
-		set_error("Unable to get terminal");
+	if (tcgetattr(infd, &orig))
 		goto out_err;
-	}
+
 	memcpy(&tmp, &orig, sizeof(tmp));
 	tmp.c_lflag &= ~ECHO;
 
@@ -347,13 +390,11 @@ out_err:
  * Legend: p..prompt, v..can verify, n..newline-stop, h..read horizon
  *
  * Note: --key-file=- is interpreted as a read from a binary file (stdin)
- *
- * Returns true when more keys are available (that is when password
- * reading can be retried as for interactive terminals).
  */
 
-int get_key(char *prompt, char **key, unsigned int *passLen, int key_size,
-            const char *key_file, int passphrase_fd, int timeout, int how2verify)
+void get_key(char *prompt, char **key, unsigned int *passLen, int key_size,
+            const char *key_file, int timeout, int how2verify,
+	    struct crypt_device *cd)
 {
 	int fd;
 	const int verify = how2verify & CRYPT_FLAG_VERIFY;
@@ -361,18 +402,17 @@ int get_key(char *prompt, char **key, unsigned int *passLen, int key_size,
 	char *pass = NULL;
 	int newline_stop;
 	int read_horizon;
+	int regular_file = 0;
 
 	if(key_file && !strcmp(key_file, "-")) {
 		/* Allow binary reading from stdin */
-		fd = passphrase_fd;
+		fd = STDIN_FILENO;
 		newline_stop = 0;
 		read_horizon = 0;
 	} else if (key_file) {
 		fd = open(key_file, O_RDONLY);
 		if (fd < 0) {
-			char buf[128];
-			set_error("Error opening key file: %s",
-				  strerror_r(errno, buf, 128));
+			log_err(cd, "Failed to open key file %s.\n", key_file);
 			goto out_err;
 		}
 		newline_stop = 0;
@@ -381,7 +421,7 @@ int get_key(char *prompt, char **key, unsigned int *passLen, int key_size,
 		 * of key bytes (default or passed by -s) */
 		read_horizon = key_size;
 	} else {
-		fd = passphrase_fd;
+		fd = STDIN_FILENO;
 		newline_stop = 1;
 		read_horizon = 0;   /* Infinite, if read from terminal or fd */
 	}
@@ -390,16 +430,16 @@ int get_key(char *prompt, char **key, unsigned int *passLen, int key_size,
 	if(isatty(fd)) {
 		int i;
 
-		pass = safe_alloc(512);
-		if (!pass || (i = interactive_pass(prompt, pass, 512, timeout))) {
-			set_error("Error reading passphrase");
+		pass = safe_alloc(MAX_TTY_PASSWORD_LEN);
+		if (!pass || (i = interactive_pass(prompt, pass, MAX_TTY_PASSWORD_LEN, timeout))) {
+			log_err(cd, "Error reading passphrase from terminal.\n");
 			goto out_err;
 		}
 		if (verify || verify_if_possible) {
-			char pass_verify[512];
+			char pass_verify[MAX_TTY_PASSWORD_LEN];
 			i = interactive_pass("Verify passphrase: ", pass_verify, sizeof(pass_verify), timeout);
 			if (i || strcmp(pass, pass_verify) != 0) {
-				set_error("Passphrases do not match");
+				log_err(cd, "Passphrases do not match.\n");
 				goto out_err;
 			}
 			memset(pass_verify, 0, sizeof(pass_verify));
@@ -414,7 +454,7 @@ int get_key(char *prompt, char **key, unsigned int *passLen, int key_size,
 		int buflen, i;
 
 		if(verify) {
-			set_error("Can't do passphrase verification on non-tty inputs");
+			log_err(cd, "Can't do passphrase verification on non-tty inputs.\n");
 			goto out_err;
 		}
 		/* The following for control loop does an exhausting
@@ -427,14 +467,15 @@ int get_key(char *prompt, char **key, unsigned int *passLen, int key_size,
 		if(key_file && strcmp(key_file, "-") && read_horizon == 0) {
 			struct stat st;
 			if(stat(key_file, &st) < 0) {
-		 		set_error("Can't stat key file");
+				log_err(cd, "Failed to stat key file %s.\n", key_file);
 				goto out_err;
 			}
-			if(!S_ISREG(st.st_mode)) {
-				//		 		set_error("Can't do exhausting read on non regular files");
-				// goto out_err;
-				fprintf(stderr,"Warning: exhausting read requested, but key file is not a regular file, function might never return.\n");
-			}
+			if(!S_ISREG(st.st_mode))
+				log_std(cd, "Warning: exhausting read requested, but key file %s"
+					" is not a regular file, function might never return.\n",
+					key_file);
+			else
+				regular_file = 1;
 		}
 		buflen = 0;
 		for(i = 0; read_horizon == 0 || i < read_horizon; i++) {
@@ -442,8 +483,7 @@ int get_key(char *prompt, char **key, unsigned int *passLen, int key_size,
 				buflen += 128;
 				pass = safe_realloc(pass, buflen);
 				if (!pass) {
-					set_error("Not enough memory while "
-					          "reading passphrase");
+					log_err(cd, "Out of memory while reading passphrase.\n");
 					goto out_err;
 				}
 			}
@@ -452,18 +492,184 @@ int get_key(char *prompt, char **key, unsigned int *passLen, int key_size,
 		}
 		if(key_file)
 			close(fd);
+		/* Fail if piped input dies reading nothing */
+		if(!i && !regular_file) {
+			log_dbg("Error reading passphrase.");
+			goto out_err;
+		}
 		pass[i] = 0;
 		*key = pass;
 		*passLen = i;
 	}
-
-	return isatty(fd); /* Return true, when password reading can be tried on interactive fds */
+	return;
 
 out_err:
 	if(pass)
 		safe_free(pass);
 	*key = NULL;
 	*passLen = 0;
-	return 0;
 }
 
+int device_ready(struct crypt_device *cd, const char *device, int mode)
+{
+	int devfd, r = 1;
+	ssize_t s;
+	struct stat st;
+	char buf[512];
+
+	if(stat(device, &st) < 0) {
+		log_err(cd, _("Device %s doesn't exist or access denied.\n"), device);
+		return 0;
+	}
+
+	log_dbg("Trying to open and read device %s.", device);
+	devfd = open(device, mode | O_DIRECT | O_SYNC);
+	if(devfd < 0) {
+		log_err(cd, _("Cannot open device %s for %s%s access.\n"), device,
+			(mode & O_EXCL) ? _("exclusive ") : "",
+			(mode & O_RDWR) ? _("writable") : _("read-only"));
+		return 0;
+	}
+
+	 /* Try to read first sector */
+	s = read_blockwise(devfd, buf, sizeof(buf));
+	if (s < 0 || s != sizeof(buf)) {
+		log_err(cd, _("Cannot read device %s.\n"), device);
+		r = 0;
+	}
+
+	memset(buf, 0, sizeof(buf));
+	close(devfd);
+
+	return r;
+}
+
+int get_device_infos(const char *device, struct device_infos *infos, struct crypt_device *cd)
+{
+	uint64_t size;
+	unsigned long size_small;
+	int readonly = 0;
+	int ret = -1;
+	int fd;
+
+	/* Try to open read-write to check whether it is a read-only device */
+	fd = open(device, O_RDWR);
+	if (fd < 0) {
+		if (errno == EROFS) {
+			readonly = 1;
+			fd = open(device, O_RDONLY);
+		}
+	} else {
+		close(fd);
+		fd = open(device, O_RDONLY);
+	}
+	if (fd < 0) {
+		log_err(cd, _("Cannot open device: %s\n"), device);
+		return -1;
+	}
+
+#ifdef BLKROGET
+	/* If the device can be opened read-write, i.e. readonly is still 0, then
+	 * check whether BKROGET says that it is read-only. E.g. read-only loop
+	 * devices may be openend read-write but are read-only according to BLKROGET
+	 */
+	if (readonly == 0 && ioctl(fd, BLKROGET, &readonly) < 0) {
+		log_err(cd, _("BLKROGET failed on device %s.\n"), device);
+		goto out;
+	}
+#else
+#error BLKROGET not available
+#endif
+
+#ifdef BLKGETSIZE64
+	if (ioctl(fd, BLKGETSIZE64, &size) >= 0) {
+		size >>= SECTOR_SHIFT;
+		ret = 0;
+		goto out;
+	}
+#endif
+
+#ifdef BLKGETSIZE
+	if (ioctl(fd, BLKGETSIZE, &size_small) >= 0) {
+		size = (uint64_t)size_small;
+		ret = 0;
+		goto out;
+	}
+#else
+#	error Need at least the BLKGETSIZE ioctl!
+#endif
+
+	log_err(cd, _("BLKGETSIZE failed on device %s.\n"), device);
+out:
+	if (ret == 0) {
+		infos->size = size;
+		infos->readonly = readonly;
+	}
+	close(fd);
+	return ret;
+}
+
+int wipe_device_header(const char *device, int sectors)
+{
+	char *buffer;
+	int size = sectors * SECTOR_SIZE;
+	int r = -1;
+	int devfd;
+
+	devfd = open(device, O_RDWR | O_DIRECT | O_SYNC);
+	if(devfd == -1)
+		return -EINVAL;
+
+	buffer = malloc(size);
+	if (!buffer) {
+		close(devfd);
+		return -ENOMEM;
+	}
+	memset(buffer, 0, size);
+
+	r = write_blockwise(devfd, buffer, size) < size ? -EIO : 0;
+
+	free(buffer);
+	close(devfd);
+
+	return r;
+}
+
+/* MEMLOCK */
+#define DEFAULT_PROCESS_PRIORITY -18
+
+static int _priority;
+static int _memlock_count = 0;
+
+// return 1 if memory is locked
+int memlock_inc(struct crypt_device *ctx)
+{
+	if (!_memlock_count++) {
+		log_dbg("Locking memory.");
+		if (mlockall(MCL_CURRENT | MCL_FUTURE)) {
+			log_err(ctx, _("WARNING!!! Possibly insecure memory. Are you root?\n"));
+			_memlock_count--;
+			return 0;
+		}
+		errno = 0;
+		if (((_priority = getpriority(PRIO_PROCESS, 0)) == -1) && errno)
+			log_err(ctx, _("Cannot get process priority.\n"));
+		else
+			if (setpriority(PRIO_PROCESS, 0, DEFAULT_PROCESS_PRIORITY))
+				log_err(ctx, _("setpriority %u failed: %s"),
+					DEFAULT_PROCESS_PRIORITY, strerror(errno));
+	}
+	return _memlock_count ? 1 : 0;
+}
+
+int memlock_dec(struct crypt_device *ctx)
+{
+	if (_memlock_count && (!--_memlock_count)) {
+		log_dbg("Unlocking memory.");
+		if (munlockall())
+			log_err(ctx, _("Cannot unlock memory."));
+		if (setpriority(PRIO_PROCESS, 0, _priority))
+			log_err(ctx, _("setpriority %u failed: %s"), _priority, strerror(errno));
+	}
+	return _memlock_count ? 1 : 0;
+}

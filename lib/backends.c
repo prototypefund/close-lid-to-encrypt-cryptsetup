@@ -7,35 +7,15 @@
 #include "internal.h"
 
 extern struct hash_backend hash_gcrypt_backend;
-extern struct setup_backend setup_libdevmapper_backend;
-
-#ifdef USE_PLUGINS
-static void init_plugins(void)
-{
-}
-#else /* USE_PLUGINS */
-#	define init_plugins()	do { } while(0)
-#endif /* USE_PLUGINS */
 
 static struct hash_backend *hash_backends[] = {
-#ifdef BUILTIN_GCRYPT
 	&hash_gcrypt_backend,
-#endif
-	NULL
-};
-
-static struct setup_backend *setup_backends[] = {
-#ifdef BUILTIN_LIBDEVMAPPER
-	&setup_libdevmapper_backend,
-#endif
 	NULL
 };
 
 struct hash_backend *get_hash_backend(const char *name)
 {
 	struct hash_backend **backend;
-
-	init_plugins();
 
 	for(backend = hash_backends; *backend; backend++)
 		if (!name || strcmp(name, (*backend)->name) == 0)
@@ -113,23 +93,4 @@ out:
 	put_hash_backend(backend);
 
 	return r;
-}
-
-struct setup_backend *get_setup_backend(const char *name)
-{
-	struct setup_backend **backend;
-
-	init_plugins();
-
-	for(backend = setup_backends; *backend; backend++)
-		if (!name || strcmp(name, (*backend)->name) == 0)
-			break;
-
-	return *backend;
-}
-
-void put_setup_backend(struct setup_backend *backend)
-{
-#ifdef USE_PLUGINS
-#endif
 }
