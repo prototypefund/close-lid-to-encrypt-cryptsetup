@@ -14,7 +14,7 @@ A. Contributors
 1. General Questions 
 
 
- * What is this?
+ * 1.1 What is this?
 
   This is the FAQ (Frequently Asked Questions) for cryptsetup. It
   covers Linux disk encryption with plain dm-crypt (one passphrase,
@@ -25,7 +25,7 @@ A. Contributors
   http://code.google.com/p/cryptsetup/wiki/FrequentlyAskedQuestions
 
 
- * WARNINGS
+ * 1.2 WARNINGS
 
   ATTENTION: If you are going to read just one thing, make it the
   section on Backup and Data Recovery. By far the most questions on
@@ -37,6 +37,19 @@ A. Contributors
   such a disaster! In particular, make sure you have a current header
   backup before doing any potentially dangerous operations.
 
+  BACKUP: Yes, encrypted disks die, just as normal ones do. A full
+  backup is mandatory, see Section "6. Backup and Data Recovery" on
+  options for doing encrypted backup.
+
+  CLONING/IMAGING: If you clone or image a LUKS container, you make a
+  copy of the LUKS header and the master key will stay the same!
+  That means that if you distribute an image to several machines, the
+  same master key will be used on all of them, regardless of whether
+  you change the passphrases. Do NOT do this! If you do, a root-user
+  on any of the machines with a mapped (decrypted) container or a
+  passphrase on that machine can decrypt all other copies, breaking
+  security. See also Item 6.15.
+
   DISTRIBUTION INSTALLERS: Some distribution installers offer to
   create LUKS containers in a way that can be mistaken as activation
   of an existing container. Creating a new LUKS container on top of
@@ -44,6 +57,15 @@ A. Contributors
   loss. It is strongly recommended to only use distribution
   installers after a complete backup of all LUKS containers has been
   made.
+
+  NO WARNING ON NON-INERACTIVE FORMAT: If you feed cryptsetup from
+  STDIN (e.g. via GnuPG) on LUKS format, it does not give you the
+  warning that you are about to format (and e.g. will lose any
+  pre-existing LUKS container on the target), as it assumes it is
+  used from a script. In this scenario, the responsibility for
+  warning the user and possibly checking for an existing LUKS header
+  is shifted to the script. This is a more general form of the
+  previous item.
 
   LUKS PASSPHRASE IS NOT THE MASTER KEY: The LUKS passphrase is not
   used in deriving the master key. It is used in decrypting a master
@@ -64,7 +86,7 @@ A. Contributors
   http://en.wikipedia.org/wiki/ASCII
 
 
- * System Specific warnings
+ * 1.3 System Specific warnings
 
   - Ubuntu as of 4/2011: It seems the installer offers to create
   LUKS partitions in a way that several people mistook for an offer
@@ -77,7 +99,7 @@ A. Contributors
   http://launchpad.net/bugs/420080
 
 
- * Who wrote this?
+ * 1.4 Who wrote this?
 
   Current FAQ maintainer is Arno Wagner <arno@wagner.name>. Other
   contributors are listed at the end. If you want to contribute, send
@@ -100,14 +122,14 @@ A. Contributors
   least problems.
 
 
- * Where is the project website?
+ * 1.5 Where is the project website?
 
   There is the project website at http://code.google.com/p/cryptsetup/
   Please do not post questions there, nobody will read them. Use
   the mailing-list instead.
 
 
- * Is there a mailing-list?
+ * 1.6 Is there a mailing-list?
 
   Instructions on how to subscribe to the mailing-list are at on the
   project website. People are generally helpful and friendly on the
@@ -130,7 +152,7 @@ A. Contributors
 2. Setup 
 
 
- * What is the difference between "plain" and LUKS format?
+ * 2.1 What is the difference between "plain" and LUKS format?
 
   Plain format is just that: It has no metadata on disk, reads all
   paramters from the commandline (or the defaults), derives a
@@ -180,7 +202,8 @@ A. Contributors
   non-default XTS mode).
 
 
- * Can I encrypt an already existing, non-empty partition to use LUKS?
+ * 2.2 Can I encrypt an already existing, non-empty partition to use
+   LUKS?
 
   There is no converter, and it is not really needed. The way to do
   this is to make a backup of the device in question, securely wipe
@@ -194,7 +217,7 @@ A. Contributors
   to be in a filesystem.
 
 
- * How do I use LUKS with a loop-device?
+ * 2.3 How do I use LUKS with a loop-device?
 
   This can be very handy for experiments. Setup is just the same as
   with any block device. If you want, for example, to use a 100MiB
@@ -208,7 +231,7 @@ A. Contributors
   To unmap the file when done, use "losetup -d /dev/loop0".
 
 
- * When I add a new key-slot to LUKS, it asks for a passphrase but
+ * 2.4 When I add a new key-slot to LUKS, it asks for a passphrase but
    then complains about there not being a key-slot with that
    passphrase?
 
@@ -220,7 +243,7 @@ A. Contributors
   new key-slot.
 
 
- * Encrytion on top of RAID or the other way round?
+ * 2.5 Encrytion on top of RAID or the other way round?
 
   Unless you have special needs, place encryption between RAID and
   filesystem, i.e. encryption on top of RAID. You can do it the other
@@ -230,7 +253,7 @@ A. Contributors
   e.g. /dev/dm0 .
 
 
- * How do I read a dm-crypt key from file?
+ * 2.6 How do I read a dm-crypt key from file?
 
   Note that the file will still be hashed first, just like keyboard
   input. Use the --key-file option, like this:
@@ -238,7 +261,7 @@ A. Contributors
       cryptsetup create --key-file keyfile e1 /dev/loop0
  
 
- * How do I read a LUKS slot key from file?
+ * 2.7 How do I read a LUKS slot key from file?
 
   What you really do here is to read a passphrase from file, just as
   you would with manual entry of a passphrase for a key-slot. You can
@@ -264,7 +287,7 @@ A. Contributors
       cryptsetup luksOpen --key-file keyfile /dev/loop0 e1
  
 
- * How do I read the LUKS master key from file?
+ * 2.8 How do I read the LUKS master key from file?
 
   The question you should ask yourself first is why you would want to
   do this. The only legitimate reason I can think of is if you want
@@ -275,7 +298,7 @@ A. Contributors
   do this here.
 
 
- * What are the security requirements for a key read from file?
+ * 2.9 What are the security requirements for a key read from file?
 
   A file-stored key or passphrase has the same security requirements
   as one entered interactively, however you can use random bytes and
@@ -287,8 +310,8 @@ A. Contributors
       head -c 256 /dev/random > keyfile
  
 
- * If I map a journaled file system using dm-crypt/LUKS, does it still
-   provide its usual transactional guarantees?
+ * 2.10 If I map a journaled file system using dm-crypt/LUKS, does it
+   still provide its usual transactional guarantees?
 
   As far as I know it does (but I may be wrong), but please note that
   these "guarantees" are far weaker than they appear to be. For
@@ -310,8 +333,8 @@ A. Contributors
   locking. Kernel 2.6.38 is expected to have more improvements here.
 
 
- * Can I use LUKS or cryptsetup with a more secure (external) medium
-   for key storage, e.g. TPM or a smartcard?
+ * 2.11 Can I use LUKS or cryptsetup with a more secure (external)
+   medium for key storage, e.g. TPM or a smartcard?
 
   Yes, see the answers on using a file-supplied key. You do have to
   write the glue-logic yourself though. Basically you can have
@@ -320,7 +343,7 @@ A. Contributors
   storage.
 
 
- * Can I resize a dm-crypt or LUKS partition?
+ * 2.12 Can I resize a dm-crypt or LUKS partition?
 
   Yes, you can, as neither dm-crypt nor LUKS stores partition size.
   Whether you should is a different question. Personally I recommend
@@ -343,7 +366,7 @@ A. Contributors
 3. Common Problems 
 
 
- * My dm-crypt/LUKS mapping does not work! What general steps are
+ * 3.1 My dm-crypt/LUKS mapping does not work! What general steps are
    there to investigate the problem?
 
   If you get a specific error message, investigate what it claims
@@ -362,15 +385,15 @@ A. Contributors
   the kernel. The output of "cat /proc/crypto" needs to list them.
 
 
- * My dm-crypt mapping suddenly stopped when upgrading cryptsetup.
+ * 3.2 My dm-crypt mapping suddenly stopped when upgrading cryptsetup.
 
   The default cipher, hash or mode may have changed (the mode changed
   from 1.0.x to 1.1.x). See under "Issues With Specific Versions of
   cryptsetup".
 
 
- * When I call cryptsetup from cron/CGI, I get errors about unknown
-   features?
+ * 3.3 When I call cryptsetup from cron/CGI, I get errors about
+   unknown features?
 
   If you get errors about unknown parameters or the like that are not
   present when cryptsetup is called from the shell, make sure you
@@ -382,7 +405,7 @@ A. Contributors
   version gets called.
 
 
- * Unlocking a LUKS device takes very long. Why?
+ * 3.4 Unlocking a LUKS device takes very long. Why?
 
   The iteration time for a key-slot (see Section 5 for an explanation
   what iteration does) is calculated when setting a passphrase. By
@@ -411,8 +434,8 @@ A. Contributors
   matter.
 
 
- * "blkid" sees a LUKS UUID and an ext2/swap UUID on the same device.
-   What is wrong?
+ * 3.5 "blkid" sees a LUKS UUID and an ext2/swap UUID on the same
+   device. What is wrong?
 
   Some old versions of cryptsetup have a bug where the header does
   not get completely wiped during LUKS format and an older ext2/swap
@@ -425,7 +448,7 @@ A. Contributors
       cryptsetup luksHeaderRestore --header-backup-file <file> <device>
  
 
- * cryptsetup segfaults on Gentoo amd64 hardened ...
+ * 3.6 cryptsetup segfaults on Gentoo amd64 hardened ...
 
   There seems to be some inteference between the hardening and and
   the way cryptsetup benchmarks PBKDF2. The solution to this is
@@ -437,7 +460,18 @@ A. Contributors
 4. Troubleshooting 
 
 
- * Can a bad RAM module cause problems?
+ * 4.1 I get the error "LUKS keyslot x is invalid." What does that
+   mean?
+
+  This means that the given keyslot has an offset that points
+  outside the valid keyslot area. Typically, the reason is a
+  corrupted LUKS header because something was written to the start of
+  the device the LUKS contaner is on. Refer to Section "Backup and
+  Data Recovery" and ask on the mailing list if you have trouble
+  diagnosing and (if still possible) repairing this.
+
+
+ * 4.2 Can a bad RAM module cause problems?
 
   LUKS and dm-crypt can give the RAM quite a workout, especially when
   combined with software RAID. In particular the combination RAID5 +
@@ -479,7 +513,7 @@ A. Contributors
   did a verify.
 
 
- * How do I test RAM?
+ * 4.3 How do I test RAM?
 
   First you should know that overclocking often makes memory
   problems worse. So if you overclock (which I strongly recommend
@@ -517,7 +551,7 @@ A. Contributors
 5. Security Aspects 
 
 
- * Is LUKS insecure? Everybody can see I have encrypted data!
+ * 5.1 Is LUKS insecure? Everybody can see I have encrypted data!
 
   In practice it does not really matter. In most civilized countries
   you can just refuse to hand over the keys, no harm done. In some
@@ -542,7 +576,7 @@ A. Contributors
   difference between "plain" and LUKS format?"
 
 
- * Should I initialize (overwrite) a new LUKS/dm-crypt partition?
+ * 5.2 Should I initialize (overwrite) a new LUKS/dm-crypt partition?
 
   If you just create a filesystem on it, most of the old data will
   still be there. If the old data is sensitive, you should overwrite
@@ -561,7 +595,7 @@ A. Contributors
       dd if=/dev/zero of=/dev/mapper/e1
        
 
- * How do I securely erase a LUKS (or other) partition?
+ * 5.3 How do I securely erase a LUKS (or other) partition?
 
   For LUKS, if you are in a desperate hurry, overwrite the LUKS
   header and key-slot area. This means overwriting the first
@@ -602,7 +636,7 @@ A. Contributors
       dd_rescue -w /dev/zero /dev/sde1   
  
 
- * How do I securely erase a backup of a LUKS partition or header?
+ * 5.4 How do I securely erase a backup of a LUKS partition or header?
 
   That depends on the medium it is stored on. For HDD and SSD, use
   overwrite with zeros. For an SSD or FLASH drive (USB stick), you
@@ -620,12 +654,13 @@ A. Contributors
   lead to data not actually being deleted at all during overwrites.
 
 
- * What about backup? Does it compromise security?
+ * 5.5 What about backup? Does it compromise security?
 
-  That depends. See next section.
+  That depends. See item 6.7.
 
 
- * Why is all my data permanently gone if I overwrite the LUKS header?
+ * 5.6 Why is all my data permanently gone if I overwrite the LUKS
+   header?
 
   Overwriting the LUKS header in part or in full is the most common
   reason why access to LUKS containers is lost permanently.
@@ -652,7 +687,7 @@ A. Contributors
   a mapped LUKS container?" in Section "Backup and Data Recovery".
 
 
- * What is a "salt"?
+ * 5.7 What is a "salt"?
 
   A salt is a random key-grade value added to the passphrase before
   it is processed. It is not kept secret. The reason for using salts
@@ -680,7 +715,7 @@ A. Contributors
   infeasible.
 
 
- * Is LUKS secure with a low-entropy (bad) passphrase?
+ * 5.8 Is LUKS secure with a low-entropy (bad) passphrase?
 
   Note: You should only use the 94 printable characters from 7 bit
   ASCII code to prevent your passphrase from failing when the
@@ -709,9 +744,12 @@ A. Contributors
   passphrase, see next FAQ item.
 
   Still, if you want good security, a high-entropy passphrase is the
-  only option. Use at least 64 bits for secret stuff. That is 64
-  characters of English text (but only if randomly chosen) or a
-  combination of 12 truly random letters and digits.
+  only option. For example, a low-entropy passphrase can never be
+  considered secure against a TLA-level (Three Letter Agency level,
+  i.e. government-level) attacker, no matter what tricks are used in
+  the key-derivation function. Use at least 64 bits for secret stuff.
+  That is 64 characters of English text (but only if randomly chosen)
+  or a combination of 12 truly random letters and digits.
 
   For passphrase generation, do not use lines from very well-known
   texts (religious texts, Harry potter, etc.) as they are to easy to
@@ -720,7 +758,7 @@ A. Contributors
   and ending at a word boundary would take only something like 20
   days on a single CPU and is entirely feasible. To put that into
   perspective, using a number of Amazon EC2 High-CPU Extra Large
-  instances (each gives about 8 real cores), this tests costs
+  instances (each gives about 8 real cores), this test costs
   currently about 50USD/EUR, but can be made to run arbitrarily fast.
 
   On the other hand, choosing 1.5 lines from, say, the Wheel of Time
@@ -730,7 +768,7 @@ A. Contributors
   this is good passphrase material.
 
 
- * What is "iteration count" and why is decreasing it a bad idea?
+ * 5.9 What is "iteration count" and why is decreasing it a bad idea?
 
   Iteration count is the number of PBKDF2 iterations a passphrase is
   put through before it is used to unlock a key-slot. Iterations are
@@ -760,15 +798,15 @@ A. Contributors
   CPU, and possibly far less.
 
   In addition, the attacker can both parallelize and use special
-  hardware like GPUs to speed up the attack. The attack can also
-  happen quite some time after the luksFormat operation and CPUs can
-  have become faster and cheaper. For that reason you want a bit
-  of extra security. Anyways, in Example 1 your are screwed. In
-  example 2, not necessarily. Even if the attack is faster, it still
-  has a certain cost associated with it, say 10000 EUR/USD with
-  iteration and 1 EUR/USD without iteration. The first can be
+  hardware like GPUs or FPGAs to speed up the attack. The attack can
+  also happen quite some time after the luksFormat operation and CPUs
+  can have become faster and cheaper. For that reason you want a
+  bit of extra security. Anyways, in Example 1 your are screwed.
+  In example 2, not necessarily. Even if the attack is faster, it
+  still has a certain cost associated with it, say 10000 EUR/USD
+  with iteration and 1 EUR/USD without iteration. The first can be
   prohibitively expensive, while the second is something you try
-  even without solid proof that the decryption will yield   something
+  even without solid proof that the decryption will yield something
   useful.
 
   The numbers above are mostly made up, but show the idea. Of course
@@ -795,14 +833,36 @@ A. Contributors
   this danger significantly.
 
 
- * What about iteration count with plain dm-crypt?
+ * 5.10 Some people say PBKDF2 is insecure?
+
+  There is some discussion that a hash-function should have a "large
+  memory" property, i.e. that it should require a lot of memory to be
+  computed. This serves to prevent attacks using special programmable
+  circuits, like FPGAs, and attacks using graphics cards. PBKDF2
+  does not need a lot of memory and is vulnerable to these attacks.
+  However, the publication usually refered in these discussions is
+  not very convincing in proving that the presented hash really is
+  "large memory" (that may change, email the FAQ maintainer when it
+  does) and it is of limited usefulness anyways. Attackers that use
+  clusters of normal PCs will not be affected at all by a "large
+  memory" property. For example the US Secret Service is known to
+  use the off-hour time of all the office PCs of the Treasury for
+  password breaking. The Treasury has about 110'000 employees.
+  Asuming every one has an office PC, that is significant computing
+  power, all of it with plenty of memory for computing "large
+  memory" hashes. Bot-net operators also have all the memory they
+  want. The only protection against a resouceful attacker is a
+  high-entropy passphrase, see items 5.8 and 5.9.
+
+
+ * 5.11 What about iteration count with plain dm-crypt?
 
   Simple: There is none. There is also no salting. If you use plain
   dm-crypt, the only way to be secure is to use a high entropy
   passphrase. If in doubt, use LUKS instead.
 
 
- * Is LUKS with default parameters less secure on a slow CPU?
+ * 5.12 Is LUKS with default parameters less secure on a slow CPU?
 
   Unfortunately, yes. However the only aspect affected is the
   protection for low-entropy passphrase or master-key. All other
@@ -826,7 +886,7 @@ A. Contributors
   compensate for problems in front of the keyboard.
 
 
- * Why was the default aes-cbc-plain replaced with aes-cbc-essiv?
+ * 5.13 Why was the default aes-cbc-plain replaced with aes-cbc-essiv?
 
   The problem is that cbc-plain has a fingerprint vulnerability, where
   a specially crafted file placed into the crypto-container can be
@@ -854,7 +914,7 @@ A. Contributors
   knowing the encryption key and the watermarking attack fails.
 
 
- * Are there any problems with "plain" IV? What is "plain64"?
+ * 5.14 Are there any problems with "plain" IV? What is "plain64"?
 
   First, "plain" and "plain64" are both not secure to use with CBC,
   see previous FAQ item.
@@ -870,7 +930,7 @@ A. Contributors
   does not cause any performance penalty compared to "plain".
 
 
- * What about XTS mode?
+ * 5.15 What about XTS mode?
 
   XTS mode is potentially even more secure than cbc-essiv (but only if
   cbc-essiv is insecure in your scenario). It is a NIST standard and
@@ -892,7 +952,7 @@ A. Contributors
 6. Backup and Data Recovery 
 
 
- * Why do I need Backup?
+ * 6.1 Why do I need Backup?
 
   First, disks die. The rate for well-treated (!) disk is about 5%
   per year, which is high enough to worry about. There is some
@@ -912,7 +972,7 @@ A. Contributors
   only needs an update if you change passphrases.
 
 
- * How do I backup a LUKS header?
+ * 6.2 How do I backup a LUKS header?
 
   While you could just copy the appropriate number of bytes from the
   start of the LUKS partition, the best way is to use command option
@@ -921,14 +981,29 @@ A. Contributors
   partition creation. Example:
 
  
-     cryptsetup luksHeaderBackup --header-backup-file h /dev/mapper/c1
+     cryptsetup luksHeaderBackup --header-backup-file h <device>
  
   To restore, use the inverse command, i.e.
 
-     cryptsetup luksHeaderRestore --header-backup-file h /dev/mapper/c1
+     cryptsetup luksHeaderRestore --header-backup-file h <device>
  
 
- * How do I backup a LUKS or dm-crypt partition?
+ * 6.3 How do I test a LUKS header?
+
+  Use
+
+     cryptsetup -v isLuks <device>
+ 
+  on the device. Without the "-v" it just signals its result via
+  exit-status. You can alos use the more general test
+
+      blkid -p <device>
+ 
+  which will also detect other types and give some more info. Omit
+  "-p" for old versions of blkid that do not support it.
+
+
+ * 6.4 How do I backup a LUKS or dm-crypt partition?
 
   There are two options, a sector-image and a plain file or
   filesystem backup of the contents of the partition. The sector
@@ -980,7 +1055,7 @@ A. Contributors
   between both mounted containers. Also see next item.
 
 
- * Do I need a backup of the full partition? Would the header and
+ * 6.5 Do I need a backup of the full partition? Would the header and
    key-slots not be enough?
 
   Backup protects you against two things: Disk loss or corruption
@@ -996,7 +1071,7 @@ A. Contributors
   backup to protect against this case.
 
 
-  * *What do I need to backup if I use "decrypt_derived"?
+  * *6.6 What do I need to backup if I use "decrypt_derived"?
 
   This is a script in Debian, intended for mounting /tmp or swap with
   a key derived from the master key of an already decrypted device.
@@ -1013,7 +1088,7 @@ A. Contributors
   device with the new LUKS header.
 
 
- * Does a backup compromise security?
+ * 6.7 Does a backup compromise security?
 
   Depends on how you do it. However if you do not have one, you are
   going to eventually lose your encrypted data.
@@ -1049,8 +1124,8 @@ A. Contributors
   is under your control...)
 
 
- * What happens if I overwrite the start of a LUKS partition or damage
-   the LUKS header or key-slots?
+ * 6.8 What happens if I overwrite the start of a LUKS partition or
+   damage the LUKS header or key-slots?
 
   There are two critical components for decryption: The salt values
   in the header itself and the key-slots. If the salt values are
@@ -1063,7 +1138,7 @@ A. Contributors
   4-6 bits in random locations of its 128kiB size is quite enough.
 
 
- * What happens if I (quick) format a LUKS partition?
+ * 6.9 What happens if I (quick) format a LUKS partition?
 
   I have not tried the different ways to do this, but very likely you
   will have written a new boot-sector, which in turn overwrites the
@@ -1072,10 +1147,14 @@ A. Contributors
   damage the key-slots in part or in full. See also last item.
 
 
- * How do I recover the master key from a mapped LUKS container?
+ * 6.10 How do I recover the master key from a mapped LUKS container?
 
   This is typically only needed if you managed to damage your LUKS
-  header, but the container is still mapped, i.e. "luksOpen"ed.
+  header, but the container is still mapped, i.e. "luksOpen"ed. It
+  also helps if you have a mapped container that you forgot or do not
+  know a passphrase for (e.g. on a long running server.)
+
+  WARNING: Things go wrong, do a full backup before trying this!
 
   WARNING: This exposes the master key of the LUKS container. Note
   that both ways to recreate a LUKS header with the old master key
@@ -1086,9 +1165,9 @@ A. Contributors
   key afterwards.    Changing the master key requires a full data
   backup, luksFormat and then restore of the backup.
 
-  First, there is a script by Milan that tries to automatize the
-  whole process, including generating a new LUKS header with the old
-  master key:
+  First, there is a script by Milan that automatizes    the whole
+  process, except generating a new LUKS header with the old master
+  key (it prints the command for that though):
 
 http://code.google.com/p/cryptsetup/source/browse/trunk/misc/luks-header-from-active
 
@@ -1110,26 +1189,35 @@ http://code.google.com/p/cryptsetup/source/browse/trunk/misc/luks-header-from-ac
   do this manually, e.g. with hexedit. You can also use the tool
   "xxd" from vim like this:
 
-      echo "a1704d9....53d0d09" | xxd -r -p > master_key
+      echo "a1704d9....53d0d09" | xxd -r -p > <master-key-file>
  
-  - Do a luksFormat to create a new LUKS header. Unmapthe device
-  before you do that (luksClose). Replace \dev\dsa10 with the device
-  the LUKS container is on:
+  - Do a luksFormat to create a new LUKS header.
 
-      cryptsetup luksFormat --master-key-file=master_key \dev\sda10
+    NOTE: If your header is intact and you just forgot the
+  passphrase, you can just set a new passphrase, see next     subitem.
+
+  Unmap the device before you do that (luksClose). Then do
+
+      cryptsetup luksFormat --master-key-file=<master-key-file> <luks device>
  
   Note that if the container was created with other than the default
   settings of the cryptsetup version you are using, you need to give
-  additional parameters specifying the deviations. If in doubt, just
-  do the first step, keep the whole result safe and try with the
-  script by Milan. It does recover the other parameters as well.
+  additional parameters specifying the deviations. If in doubt, try
+  the script by Milan. It does recover the other parameters as well.
 
   Side note: This is the way the decrypt_derived script gets at the
   master key. It just omits the conversion and hashes the master key
   string.
 
+  - If the header is intact and you just forgot the passphrase, just
+  set a new passphrase like this:
 
- * What does the on-disk structure of dm-crypt look like?
+      cryptsetup luksAddKey --master-key-file=<master-key-file> <luks device>
+ 
+  You may want to disable the old one afterwards.
+
+
+ * 6.11 What does the on-disk structure of dm-crypt look like?
 
   There is none. dm-crypt takes a block device and gives encrypted
   access to each of its blocks with a key derived from the passphrase
@@ -1142,7 +1230,7 @@ http://code.google.com/p/cryptsetup/source/browse/trunk/misc/luks-header-from-ac
   overwrote.
 
 
- * What does the on-disk structure of LUKS look like?
+ * 6.12 What does the on-disk structure of LUKS look like?
 
   A LUKS partition consists of a header, followed by 8 key-slot
   descriptors, followed by 8 key slots, followed by the encrypted
@@ -1160,26 +1248,80 @@ http://code.google.com/p/cryptsetup/source/browse/trunk/misc/luks-header-from-ac
   0xc1000-0xe0400. The space to the next full sector address is
   padded with zeros. Never used key-slots are filled with what the
   disk originally contained there, a key-slot removed with
-  "luksRemoveKey" or "luksKillSlot" gets filled with 0xff. Start of
-  bulk data is at 0x101000, i.e. at 1'052'672 bytes, i.e. at 1MiB
-  + 4096 bytes from the start of   the partition. This is also the
-  value given by command "luksDump" with   "Payload offset: 2056",
-  just multiply by the sector size (512 bytes). Incidentally,
-  "luksHeaderBackup" for a LUKS container created with default
-  parameters dumps exactly the first 1'052'672 bytes to file and
-  "luksHeaderRestore"   restores them.
+  "luksRemoveKey" or "luksKillSlot" gets filled with 0xff. Due to
+  2MiB default alignment, start of the data area for cryptsetup 1.3
+  and later is at 2MiB, i.e. at 0x200000. For older versions, it is
+  at 0x101000, i.e. at 1'052'672 bytes, i.e. at 1MiB + 4096 bytes
+  from the start of the partition. Incidentally, "luksHeaderBackup"
+  for a LUKS container created with default parameters dumps exactly
+  the first 2MiB (or 1'052'672 bytes for   headers created with
+  cryptsetup versions < 1.3) to file and "luksHeaderRestore" restores
+  them.
 
   For non-default parameters, you have to figure out placement
-  yourself. "luksDump" helps. For the most common non-default
-  settings, namely aes-xts-plain with 512 bit key, the offsets are:
-  1st keyslot 0x1000-0x3f800, 2nd keyslot 0x40000-0x7e000, 3rd
-  keyslot 0x7e000-0xbd800, ..., and start of bulk data at 0x200000.
+  yourself. "luksDump" helps. See also next item. For the most common
+  non-default settings, namely aes-xts-plain with 512 bit key, the
+  offsets are: 1st keyslot 0x1000-0x3f800, 2nd keyslot
+  0x40000-0x7e000, 3rd keyslot 0x7e000-0xbd800, ..., and start of
+  bulk data at 0x200000.
 
   The exact specification of the format is here:
   http://code.google.com/p/cryptsetup/wiki/Specification
 
 
- * I think this is overly complicated. Is there an alternative?
+ * 6.13 What is the smallest possible LUKS container?
+
+  Note: From cryptsetup 1.3 onwards, alignment is set to 1MB. With
+  modern Linux partitioning tools that also align to 1MB, this will
+  result in aligmnet to 2k secors and typical Flash/SSD sectors,
+  which is highly desirable for a number of reasons. Changing the
+  alignment is not recomended.
+
+  That said, with default parameters, the data area starts at
+  exactly 2MB offset (at 0x101000 for cryptsetup versions before
+  1.3). The smallest data area you can have is one sector of 512
+  bytes. Data areas of 0 bytes can be created, but fail on mapping.
+
+  While you cannot put a filesystem into something this small, it may
+  still be used to contain, for example, key. Note that with current
+  formatting tools, a partition for a container this size will be
+  3MiB anyways. If you put the LUKS container into a file (via
+  losetup and a loopback device), the file needs to be 2097664 bytes
+  in size, i.e. 2MiB + 512B.
+
+  There two ways to influence the start of the data area are key-size
+  and alignment.
+
+  For alignment, you can go down to 1 on the parameter. This will
+  still leave you with a data-area starting at 0x101000, i.e.
+  1MiB+4096B (default parameters) as alignment will be rounded up to
+  the next multiple of 8 (i.e. 4096 bytes) If in doubt, do a dry-run
+  on a larger file and dump the LUKS header to get actual
+  information.
+
+  For key-size, you can use 128 bit (e.g. AES-128 with CBC), 256 bit
+  (e.g. AES-256 with CBC) or 512 bit (e.g. AES-256 with XTS mode).
+  You can do 64 bit (e.g. blowfish-64 with CBC), but anything below
+  128 bit has to be considered insecure today.
+
+  Example 1 - AES 128 bit with CBC:
+
+      cryptsetup luksFormat -s 128 --align-payload=8 <device>
+ 
+  This results in a data offset of 0x81000, i.e. 516KiB or 528384
+  bytes. Add one 512 byte sector and the smallest LUKS container size
+  with these parameters is 516KiB + 512B or 528896 bytes.
+
+  Example 2 - Blowfish 64 bit with CBC (WARNING: insecure):
+
+      cryptsetup luksFormat -c blowfish -s 64 --align-payload=8 /dev/loop0
+ 
+  This results in a data offset of 0x41000, i.e. 260kiB or 266240
+  bytes, with a minimal LUKS conatiner size of 260kiB + 512B or
+  266752 bytes.
+
+
+ * 6.14 I think this is overly complicated. Is there an alternative?
 
   Not really. Encryption comes at a price. You can use plain
   dm-crypt to simplify things a bit. It does not allow multiple
@@ -1189,10 +1331,33 @@ http://code.google.com/p/cryptsetup/source/browse/trunk/misc/luks-header-from-ac
   borders).
 
 
+ * 6.15 Can I clone a LUKS container?
+
+  You can, but it breaks security, because the cloned container has
+  the same header and hence the same master key. You cannot change
+  the master key on a LUKS container, even if you change the
+  passphrase(s), the master key stays the same. That means whoever
+  has access to one of the clones can decrypt them all, completely
+  bypassing the passphrases.
+
+  The right way to do this is to first luksFormat the target
+  container, then to clone the contents of the source container, with
+  both containers mapped, i.e. decrypted. You can clone the decrypted
+  contents of a LUKS container in binary mode, although you may run
+  into secondary issuses with GUIDs in filesystems, partition tables,
+  RAID-components and the like. These are just the normal problems
+  binary cloning causes.
+
+  Note that if you need to ship (e.g.) cloned LUKS containers with a
+  default passphrase, that is fine as long as each container was
+  individually created (and hence has its own master key). In this
+  case, changing the default passphrase will make it secure again.
+
+
 7. Interoperability with other Disk Encryption Tools  
 
 
- * What is this section about?
+ * 7.1 What is this section about?
 
   Cryptsetup for plain dm-crypt can be used to access a number of
   on-disk formats created by tools like loop-aes patched into
@@ -1206,7 +1371,7 @@ http://code.google.com/p/cryptsetup/source/browse/trunk/misc/luks-header-from-ac
   audience may be intertested, please email the FAQ maintainer.
 
 
- * loop-aes: General observations.
+ * 7.2 loop-aes: General observations.
 
   One problem is that there are different versions of losetup around.
   loop-aes is a patch for losetup. Possible problems and deviations
@@ -1230,7 +1395,7 @@ http://code.google.com/p/cryptsetup/source/browse/trunk/misc/luks-header-from-ac
   give you the information you need.
 
 
- * loop-aes patched into losetup on debian 5.x, kernel 2.6.32
+ * 7.3 loop-aes patched into losetup on debian 5.x, kernel 2.6.32
 
   In this case, the main problem seems to be that this variant of
   losetup takes the offset (-o option) in bytes, while cryptsetup
@@ -1246,7 +1411,7 @@ http://code.google.com/p/cryptsetup/source/browse/trunk/misc/luks-header-from-ac
   mount /dev/mapper/e1 mountpoint
  
 
- * loop-aes with 160 bit key
+ * 7.4 loop-aes with 160 bit key
 
   This seems to be sometimes used with twofish and blowfish and
   represents a 160 bit ripemed160 hash output padded to 196 bit key
@@ -1258,9 +1423,9 @@ http://code.google.com/p/cryptsetup/source/browse/trunk/misc/luks-header-from-ac
 8. Issues with Specific Versions of cryptsetup 
 
 
- * When using the create command for plain dm-crypt with cryptsetup
-   1.1.x, the mapping is incompatible and my data is not accessible
-   anymore!
+ * 8.1 When using the create command for plain dm-crypt with
+   cryptsetup 1.1.x, the mapping is incompatible and my data is not
+   accessible anymore!
 
   With cryptsetup 1.1.x, the distro maintainer can define different
   default encryption modes for LUKS and plain devices. You can check
@@ -1279,7 +1444,7 @@ http://code.google.com/p/cryptsetup/source/browse/trunk/misc/luks-header-from-ac
   problem.
 
 
- * cryptsetup on SLED 10 has problems...
+ * 8.2 cryptsetup on SLED 10 has problems...
 
   SLED 10 is missing an essential kernel patch for dm-crypt, which
   is broken in its kernel as a result. There may be a very old

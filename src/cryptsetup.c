@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2004, Christophe Saout <christophe@saout.de>
  * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
- * Copyright (C) 2009-2011, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2009-2012, Red Hat, Inc. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,6 +27,7 @@
 #include <inttypes.h>
 #include <errno.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <assert.h>
@@ -49,6 +50,8 @@ static const char *opt_header_device = NULL;
 static int opt_key_size = 0;
 static long opt_keyfile_size = 0;
 static long opt_new_keyfile_size = 0;
+static long opt_keyfile_offset = 0;
+static long opt_new_keyfile_offset = 0;
 static int opt_key_slot = CRYPT_ANY_SLOT;
 static uint64_t opt_size = 0;
 static uint64_t opt_offset = 0;
@@ -88,6 +91,7 @@ static int action_luksResume(int arg);
 static int action_luksBackup(int arg);
 static int action_luksRestore(int arg);
 static int action_loopaesOpen(int arg);
+static int action_luksRepair(int arg);
 
 static struct action_type {
 	const char *type;
@@ -102,6 +106,7 @@ static struct action_type {
 	{ "remove",	action_remove,		0, 1, 1, N_("<name>"), N_("remove device") },
 	{ "resize",	action_resize,		0, 1, 1, N_("<name>"), N_("resize active device") },
 	{ "status",	action_status,		0, 1, 0, N_("<name>"), N_("show device status") },
+	{ "repair",	action_luksRepair,	0, 1, 1, N_("<device>"), N_("try to repair on-disk metadata") },
 	{ "luksFormat", action_luksFormat,	0, 1, 1, N_("<device> [<new key file>]"), N_("formats a LUKS device") },
 	{ "luksOpen",	action_luksOpen,	0, 2, 1, N_("<device> <name> "), N_("open LUKS device as mapping <name>") },
 	{ "luksAddKey",	action_luksAddKey,	0, 1, 1, N_("<device> [<new key file>]"), N_("add key to LUKS device") },
@@ -152,7 +157,7 @@ static int _yesDialog(const char *msg, void *usrptr __attribute__((unused)))
 	size_t size = 0;
 	int r = 1;
 
-	if(isatty(0) && !opt_batch_mode) {
+	if(isatty(STDIN_FILENO) && !opt_batch_mode) {
 		log_std("\nWARNING!\n========\n");
 		log_std("%s\n\nAre you sure? (Type uppercase yes): ", msg);
 		if(getline(&answer, &size, stdin) == -1) {
@@ -199,6 +204,24 @@ static void _quiet_log(int level, const char *msg, void *usrptr)
 	_log(level, msg, usrptr);
 }
 
+static int _verify_passphrase(int def)
+{
+	/* Batch mode switch off verify - if not overrided by -y */
+	if (opt_verify_passphrase)
+		def = 1;
+	else if (opt_batch_mode)
+		def = 0;
+
+	/* Non-tty input doesn't allow verify */
+	if (def && !isatty(STDIN_FILENO)) {
+		if (opt_verify_passphrase)
+			log_err(_("Can't do passphrase verification on non-tty inputs.\n"));
+		def = 0;
+	}
+
+	return def;
+}
+
 static void show_status(int errcode)
 {
 	char error[256], *error_;
@@ -228,6 +251,31 @@ static void show_status(int errcode)
 		log_err(".\n");
 }
 
+static const char *uuid_or_device(const char *spec)
+{
+	static char device[PATH_MAX];
+	char s, *ptr;
+	int i = 0, uuid_len = 5;
+
+	/* Check if it is correct UUID=<LUKS_UUID> format */
+	if (spec && !strncmp(spec, "UUID=", uuid_len)) {
+		strcpy(device, "/dev/disk/by-uuid/");
+		ptr = &device[strlen(device)];
+		i = uuid_len;
+		while ((s = spec[i++]) && i < PATH_MAX) {
+			if (!isxdigit(s) && s != '-')
+				return spec; /* Bail it out */
+			if (isalpha(s))
+				s = tolower(s);
+			*ptr++ = s;
+		}
+		*ptr = '\0';
+		return device;
+	}
+
+	return spec;
+}
+
 static int action_create(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
@@ -251,9 +299,9 @@ static int action_create(int arg __attribute__((unused)))
 	if (opt_key_file && strcmp(opt_key_file, "-"))
 		params.hash = NULL;
 
-	if (opt_keyfile_size && opt_key_file)
-		log_std(("Ignoring keyfile size option, keyfile read size "
-			 "is always the same as encryption key size.\n"));
+	if ((opt_keyfile_offset || opt_keyfile_size) && opt_key_file)
+		log_std(("Ignoring keyfile offset and size options, keyfile read "
+			 "size is always the same as encryption key size.\n"));
 
 	r = crypt_parse_name_and_mode(opt_cipher ?: DEFAULT_CIPHER(PLAIN),
 				      cipher, NULL, cipher_mode);
@@ -287,14 +335,16 @@ static int action_create(int arg __attribute__((unused)))
 
 	if (opt_key_file)
 		/* With hashing, read the whole keyfile */
-		r = crypt_activate_by_keyfile(cd, action_argv[0],
-			CRYPT_ANY_SLOT, opt_key_file, params.hash ? 0 : key_size,
+		r = crypt_activate_by_keyfile_offset(cd, action_argv[0],
+			CRYPT_ANY_SLOT, opt_key_file,
+			params.hash ? 0 : key_size, 0,
 			activate_flags);
 	else {
 		r = crypt_get_key(_("Enter passphrase: "),
-				  &password, &passwordLen, opt_keyfile_size,
+				  &password, &passwordLen,
+				  opt_keyfile_offset, opt_keyfile_size,
 				  NULL, opt_timeout,
-				  opt_batch_mode ? 0 : opt_verify_passphrase,
+				  _verify_passphrase(0),
 				  cd);
 		if (r < 0)
 			goto out;
@@ -340,8 +390,9 @@ static int action_loopaesOpen(int arg __attribute__((unused)))
 	if (r < 0)
 		goto out;
 
-	r = crypt_activate_by_keyfile(cd, action_argv[1], CRYPT_ANY_SLOT,
-				      opt_key_file, opt_keyfile_size, activate_flags);
+	r = crypt_activate_by_keyfile_offset(cd, action_argv[1], CRYPT_ANY_SLOT,
+				      opt_key_file, opt_keyfile_size,
+				      opt_keyfile_size, activate_flags);
 out:
 	crypt_free(cd);
 
@@ -408,7 +459,8 @@ static int action_status(int arg __attribute__((unused)))
 		else
 			log_std("%s/%s is active%s.\n", crypt_get_dir(), action_argv[0],
 				ci == CRYPT_BUSY ? " and is in use" : "");
-		r = crypt_init_by_name(&cd, action_argv[0]);
+
+		r = crypt_init_by_name_and_header(&cd, action_argv[0], opt_header_device);
 		if (r < 0 || !crypt_get_type(cd))
 			goto out;
 
@@ -467,6 +519,32 @@ fail:
 	return -EINVAL;
 }
 
+static int action_luksRepair(int arg __attribute__((unused)))
+{
+	struct crypt_device *cd = NULL;
+	int r;
+
+	if ((r = crypt_init(&cd, action_argv[0])))
+		goto out;
+
+	/* Currently only LUKS1 allows repair */
+	crypt_set_log_callback(cd, _quiet_log, NULL);
+	r = crypt_load(cd, CRYPT_LUKS1, NULL);
+	crypt_set_log_callback(cd, _log, NULL);
+	if (r == 0) {
+		log_verbose( _("No known problems detected for LUKS header.\n"));
+		goto out;
+	}
+
+	r = _yesDialog(_("Really try to repair LUKS device header?"),
+		       NULL) ? 0 : -EINVAL;
+	if (r == 0)
+		r = crypt_repair(cd, CRYPT_LUKS1, NULL);
+out:
+	crypt_free(cd);
+	return r;
+}
+
 static int action_luksFormat(int arg __attribute__((unused)))
 {
 	int r = -EINVAL, keysize;
@@ -509,7 +587,6 @@ static int action_luksFormat(int arg __attribute__((unused)))
 
 	keysize = (opt_key_size ?: DEFAULT_LUKS1_KEYBITS) / 8;
 
-	crypt_set_password_verify(cd, 1);
 	crypt_set_timeout(cd, opt_timeout);
 	if (opt_iteration_time)
 		crypt_set_iteration_time(cd, opt_iteration_time);
@@ -520,8 +597,8 @@ static int action_luksFormat(int arg __attribute__((unused)))
 		crypt_set_rng_type(cd, CRYPT_RNG_URANDOM);
 
 	r = crypt_get_key(_("Enter LUKS passphrase: "), &password, &passwordLen,
-			  opt_keyfile_size, opt_key_file, opt_timeout,
-			  opt_batch_mode ? 0 : 1 /* always verify */, cd);
+			  opt_keyfile_offset, opt_keyfile_size, opt_key_file,
+			  opt_timeout, _verify_passphrase(1), cd);
 	if (r < 0)
 		goto out;
 
@@ -551,14 +628,15 @@ static int action_luksOpen(int arg __attribute__((unused)))
 {
 	struct crypt_device *cd = NULL;
 	const char *data_device, *header_device;
+	char *key = NULL;
 	uint32_t flags = 0;
-	int r;
+	int r, keysize;
 
 	if (opt_header_device) {
-		header_device = opt_header_device;
+		header_device = uuid_or_device(opt_header_device);
 		data_device = action_argv[0];
 	} else {
-		header_device = action_argv[0];
+		header_device = uuid_or_device(action_argv[0]);
 		data_device = NULL;
 	}
 
@@ -580,6 +658,7 @@ static int action_luksOpen(int arg __attribute__((unused)))
 
 	crypt_set_timeout(cd, opt_timeout);
 	crypt_set_password_retry(cd, opt_tries);
+	crypt_set_password_verify(cd, _verify_passphrase(0));
 
 	if (opt_iteration_time)
 		crypt_set_iteration_time(cd, opt_iteration_time);
@@ -590,22 +669,31 @@ static int action_luksOpen(int arg __attribute__((unused)))
 	if (opt_allow_discards)
 		flags |= CRYPT_ACTIVATE_ALLOW_DISCARDS;
 
-	if (opt_key_file) {
+	if (opt_master_key_file) {
+		keysize = crypt_get_volume_key_size(cd);
+		r = _read_mk(opt_master_key_file, &key, keysize);
+		if (r < 0)
+			goto out;
+		r = crypt_activate_by_volume_key(cd, action_argv[1],
+						 key, keysize, flags);
+	} else if (opt_key_file) {
 		crypt_set_password_retry(cd, 1);
-		r = crypt_activate_by_keyfile(cd, action_argv[1],
+		r = crypt_activate_by_keyfile_offset(cd, action_argv[1],
 			opt_key_slot, opt_key_file, opt_keyfile_size,
-			flags);
+			opt_keyfile_offset, flags);
 	} else
 		r = crypt_activate_by_passphrase(cd, action_argv[1],
 			opt_key_slot, NULL, 0, flags);
 out:
+	crypt_safe_free(key);
 	crypt_free(cd);
 	return r;
 }
 
 static int verify_keyslot(struct crypt_device *cd, int key_slot,
 			  char *msg_last, char *msg_pass,
-			  const char *key_file, int keyfile_size)
+			  const char *key_file, int keyfile_offset,
+			  int keyfile_size)
 {
 	crypt_keyslot_info ki;
 	char *password = NULL;
@@ -617,8 +705,8 @@ static int verify_keyslot(struct crypt_device *cd, int key_slot,
 		return -EPERM;
 
 	r = crypt_get_key(msg_pass, &password, &passwordLen,
-			  keyfile_size, key_file, opt_timeout,
-			  opt_batch_mode ? 0 : opt_verify_passphrase, cd);
+			  keyfile_offset, keyfile_size, key_file, opt_timeout,
+			  _verify_passphrase(0), cd);
 	if(r < 0)
 		goto out;
 
@@ -652,7 +740,7 @@ static int action_luksKillSlot(int arg __attribute__((unused)))
 	struct crypt_device *cd = NULL;
 	int r;
 
-	if ((r = crypt_init(&cd, action_argv[0])))
+	if ((r = crypt_init(&cd, uuid_or_device(action_argv[0]))))
 		goto out;
 
 	crypt_set_confirm_callback(cd, _yesDialog, NULL);
@@ -677,7 +765,7 @@ static int action_luksKillSlot(int arg __attribute__((unused)))
 		r = verify_keyslot(cd, opt_key_slot,
 			_("This is the last keyslot. Device will become unusable after purging this key."),
 			_("Enter any remaining LUKS passphrase: "),
-			opt_key_file, opt_keyfile_size);
+			opt_key_file, opt_keyfile_offset, opt_keyfile_size);
 		if (r < 0)
 			goto out;
 	}
@@ -695,7 +783,7 @@ static int action_luksRemoveKey(int arg __attribute__((unused)))
 	size_t passwordLen;
 	int r;
 
-	if ((r = crypt_init(&cd, action_argv[0])))
+	if ((r = crypt_init(&cd, uuid_or_device(action_argv[0]))))
 		goto out;
 
 	crypt_set_confirm_callback(cd, _yesDialog, NULL);
@@ -706,9 +794,9 @@ static int action_luksRemoveKey(int arg __attribute__((unused)))
 
 	r = crypt_get_key(_("Enter LUKS passphrase to be deleted: "),
 		      &password, &passwordLen,
-		      opt_keyfile_size, opt_key_file,
+		      opt_keyfile_offset, opt_keyfile_size, opt_key_file,
 		      opt_timeout,
-		      opt_batch_mode ? 0 : opt_verify_passphrase,
+		      _verify_passphrase(0),
 		      cd);
 	if(r < 0)
 		goto out;
@@ -743,7 +831,7 @@ static int action_luksAddKey(int arg __attribute__((unused)))
 	const char *opt_new_key_file = (action_argc > 1 ? action_argv[1] : NULL);
 	struct crypt_device *cd = NULL;
 
-	if ((r = crypt_init(&cd, action_argv[0])))
+	if ((r = crypt_init(&cd, uuid_or_device(action_argv[0]))))
 		goto out;
 
 	crypt_set_confirm_callback(cd, _yesDialog, NULL);
@@ -752,7 +840,8 @@ static int action_luksAddKey(int arg __attribute__((unused)))
 		goto out;
 
 	keysize = crypt_get_volume_key_size(cd);
-	crypt_set_password_verify(cd, opt_verify_passphrase ? 1 : 0);
+	/* FIXME: lib cannot properly set verification for new/old passphrase */
+	crypt_set_password_verify(cd, _verify_passphrase(0));
 	crypt_set_timeout(cd, opt_timeout);
 	if (opt_iteration_time)
 		crypt_set_iteration_time(cd, opt_iteration_time);
@@ -765,9 +854,9 @@ static int action_luksAddKey(int arg __attribute__((unused)))
 		r = crypt_keyslot_add_by_volume_key(cd, opt_key_slot,
 						    key, keysize, NULL, 0);
 	} else if (opt_key_file || opt_new_key_file) {
-		r = crypt_keyslot_add_by_keyfile(cd, opt_key_slot,
-						 opt_key_file, opt_keyfile_size,
-						 opt_new_key_file, opt_new_keyfile_size);
+		r = crypt_keyslot_add_by_keyfile_offset(cd, opt_key_slot,
+			opt_key_file, opt_keyfile_size, opt_keyfile_offset,
+			opt_new_key_file, opt_new_keyfile_size, opt_new_keyfile_offset);
 	} else {
 		r = crypt_keyslot_add_by_passphrase(cd, opt_key_slot,
 						    NULL, 0, NULL, 0);
@@ -797,7 +886,7 @@ static int action_luksChangeKey(int arg __attribute__((unused)))
 	size_t vk_size;
 	int new_key_slot, old_key_slot, r;
 
-	if ((r = crypt_init(&cd, action_argv[0])))
+	if ((r = crypt_init(&cd, uuid_or_device(action_argv[0]))))
 		goto out;
 
 	if ((r = crypt_load(cd, CRYPT_LUKS1, NULL)))
@@ -808,8 +897,8 @@ static int action_luksChangeKey(int arg __attribute__((unused)))
 
 	r = crypt_get_key(_("Enter LUKS passphrase to be changed: "),
 		      &password, &passwordLen,
-		      opt_keyfile_size, opt_key_file, opt_timeout,
-		      opt_batch_mode ? 0 : opt_verify_passphrase, cd);
+		      opt_keyfile_offset, opt_keyfile_size, opt_key_file,
+		      opt_timeout, _verify_passphrase(0), cd);
 	if (r < 0)
 		goto out;
 
@@ -845,8 +934,9 @@ static int action_luksChangeKey(int arg __attribute__((unused)))
 	passwordLen = 0;
 	r = crypt_get_key(_("Enter new LUKS passphrase: "),
 			  &password, &passwordLen,
-			  opt_new_keyfile_size, opt_new_key_file,
-			  opt_timeout, opt_batch_mode ? 0 : 1, cd);
+			  opt_new_keyfile_offset, opt_new_keyfile_size,
+			  opt_new_key_file,
+			  opt_timeout, _verify_passphrase(0), cd);
 	if (r < 0)
 		goto out;
 
@@ -938,7 +1028,8 @@ static int luksDump_with_volume_key(struct crypt_device *cd)
 		return -ENOMEM;
 
 	r = crypt_get_key(_("Enter LUKS passphrase: "), &password, &passwordLen,
-			  opt_keyfile_size, opt_key_file, opt_timeout, 0, cd);
+			  opt_keyfile_offset, opt_keyfile_size, opt_key_file,
+			  opt_timeout, 0, cd);
 	if (r < 0)
 		goto out;
 
@@ -973,7 +1064,7 @@ static int action_luksDump(int arg __attribute__((unused)))
 	struct crypt_device *cd = NULL;
 	int r;
 
-	if ((r = crypt_init(&cd, action_argv[0])))
+	if ((r = crypt_init(&cd, uuid_or_device(action_argv[0]))))
 		goto out;
 
 	if ((r = crypt_load(cd, CRYPT_LUKS1, NULL)))
@@ -1011,10 +1102,11 @@ static int action_luksResume(int arg __attribute__((unused)))
 
 	crypt_set_timeout(cd, opt_timeout);
 	crypt_set_password_retry(cd, opt_tries);
+	crypt_set_password_verify(cd, _verify_passphrase(0));
 
 	if (opt_key_file)
-		r = crypt_resume_by_keyfile(cd, action_argv[0], CRYPT_ANY_SLOT,
-					    opt_key_file, opt_keyfile_size);
+		r = crypt_resume_by_keyfile_offset(cd, action_argv[0], CRYPT_ANY_SLOT,
+			opt_key_file, opt_keyfile_size, opt_keyfile_offset);
 	else
 		r = crypt_resume_by_passphrase(cd, action_argv[0], CRYPT_ANY_SLOT,
 					       NULL, 0);
@@ -1033,7 +1125,7 @@ static int action_luksBackup(int arg __attribute__((unused)))
 		return -EINVAL;
 	}
 
-	if ((r = crypt_init(&cd, action_argv[0])))
+	if ((r = crypt_init(&cd, uuid_or_device(action_argv[0]))))
 		goto out;
 
 	crypt_set_confirm_callback(cd, _yesDialog, NULL);
@@ -1191,7 +1283,9 @@ int main(int argc, const char **argv)
 		{ "dump-master-key",  '\0',  POPT_ARG_NONE, &opt_dump_master_key,       0, N_("Dump volume (master) key instead of keyslots info."), NULL },
 		{ "key-size",          's',  POPT_ARG_INT, &opt_key_size,               0, N_("The size of the encryption key"), N_("BITS") },
 		{ "keyfile-size",      'l',  POPT_ARG_LONG, &opt_keyfile_size,          0, N_("Limits the read from keyfile"), N_("bytes") },
+		{ "keyfile-offset",   '\0',  POPT_ARG_LONG, &opt_keyfile_offset,        0, N_("Number of bytes to skip in keyfile"), N_("bytes") },
 		{ "new-keyfile-size", '\0',  POPT_ARG_LONG, &opt_new_keyfile_size,      0, N_("Limits the read from newly added keyfile"), N_("bytes") },
+		{ "new-keyfile-offset",'\0', POPT_ARG_LONG, &opt_new_keyfile_offset,    0, N_("Number of bytes to skip in newly added keyfile"), N_("bytes") },
 		{ "key-slot",          'S',  POPT_ARG_INT, &opt_key_slot,               0, N_("Slot number for new key (default is first free)"), NULL },
 		{ "size",              'b',  POPT_ARG_STRING, &popt_tmp,                1, N_("The size of the device"), N_("SECTORS") },
 		{ "offset",            'o',  POPT_ARG_STRING, &popt_tmp,                2, N_("The start offset in the backend device"), N_("SECTORS") },
@@ -1339,7 +1433,8 @@ int main(int argc, const char **argv)
 			opt_key_file = action_argv[1];
 	}
 
-	if (opt_keyfile_size < 0 || opt_new_keyfile_size < 0 || opt_key_size < 0) {
+	if (opt_keyfile_size < 0 || opt_new_keyfile_size < 0 || opt_key_size < 0 ||
+	    opt_keyfile_offset < 0 || opt_new_keyfile_offset < 0) {
 		usage(popt_context, EXIT_FAILURE,
 		      _("Negative number for option not permitted."),
 		      poptGetInvocationName(popt_context));
@@ -1348,12 +1443,17 @@ int main(int argc, const char **argv)
 	if (opt_random && opt_urandom)
 		usage(popt_context, EXIT_FAILURE, _("Only one of --use-[u]random options is allowed."),
 		      poptGetInvocationName(popt_context));
+
 	if ((opt_random || opt_urandom) && strcmp(aname, "luksFormat"))
 		usage(popt_context, EXIT_FAILURE, _("Option --use-[u]random is allowed only for luksFormat."),
 		      poptGetInvocationName(popt_context));
 
 	if (opt_uuid && strcmp(aname, "luksFormat") && strcmp(aname, "luksUUID"))
 		usage(popt_context, EXIT_FAILURE, _("Option --uuid is allowed only for luksFormat and luksUUID."),
+		      poptGetInvocationName(popt_context));
+
+	if (opt_align_payload && strcmp(aname, "luksFormat"))
+		usage(popt_context, EXIT_FAILURE, _("Option --align-payload is allowed only for luksFormat."),
 		      poptGetInvocationName(popt_context));
 
 	if (opt_skip && strcmp(aname, "create") && strcmp(aname, "loopaesOpen"))

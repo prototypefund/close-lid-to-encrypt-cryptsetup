@@ -1,3 +1,23 @@
+/*
+ * utils_crypt - cipher utilities for cryptsetup
+ *
+ * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
+ * Copyright (C) 2009-2012, Red Hat, Inc. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #ifndef _UTILS_CRYPT_H
 #define _UTILS_CRYPT_H
 
@@ -14,7 +34,7 @@ int crypt_parse_name_and_mode(const char *s, char *cipher,
 
 int crypt_get_key(const char *prompt,
 		  char **key, size_t *key_size,
-		  size_t keyfile_size_max,
+		  size_t keyfile_offset, size_t keyfile_size_max,
 		  const char *key_file,
 		  int timeout, int verify,
 		  struct crypt_device *cd);

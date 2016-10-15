@@ -2,14 +2,19 @@
 
 CRYPTSETUP=../src/cryptsetup
 
+CRYPTSETUP_VALGRIND=../src/.libs/cryptsetup
+CRYPTSETUP_LIB_VALGRIND=../lib/.libs
+
 DEV_NAME=dummy
 DEV_NAME2=dummy2
 DEV_NAME3=dummy3
 ORIG_IMG=luks-test-orig
 IMG=luks-test
+HEADER_IMG=luks-header
 KEY1=key1
 KEY2=key2
 KEY5=key5
+KEYE=keye
 
 LUKS_HEADER="S0-5 S6-7 S8-39 S40-71 S72-103 S104-107 S108-111 R112-131 R132-163 S164-167 S168-207 A0-591"
 KEY_SLOT0="S208-211 S212-215 R216-247 A248-251 A251-255"
@@ -34,7 +39,13 @@ function remove_mapping()
 	[ -b /dev/mapper/$DEV_NAME2 ] && dmsetup remove $DEV_NAME2
 	[ -b /dev/mapper/$DEV_NAME ] && dmsetup remove $DEV_NAME
 	losetup -d $LOOPDEV >/dev/null 2>&1
-	rm -f $ORIG_IMG $IMG $KEY1 $KEY2 $KEY5 >/dev/null 2>&1
+	rm -f $ORIG_IMG $IMG $KEY1 $KEY2 $KEY5 $KEYE $HEADER_IMG >/dev/null 2>&1
+}
+
+function force_uevent()
+{
+	DNAME=$(echo $LOOPDEV | cut -f3 -d /)
+	echo "change" >/sys/block/$DNAME/uevent
 }
 
 function fail()
@@ -87,6 +98,10 @@ function prepare()
 		dd if=/dev/urandom of=$KEY5 count=1 bs=16 >/dev/null 2>&1
 	fi
 
+	if [ ! -e $KEYE ]; then
+		touch $KEYE
+	fi
+
 	cp $IMG $ORIG_IMG
 	[ -n "$1" ] && echo "CASE: $1"
 }
@@ -106,18 +121,14 @@ function check_exists()
 
 function valgrind_setup()
 {
-	which valgrind >/dev/null 2>&1 || fail "Cannot find valgrind"
-
-	CRYPTSETUP_BIN=$($CRYPTSETUP --lt-debug --version 2>&1 \
-		        | grep "newargv\[0\]" \
-			| sed 's/.*newargv\[0\]\:[[:space:]]\+\(.*\)$/\1/g')
-	[ -z "$CRYPTSETUP_BIN" ] && fail "Unable to get location of cryptsetup executable."
-	export LD_LIBRARY_PATH="../lib/.libs:$LD_LIBRARY_PATH"
+	which valgrind >/dev/null 2>&1 || fail "Cannot find valgrind."
+	[ ! -f $CRYPTSETUP_VALGRIND ] && fail "Unable to get location of cryptsetup executable."
+	export LD_LIBRARY_PATH="$CRYPTSETUP_LIB_VALGRIND:$LD_LIBRARY_PATH"
 }
 
 function valgrind_run()
 {
-	INFOSTRING="$(basename ${BASH_SOURCE[1]})-line-${BASH_LINENO[0]}" ./valg.sh ${CRYPTSETUP_BIN} "$@"
+	INFOSTRING="$(basename ${BASH_SOURCE[1]})-line-${BASH_LINENO[0]}" ./valg.sh ${CRYPTSETUP_VALGRIND} "$@"
 }
 
 [ $(id -u) != 0 ] && skip "WARNING: You must be root to run this test, test skipped."
@@ -126,7 +137,6 @@ function valgrind_run()
 [ -n "$VALG" ] && valgrind_setup && CRYPTSETUP=valgrind_run
 
 # LUKS tests
-
 
 prepare	"[1] open - compat image - acceptance check" new
 echo "compatkey" | $CRYPTSETUP luksOpen $LOOPDEV $DEV_NAME || fail
@@ -237,6 +247,20 @@ echo "key0" | $CRYPTSETUP -q luksFormat --master-key-file /dev/urandom $LOOPDEV 
 $CRYPTSETUP -q luksFormat --master-key-file /dev/urandom -s 256 --uuid $TEST_UUID $LOOPDEV $KEY1 || fail
 $CRYPTSETUP luksOpen -d $KEY1 $LOOPDEV $DEV_NAME || fail
 $CRYPTSETUP -q luksClose  $DEV_NAME || fail
+# open by UUID
+force_uevent # some systems do not update loop by-uuid
+$CRYPTSETUP luksOpen -d $KEY1 UUID=X$TEST_UUID $DEV_NAME 2>/dev/null && fail
+$CRYPTSETUP luksOpen -d $KEY1 UUID=$TEST_UUID $DEV_NAME || fail
+$CRYPTSETUP -q luksClose  $DEV_NAME || fail
+# empty keyfile
+$CRYPTSETUP -q luksFormat $LOOPDEV $KEYE || fail
+$CRYPTSETUP luksOpen -d $KEYE $LOOPDEV $DEV_NAME || fail
+$CRYPTSETUP -q luksClose  $DEV_NAME || fail
+# open by volume key
+echo "key0" | $CRYPTSETUP -q luksFormat -s 256 --master-key-file $KEY1 $LOOPDEV || fail
+$CRYPTSETUP luksOpen --master-key-file /dev/urandom $LOOPDEV $DEV_NAME 2>/dev/null && fail
+$CRYPTSETUP luksOpen --master-key-file $KEY1 $LOOPDEV $DEV_NAME || fail
+$CRYPTSETUP -q luksClose  $DEV_NAME || fail
 
 prepare "[17] AddKey volume key, passphrase and keyfile" wipe
 # masterkey
@@ -299,7 +323,7 @@ echo "key0" | $CRYPTSETUP -q create $DEV_NAME --hash sha1 --size 100 $LOOPDEV ||
 $CRYPTSETUP -q status  $DEV_NAME | grep "size:" | grep -q "100 sectors" || fail
 $CRYPTSETUP -q remove  $DEV_NAME || fail
 # verify is ignored on non-tty input
-echo "key0" | $CRYPTSETUP create $DEV_NAME $LOOPDEV --hash sha1 --verify-passphrase || fail
+echo "key0" | $CRYPTSETUP create $DEV_NAME $LOOPDEV --hash sha1 --verify-passphrase 2>/dev/null || fail
 $CRYPTSETUP -q remove  $DEV_NAME || fail
 $CRYPTSETUP create $DEV_NAME $LOOPDEV -d $KEY1 --key-size 255 2>/dev/null && fail
 $CRYPTSETUP create $DEV_NAME $LOOPDEV -d $KEY1 --key-size -1 2>/dev/null && fail
@@ -372,6 +396,8 @@ $CRYPTSETUP --key-file=$KEY1 luksOpen $LOOPDEV $DEV_NAME 2>/dev/null && fail
 $CRYPTSETUP --key-file=$KEY1 -l 0 luksOpen $LOOPDEV $DEV_NAME 2>/dev/null && fail
 $CRYPTSETUP --key-file=$KEY1 -l -1 luksOpen $LOOPDEV $DEV_NAME 2>/dev/null && fail
 $CRYPTSETUP --key-file=$KEY1 -l 14 luksOpen $LOOPDEV $DEV_NAME 2>/dev/null && fail
+$CRYPTSETUP --key-file=$KEY1 -l 13 --keyfile-offset 1 luksOpen $LOOPDEV $DEV_NAME 2>/dev/null && fail
+$CRYPTSETUP --key-file=$KEY1 -l 13 --keyfile-offset -1 luksOpen $LOOPDEV $DEV_NAME 2>/dev/null && fail
 $CRYPTSETUP --key-file=$KEY1 -l 13 luksOpen $LOOPDEV $DEV_NAME || fail
 $CRYPTSETUP luksClose  $DEV_NAME || fail
 $CRYPTSETUP luksAddKey $LOOPDEV -d $KEY1 $KEY2 2>/dev/null && fail
@@ -389,6 +415,18 @@ echo "key0" | $CRYPTSETUP luksAddKey $LOOPDEV -d $KEY2 -i1 || fail
 echo "key0" | $CRYPTSETUP luksRemoveKey $LOOPDEV -l 2 2>/dev/null && fail
 echo "key01" | $CRYPTSETUP luksRemoveKey $LOOPDEV -d 4 2>/dev/null && fail
 echo -e "key0\n" | $CRYPTSETUP luksRemoveKey $LOOPDEV -d- -l 4 || fail
+# offset
+$CRYPTSETUP -q luksFormat -i1 $LOOPDEV $KEY1 --key-slot 0 -l 13 --keyfile-offset 16 || fail
+$CRYPTSETUP --key-file=$KEY1 -l 13 --keyfile-offset 15 luksOpen $LOOPDEV $DEV_NAME 2>/dev/null && fail
+$CRYPTSETUP --key-file=$KEY1 -l 13 --keyfile-offset 16 luksOpen $LOOPDEV $DEV_NAME || fail
+$CRYPTSETUP luksClose  $DEV_NAME || fail
+$CRYPTSETUP luksAddKey $LOOPDEV -i1 -d $KEY1 -l 13 --keyfile-offset 16 $KEY2 --new-keyfile-offset 1 || fail
+$CRYPTSETUP --key-file=$KEY2 --keyfile-offset 11 luksOpen $LOOPDEV $DEV_NAME 2>/dev/null && fail
+$CRYPTSETUP --key-file=$KEY2 --keyfile-offset 1 luksOpen $LOOPDEV $DEV_NAME || fail
+$CRYPTSETUP luksClose  $DEV_NAME || fail
+$CRYPTSETUP luksChangeKey $LOOPDEV -i1 -d $KEY2 --keyfile-offset 1 $KEY2 --new-keyfile-offset 0 || fail
+$CRYPTSETUP luksOpen -d $KEY2 $LOOPDEV $DEV_NAME || fail
+$CRYPTSETUP luksClose $DEV_NAME || fail
 
 prepare "[25] Create non-overlapping segments" wipe
 echo "key0" | $CRYPTSETUP create $DEV_NAME $LOOPDEV  --hash sha1 --offset   0 --size 256 || fail
@@ -445,6 +483,26 @@ $CRYPTSETUP luksOpen -S 1 -d $KEY5 $LOOPDEV $DEV_NAME && fail
 [ -b /dev/mapper/$DEV_NAME ] && fail
 $CRYPTSETUP luksOpen -S 5 -d $KEY1 $LOOPDEV $DEV_NAME && fail
 [ -b /dev/mapper/$DEV_NAME ] && fail
+
+prepare "[28] Detached LUKS header" wipe
+dd if=/dev/zero of=$HEADER_IMG bs=1M count=4 >/dev/null 2>&1
+echo "key0" | $CRYPTSETUP luksFormat -i1 $LOOPDEV --header $HEADER_IMG || fail
+echo "key0" | $CRYPTSETUP luksFormat -i1 $LOOPDEV --header $HEADER_IMG --align-payload 0 || fail
+echo "key0" | $CRYPTSETUP luksOpen $LOOPDEV --header $HEADER_IMG $DEV_NAME || fail
+$CRYPTSETUP -q resize  $DEV_NAME --size 100 --header $HEADER_IMG || fail
+$CRYPTSETUP -q status  $DEV_NAME --header $HEADER_IMG | grep "size:" | grep -q "100 sectors" || fail
+$CRYPTSETUP luksSuspend $DEV_NAME --header $HEADER_IMG || fail
+echo "key0" | $CRYPTSETUP luksResume $DEV_NAME --header $HEADER_IMG || fail
+$CRYPTSETUP luksClose $DEV_NAME || fail
+
+prepare "[29] Repair metadata" wipe
+$CRYPTSETUP -q luksFormat -i1 $LOOPDEV $KEY1 --key-slot 0 || fail
+# second sector overwrite should corrupt keyslot 6+7
+dd if=/dev/urandom of=$LOOPDEV bs=512 seek=1 count=1 >/dev/null 2>&1
+$CRYPTSETUP luksOpen -d $KEY1 $LOOPDEV $DEV_NAME >/dev/null 2>&1 && fail
+$CRYPTSETUP -q repair $LOOPDEV >/dev/null 2>&1 || fail
+$CRYPTSETUP luksOpen -d $KEY1 $LOOPDEV $DEV_NAME || fail
+$CRYPTSETUP luksClose $DEV_NAME || fail
 
 remove_mapping
 exit 0

@@ -14,8 +14,8 @@ For basic (plain) dm-crypt mappings, there are four operations.
 creates a mapping with <name> backed by device <device>.
 
 \fB<options>\fR can be [\-\-hash, \-\-cipher, \-\-verify-passphrase,
-\-\-key-file, \-\-key-size, \-\-offset, \-\-skip, \-\-size, \-\-readonly, \-\-shared,
-\-\-allow-discards]
+\-\-key-file, \-\-keyfile-offset, \-\-key-size, \-\-offset, \-\-skip, \-\-size,
+\-\-readonly, \-\-shared, \-\-allow-discards]
 .PP
 \fIremove\fR <name>
 .IP
@@ -51,7 +51,8 @@ initializes a LUKS partition and sets the initial key, either via prompting or v
 
 \fB<options>\fR can be [\-\-cipher, \-\-verify-passphrase, \-\-key-size,
 \-\-key-slot, \-\-key-file (takes precedence over optional second argument),
-\-\-keyfile-size, \-\-use-random | \-\-use-urandom, \-\-uuid].
+\-\-keyfile-offset, \-\-keyfile-size, \-\-use-random | \-\-use-urandom, \-\-uuid,
+\-\-master-key-file].
 .PP
 \fIluksOpen\fR <device> <name>
 .IP
@@ -59,8 +60,11 @@ opens the LUKS partition <device> and sets up a mapping <name> after
 successful verification of the supplied key material
 (either via key file by \-\-key-file, or via prompting).
 
-\fB<options>\fR can be [\-\-key-file, \-\-keyfile-size, \-\-readonly, \-\-allow-discards,
-\-\-header, \-\-key-slot].
+Device parameter can be also specified by LUKS UUID in the format UUID=<uuid>
+(then cryptsetup will use /dev/disk/by-uuid symlinks).
+
+\fB<options>\fR can be [\-\-key-file, \-\-keyfile-offset, \-\-keyfile-size, \-\-readonly,
+\-\-allow-discards, \-\-header, \-\-key-slot, \-\-master-key-file].
 .PP
 \fIluksClose\fR <name>
 .IP
@@ -91,7 +95,8 @@ add a new key file/passphrase. An existing passphrase or key file
 (via \-\-key-file) must be supplied.
 The key file with the new material is supplied as a positional argument.
 
-\fB<options>\fR can be [\-\-key-file, \-\-keyfile-size, \-\-new-keyfile-size, \-\-key-slot].
+\fB<options>\fR can be [\-\-key-file, \-\-keyfile-offset, \-\-keyfile-size, \-\-new-keyfile-offset,
+\-\-new-keyfile-size, \-\-key-slot, \-\-master-key-file].
 .PP
 \fIluksRemoveKey\fR <device> [<key file>] 
 .IP
@@ -113,15 +118,15 @@ command will overwrite existing slot.
 when using explicit key slot (so you can unlock the device even after
 possible media failure during slot swap).
 
-\fB<options>\fR can be [\-\-key-file, \-\-keyfile-size,\-\-new-keyfile-size,
-\-\-key-slot].
+\fB<options>\fR can be [\-\-key-file, \-\-keyfile-offset, \-\-keyfile-size, \-\-new-keyfile-offset,
+\-\-new-keyfile-size, \-\-key-slot].
 .PP
 \fIluksKillSlot\fR <device> <key slot number>
 .IP
 wipe key with number <key slot> from LUKS device. A remaining passphrase or
 key file (via \-\-key-file) must be supplied.
 
-\fB<options>\fR can be [\-\-key-file, \-\-keyfile-size].
+\fB<options>\fR can be [\-\-key-file, \-\-keyfile-offset, \-\-keyfile-size].
 .PP
 \fIluksUUID\fR <device>
 .IP
@@ -149,7 +154,7 @@ stored encrypted and on safe place.
 
 LUKS passphrase or key file is required for volume key dump.
 
-\fB<options>\fR can be [\-\-dump-master-key, \-\-key-file, \-\-keyfile-size].
+\fB<options>\fR can be [\-\-dump-master-key, \-\-key-file, \-\-keyfile-offset, \-\-keyfile-size].
 .PP
 \fIluksHeaderBackup\fR <device> \-\-header-backup-file <file>
 .IP
@@ -169,6 +174,18 @@ form backup file are available after issuing this command.
 
 This command allows restoring header if device do not contain LUKS header
 or if the master key size and data offset in LUKS header on device match the backup file.
+.PP
+\fIrepair\fR <device>
+.IP
+Tries to repair (LUKS) device metadata if possible.
+
+This command is useful to fix known benign LUKS metadata header corruptions.
+Only basic corruptions of unused keyslot are fixable, any rewrite
+of keyslot data or used keyslot or header metadata means lost of device.
+
+\fBWARNING:\fR Always store binary copy of the original header, for
+LUKS, \fIrepair\fR will not touch more than 4kB from the start of device
+(visible LUKS header).
 .PP
 For more information about LUKS, see
 \fBhttp://code.google.com/p/cryptsetup/wiki/Specification\fR
@@ -246,6 +263,9 @@ and it is full 64bit version of plain IV. For more info please see FAQ.
 .B "\-\-verify-passphrase, \-y"
 query for passwords twice. Useful when creating a (regular) mapping
 for the first time, or when running \fIluksFormat\fR.
+
+Password verification option is ignored if requested on non terminal
+input (like pipe of file).
 .TP
 .B "\-\-key-file, \-d"
 use file as key material.
@@ -262,9 +282,17 @@ reading will not stop when new line character is detected.
 
 See section \fBNOTES ON PASSWORD PROCESSING\fR for more information.
 .TP
+.B "\-\-keyfile-offset \fIvalue\fR"
+Begins read from key file at \fIvalue\fR bytes.
+Usable together with all commands using key file.
+.TP
 .B "\-\-keyfile-size, \-l \fIvalue\fR"
 Limits read from key file to \fIvalue\fR bytes.
 Usable together with all commands using key file.
+.TP
+.B "\-\-new-keyfile-offset \fIvalue\fR"
+Begins read from new key file at \fIvalue\fR bytes in \fIluksAddKey\fR when
+adding new key file. Default is to start at the beginning of key file.
 .TP
 .B "\-\-new-keyfile-size  \fIvalue\fR"
 Limits read from new key file to \fIvalue\fR bytes in \fIluksAddKey\fR when
@@ -276,6 +304,9 @@ LUKS header reformatting with the same master key (if all other parameters
 are the same existing encrypted data remains intact).
 
 For \fIluksAddKey\fR it allows adding new passphrase with only master key knowledge.
+
+For \fIluksOpen\fR it allows to open the LUKS device with only master key knowledge.
+
 .TP
 .B "\-\-dump-master-key"
 For \fIluksDump\fR it allows LUKS header dump including volume (master) key.
@@ -343,8 +374,10 @@ This option is only relevant to the LUKS operations as
 Note that 0 means default.
 .TP
 .B "\-\-batch-mode, \-q"
-Do not ask for confirmation. Use with care! This option is only relevant
-for \fIluksFormat\fR, \fIluksAddKey\fR, \fIluksRemoveKey\fR or \fIluksKillSlot\fR.
+Do not ask for confirmation. Use with care!
+
+If \-y option is not specified, batch mode option also switches off
+passphrase verification for \fIluksFormat\fR.
 .TP
 .B "\-\-timeout, \-t"
 The number of seconds to wait before timeout. This option is relevant every
@@ -393,7 +426,8 @@ Set detached (separated) metadata device or file with LUKS header.
 This options allows separation of ciphertext device and on-disk metadata header.
 
 This option is only relevant for LUKS devices and can be used in \fIluksFormat\fR,
-\fIluksOpen\fR, \fIluksSuspend\fR, \fIluksResume\fR and \fIresize\fR commands.
+\fIluksOpen\fR, \fIluksSuspend\fR, \fIluksResume\fR, \fIstatus\fR and
+\fIresize\fR commands.
 
 If used with \fIluksFormat\fR the \-\-align-payload option is taken
 as absolute sector alignment on ciphertext device and can be zero.

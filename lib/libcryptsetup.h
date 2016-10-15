@@ -1,3 +1,24 @@
+/*
+ * libcryptsetup - cryptsetup library
+ *
+ * Copyright (C) 2004, Christophe Saout <christophe@saout.de>
+ * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
+ * Copyright (C) 2009-2012, Red Hat, Inc. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 /**
  * @file libcryptsetup.h
  * @brief Public cryptsetup API
@@ -392,6 +413,20 @@ int crypt_load(struct crypt_device *cd,
 	       void *params);
 
 /**
+ * Try to repair crypt device on-disk header if invalid
+ *
+ * @param cd crypt device handle
+ * @param requested_type - use @e NULL for all known
+ * @param params crypt type specific parameters (see @link crypt_type @endlink)
+ *
+ * @returns 0 on success or negative errno value otherwise.
+ *
+ */
+int crypt_repair(struct crypt_device *cd,
+		 const char *requested_type,
+		 void *params __attribute__((unused)));
+
+/**
  * Resize crypt device
  *
  * @param cd - crypt device handle
@@ -433,10 +468,10 @@ int crypt_suspend(struct crypt_device *cd,
  * @note Only LUKS device type is supported
  */
 int crypt_resume_by_passphrase(struct crypt_device *cd,
-			       const char *name,
-			       int keyslot,
-			       const char *passphrase,
-			       size_t passphrase_size);
+	const char *name,
+	int keyslot,
+	const char *passphrase,
+	size_t passphrase_size);
 
 /**
  * Resumes crypt device using key file.
@@ -446,14 +481,24 @@ int crypt_resume_by_passphrase(struct crypt_device *cd,
  * @param keyslot requested keyslot or CRYPT_ANY_SLOT
  * @param keyfile key file used to unlock volume key, @e NULL for passphrase query
  * @param keyfile_size number of bytes to read from keyfile, 0 is unlimited
+ * @param keyfile_offset number of bytes to skip at start of keyfile
  *
  * @return unlocked key slot number or negative errno otherwise.
  */
+int crypt_resume_by_keyfile_offset(struct crypt_device *cd,
+	const char *name,
+	int keyslot,
+	const char *keyfile,
+	size_t keyfile_size,
+	size_t keyfile_offset);
+/**
+ * Backward compatible crypt_resume_by_keyfile_offset() (without offset).
+ */
 int crypt_resume_by_keyfile(struct crypt_device *cd,
-			    const char *name,
-			    int keyslot,
-			    const char *keyfile,
-			    size_t keyfile_size);
+	const char *name,
+	int keyslot,
+	const char *keyfile,
+	size_t keyfile_size);
 
 /**
  * Releases crypt device context and used memory.
@@ -512,13 +557,26 @@ int crypt_keyslot_max(const char *type);
  * @param keyslot requested keyslot or @e CRYPT_ANY_SLOT
  * @param keyfile key file used to unlock volume key, @e NULL for passphrase query
  * @param keyfile_size number of bytes to read from keyfile, @e 0 is unlimited
+ * @param keyfile_offset number of bytes to skip at start of keyfile
  * @param new_keyfile keyfile for new keyslot, @e NULL for passphrase query
  * @param new_keyfile_size number of bytes to read from @e new_keyfile, @e 0 is unlimited
+ * @param new_keyfile_offset number of bytes to skip at start of new_keyfile
  *
  * @return allocated key slot number or negative errno otherwise.
  *
  * @note Note that @e keyfile can be "-" for STDIN
  *
+ */
+int crypt_keyslot_add_by_keyfile_offset(struct crypt_device *cd,
+	int keyslot,
+	const char *keyfile,
+	size_t keyfile_size,
+	size_t keyfile_offset,
+	const char *new_keyfile,
+	size_t new_keyfile_size,
+	size_t new_keyfile_offset);
+/**
+ * Backward compatible crypt_keyslot_add_by_keyfile_offset() (without offset).
  */
 int crypt_keyslot_add_by_keyfile(struct crypt_device *cd,
 	int keyslot,
@@ -636,9 +694,20 @@ int crypt_activate_by_passphrase(struct crypt_device *cd,
  * @param keyslot requested keyslot to check or CRYPT_ANY_SLOT
  * @param keyfile key file used to unlock volume key
  * @param keyfile_size number of bytes to read from keyfile, 0 is unlimited
+ * @param keyfile_offset number of bytes to skip at start of keyfile
  * @param flags activation flags
  *
  * @return unlocked key slot number or negative errno otherwise.
+ */
+int crypt_activate_by_keyfile_offset(struct crypt_device *cd,
+	const char *name,
+	int keyslot,
+	const char *keyfile,
+	size_t keyfile_size,
+	size_t keyfile_offset,
+	uint32_t flags);
+/**
+ * Backward compatible crypt_activate_by_keyfile_offset() (without offset).
  */
 int crypt_activate_by_keyfile(struct crypt_device *cd,
 	const char *name,

@@ -1,8 +1,8 @@
 /*
- * util_crypt - cipher utilities for cryptsetup
+ * utils_crypt - cipher utilities for cryptsetup
  *
  * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
- * Copyright (C) 2009-2011, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2009-2012, Red Hat, Inc. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -257,14 +257,14 @@ out_err:
  */
 int crypt_get_key(const char *prompt,
 		  char **key, size_t *key_size,
-		  size_t keyfile_size_max, const char *key_file,
-		  int timeout, int verify,
+		  size_t keyfile_offset, size_t keyfile_size_max,
+		  const char *key_file, int timeout, int verify,
 		  struct crypt_device *cd)
 {
 	int fd, regular_file, read_stdin, char_read, unlimited_read = 0;
 	int r = -EINVAL;
-	char *pass = NULL;
-	size_t buflen, i;
+	char *pass = NULL, tmp;
+	size_t buflen, i, file_read_size;
 	struct stat st;
 
 	*key = NULL;
@@ -273,8 +273,13 @@ int crypt_get_key(const char *prompt,
 	/* Passphrase read from stdin? */
 	read_stdin = (!key_file || !strcmp(key_file, "-")) ? 1 : 0;
 
-	if(read_stdin && isatty(STDIN_FILENO))
+	if (read_stdin && isatty(STDIN_FILENO)) {
+		if (keyfile_offset) {
+			log_err(cd, _("Cannot use offset with terminal input.\n"));
+			return -EINVAL;
+		}
 		return crypt_get_key_tty(prompt, key, key_size, timeout, verify, cd);
+	}
 
 	if (read_stdin)
 		log_dbg("STDIN descriptor passphrase entry requested.");
@@ -303,11 +308,19 @@ int crypt_get_key(const char *prompt,
 		}
 		if(S_ISREG(st.st_mode)) {
 			regular_file = 1;
+			file_read_size = (size_t)st.st_size;
+
+			if (keyfile_offset > file_read_size) {
+				log_err(cd, _("Cannot seek to requested keyfile offset.\n"));
+				goto out_err;
+			}
+			file_read_size -= keyfile_offset;
+
 			/* known keyfile size, alloc it in one step */
-			if ((size_t)st.st_size >= keyfile_size_max)
+			if (file_read_size >= keyfile_size_max)
 				buflen = keyfile_size_max;
-			else
-				buflen = st.st_size;
+			else if (file_read_size)
+				buflen = file_read_size;
 		}
 	}
 
@@ -316,6 +329,13 @@ int crypt_get_key(const char *prompt,
 		log_err(cd, _("Out of memory while reading passphrase.\n"));
 		goto out_err;
 	}
+
+	/* Discard keyfile_offset bytes on input */
+	for(i = 0; i < keyfile_offset; i++)
+		if (read(fd, &tmp, 1) != 1) {
+			log_err(cd, _("Cannot seek to requested keyfile offset.\n"));
+			goto out_err;
+		}
 
 	for(i = 0; i < keyfile_size_max; i++) {
 		if(i == buflen) {
@@ -355,12 +375,6 @@ int crypt_get_key(const char *prompt,
 	if (!unlimited_read && i != keyfile_size_max) {
 		log_err(cd, _("Cannot read requested amount of data.\n"));
 		goto out_err;
-	}
-
-	/* Well, for historical reasons reading empty keyfile is not fail. */
-	if(!i) {
-		crypt_safe_free(pass);
-		pass = NULL;
 	}
 
 	*key = pass;
