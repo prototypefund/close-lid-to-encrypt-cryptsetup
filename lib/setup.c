@@ -30,7 +30,6 @@
 #include "luks.h"
 #include "loopaes.h"
 #include "internal.h"
-#include "crypto_backend.h"
 
 struct crypt_device {
 	char *type;
@@ -157,6 +156,8 @@ static int init_crypto(struct crypt_device *ctx)
 {
 	int r;
 
+	crypt_fips_libcryptsetup_check(ctx);
+
 	r = crypt_random_init(ctx);
 	if (r < 0) {
 		log_err(ctx, _("Cannot initialize crypto RNG backend.\n"));
@@ -167,6 +168,7 @@ static int init_crypto(struct crypt_device *ctx)
 	if (r < 0)
 		log_err(ctx, _("Cannot initialize crypto backend.\n"));
 
+	log_dbg("Crypto backend (%s) initialized.", crypt_backend_version());
 	return r;
 }
 
@@ -285,6 +287,7 @@ int PLAIN_activate(struct crypt_device *cd,
 {
 	int r;
 	char *dm_cipher = NULL;
+	enum devcheck device_check;
 	struct crypt_dm_active_device dmd = {
 		.device = crypt_get_device_name(cd),
 		.cipher = NULL,
@@ -296,8 +299,12 @@ int PLAIN_activate(struct crypt_device *cd,
 		.flags  = flags
 	};
 
-	r = device_check_and_adjust(cd, dmd.device,
-				    (dmd.flags & CRYPT_ACTIVATE_SHARED) ? DEV_SHARED : DEV_EXCL,
+	if (dmd.flags & CRYPT_ACTIVATE_SHARED)
+		device_check = DEV_SHARED;
+	else
+		device_check = DEV_EXCL;
+
+	r = device_check_and_adjust(cd, dmd.device, device_check,
 				    &dmd.size, &dmd.offset, &flags);
 	if (r)
 		return r;
@@ -582,7 +589,7 @@ int crypt_set_data_device(struct crypt_device *cd, const char *device)
 	}
 
 	/* metadata device must be set */
-	if (!cd->device)
+	if (!cd->device || !device)
 		return -EINVAL;
 
 	r = device_ready(NULL, device, O_RDONLY);
@@ -699,7 +706,7 @@ int crypt_init_by_name_and_header(struct crypt_device **cd,
 	}
 
 	if (isPLAIN((*cd)->type)) {
-		(*cd)->plain_uuid = strdup(dmd.uuid);
+		(*cd)->plain_uuid = dmd.uuid ? strdup(dmd.uuid) : NULL;
 		(*cd)->plain_hdr.hash = NULL; /* no way to get this */
 		(*cd)->plain_hdr.offset = dmd.offset;
 		(*cd)->plain_hdr.skip = dmd.iv_offset;
@@ -711,7 +718,7 @@ int crypt_init_by_name_and_header(struct crypt_device **cd,
 			(*cd)->plain_cipher_mode = strdup(cipher_mode);
 		}
 	} else if (isLOOPAES((*cd)->type)) {
-		(*cd)->loopaes_uuid = strdup(dmd.uuid);
+		(*cd)->loopaes_uuid = dmd.uuid ? strdup(dmd.uuid) : NULL;
 		(*cd)->loopaes_hdr.offset = dmd.offset;
 
 		r = crypt_parse_name_and_mode(dmd.cipher, cipher,
@@ -1798,11 +1805,8 @@ int crypt_deactivate(struct crypt_device *cd, const char *name)
 
 	switch (crypt_status(cd, name)) {
 		case CRYPT_ACTIVE:
-			r = dm_remove_device(name, 0, 0);
-			break;
 		case CRYPT_BUSY:
-			log_err(cd, _("Device %s is busy.\n"), name);
-			r = -EBUSY;
+			r = dm_remove_device(name, 0, 0);
 			break;
 		case CRYPT_INACTIVE:
 			log_err(cd, _("Device %s is not active.\n"), name);
@@ -1829,6 +1833,11 @@ int crypt_volume_key_get(struct crypt_device *cd,
 	struct volume_key *vk = NULL;
 	unsigned key_len;
 	int r = -EINVAL;
+
+	if (crypt_fips_mode()) {
+		log_err(cd, "Function not available in FIPS mode.\n");
+		return -EACCES;
+	}
 
 	key_len = crypt_get_volume_key_size(cd);
 	if (key_len > *volume_key_size) {

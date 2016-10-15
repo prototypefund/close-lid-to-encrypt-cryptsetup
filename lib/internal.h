@@ -35,6 +35,8 @@
 #include "utils_crypt.h"
 #include "utils_loop.h"
 #include "utils_dm.h"
+#include "utils_fips.h"
+#include "crypto_backend.h"
 
 /* to silent gcc -Wcast-qual for const cast */
 #define CONST_CAST(x) (x)(uintptr_t)
@@ -97,7 +99,6 @@ void get_topology_alignment(const char *device,
 			    unsigned long *alignment_offset,   /* bytes */
 			    unsigned long default_alignment);
 
-enum { CRYPT_RND_NORMAL = 0, CRYPT_RND_KEY = 1 };
 int crypt_random_init(struct crypt_device *ctx);
 int crypt_random_get(struct crypt_device *ctx, char *buf, size_t len, int quality);
 void crypt_random_exit(void);

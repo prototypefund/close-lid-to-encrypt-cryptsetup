@@ -243,7 +243,7 @@ static void hex_key(char *hexkey, size_t key_size, const char *key)
 
 static char *get_params(struct crypt_dm_active_device *dmd)
 {
-	int r, max_size;
+	int r, max_size, null_cipher = 0;
 	char *params, *hexkey;
 	const char *features = "";
 
@@ -255,11 +255,17 @@ static char *get_params(struct crypt_dm_active_device *dmd)
 			log_dbg("Discard/TRIM is not supported by the kernel.");
 	}
 
-	hexkey = crypt_safe_alloc(dmd->vk->keylength * 2 + 1);
+	if (!strncmp(dmd->cipher, "cipher_null-", 12))
+		null_cipher = 1;
+
+	hexkey = crypt_safe_alloc(null_cipher ? 2 : (dmd->vk->keylength * 2 + 1));
 	if (!hexkey)
 		return NULL;
 
-	hex_key(hexkey, dmd->vk->keylength, dmd->vk->key);
+	if (null_cipher)
+		strncpy(hexkey, "-", 2);
+	else
+		hex_key(hexkey, dmd->vk->keylength, dmd->vk->key);
 
 	max_size = strlen(hexkey) + strlen(dmd->cipher) +
 		   strlen(dmd->device) + strlen(features) + 64;
@@ -295,6 +301,11 @@ static int _dm_simple(int task, const char *name, int udev_wait)
 	if (name && !dm_task_set_name(dmt, name))
 		goto out;
 
+#if HAVE_DECL_DM_TASK_RETRY_REMOVE
+	/* Used only in DM_DEVICE_REMOVE */
+	if (name && !dm_task_retry_remove(dmt))
+		goto out;
+#endif
 	if (udev_wait && !_dm_task_set_cookie(dmt, &cookie, 0))
 		goto out;
 
@@ -430,7 +441,7 @@ int dm_create_device(const char *name,
 	if (!params)
 		goto out_no_removal;
 
-	if (type && !strncmp(type, "TEMP", 4))
+	if (dmd->flags & CRYPT_ACTIVATE_PRIVATE)
 		udev_flags = CRYPT_TEMP_UDEV_FLAGS;
 
 	/* All devices must have DM_UUID, only resize on old device is exception */

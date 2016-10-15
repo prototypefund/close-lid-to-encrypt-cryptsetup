@@ -635,7 +635,7 @@ int LUKS_generate_phdr(struct luks_phdr *header,
 		header->version, header->hashSpec ,header->cipherName, header->cipherMode,
 		header->keyBytes);
 
-	r = crypt_random_get(ctx, header->mkDigestSalt, LUKS_SALTSIZE, CRYPT_RND_NORMAL);
+	r = crypt_random_get(ctx, header->mkDigestSalt, LUKS_SALTSIZE, CRYPT_RND_SALT);
 	if(r < 0) {
 		log_err(ctx,  _("Cannot create LUKS header: reading random salt failed.\n"));
 		return r;
@@ -752,7 +752,7 @@ int LUKS_set_key(const char *device, unsigned int keyIndex,
 		return -ENOMEM;
 
 	r = crypt_random_get(ctx, hdr->keyblock[keyIndex].passwordSalt,
-		       LUKS_SALTSIZE, CRYPT_RND_NORMAL);
+		       LUKS_SALTSIZE, CRYPT_RND_SALT);
 	if (r < 0)
 		return r;
 
@@ -1031,6 +1031,7 @@ int LUKS1_activate(struct crypt_device *cd,
 {
 	int r;
 	char *dm_cipher = NULL;
+	enum devcheck device_check;
 	struct crypt_dm_active_device dmd = {
 		.device = crypt_get_device_name(cd),
 		.cipher = NULL,
@@ -1042,8 +1043,13 @@ int LUKS1_activate(struct crypt_device *cd,
 		.flags  = flags
 	};
 
-	r = device_check_and_adjust(cd, dmd.device, DEV_EXCL,
-				    &dmd.size, &dmd.offset, &flags);
+	if (dmd.flags & CRYPT_ACTIVATE_SHARED)
+		device_check = DEV_SHARED;
+	else
+		device_check = DEV_EXCL;
+
+	r = device_check_and_adjust(cd, dmd.device, device_check,
+				    &dmd.size, &dmd.offset, &dmd.flags);
 	if (r)
 		return r;
 

@@ -18,14 +18,15 @@
  */
 
 #include <string.h>
+#include <stdio.h>
 #include <errno.h>
 #include <assert.h>
 #include <gcrypt.h>
 #include "crypto_backend.h"
 
-#define GCRYPT_REQ_VERSION "1.1.42"
-
 static int crypto_backend_initialised = 0;
+static int crypto_backend_secmem = 1;
+static char version[64];
 
 struct crypt_hash {
 	gcry_md_hd_t hd;
@@ -39,12 +40,11 @@ struct crypt_hmac {
 	int hash_len;
 };
 
-int crypt_backend_init(struct crypt_device *ctx __attribute__((unused)))
+int crypt_backend_init(struct crypt_device *ctx)
 {
 	if (crypto_backend_initialised)
 		return 0;
 
-	log_dbg("Initialising gcrypt crypto backend.");
 	if (!gcry_control (GCRYCTL_INITIALIZATION_FINISHED_P)) {
 		if (!gcry_check_version (GCRYPT_REQ_VERSION)) {
 			return -ENOSYS;
@@ -57,8 +57,8 @@ int crypt_backend_init(struct crypt_device *ctx __attribute__((unused)))
  * and it locks its memory space anyway.
  */
 #if 0
-		log_dbg("Initializing crypto backend (secure memory disabled).");
 		gcry_control (GCRYCTL_DISABLE_SECMEM);
+		crypto_backend_secmem = 0;
 #else
 
 		gcry_control (GCRYCTL_SUSPEND_SECMEM_WARN);
@@ -68,8 +68,16 @@ int crypt_backend_init(struct crypt_device *ctx __attribute__((unused)))
 		gcry_control (GCRYCTL_INITIALIZATION_FINISHED, 0);
 	}
 
+	snprintf(version, 64, "gcrypt %s%s",
+		 gcry_check_version(NULL),
+		 crypto_backend_secmem ? "" : ", secmem disabled");
 	crypto_backend_initialised = 1;
 	return 0;
+}
+
+const char *crypt_backend_version(void)
+{
+	return crypto_backend_initialised ? version : "";
 }
 
 uint32_t crypt_backend_flags(void)
@@ -225,5 +233,21 @@ int crypt_hmac_destroy(struct crypt_hmac *ctx)
 	gcry_md_close(ctx->hd);
 	memset(ctx, 0, sizeof(*ctx));
 	free(ctx);
+	return 0;
+}
+
+/* RNG */
+int crypt_backend_rng(char *buffer, size_t length, int quality, int fips)
+{
+	switch(quality) {
+	case CRYPT_RND_NORMAL:
+		gcry_randomize(buffer, length, GCRY_STRONG_RANDOM);
+		break;
+	case CRYPT_RND_SALT:
+	case CRYPT_RND_KEY:
+	default:
+		gcry_randomize(buffer, length, GCRY_VERY_STRONG_RANDOM);
+		break;
+	}
 	return 0;
 }

@@ -313,24 +313,29 @@ A. Contributors
  * 2.10 If I map a journaled file system using dm-crypt/LUKS, does it
    still provide its usual transactional guarantees?
 
-  As far as I know it does (but I may be wrong), but please note that
-  these "guarantees" are far weaker than they appear to be. For
-  example, you may not get a hard flush to disk surface even on a
-  call to fsync. In addition, the HDD itself may do independent
-  write reordering. Some other things can go wrong as well. The
-  filesystem developers are aware of these problems and typically
-  can make it work anyways. That said, dm-crypt/LUKS should not make
-  things worse.
+  Yes, it does, unless a very old kernel is used. The required flags
+  come from the filesystem layer and are processed and passed onwards
+  by dm-crypt. A bit more information on the process by which
+  transactional guarantees are implemented can be found here:
 
-  Personally, I have several instances of ext3 on dm-crypt and have
-  not noticed any specific problems.
+  http://lwn.net/Articles/400541/
 
-  Update: I did run into frequent small freezes (1-2 sec) when putting
-  a vmware image on ext3 over dm-crypt. This does indicate that the
-  transactional guarantees are in place, but at a cost. When I went
-  back to ext2, the problem went away. This also seems to have gotten
-  better with kernel 2.6.36 and the reworking of filesystem flush
-  locking. Kernel 2.6.38 is expected to have more improvements here.
+  Please note that these "guarantees" are weaker than they appear to
+  be. One problem is that quite a few disks lie to the OS about
+  having flushed their buffers. Some other things can go wrong as
+  well. The filesystem developers are aware of these problems and
+  typically can make it work anyways. That said, dm-crypt/LUKS will
+  not make things worse.
+
+  One specific problem you can run into though is that you can get
+  short freezes and other slowdowns due to the encryption layer.
+  Encryption takes time and forced flushes will block for that time.
+  For example, I did run into frequent small freezes (1-2 sec) when
+  putting a vmware image on ext3 over dm-crypt. When I went back to
+  ext2, the problem went away. This seems to have gotten better with
+  kernel 2.6.36 and the reworking of filesystem flush locking
+  mechanism (less blocking of CPU activity during flushes). It
+  should improve further and eventually the problem should go away.
 
 
  * 2.11 Can I use LUKS or cryptsetup with a more secure (external)
@@ -949,6 +954,23 @@ A. Contributors
   apply.
 
 
+ * 5.16 Is LUKS FIPS-140-2 certified?
+
+  No. But that is more a problem of FIPS-140-2 than of LUKS. From a
+  technical point-of-view, LUKS with the right parameters would be
+  FIPS-140-2 compliant, but in order to make it certified, somebody
+  has to pay real money for that. And then, whenever cryptsetup is
+  changed or extended, the certification lapses and has to be
+  obtained again.
+
+  From the aspect of actual security, LUKS with default parameters
+  should be as good as most things that are FIPS-140-2 certified,
+  although you may want to make sure to use /dev/random (by
+  specifying --use-random on luksFormat) as randomness source for
+  the master key to avoid being potentially insecure in an
+  entropy-starved situation.
+
+
 6. Backup and Data Recovery 
 
 
@@ -961,7 +983,7 @@ A. Contributors
 
   Second, for LUKS, if anything damages the LUKS header or the
   key-stripe area then decrypting the LUKS device can become
-  impossible. This is a frequent occuurence. For example an
+  impossible. This is a frequent occurrence. For example an
   accidental format as FAT or some software overwriting the first
   sector where it suspects a partition boot sector typically makes a
   LUKS partition permanently inacessible. See more below on LUKS
@@ -981,11 +1003,11 @@ A. Contributors
   partition creation. Example:
 
  
-     cryptsetup luksHeaderBackup --header-backup-file h <device>
+     cryptsetup luksHeaderBackup --header-backup-file <file> <device>
  
   To restore, use the inverse command, i.e.
 
-     cryptsetup luksHeaderRestore --header-backup-file h <device>
+     cryptsetup luksHeaderRestore --header-backup-file <file> <device>
  
 
  * 6.3 How do I test a LUKS header?
@@ -1109,7 +1131,7 @@ A. Contributors
   In both cases, there is an additional (usually small) risk with
   binary backups: An attacker can see how many sectors and which
   ones have been changed since the backup. To prevent this, use a
-  filesystem level backup methid that encrypts the whole backup in
+  filesystem level backup method that encrypts the whole backup in
   one go, e.g. as described above with tar and GnuPG.
 
   My personal advice is to use one USB disk (low value data) or
