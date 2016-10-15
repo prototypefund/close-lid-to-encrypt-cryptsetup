@@ -14,12 +14,16 @@ Importing a new upstream release
     To import a new upstream release into our packaging repository, do the
     following:
 
-    1. Ensure that you have the cryptsetup upstream Git repository available
+    0. Ensure that you have the cryptsetup upstream Git repository available
        as a remote in the Git repository where you're doing the packaging
        work and it's up to date:
 
-           git remote add upstream git+ssh://gitlab.com/cryptsetup/cryptsetup.git
-           git fetch upstream --tags
+           git remote add --tags upstream git+ssh://gitlab.com/cryptsetup/cryptsetup.git
+           git config remote.upstream.fetch v1_7_x:upstream
+
+    1. Update 'upstream' remote
+
+           git fetch upstream
 
     2. Determine the release tag corresponding to the new release. At the time
        of this wriging, upstream uses tags in the form:
