@@ -660,7 +660,9 @@ for v in CRYPTSETUP KEYFILE_PATTERN; do
 done
 
 # Load the hook's config
-. /etc/cryptsetup-initramfs/conf-hook
+if [ -f "/etc/cryptsetup-initramfs/conf-hook" ]; then
+    . /etc/cryptsetup-initramfs/conf-hook
+fi
 
 # Include cryptsetup modules, regardless of _this_ machine
 # configuration
