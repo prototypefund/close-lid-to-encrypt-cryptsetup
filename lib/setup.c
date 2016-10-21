@@ -2354,7 +2354,7 @@ int crypt_volume_key_verify(struct crypt_device *cd,
 
 void crypt_set_timeout(struct crypt_device *cd, uint64_t timeout_sec)
 {
-	log_dbg("Timeout set to %" PRIu64 " miliseconds.", timeout_sec);
+	log_dbg("Timeout set to %" PRIu64 " milliseconds.", timeout_sec);
 	cd->timeout = timeout_sec;
 }
 
@@ -2366,7 +2366,7 @@ void crypt_set_password_retry(struct crypt_device *cd, int tries)
 
 void crypt_set_iteration_time(struct crypt_device *cd, uint64_t iteration_time_ms)
 {
-	log_dbg("Iteration time set to %" PRIu64 " miliseconds.", iteration_time_ms);
+	log_dbg("Iteration time set to %" PRIu64 " milliseconds.", iteration_time_ms);
 	cd->iteration_time = iteration_time_ms;
 }
 void crypt_set_iterarion_time(struct crypt_device *cd, uint64_t iteration_time_ms)
