@@ -626,7 +626,7 @@ int crypt_init(struct crypt_device **cd, const char *device)
 
 	dm_backend_init();
 
-	h->iteration_time = 1000;
+	h->iteration_time = DEFAULT_LUKS1_ITER_TIME;
 	h->password_verify = 0;
 	h->tries = 3;
 	h->rng_type = crypt_random_default_key_rng();
@@ -2366,7 +2366,7 @@ void crypt_set_password_retry(struct crypt_device *cd, int tries)
 
 void crypt_set_iteration_time(struct crypt_device *cd, uint64_t iteration_time_ms)
 {
-	log_dbg("Iteration time set to %" PRIu64 " miliseconds.", iteration_time_ms);
+	log_dbg("Iteration time set to %" PRIu64 " milliseconds.", iteration_time_ms);
 	cd->iteration_time = iteration_time_ms;
 }
 void crypt_set_iterarion_time(struct crypt_device *cd, uint64_t iteration_time_ms)

@@ -1,5 +1,5 @@
 AC_PREREQ([2.67])
-AC_INIT([cryptsetup],[1.7.2])
+AC_INIT([cryptsetup],[1.7.3])
 
 dnl library version from <major>.<minor>.<release>[-<suffix>]
 LIBCRYPTSETUP_VERSION=$(echo $PACKAGE_VERSION | cut -f1 -d-)
@@ -417,14 +417,19 @@ AC_ARG_WITH([python_version],
 if test "x$with_python" = "xyes"; then
 	AM_PATH_PYTHON([$PYTHON_VERSION])
 
-	if ! test -x "$PYTHON-config" ; then
-            AC_MSG_ERROR([Cannot find python development packages to build bindings])
+	AC_PATH_PROGS([PYTHON_CONFIG], [python${PYTHON_VERSION}-config python-config], [no])
+	if test "${PYTHON_CONFIG}" = "no"; then
+		AC_MSG_ERROR([cannot find python${PYTHON_VERSION}-config or python-config in PATH])
 	fi
 
-	PYTHON_INCLUDES=$($PYTHON-config --includes)
+	AC_MSG_CHECKING(for python headers using $PYTHON_CONFIG --includes)
+	PYTHON_INCLUDES=$($PYTHON_CONFIG --includes)
+	AC_MSG_RESULT($PYTHON_INCLUDES)
 	AC_SUBST(PYTHON_INCLUDES)
 
-	PYTHON_LIBS=$($PYTHON-config --libs)
+	AC_MSG_CHECKING(for python libraries using $PYTHON_CONFIG --libs)
+	PYTHON_LIBS=$($PYTHON_CONFIG --libs)
+	AC_MSG_RESULT($PYTHON_LIBS)
 	AC_SUBST(PYTHON_LIBS)
 fi
 AM_CONDITIONAL([PYTHON_CRYPTSETUP], [test "x$with_python" = "xyes"])

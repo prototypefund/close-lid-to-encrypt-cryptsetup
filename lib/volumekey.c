@@ -20,22 +20,31 @@
  */
 
 #include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "internal.h"
 
-struct volume_key *crypt_alloc_volume_key(unsigned keylength, const char *key)
+struct volume_key *crypt_alloc_volume_key(size_t keylength, const char *key)
 {
-	struct volume_key *vk = malloc(sizeof(*vk) + keylength);
+	struct volume_key *vk;
 
+	if (keylength > (SIZE_MAX - sizeof(*vk)))
+		return NULL;
+
+	vk = malloc(sizeof(*vk) + keylength);
 	if (!vk)
 		return NULL;
 
 	vk->keylength = keylength;
-	if (key)
-		memcpy(&vk->key, key, keylength);
-	else
-		crypt_memzero(&vk->key, keylength);
+
+	/* keylength 0 is valid => no key */
+	if (vk->keylength) {
+		if (key)
+			memcpy(&vk->key, key, keylength);
+		else
+			crypt_memzero(&vk->key, keylength);
+	}
 
 	return vk;
 }
@@ -49,7 +58,7 @@ void crypt_free_volume_key(struct volume_key *vk)
 	}
 }
 
-struct volume_key *crypt_generate_volume_key(struct crypt_device *cd, unsigned keylength)
+struct volume_key *crypt_generate_volume_key(struct crypt_device *cd, size_t keylength)
 {
 	int r;
 	struct volume_key *vk;
