@@ -189,6 +189,7 @@ binary-arch: build install
 	# Copy relevant parts to libcryptsetup4-udeb package
 	cp -a $(CURDIR)/debian/libcryptsetup4/lib $(CURDIR)/debian/libcryptsetup4-udeb/
 	dh_lintian -a
+	dh_strip_nondeterminism
 	dh_compress -a
 	dh_fixperms -a
 	dh_strip -a
