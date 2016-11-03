@@ -1,3 +1,11 @@
+cryptsetup (2:1.7.3-2) UNRELEASED; urgency=low
+
+  * debian/README.Debian: update authorized_keys(5) path, incorrect since
+    2:1.7.2-1, for remote unlocking at initramfs stage using the dropbear SSH
+    server.
+
+ -- Guilhem Moulin <guilhem@guilhem.org>  Thu, 03 Nov 2016 12:32:33 +0100
+
 cryptsetup (2:1.7.3-1) unstable; urgency=medium
 
   * New upstream release 1.7.3.

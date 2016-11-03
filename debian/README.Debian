@@ -228,7 +228,7 @@ $ gpg --decrypt ~/.luks/remote.key.gpg | ssh -TF ~/.luks/ssh.conf root@remote.sy
 should continue with the boot process.
 
  You can also use the following authorized_keys(5) options in
-/etc/initramfs-tools/root/.ssh/authorized_keys to restrict access and avoid
+/etc/dropbear-initramfs/authorized_keys to restrict access and avoid
 users poking around:
 
 no-port-forwarding,no-agent-forwarding,no-X11-forwarding,command="/bin/cryptroot-unlock" ssh-rsa ...
