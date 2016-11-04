@@ -356,12 +356,19 @@ setup_mapping()
 			continue
 		fi
 
+		# decrease $count by 1, apparently last try was successful.
+		count=$(( $count - 1 ))
+
 		message "cryptsetup: $crypttarget set up successfully"
 		break
 	done
 
-	if [ $crypttries -gt 0 ] && [ $count -gt $crypttries ]; then
+	seconds=60 # make configurable later?
+
+	if [ $crypttries -gt 0 ] && [ $count -ge $crypttries ]; then
 		message "cryptsetup: maximum number of tries exceeded for $crypttarget"
+		message "cryptsetup: going to sleep for $failsleep seconds."
+		sleep $failsleep
 		return 1
 	fi
 
