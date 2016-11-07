@@ -363,11 +363,11 @@ setup_mapping()
 		break
 	done
 
-	seconds=60 # make configurable later?
+	failsleep=60 # make configurable later?
 
 	if [ $crypttries -gt 0 ] && [ $count -ge $crypttries ]; then
 		message "cryptsetup: maximum number of tries exceeded for $crypttarget"
-		message "cryptsetup: going to sleep for $failsleep seconds."
+		message "cryptsetup: going to sleep for $failsleep seconds..."
 		sleep $failsleep
 		return 1
 	fi
