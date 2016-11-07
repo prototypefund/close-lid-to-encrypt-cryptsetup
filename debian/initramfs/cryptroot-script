@@ -369,7 +369,7 @@ setup_mapping()
 		message "cryptsetup: maximum number of tries exceeded for $crypttarget"
 		message "cryptsetup: going to sleep for $failsleep seconds..."
 		sleep $failsleep
-		return 1
+		exit 1
 	fi
 
 	udev_settle
