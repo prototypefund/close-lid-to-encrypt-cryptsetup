@@ -9,12 +9,12 @@ cryptsetup (2:1.7.3-2) unstable; urgency=medium
   * debian/initramfs/cryptroot-script: sleep after max passphrase attempts.
     This mitigates local brute-force attacks and addresses CVE-2016-4484.
     Thanks to Ismael Ripoll for discovery and report.
-    - decrease $count by one in tries loop if unlocking was successfull.
+    - decrease $count by one in tries loop if unlocking was successful.
     - warn and sleep for 60 seconds if the maximum allowed attempts of
       unlocking (configured with crypttab option tries, default=3) are
       reached.
 
- -- Jonas Meurer <mejo@debian.org>  Mon, 07 Nov 2016 11:14:07 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 07 Nov 2016 11:34:41 +0100
 
 cryptsetup (2:1.7.3-1) unstable; urgency=medium
 
@@ -1029,7 +1029,7 @@ cryptsetup (2:1.0.7-2) unstable; urgency=low
   * add 04_no_stderr_success.patch, which adds an option to suppress success
     messages to stderr. don't apply the patch as this already has been fixed
     upstream in another way. next cryptsetup release will print the command
-    successfull message to stdout only if opt_verbose is set.
+    successful message to stdout only if opt_verbose is set.
   * add checkscripts blkid and un_blkid for the reason that vol_id will be
     removed from udev soon. advertise the new scripts at all places that
     mentioned vol_id or un_vol_id before.
