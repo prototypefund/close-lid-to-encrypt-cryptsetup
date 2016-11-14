@@ -1,3 +1,12 @@
+cryptsetup (2:1.7.3-3) unstable; urgency=medium
+
+  * debian/scripts/decrypt_ssl: fix script to actually output the decrypted
+    key. Apparently this script has been broken since June 2008. Doesn't seem
+    like anybody is using it. Thanks to g1 for spotting and reporting the
+    error. (Closes: #844050)
+
+ -- Jonas Meurer <mejo@debian.org>  Mon, 14 Nov 2016 18:49:41 +0100
+
 cryptsetup (2:1.7.3-2) unstable; urgency=medium
 
   [ Guilhem Moulin ]
