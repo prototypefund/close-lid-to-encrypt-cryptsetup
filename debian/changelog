@@ -10,7 +10,7 @@ cryptsetup (2:1.7.3-3) unstable; urgency=medium
     unlock attempts, addressing CVE-2016-4484 in a more appropriate way.
     Thanks again to Hector Marco and Ismael Ripoll for discovery and report.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 15 Nov 2016 22:59:37 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 15 Nov 2016 21:53:39 +0100
 
 cryptsetup (2:1.7.3-2) unstable; urgency=medium
 

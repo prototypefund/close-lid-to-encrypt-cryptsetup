@@ -368,11 +368,7 @@ setup_mapping()
 		message "cryptsetup: maximum number of tries exceeded for $crypttarget"
 		message "cryptsetup: going to reboot in $failsleep seconds..."
 		sleep $failsleep
-		reboot -f
-		message "cryptsetup: reboot failed, going to sleep forever..."
-		while true; do
-			sleep 60
-		done
+		reboot
 	fi
 
 	udev_settle
