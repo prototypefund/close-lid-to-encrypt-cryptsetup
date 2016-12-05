@@ -4,13 +4,8 @@ cryptsetup (2:1.7.3-3) unstable; urgency=medium
     key. Apparently this script has been broken since June 2008. Doesn't seem
     like anybody is using it. Thanks to g1 for spotting and reporting the
     error. (Closes: #844050)
-  * debian/initramfs/cryptroot-script: change fix for CVE-2016-4484 to reboot
-    after 15 seconds instead of just sleeping for 60 seconds. This prevents
-    the initramfs from exiting into an emergency shell in case of failed
-    unlock attempts, addressing CVE-2016-4484 in a more appropriate way.
-    Thanks again to Hector Marco and Ismael Ripoll for discovery and report.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 15 Nov 2016 21:53:39 +0100
+ -- Jonas Meurer <mejo@debian.org>  Mon, 14 Nov 2016 18:49:41 +0100
 
 cryptsetup (2:1.7.3-2) unstable; urgency=medium
 

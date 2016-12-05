@@ -363,12 +363,13 @@ setup_mapping()
 		break
 	done
 
-	failsleep=15
+	failsleep=60 # make configurable later?
+
 	if [ $crypttries -gt 0 ] && [ $count -ge $crypttries ]; then
 		message "cryptsetup: maximum number of tries exceeded for $crypttarget"
-		message "cryptsetup: going to reboot in $failsleep seconds..."
+		message "cryptsetup: going to sleep for $failsleep seconds..."
 		sleep $failsleep
-		reboot
+		exit 1
 	fi
 
 	udev_settle
