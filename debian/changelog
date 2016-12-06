@@ -1,5 +1,6 @@
 cryptsetup (2:1.7.3-3) unstable; urgency=medium
 
+  [ Jonas Meurer ]
   * debian/scripts/decrypt_ssl: fix script to actually output the decrypted
     key. Apparently this script has been broken since June 2008. Doesn't seem
     like anybody is using it. Thanks to g1 for spotting and reporting the
@@ -7,6 +8,11 @@ cryptsetup (2:1.7.3-3) unstable; urgency=medium
   * debian/initramfs/cryptroot-script: limit the sleep after max passphrase
     attempts to devices for the rootfs. This mitigates the negative impact
     in case of broken keyscripts etc.
+
+  [ Guilhem Moulin ]
+  * add debian/gbp.conf to set the upstream tag to "v%(version%.%_)s".  As
+    this enables git-buildpackage >= 0.8.7 to automatically generate
+    orig.tar.gz, step nr. 5 is now removed from debian/README.source.
 
  -- Jonas Meurer <mejo@debian.org>  Mon, 05 Dec 2016 18:37:56 +0100
 
