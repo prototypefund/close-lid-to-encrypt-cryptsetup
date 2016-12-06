@@ -1,4 +1,4 @@
-cryptsetup (2:1.7.3-3) unstable; urgency=medium
+cryptsetup (2:1.7.3-3~mejo1) mejo-unstable; urgency=medium
 
   [ Jonas Meurer ]
   * debian/scripts/decrypt_ssl: fix script to actually output the decrypted
@@ -20,7 +20,7 @@ cryptsetup (2:1.7.3-3) unstable; urgency=medium
     orig.tar.gz, step nr. 5 is now removed from debian/README.source.
   * debian/compat: bump debhelper compatibility version to 9.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 06 Dec 2016 22:29:33 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 06 Dec 2016 22:30:45 +0100
 
 cryptsetup (2:1.7.3-2) unstable; urgency=medium
 
