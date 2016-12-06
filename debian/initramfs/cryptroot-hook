@@ -213,7 +213,7 @@ get_initramfs_devices() {
 # This function takes a target device name and checks whether this device has
 # the decrypt_derived keyscript set in /etc/crypttab. If true, the dependency
 # device required for the decrypt_derived keyscript is detected and its
-# canonical_device() returned if it's not equal to $rootdevs.
+# canonical_device() returned if it's not listed in $rootdevs.
 #
 get_derived_device() {
 	local device derived
