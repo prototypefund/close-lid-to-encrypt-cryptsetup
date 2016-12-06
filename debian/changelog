@@ -1,4 +1,4 @@
-cryptsetup (2:1.7.3-3~mejo1) mejo-unstable; urgency=medium
+cryptsetup (2:1.7.3-3) unstable; urgency=medium
 
   [ Jonas Meurer ]
   * debian/scripts/decrypt_ssl: fix script to actually output the decrypted
