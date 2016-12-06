@@ -446,9 +446,12 @@ get_device_opts() {
 				;;
 			*)
 				key=$(readlink -e "$key")
-				if printf '%s' "$rootdevs" | tr ' ' '\n' | grep -Fxq "$target"; then
-					echo "cryptsetup: WARNING: root target $target refers to a key file on itself, skipped" >&2
+				# test whether $target is a root device (or parent of the root device)
+				if printf '%s' "$OPTIONS" | tr ',' '\n' |grep -Fxq "rootdev"; then
+					echo "cryptsetup: WARNING: root target $target uses a key file, skipped" >&2
 					return 1
+				# test whether a) key file is not on root fs
+				#           or b) root fs is not encrypted
 				elif [ "$(stat -c %m -- "$key" 2>/dev/null)" != / ] || ! node_is_in_crypttab $rootdevs; then
 					echo "cryptsetup: WARNING: $target's key file $key is not on an encrypted root FS, skipped" >&2
 					return 1
