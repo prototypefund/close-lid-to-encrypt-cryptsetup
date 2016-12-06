@@ -13,6 +13,9 @@ cryptsetup (2:1.7.3-3~mejo1) mejo-unstable; urgency=medium
     device even for LVM setups. This bug got revealed in bugreport #842951.
   * debian/initramfs/cryptroot-script: add $crypttarget to each message to
     provide more context.
+  * debian/README.initramfs: minor fix to the decrypt_derived keyscript
+    section: now that systemd is standard, 'cryptdisks_start' should be used
+    instead of '/etc/init.d/cryptdisks start'.
 
   [ Guilhem Moulin ]
   * add debian/gbp.conf to set the upstream tag to "v%(version%.%_)s".  As
@@ -20,7 +23,7 @@ cryptsetup (2:1.7.3-3~mejo1) mejo-unstable; urgency=medium
     orig.tar.gz, step nr. 5 is now removed from debian/README.source.
   * debian/compat: bump debhelper compatibility version to 9.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 06 Dec 2016 22:30:45 +0100
+ -- Jonas Meurer <mejo@debian.org>  Tue, 06 Dec 2016 22:42:12 +0100
 
 cryptsetup (2:1.7.3-2) unstable; urgency=medium
 
