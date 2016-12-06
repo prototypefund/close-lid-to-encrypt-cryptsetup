@@ -27,7 +27,7 @@ cryptsetup (2:1.7.3-2) unstable; urgency=medium
   [ Jonas Meurer ]
   * debian/initramfs/cryptroot-script: sleep after max passphrase attempts.
     This mitigates local brute-force attacks and addresses CVE-2016-4484.
-    Thanks to Ismael Ripoll for discovery and report.
+    Thanks to Ismael Ripoll and Hector Marco for discovery and report.
     - decrease $count by one in tries loop if unlocking was successful.
     - warn and sleep for 60 seconds if the maximum allowed attempts of
       unlocking (configured with crypttab option tries, default=3) are
