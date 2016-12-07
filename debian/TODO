@@ -4,6 +4,14 @@
 * Idea: swap out basic functions into /lib/cryptsetup/functions and use
   them both in initscript and in cryptroot hook/script? Anyway, code
   deduplication is badly needed!
+* systemd is the default init system since stretch, and has its own
+  logic for unlocking LUKS/dm-crypt devices.  However not all options
+  (in particular keyscript=) in crypttab(5) are currently implemented,
+  hence crypttab(5) entries with unsupported options can't be processed
+  aftet pivot_root(8).  We should either convince the systemd
+  maintainers to merge patches implementing the missing options, or skip
+  systemd's own cryptsetup helper.  Cf.
+  https://lists.alioth.debian.org/pipermail/pkg-systemd-maintainers/2016-September/012641.html
 * cryptroot hook script:
   - Parent device detection for multiple-parent-device support is spread
     all over the hook. for btrfs, the source devices are detected in
