@@ -10,7 +10,7 @@ cryptsetup (2:1.7.3-3) unstable; urgency=medium
     in case of broken keyscripts etc.
   * debian/initramfs/cryptroot-hook: fix sanity check for key files on root
     fs in get_device_opts(): detect if processed device is a root (parent)
-    device even for LVM setups. This bug got revealed in bugreport #842951.
+    device even for LVM setups. (closes: #842951)
   * debian/initramfs/cryptroot-script: add $crypttarget to each message to
     provide more context.
   * debian/README.initramfs: minor fix to the decrypt_derived keyscript
@@ -26,7 +26,7 @@ cryptsetup (2:1.7.3-3) unstable; urgency=medium
     orig.tar.gz, step nr. 5 is now removed from debian/README.source.
   * debian/compat: bump debhelper compatibility version to 9.
 
- -- Jonas Meurer <mejo@debian.org>  Tue, 06 Dec 2016 22:55:20 +0100
+ -- Jonas Meurer <mejo@debian.org>  Wed, 07 Dec 2016 12:55:20 +0100
 
 cryptsetup (2:1.7.3-2) unstable; urgency=medium
 
