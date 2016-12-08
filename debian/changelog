@@ -33,6 +33,8 @@ cryptsetup (2:1.7.3-3) unstable; urgency=medium
       encrypted, even for LVM setups.
     + fix sanity check for key files in get_device_opts(): print a warning if
       the processed device is a resume device, even for LVM setups.
+    + fix runtime error in get_lvm_deps() if the first argument is either
+      missing or the empty string.
 
  -- Jonas Meurer <mejo@debian.org>  Wed, 07 Dec 2016 12:55:20 +0100
 

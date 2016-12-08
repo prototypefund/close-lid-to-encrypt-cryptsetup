@@ -288,7 +288,7 @@ get_lvm_deps() {
 	local node opt deps maj min depnode
 	node="$1" opt="${2:-}"
 
-	if [ -z $node ]; then
+	if [ -z "$node" ]; then
 		echo "cryptsetup: WARNING: get_lvm_deps - invalid arguments" >&2
 		return 1
 	fi
