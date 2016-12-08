@@ -39,6 +39,7 @@
 	rootopts=$( printf '%s' "$opt" | cut -d " " -f4- )
   - Variable name '$rootopts' in get_device_opts() is wrong now that we process
     a lot more devices than just the root device in initramfs.
+  - Replace 'rootdev', 'resumedev', etc. flags by an option 'usage={root,resume,...}'
 
 
 ## Post-Lenny
