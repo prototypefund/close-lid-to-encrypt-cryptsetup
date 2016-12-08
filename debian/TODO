@@ -17,6 +17,9 @@
     all over the hook. for btrfs, the source devices are detected in
     get_fs_device(), for lvm a dedicated function exists and it is invoked
     from add_device().
+  - After doing the above refactoring, we should add parent device detection
+    for mdadm (#629236) and ZFS (#820888) so users don't have to manually add
+    the 'initramfs' option to the crypttab.
   - Variable naming is inconsistent. sometimes we use $device, sometimes $node.
   - get_derived_device() should not be invoked by get_initramfs_devices().
     Instead, add_device("$device") should care about such things.
