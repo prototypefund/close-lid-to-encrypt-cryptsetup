@@ -259,13 +259,13 @@ node_is_in_crypttab() {
 # configured in /etc/crypttab.
 #
 node_or_pv_is_in_crypttab() {
-	local node pvs pv
+	local node lvmnodes lvmnode
 	for node in "$@"; do
 		if ! node_is_in_crypttab "$node"; then
-			pvs="$(get_lvm_deps "$node" --assert-crypt)" || return 1
-			[ "$pvs" ] || return 1
-			for pv in $pvs; do
-				node_is_in_crypttab "$pv" || return 1
+			lvmnodes="$(get_lvm_deps "$node" --assert-crypt)" || return 1
+			[ "$lvmnodes" ] || return 1
+			for lvmnode in $lvmnodes; do
+				node_is_in_crypttab "$lvmnode" || return 1
 			done
 		fi
 	done
@@ -286,7 +286,8 @@ node_or_pv_is_in_crypttab() {
 #
 get_lvm_deps() {
 	local node opt deps maj min depnode
-	node="$1" opt="${2:-}"
+	node="$1"
+	opt="${2:-}"
 
 	if [ -z "$node" ]; then
 		echo "cryptsetup: WARNING: get_lvm_deps - invalid arguments" >&2
@@ -298,7 +299,7 @@ get_lvm_deps() {
 		[ "$opt" != '--assert-crypt' ] && return 0 || return 1
 	fi
 
-	# We should now have a list physical volumes for the VG
+	# We should now have a list of physical volumes for the VG
 	for dep in $deps; do
 		depnode=$(dmsetup info -c --noheadings -o name "$dep" 2>/dev/null)
 		if [ -z "$depnode" ]; then
@@ -604,7 +605,7 @@ canonical_device() {
 # Additionally, it returns required kernel modules.
 #
 add_device() {
-	local node nodes opts lastopts i count
+	local node nodes lvmnodes opts lastopts i count
 	nodes="$1"
 	opts=""     # Applied to all nodes
 	lastopts="" # Applied to last node
