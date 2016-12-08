@@ -439,6 +439,9 @@ get_device_opts() {
 			rootdev)
 				OPTIONS="$OPTIONS,$opt"
 				;;
+			resumedev)
+				OPTIONS="$OPTIONS,$opt"
+				;;
 			*)
 				# Presumably a non-supported option
 				;;
@@ -478,7 +481,7 @@ get_device_opts() {
 					echo "cryptsetup: WARNING: $target's key file $key is not on an encrypted root FS, skipped" >&2
 					return 1
 				fi
-				if printf '%s' "$resumedevs" | tr ' ' '\n' | grep -Fxq "$target"; then
+				if printf '%s' "$OPTIONS" | grep -Eq '^(.*,)?resumedev(,.*)?$'; then
 					# we'll be able to decrypt the device, but won't be able to use it for resuming
 					echo "cryptsetup: WARNING: resume device $source uses a key file" >&2
 				fi
@@ -610,9 +613,12 @@ add_device() {
 		return 0
 	fi
 
-	# Flag root device
+	# Flag root and resume devices
 	if printf '%s' "$rootdevs" | tr ' ' '\n' | grep -Fxq "$nodes"; then
 		opts="${opts:+$opts,}rootdev"
+	fi
+	if printf '%s' "$resumedevs" | tr ' ' '\n' | grep -Fxq "$nodes"; then
+		opts="${opts:+$opts,}resumedev"
 	fi
 
 	# Check that it is a node under /dev/mapper/

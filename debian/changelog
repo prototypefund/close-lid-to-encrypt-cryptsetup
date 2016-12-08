@@ -31,6 +31,8 @@ cryptsetup (2:1.7.3-3) unstable; urgency=medium
     + fix sanity check for key files in get_device_opts(): print a warning if
       the key file isn't on the root FS, or if the root device is not
       encrypted, even for LVM setups.
+    + fix sanity check for key files in get_device_opts(): print a warning if
+      the processed device is a resume device, even for LVM setups.
 
  -- Jonas Meurer <mejo@debian.org>  Wed, 07 Dec 2016 12:55:20 +0100
 
