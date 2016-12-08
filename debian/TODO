@@ -43,6 +43,10 @@
   - Variable name '$rootopts' in get_device_opts() is wrong now that we process
     a lot more devices than just the root device in initramfs.
   - Replace 'rootdev', 'resumedev', etc. flags by an option 'usage={root,resume,...}'
+* cryptroot local-top script:
+  - Find a solution to run 'lvm vgchange' only after all lvm parent devices
+    are unlocked. At the moment, ugly errors and warnings are shown in case
+    of several encrypted parent devices.
 
 
 ## Post-Lenny
