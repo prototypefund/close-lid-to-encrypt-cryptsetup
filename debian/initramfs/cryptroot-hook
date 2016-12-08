@@ -472,7 +472,7 @@ get_device_opts() {
 			*)
 				key=$(readlink -e "$key")
 				# test whether $target is a root device (or parent of the root device)
-				if printf '%s' "$OPTIONS" | tr ',' '\n' |grep -Fxq "rootdev"; then
+				if printf '%s' "$OPTIONS" | grep -Eq '^(.*,)?rootdev(,.*)?$'; then
 					echo "cryptsetup: WARNING: root target $target uses a key file, skipped" >&2
 					return 1
 				# test whether a) key file is not on root fs
