@@ -775,31 +775,31 @@ resumedevs=""
 
 # XXX Backward compatibility: remove once Stretch has been promoted stable
 for v in CRYPTSETUP KEYFILE_PATTERN; do
-    if eval [ "\${$v+x}" ]; then
-        echo "WARNING: Setting $v in /etc/initramfs-tools/initramfs.conf" \
-             "is deprecated and will be removed in a future release!" \
-             "Use /etc/cryptsetup-initramfs/conf-hook instead." >&2
-    fi
+	if eval [ "\${$v+x}" ]; then
+		echo "WARNING: Setting $v in /etc/initramfs-tools/initramfs.conf" \
+		     "is deprecated and will be removed in a future release!" \
+		     "Use /etc/cryptsetup-initramfs/conf-hook instead." >&2
+	fi
 done
 
 # Load the hook's config
 if [ -f "/etc/cryptsetup-initramfs/conf-hook" ]; then
-    . /etc/cryptsetup-initramfs/conf-hook
+	. /etc/cryptsetup-initramfs/conf-hook
 fi
 
 # Include cryptsetup modules, regardless of _this_ machine configuration
 if [ -n "$CRYPTSETUP" ] && [ "$CRYPTSETUP" != "n" ]; then
-    setup="yes"
+	setup="yes"
 fi
 
 if [ "$KEYFILE_PATTERN" ]; then
-    setup="yes"
-    case "${UMASK:-$(umask)}" in
-        0[0-7]77) ;;
-        *) echo "WARNING: permissive UMASK (${UMASK:-$(umask)})." \
-                "Private key material inside the initrd might be left unprotected." >&2
-        ;;
-    esac
+	setup="yes"
+	case "${UMASK:-$(umask)}" in
+		0[0-7]77) ;;
+		*) echo "WARNING: permissive UMASK (${UMASK:-$(umask)})." \
+		        "Private key material inside the initrd might be left unprotected." >&2
+		;;
+	esac
 fi
 
 # Find the root and resume device(s)
