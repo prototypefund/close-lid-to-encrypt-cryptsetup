@@ -27,6 +27,7 @@ cryptsetup (2:1.7.3-3) unstable; urgency=medium
   * debian/compat: bump debhelper compatibility version to 9.
   * debian/initramfs/cryptroot-hook:
     + fix tab damage for consistency with the rest of the code
+    + better warning for deprecated settings
 
  -- Jonas Meurer <mejo@debian.org>  Wed, 07 Dec 2016 12:55:20 +0100
 

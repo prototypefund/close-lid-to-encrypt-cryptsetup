@@ -777,7 +777,7 @@ resumedevs=""
 for v in CRYPTSETUP KEYFILE_PATTERN; do
 	if eval [ "\${$v+x}" ]; then
 		echo "WARNING: Setting $v in /etc/initramfs-tools/initramfs.conf" \
-		     "is deprecated and will be removed in a future release!" \
+		     "is deprecated and will stop working in the future." \
 		     "Use /etc/cryptsetup-initramfs/conf-hook instead." >&2
 	fi
 done
