@@ -234,22 +234,41 @@ get_derived_device() {
 	fi
 }
 
-# node_is_in_crypttab() - test whether devices are configured in /etc/crypttab
+# node_is_in_crypttab() - test whether a device is configured in /etc/crypttab
 #
 # expected arguments:
-# * any number of crypttab target device names (without /dev/mapper/ prefix)
+# * crypttab target device names (without /dev/mapper/ prefix)
 #
-# This function goes through the list of passed target device names and fails
-# if any of the passed device names are not configured in /etc/crypttab.
+# This function takes a target device name and fails if it is not
+# configured in /etc/crypttab.
 #
 node_is_in_crypttab() {
 	[ -f /etc/crypttab ] || return 1
+	sed -n '/^[^#]/ s/\s.*//p' /etc/crypttab | grep -Fxq "$1"
+}
 
-	while [ $# -gt 0 ]; do
-		sed -rn 's/^\s*([^#]\S*)\s.*/\1/p' /etc/crypttab | grep -Fxq "$1" || return 1
-		shift
+# node_or_pv_is_in_crypttab() - test whether devices are configured in /etc/crypttab
+#
+# expected arguments:
+# * crypttab target device names (without /dev/mapper/ prefix), or LVM
+#   logical volume device-mapper name (format <VG>-<LV>)
+#
+# This function fails unless every argument is either a target device
+# name configured in /etc/crypttab, or an LVM logical volume
+# device-mapper name (format <VG>-<LV>) with only parents devices (PVs)
+# configured in /etc/crypttab.
+#
+node_or_pv_is_in_crypttab() {
+	local node pvs pv
+	for node in "$@"; do
+		if ! node_is_in_crypttab "$node"; then
+			pvs="$(get_lvm_deps "$node" --assert-crypt)" || return 1
+			[ "$pvs" ] || return 1
+			for pv in $pvs; do
+				node_is_in_crypttab "$pv" || return 1
+			done
+		fi
 	done
-
 	return 0
 }
 
@@ -257,14 +276,17 @@ node_is_in_crypttab() {
 #
 # expected arguments:
 # * LVM logical volume device-mapper name (format <VG>-<LV>)
-# 
+# * optional options to the function
+#
 # This function takes a LVM logical volume name and determines the corresponding
-# physical volumes (PVs). It returns the name of the underlying device-mapper
-# device (without /dev/mapper).
+# crypted physical volumes (PVs). It returns the name of the underlying
+# device-mapper crypt devices (without /dev/mapper).
+# If option '--assert-crypt' is given as second argument, then the
+# function fails unless all PVs are dm-crypt devices.
 #
 get_lvm_deps() {
-	local node deps maj min depnode
-	node="$1"
+	local node opt deps maj min depnode
+	node="$1" opt="${2:-}"
 
 	if [ -z $node ]; then
 		echo "cryptsetup: WARNING: get_lvm_deps - invalid arguments" >&2
@@ -273,17 +295,17 @@ get_lvm_deps() {
 
 	if ! deps=$(vgs --noheadings -o pv_name $(dmsetup --noheadings splitname $node | cut -d':' -f1) 2>/dev/null); then
 		# $node is not a LVM node, stopping here
-		return 0
+		[ "$opt" != '--assert-crypt' ] && return 0 || return 1
 	fi
 
 	# We should now have a list physical volumes for the VG
 	for dep in $deps; do
 		depnode=$(dmsetup info -c --noheadings -o name "$dep" 2>/dev/null)
 		if [ -z "$depnode" ]; then
-			continue
+			[ "$opt" != '--assert-crypt' ] && continue || return 1
 		fi
 		if [ "$(dmsetup table "$depnode" 2>/dev/null | cut -d' ' -f3)" != "crypt" ]; then
-			get_lvm_deps "$depnode"
+			get_lvm_deps "$depnode" || return 1
 			continue
 		fi
 		printf '%s\n' "$depnode"
@@ -452,7 +474,7 @@ get_device_opts() {
 					return 1
 				# test whether a) key file is not on root fs
 				#           or b) root fs is not encrypted
-				elif [ "$(stat -c %m -- "$key" 2>/dev/null)" != / ] || ! node_is_in_crypttab $rootdevs; then
+				elif [ "$(stat -c %m -- "$key" 2>/dev/null)" != / ] || ! node_or_pv_is_in_crypttab $rootdevs; then
 					echo "cryptsetup: WARNING: $target's key file $key is not on an encrypted root FS, skipped" >&2
 					return 1
 				fi
