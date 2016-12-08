@@ -306,7 +306,7 @@ get_lvm_deps() {
 			[ "$opt" != '--assert-crypt' ] && continue || return 1
 		fi
 		if [ "$(dmsetup table "$depnode" 2>/dev/null | cut -d' ' -f3)" != "crypt" ]; then
-			get_lvm_deps "$depnode" || return 1
+			get_lvm_deps "$depnode" $opt || return 1
 			continue
 		fi
 		printf '%s\n' "$depnode"
