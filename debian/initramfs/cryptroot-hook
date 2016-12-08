@@ -538,7 +538,7 @@ get_device_modules() {
 #
 # This function takes a device as argument and determines the corresponding
 # canonical device name.
-# If option '-no-simplify' is given as second argument, then the origin device
+# If option '--no-simplify' is given as second argument, then the origin device
 # path after unraveling LABEL= and UUID= format and following symlinks is
 # returned.
 # If no option is given, the device is further unraveled and depending on the
