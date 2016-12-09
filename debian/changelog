@@ -5,14 +5,13 @@ cryptsetup (2:1.7.3-3) unstable; urgency=medium
     key. Apparently this script has been broken since June 2008. Doesn't seem
     like anybody is using it. Thanks to g1 for spotting and reporting the
     error. (Closes: #844050)
-  * debian/initramfs/cryptroot-script: limit the sleep after max passphrase
-    attempts to devices for the rootfs. This mitigates the negative impact
-    in case of broken keyscripts etc.
+  * debian/initramfs/cryptroot-script:
+    + limit the sleep after max passphrase attempts to devices for the rootfs.
+      This mitigates the negative impact in case of broken keyscripts etc.
+    + add $crypttarget to each message to provide more context.
   * debian/initramfs/cryptroot-hook: fix sanity check for key files on root
     fs in get_device_opts(): detect if processed device is a root (parent)
     device even for LVM setups. (closes: #842951)
-  * debian/initramfs/cryptroot-script: add $crypttarget to each message to
-    provide more context.
   * debian/README.initramfs: minor fix to the decrypt_derived keyscript
     section: now that systemd is standard, 'cryptdisks_start' should be used
     instead of '/etc/init.d/cryptdisks start'.
@@ -39,7 +38,7 @@ cryptsetup (2:1.7.3-3) unstable; urgency=medium
       linefeed in $IFS caused LVM logical volumes spaning over multiple PVs
       not to have their parent devices detected correctly.
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 07 Dec 2016 12:55:20 +0100
+ -- Jonas Meurer <mejo@debian.org>  Fri, 09 Dec 2016 01:18:17 +0100
 
 cryptsetup (2:1.7.3-2) unstable; urgency=medium
 
