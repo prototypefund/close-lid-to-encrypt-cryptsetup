@@ -35,6 +35,9 @@ cryptsetup (2:1.7.3-3) unstable; urgency=medium
       the processed device is a resume device, even for LVM setups.
     + fix runtime error in get_lvm_deps() if the first argument is either
       missing or the empty string.
+    + reset IFS after processing $rootopts in get_device_opts(); the missing
+      linefeed in $IFS caused LVM logical volumes spaning over multiple PVs
+      not to have their parent devices detected correctly.
 
  -- Jonas Meurer <mejo@debian.org>  Wed, 07 Dec 2016 12:55:20 +0100
 

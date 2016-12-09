@@ -383,6 +383,7 @@ get_device_opts() {
 
 	# We have all the basic options, let's go trough them
 	OPTIONS="target=$target,source=$source"
+	local IFS_BCK="$IFS"
 	local IFS=", "
 	unset HASH_FOUND
 	unset LUKS_FOUND
@@ -448,6 +449,7 @@ get_device_opts() {
 				;;
 		esac
 	done
+	IFS="$IFS_BCK"
 
 	# Warn for missing hash option, unless we have a LUKS partition
 	if [ -z "$HASH_FOUND" ] && [ -z "$LUKS_FOUND" ]; then
