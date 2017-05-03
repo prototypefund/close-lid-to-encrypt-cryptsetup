@@ -2,8 +2,11 @@ cryptsetup (2:1.7.3-4) UNRELEASED; urgency=low
 
   * Drop obsolete update-rc.d parameters.  Thanks to Michael Biebl for the
     patch. (Closes: #847620)
+  * debian/copyright: Fix license mismatch (docs/examples/*
+    lib/crypto_backend/* lib/loopaes/* lib/tcrypt/* lib/verity/* python/* are
+    LGPL-2.1+ not GPL-2+).
 
- -- Guilhem Moulin <guilhem@guilhem.org>  Sat, 10 Dec 2016 14:40:34 +0100
+ -- Guilhem Moulin <guilhem@guilhem.org>  Wed, 03 May 2017 11:06:06 +0200
 
 cryptsetup (2:1.7.3-3) unstable; urgency=medium
 
