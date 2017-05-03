@@ -93,12 +93,17 @@ get_resume_devices() {
 		esac
 	done
 
-	# initramfs-tools
-	if [ -e /etc/initramfs-tools/conf.d/resume ]; then
-		device=$(sed -rn 's/^RESUME[[:space:]]*=[[:space:]]*// p' /etc/initramfs-tools/conf.d/resume)
-		if [ -n "$device" ]; then
-			candidates="${candidates:+$candidates }$device"
+	# initramfs-tools >=0.129
+	device="${RESUME:-auto}"
+	if [ "$device" != none ]; then
+		if [ "$device" = auto ]; then
+			# next line from /usr/share/initramfs-tools/hooks/resume
+			device="$(grep ^/dev/ /proc/swaps | sort -rnk3 | head -n 1 | cut -d " " -f 1)"
+			if [ -n "$device" ]; then
+				device="UUID=$(blkid -s UUID -o value "$device" || true)"
+			fi
 		fi
+		candidates="${candidates:+$candidates }$device"
 	fi
 
 	# Now check the sanity of all candidates

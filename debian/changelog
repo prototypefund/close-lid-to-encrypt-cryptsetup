@@ -5,6 +5,8 @@ cryptsetup (2:1.7.3-4) UNRELEASED; urgency=low
   * debian/copyright: Fix license mismatch (docs/examples/*
     lib/crypto_backend/* lib/loopaes/* lib/tcrypt/* lib/verity/* python/* are
     LGPL-2.1+ not GPL-2+).
+  * debian/initramfs/cryptroot-hook: honor RESUME={none,auto} as documented in
+    initramfs.conf(5) by initramfs-tools >=0.129. (Closes: #861074)
 
  -- Guilhem Moulin <guilhem@guilhem.org>  Wed, 03 May 2017 11:06:06 +0200
 
