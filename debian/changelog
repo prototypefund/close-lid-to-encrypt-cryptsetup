@@ -1,4 +1,4 @@
-cryptsetup (2:1.7.3-4) UNRELEASED; urgency=low
+cryptsetup (2:1.7.3-4) UNRELEASED; urgency=high
 
   * Drop obsolete update-rc.d parameters.  Thanks to Michael Biebl for the
     patch. (Closes: #847620)
