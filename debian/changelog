@@ -1,5 +1,6 @@
-cryptsetup (2:1.7.3-4) UNRELEASED; urgency=high
+cryptsetup (2:1.7.3-4) unstable; urgency=high
 
+  [ Guilhem Moulin ]
   * Drop obsolete update-rc.d parameters.  Thanks to Michael Biebl for the
     patch. (Closes: #847620)
   * debian/copyright: Fix license mismatch (docs/examples/*
@@ -8,7 +9,7 @@ cryptsetup (2:1.7.3-4) UNRELEASED; urgency=high
   * debian/initramfs/cryptroot-hook: honor RESUME={none,auto} as documented in
     initramfs.conf(5) by initramfs-tools >=0.129. (Closes: #861074)
 
- -- Guilhem Moulin <guilhem@guilhem.org>  Wed, 03 May 2017 11:06:06 +0200
+ -- Jonas Meurer <mejo@debian.org>  Tue, 09 May 2017 13:50:59 +0200
 
 cryptsetup (2:1.7.3-3) unstable; urgency=medium
 
