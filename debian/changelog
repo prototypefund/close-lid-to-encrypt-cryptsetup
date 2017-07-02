@@ -1,3 +1,10 @@
+cryptsetup (2:1.7.3-5) UNRELEASED; urgency=low
+
+  * cryptroot-unlock: When the standard input is a TTY, keep prompting for
+    passphrases until there are no more devices to unlock. (Closes: #866786)
+
+ -- Guilhem Moulin <guilhem@debian.org>  Mon, 03 Jul 2017 22:49:45 +0200
+
 cryptsetup (2:1.7.3-4) unstable; urgency=high
 
   [ Guilhem Moulin ]

@@ -224,8 +224,12 @@ $ ssh -tF ~/.luks/ssh.conf root@remote.system.com cryptroot-unlock
 
 $ gpg --decrypt ~/.luks/remote.key.gpg | ssh -TF ~/.luks/ssh.conf root@remote.system.com cryptroot-unlock
 
- That's it. Now that the encrypted root device is unlocked, the remote system
-should continue with the boot process.
+ When its standard input is a TTY, cryptroot-unlock keeps prompting for
+passphrases until there are no more devices to unlock; otherwise you'll
+need to invoke it as many times as there are devices to unlock.
+
+ That's it. Now that all required encrypted devices are unlocked, the
+remote system should continue with the boot process.
 
  You can also use the following authorized_keys(5) options in
 /etc/dropbear-initramfs/authorized_keys to restrict access and avoid
