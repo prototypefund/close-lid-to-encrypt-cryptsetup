@@ -204,8 +204,11 @@ nor in askpass.
 
  Thanks to Chris <debian@x.ray.net> it's possible to install a dropbear SSH
 server into the initramfs, connect to this SSH server during execution of
-initramfs early in the boot process, and unlock encrypted devices - even the
-root device - before the boot process continues.
+initramfs early in the boot process, and unlock encrypted devices - even
+the root device - before the boot process continues. (Note that in order
+to force an arbitrary device to be processed at initramfs stage you
+might need to set the "initramfs" option in its crypttab entry; see
+crypttab(5) for details.)
 
  This way it is possible to use an encrypted root filesystem on headless
 systems where no physical access is available during boot process.

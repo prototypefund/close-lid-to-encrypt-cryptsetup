@@ -64,7 +64,7 @@ get_askpass_pid() {
 	return 1
 }
 
-# Print the number of configured crypt devices that are still locked.
+# Print the number of configured crypt devices that have not been unlocked yet.
 count_locked_devices() {
 	local dev n=0
 	for dev in $CRYPTDEVS; do
@@ -161,8 +161,8 @@ wait_for_answer() {
 
 
 if [ -t 0 ] && [ -x "$ASKPASS" ]; then
-	# interactive mode on a TTY: keep trying until successful or
-	# maximum number of tries exceeded.
+	# interactive mode on a TTY: keep trying until all configured devices have
+	# been unlocked or the maximum number of tries exceeded
 	UNLOCK_ALL=y
 	while :; do
 		# note: if the script is not killed before pivot_root it should
@@ -178,6 +178,7 @@ else
 	# non-interactive mode: slurp the passphrase from stdin and exit
 	wait_for_prompt
 	diskname="$CRYPTTAB_NAME"
+	# TODO: refactor $CRYPTTAB_NAME/$CRYPTTAB_SOURCE to prompt mapping
 	[ "${CRYPTTAB_SOURCE#/dev/disk/by-uuid/}" != "$CRYPTTAB_SOURCE" ] || diskname="$diskname ($CRYPTTAB_SOURCE)"
 	echo "Please unlock disk $diskname"
 	cat >"$PASSFIFO"
