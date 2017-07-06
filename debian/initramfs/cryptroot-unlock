@@ -104,7 +104,7 @@ wait_for_prompt() {
 			break
 		fi
 
-		sleep .1
+		usleep 100000
 		timer=$(( $timer - 1 ))
 		if [ $timer -le 0 ]; then
 			echo "Error: Timeout reached while waiting for askpass." >&2
@@ -139,7 +139,7 @@ wait_for_prompt() {
 wait_for_answer() {
 	local timer=$(( 10 * $TIMEOUT )) dev
 	until [ ! -d "/proc/$PID" ] || [ $(stat -c'%Z' "/proc/$PID") -gt $BIRTH ]; do
-		sleep .1
+		usleep 100000
 		timer=$(( $timer - 1 ))
 		if [ $timer -le 0 ]; then
 			echo "Error: Timeout reached while waiting for PID $PID." >&2
