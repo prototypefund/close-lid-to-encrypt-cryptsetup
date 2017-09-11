@@ -14,6 +14,8 @@ cryptsetup (2:1.7.5-1) UNRELEASED; urgency=low
     package-installs-deprecated-upstart-configuration`.
   * debian/cryptsetup.{postinst,postrm}: Don't hard-code path to
     update-initramfs(1).
+  * debian/rules: Include /usr/share/dpkg/pkg-info.mk to avoid parsing
+    dpkg-parsechangelog(1) output.
 
  -- Guilhem Moulin <guilhem@debian.org>  Mon, 03 Jul 2017 22:49:45 +0200
 
