@@ -38,6 +38,10 @@ Importing a new upstream release
 
            git verify-tag "$TAG"
 
+       The signing key can be found in 'debian/upstream-signing-key.asc'.
+       Use `gpg -q debian/upstream-signing-key.asc` to show its
+       fingerprint.
+
     4. Merge the upstream release tag <tag> into the master branch of your
        packaging repository:
 
