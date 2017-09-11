@@ -9,6 +9,9 @@ cryptsetup (2:1.7.5-1) UNRELEASED; urgency=low
     debian/upstream-signing-key.asc in order to avoid lintian error
     orig-tarball-missing-upstream-signature" (we use the key to verify
     signature on upstrem's git tags).
+  * Remove deprecated upstart configuration files: /etc/init/cryptdisks.conf
+    and /etc/init/cryptdisks-udev.conf.  Cf. `lintian-info --tags
+    package-installs-deprecated-upstart-configuration`.
 
  -- Guilhem Moulin <guilhem@debian.org>  Mon, 03 Jul 2017 22:49:45 +0200
 
