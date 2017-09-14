@@ -1,4 +1,4 @@
-cryptsetup (2:1.7.5-1) UNRELEASED; urgency=low
+cryptsetup (2:1.7.5-1) unstable; urgency=low
 
   * New upstream release 1.7.5.
   * cryptroot-unlock: When the standard input is a TTY, keep prompting for
@@ -18,7 +18,7 @@ cryptsetup (2:1.7.5-1) UNRELEASED; urgency=low
     dpkg-parsechangelog(1) output.
   * debian/control: Bump Standards-Version to 4.0.0 (no changes necessary).
 
- -- Guilhem Moulin <guilhem@debian.org>  Mon, 03 Jul 2017 22:49:45 +0200
+ -- Guilhem Moulin <guilhem@debian.org>  Thu, 14 Sep 2017 13:00:23 +0200
 
 cryptsetup (2:1.7.3-4) unstable; urgency=high
 
