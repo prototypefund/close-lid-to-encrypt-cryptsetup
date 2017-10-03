@@ -1,9 +1,9 @@
 AC_PREREQ([2.67])
-AC_INIT([cryptsetup],[1.7.5])
+AC_INIT([cryptsetup],[2.0.0-rc0])
 
 dnl library version from <major>.<minor>.<release>[-<suffix>]
 LIBCRYPTSETUP_VERSION=$(echo $PACKAGE_VERSION | cut -f1 -d-)
-LIBCRYPTSETUP_VERSION_INFO=11:0:7
+LIBCRYPTSETUP_VERSION_INFO=12:0:0
 
 AM_SILENT_RULES([yes])
 AC_CONFIG_SRCDIR(src/cryptsetup.c)
@@ -34,13 +34,38 @@ AC_ENABLE_STATIC(no)
 LT_INIT
 PKG_PROG_PKG_CONFIG
 
+AC_C_RESTRICT
+
 AC_HEADER_DIRENT
 AC_HEADER_STDC
 AC_CHECK_HEADERS(fcntl.h malloc.h inttypes.h sys/ioctl.h sys/mman.h \
-	sys/sysmacros.h ctype.h unistd.h locale.h byteswap.h endian.h)
+	sys/sysmacros.h sys/statvfs.h ctype.h unistd.h locale.h byteswap.h endian.h stdint.h)
 
 AC_CHECK_HEADERS(uuid/uuid.h,,[AC_MSG_ERROR([You need the uuid library.])])
 AC_CHECK_HEADER(libdevmapper.h,,[AC_MSG_ERROR([You need the device-mapper library.])])
+
+AC_ARG_ENABLE(keyring, AS_HELP_STRING([--disable-keyring],[disable kernel keyring support and builtin kernel keyring token]),[], [enable_keyring=yes])
+if test "x$enable_keyring" = "xyes"; then
+	AC_CHECK_HEADERS(linux/keyctl.h,,[AC_MSG_ERROR([You need Linux kernel headers with kernel keyring service compiled.])])
+
+	dnl ==========================================================================
+	dnl check whether kernel is compiled with kernel keyring service syscalls
+	AC_CHECK_DECL(__NR_add_key,,[AC_MSG_ERROR([The kernel is missing add_key syscall.])], [#include <syscall.h>])
+	AC_CHECK_DECL(__NR_keyctl,,[AC_MSG_ERROR([The kernel is missing keyctl syscall.])], [#include <syscall.h>])
+	AC_CHECK_DECL(__NR_request_key,,[AC_MSG_ERROR([The kernel is missing request_key syscall.])], [#include <syscall.h>])
+
+	dnl ==========================================================================
+	dnl check that key_serial_t hasn't been adopted yet in stdlib
+	AC_CHECK_TYPES([key_serial_t], [], [], [
+	AC_INCLUDES_DEFAULT
+	#ifdef HAVE_LINUX_KEYCTL_H
+	# include <linux/keyctl.h>
+	#endif
+	])
+
+	AC_DEFINE(KERNEL_KEYRING, 1, [Enable kernel keyring service support])
+fi
+AM_CONDITIONAL(KERNEL_KEYRING, test x$enable_keyring = xyes)
 
 saved_LIBS=$LIBS
 AC_CHECK_LIB(uuid, uuid_clear, ,[AC_MSG_ERROR([You need the uuid library.])])
@@ -268,6 +293,11 @@ AC_ARG_ENABLE([cryptsetup-reencrypt],
 	[enable cryptsetup-reencrypt tool]))
 AM_CONDITIONAL(REENCRYPT, test x$enable_cryptsetup_reencrypt = xyes)
 
+AC_ARG_ENABLE(integritysetup,
+	AS_HELP_STRING([--disable-integritysetup],
+	[disable integritysetup support]),[], [enable_integritysetup=yes])
+AM_CONDITIONAL(INTEGRITYSETUP, test x$enable_integritysetup = xyes)
+
 AC_ARG_ENABLE(selinux,
 	AS_HELP_STRING([--disable-selinux],
 	[disable selinux support [default=auto]]),[], [])
@@ -289,6 +319,7 @@ LIBS=$saved_LIBS
 LIBS="$LIBS $DEVMAPPER_LIBS"
 AC_CHECK_DECLS([dm_task_secure_data], [], [], [#include <libdevmapper.h>])
 AC_CHECK_DECLS([dm_task_retry_remove], [], [], [#include <libdevmapper.h>])
+AC_CHECK_DECLS([dm_task_deferred_remove], [], [], [#include <libdevmapper.h>])
 AC_CHECK_DECLS([DM_UDEV_DISABLE_DISK_RULES_FLAG], [have_cookie=yes], [have_cookie=no], [#include <libdevmapper.h>])
 if test "x$enable_udev" = xyes; then
 	if test "x$have_cookie" = xno; then
@@ -298,6 +329,9 @@ if test "x$enable_udev" = xyes; then
 	fi
 fi
 LIBS=$saved_LIBS
+
+dnl Check for JSON-C used in LUKS2
+PKG_CHECK_MODULES([JSON_C], [json-c])
 
 dnl Crypto backend configuration.
 AC_ARG_WITH([crypto_backend],
@@ -333,6 +367,13 @@ AM_CONDITIONAL(CRYPTO_BACKEND_NETTLE,  test $with_crypto_backend = nettle)
 
 AM_CONDITIONAL(CRYPTO_INTERNAL_PBKDF2, test $use_internal_pbkdf2 = 1)
 AC_DEFINE_UNQUOTED(USE_INTERNAL_PBKDF2, [$use_internal_pbkdf2], [Use internal PBKDF2])
+
+AC_ARG_ENABLE(argon2, AS_HELP_STRING([--disable-argon2],
+	[disable internal implementation of Argon2 PBKDF]),[], [enable_argon2=yes])
+AM_CONDITIONAL(CRYPTO_INTERNAL_ARGON2, test x$enable_argon2 = xyes)
+if test x$enable_argon2 = xyes ; then
+AC_DEFINE(USE_INTERNAL_ARGON2, 1, [Use internal Argon2])
+fi
 
 dnl Magic for cryptsetup.static build.
 if test x$enable_static_cryptsetup = xyes; then
@@ -377,6 +418,8 @@ AC_SUBST([PASSWDQC_LIBS])
 AC_SUBST([CRYPTO_CFLAGS])
 AC_SUBST([CRYPTO_LIBS])
 AC_SUBST([CRYPTO_STATIC_LIBS])
+
+AC_SUBST([JSON_C_LIBS])
 
 AC_SUBST([LIBCRYPTSETUP_VERSION])
 AC_SUBST([LIBCRYPTSETUP_VERSION_INFO])
@@ -444,7 +487,12 @@ CS_STR_WITH([luks1-hash],   [hash function for LUKS1 header], [sha256])
 CS_STR_WITH([luks1-cipher], [cipher for LUKS1], [aes])
 CS_STR_WITH([luks1-mode],   [cipher mode for LUKS1], [xts-plain64])
 CS_NUM_WITH([luks1-keybits],[key length in bits for LUKS1], [256])
-CS_NUM_WITH([luks1-iter-time],[PBKDF2 iteration time for LUKS1 (in ms)], [2000])
+
+CS_STR_WITH([luks2-pbkdf],           [Default PBKDF algorithm (pbkdf2 or argon2i/argon2id) for LUKS2], [argon2i])
+CS_NUM_WITH([luks1-iter-time],       [PBKDF2 iteration time for LUKS1 (in ms)], [2000])
+CS_NUM_WITH([luks2-iter-time],       [Argon2 PBKDF iteration time for LUKS2 (in ms)], [800])
+CS_NUM_WITH([luks2-memory-kb],       [Argon2 PBKDF memory cost for LUKS2 (in kB)], [131072])
+CS_NUM_WITH([luks2-parallel-threads],[Argon2 PBKDF max parallel cost for LUKS2 (if CPUs available)], [4])
 
 CS_STR_WITH([loopaes-cipher], [cipher for loop-AES mode], [aes])
 CS_NUM_WITH([loopaes-keybits],[key length in bits for loop-AES mode], [256])
@@ -456,6 +504,18 @@ CS_STR_WITH([verity-hash],       [hash function for verity mode], [sha256])
 CS_NUM_WITH([verity-data-block], [data block size for verity mode], [4096])
 CS_NUM_WITH([verity-hash-block], [hash block size for verity mode], [4096])
 CS_NUM_WITH([verity-salt-size],  [salt size for verity mode], [32])
+CS_NUM_WITH([verity-fec-roots],  [parity bytes for verity FEC], [2])
+
+CS_STR_WITH([luks2-lock-path], [path to directory for LUKSv2 locks], [/run/lock/cryptsetup])
+test -z "$with_luks2_lock_path" && with_luks2_lock_path=/run/lock/cryptsetup
+test "${with_luks2_lock_path:0:1}" = "/" || AC_MSG_ERROR([--with-luks2-lock-path argument must be an absolute path.])
+DEFAULT_LUKS2_LOCK_PATH=$with_luks2_lock_path
+AC_SUBST(DEFAULT_LUKS2_LOCK_PATH)
+
+CS_NUM_WITH([luks2-lock-dir-perms], [default luks2 locking directory permissions], [0700])
+test -z "$with_luks2_lock_dir_perms" && with_luks2_lock_dir_perms=0700
+DEFAULT_LUKS2_LOCK_DIR_PERMS=$with_luks2_lock_dir_perms
+AC_SUBST(DEFAULT_LUKS2_LOCK_DIR_PERMS)
 
 dnl ==========================================================================
 
@@ -463,14 +523,19 @@ AC_CONFIG_FILES([ Makefile
 lib/Makefile
 lib/libcryptsetup.pc
 lib/crypto_backend/Makefile
+lib/crypto_backend/argon2/Makefile
 lib/luks1/Makefile
+lib/luks2/Makefile
 lib/loopaes/Makefile
 lib/verity/Makefile
 lib/tcrypt/Makefile
+lib/integrity/Makefile
 src/Makefile
 po/Makefile.in
 man/Makefile
 tests/Makefile
 python/Makefile
+scripts/Makefile
+scripts/cryptsetup_tmpfiles.conf
 ])
 AC_OUTPUT

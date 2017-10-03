@@ -18,6 +18,9 @@ only facilitate compatibility among distributions, but also provides secure mana
 In contrast to existing solution, LUKS stores all setup necessary setup information in the partition header,  
 enabling the user to transport or migrate his data seamlessly.
 
+Last version of the LUKS format specification is
+[available here](https://www.kernel.org/pub/linux/utils/cryptsetup/LUKS_docs/on-disk-format.pdf).
+
 Why LUKS?
 ---------
  * compatiblity via standardization,
@@ -29,6 +32,12 @@ Why LUKS?
 [Project home page](https://gitlab.com/cryptsetup/cryptsetup/).
 -----------------
 
+**CVE-2016-4484 (Initrd root shell)**
+
+This is problem in **intramfs** **scripts** only (these are **not** part of cryptsetup project), it is neiter bug in cryptsetup nor in LUKS.  
+Some distributions could add these scripts to distributed package, please check your distro updates for more info.
+
+
 [Frequently asked questions (FAQ)](https://gitlab.com/cryptsetup/cryptsetup/wikis/FrequentlyAskedQuestions)
 --------------------------------
 
@@ -36,13 +45,16 @@ Download
 --------
 All release tarballs and release notes are hosted on [kernel.org](https://www.kernel.org/pub/linux/utils/cryptsetup/).
 
-**The latest cryptsetup version is 1.7.4**
-  * [cryptsetup-1.7.4.tar.xz](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.4.tar.xz)
-  * Signature [cryptsetup-1.7.4.tar.sign](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.4.tar.sign)
+**The latest cryptsetup version is 1.7.5**
+  * [cryptsetup-1.7.5.tar.xz](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.5.tar.xz)
+  * Signature [cryptsetup-1.7.5.tar.sign](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.5.tar.sign)
     _(You need to decompress file first to check signature.)_
-  * [Cryptsetup 1.7.4 Release Notes](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/v1.7.4-ReleaseNotes).
+  * [Cryptsetup 1.7.5 Release Notes](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/v1.7.5-ReleaseNotes).
 
 Previous versions
+ * [Version 1.7.4](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.4.tar.xz) -
+   [Signature](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.4.tar.sign) -
+   [Release Notes](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/v1.7.4-ReleaseNotes).
  * [Version 1.7.3](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.3.tar.xz) -
    [Signature](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.3.tar.sign) -
    [Release Notes](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/v1.7.3-ReleaseNotes).

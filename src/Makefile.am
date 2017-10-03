@@ -17,11 +17,12 @@ cryptsetup_SOURCES = \
 	cryptsetup.c				\
 	cryptsetup.h
 
-cryptsetup_LDADD = \
+cryptsetup_LDADD = -lm \
 	$(top_builddir)/lib/libcryptsetup.la	\
 	@POPT_LIBS@				\
 	@PWQUALITY_LIBS@			\
-	@PASSWDQC_LIBS@
+	@PASSWDQC_LIBS@				\
+	@UUID_LIBS@
 
 cryptsetup_CFLAGS = $(AM_CFLAGS) -Wall
 
@@ -49,7 +50,7 @@ veritysetup_SOURCES = \
 	veritysetup.c				\
 	cryptsetup.h
 
-veritysetup_LDADD = \
+veritysetup_LDADD = -lm \
 	$(top_builddir)/lib/libcryptsetup.la	\
 	@POPT_LIBS@
 
@@ -69,11 +70,43 @@ veritysetup_static_LDADD = $(veritysetup_LDADD)	\
 endif
 endif
 
+# integritysetup
+if INTEGRITYSETUP
+
+integritysetup_SOURCES = \
+	$(top_builddir)/lib/utils_crypt.c	\
+	$(top_builddir)/lib/utils_loop.c	\
+	utils_tools.c				\
+	integritysetup.c			\
+	cryptsetup.h
+
+integritysetup_LDADD = -lm \
+	$(top_builddir)/lib/libcryptsetup.la	\
+	@POPT_LIBS@ \
+	@UUID_LIBS@
+
+integritysetup_CFLAGS = $(cryptsetup_CFLAGS)
+
+sbin_PROGRAMS += integritysetup
+
+if STATIC_TOOLS
+sbin_PROGRAMS += integritysetup.static
+integritysetup_static_SOURCES = $(integritysetup_SOURCES)
+integritysetup_static_CFLAGS = $(integritysetup_CFLAGS)
+integritysetup_static_LDFLAGS = $(AM_LDFLAGS) -all-static
+integritysetup_static_LDADD = $(integritysetup_LDADD)	\
+	@CRYPTO_STATIC_LIBS@ \
+	@DEVMAPPER_STATIC_LIBS@ \
+	@UUID_LIBS@
+endif
+endif
+
 # reencrypt
 if REENCRYPT
 cryptsetup_reencrypt_SOURCES = \
 	$(top_builddir)/lib/utils_crypt.c	\
 	utils_tools.c				\
+	utils_password.c			\
 	cryptsetup_reencrypt.c			\
 	cryptsetup.h
 

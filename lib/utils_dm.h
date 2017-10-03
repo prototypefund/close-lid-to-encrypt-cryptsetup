@@ -43,8 +43,16 @@ struct device;
 #define DM_SAME_CPU_CRYPT_SUPPORTED (1 << 7) /* same_cpu_crypt */
 #define DM_SUBMIT_FROM_CRYPT_CPUS_SUPPORTED (1 << 8) /* submit_from_crypt_cpus */
 #define DM_VERITY_ON_CORRUPTION_SUPPORTED (1 << 9) /* ignore/restart_on_corruption, ignore_zero_block */
+#define DM_VERITY_FEC_SUPPORTED (1 << 10) /* Forward Error Correction (FEC) */
+#define DM_KERNEL_KEYRING_SUPPORTED (1 << 11) /* dm-crypt allows loading kernel keyring keys */
+#define DM_INTEGRITY_SUPPORTED (1 << 12) /* dm-integrity target supported */
+#define DM_SECTOR_SIZE_SUPPORTED (1 << 13) /* support for sector size setting in dm-crypt/dm-integrity */
+#define DM_CAPI_STRING_SUPPORTED (1 << 14) /* support for cryptoapi format cipher definition */
+#define DM_DEFERRED_SUPPORTED (1 << 15) /* deferred removal of device */
 
-uint32_t dm_flags(void);
+typedef enum { DM_CRYPT = 0, DM_VERITY, DM_INTEGRITY, DM_UNKNOWN } dm_target_type;
+
+int dm_flags(dm_target_type target, uint32_t *flags);
 
 #define DM_ACTIVE_DEVICE	(1 << 0)
 #define DM_ACTIVE_UUID		(1 << 1)
@@ -58,7 +66,7 @@ uint32_t dm_flags(void);
 #define DM_ACTIVE_VERITY_PARAMS		(1 << 7)
 
 struct crypt_dm_active_device {
-	enum { DM_CRYPT = 0, DM_VERITY } target;
+	dm_target_type target;
 	uint64_t size;		/* active device size */
 	uint32_t flags;		/* activation flags */
 	const char *uuid;
@@ -66,6 +74,8 @@ struct crypt_dm_active_device {
 	union {
 	struct {
 		const char *cipher;
+		const char *integrity;
+		char *key_description;
 
 		/* Active key for device */
 		struct volume_key *vk;
@@ -73,24 +83,49 @@ struct crypt_dm_active_device {
 		/* struct crypt_active_device */
 		uint64_t offset;	/* offset in sectors */
 		uint64_t iv_offset;	/* IV initilisation sector */
+		uint32_t tag_size;	/* additional on-disk tag size */
+		uint32_t sector_size;	/* encryption sector size */
 	} crypt;
 	struct {
 		struct device *hash_device;
+		struct device *fec_device;
 
 		const char *root_hash;
 		uint32_t root_hash_size;
 
 		uint64_t hash_offset;	/* hash offset in blocks (not header) */
+		uint64_t hash_blocks;	/* size of hash device (in hash blocks) */
+		uint64_t fec_offset;	/* FEC offset in blocks (not header) */
+		uint64_t fec_blocks;	/* size of FEC device (in hash blocks) */
 		struct crypt_params_verity *vp;
 	} verity;
+	struct {
+		uint64_t journal_size;
+		uint32_t journal_watermark;
+		uint32_t journal_commit_time;
+		uint32_t interleave_sectors;
+		uint32_t tag_size;
+		uint64_t offset;	/* offset in sectors */
+		uint32_t sector_size;	/* integrity sector size */
+		uint32_t buffer_sectors;
+
+		const char *integrity;
+		/* Active key for device */
+		struct volume_key *vk;
+
+		const char *journal_integrity;
+		struct volume_key *journal_integrity_key;
+
+		const char *journal_crypt;
+		struct volume_key *journal_crypt_key;
+	} integrity;
 	} u;
 };
 
 void dm_backend_init(void);
 void dm_backend_exit(void);
 
-int dm_remove_device(struct crypt_device *cd, const char *name,
-		     int force, uint64_t size);
+int dm_remove_device(struct crypt_device *cd, const char *name, uint32_t flags);
 int dm_status_device(struct crypt_device *cd, const char *name);
 int dm_status_suspended(struct crypt_device *cd, const char *name);
 int dm_status_verity_ok(struct crypt_device *cd, const char *name);
@@ -101,9 +136,11 @@ int dm_create_device(struct crypt_device *cd, const char *name,
 		     int reload);
 int dm_suspend_and_wipe_key(struct crypt_device *cd, const char *name);
 int dm_resume_and_reinstate_key(struct crypt_device *cd, const char *name,
-				size_t key_size, const char *key);
+				const struct volume_key *vk);
 
 const char *dm_get_dir(void);
+
+int lookup_dm_dev_by_uuid(const char *uuid, const char *type);
 
 /* These are DM helpers used only by utils_devpath file */
 int dm_is_dm_device(int major, int minor);
