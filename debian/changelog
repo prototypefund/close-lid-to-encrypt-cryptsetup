@@ -2,6 +2,7 @@ cryptsetup (2:1.7.5-2) UNRELEASED; urgency=low
 
   * Also remove deprecated upstart configuration files on upgrade and purge.
   * debian/control: Bump Standards-Version to 4.1.0 (no changes necessary).
+  * debian/*: Apply wrap-and-sort(1).
 
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 17 Sep 2017 13:35:13 +0200
 
