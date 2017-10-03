@@ -6,7 +6,7 @@ Files: *
 Copyright: © 2004      Christophe Saout <christophe@saout.de>
            © 2004-2008 Clemens Fruhwirth <clemens@endorphin.org>
            © 2008-2010 Red Hat, Inc.
-           © 2008-2015 Milan Broz <gmazyland@gmail.com>
+           © 2008-2017 Milan Broz <gmazyland@gmail.com>
 License: GPL-2+
 
 Files: debian/*
@@ -41,12 +41,12 @@ Copyright: © 2005 Canonical Ltd.
 License: GPL-2+
 
 Files: docs/examples/*
-Copyright: © 2011 Red Hat, Inc.
+Copyright: © 2011-2017 Red Hat, Inc.
 License: LGPL-2.1+
 
 Files: lib/crypto_backend/* lib/loopaes/* lib/tcrypt/* lib/verity/* python/*
-Copyright: © 2009-2014 Red Hat, Inc.
-           © 2010-2015 Milan Broz <gmazyland@gmail.com>
+Copyright: © 2009-2017 Red Hat, Inc.
+           © 2010-2017 Milan Broz <gmazyland@gmail.com>
 License: LGPL-2.1+
 
 Files: lib/crypto_backend/crc32.c
