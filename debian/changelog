@@ -5,6 +5,8 @@ cryptsetup (2:2.0.0~rc0-1) UNRELEASED; urgency=low
       encrption (EXPERIMENTAL), memory-hard PBKDF (argon2), kernel keyring for
       storage of key material, and more.
     - New CLI `integritysetup` which can setup standalone dm-integrity devices.
+    - soname bump of libcryptsetup library.
+  * Rename library package from libcryptsetup4 to libcryptsetup12.
   * Also remove deprecated upstart configuration files on upgrade and purge.
   * debian/control: Bump Standards-Version to 4.1.0 (no changes necessary).
   * debian/*: Apply wrap-and-sort(1).
