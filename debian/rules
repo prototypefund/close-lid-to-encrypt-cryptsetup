@@ -50,6 +50,7 @@ configure-stamp:
 		--libdir=/lib \
 		--sbindir=/sbin \
 		--mandir=/usr/share/man \
+		--enable-libargon2 \
 		--enable-shared \
 		--enable-cryptsetup-reencrypt
 	find -xtype f >manifest.new
