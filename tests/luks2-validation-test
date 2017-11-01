@@ -3,10 +3,10 @@
 #turn on debug mode by following env. variable _DEBUG=1
 
 PS4='$LINENO:'
-CRYPTSETUP=../src/cryptsetup
+CRYPTSETUP=../cryptsetup
 
-CRYPTSETUP_VALGRIND=../src/.libs/cryptsetup
-CRYPTSETUP_LIB_VALGRIND=../lib/.libs
+CRYPTSETUP_VALGRIND=../.libs/cryptsetup
+CRYPTSETUP_LIB_VALGRIND=../.libs
 
 DM_CRYPT_SECTOR=512
 LUKS2_HDR_SIZE=2112 # 16 KiB version, stored twice, including luks2 areas with keyslots
@@ -102,7 +102,7 @@ function valgrind_run()
 
 [ -n "$VALG" ] && valgrind_setup && CRYPTSETUP=valgrind_run
 
-which jq >/dev/null || skip "Cannot find jq, test skipped."
+which jq >/dev/null 2>&1 || skip "Cannot find jq, test skipped."
 
 prepare
 

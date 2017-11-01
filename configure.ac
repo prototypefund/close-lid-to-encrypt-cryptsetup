@@ -1,5 +1,5 @@
 AC_PREREQ([2.67])
-AC_INIT([cryptsetup],[2.0.0-rc0])
+AC_INIT([cryptsetup],[2.0.0-rc1])
 
 dnl library version from <major>.<minor>.<release>[-<suffix>]
 LIBCRYPTSETUP_VERSION=$(echo $PACKAGE_VERSION | cut -f1 -d-)
@@ -15,8 +15,8 @@ AC_CONFIG_HEADERS([config.h:config.h.in])
 # http://lists.gnu.org/archive/html/automake/2013-01/msg00060.html
 
 # For old automake use this
-#AM_INIT_AUTOMAKE(dist-xz)
-AM_INIT_AUTOMAKE([dist-xz 1.12 serial-tests])
+#AM_INIT_AUTOMAKE(dist-xz subdir-objects)
+AM_INIT_AUTOMAKE([dist-xz 1.12 serial-tests subdir-objects])
 
 if test "x$prefix" = "xNONE"; then
 	sysconfdir=/etc
@@ -33,6 +33,25 @@ AC_PROG_MAKE_SET
 AC_ENABLE_STATIC(no)
 LT_INIT
 PKG_PROG_PKG_CONFIG
+
+dnl ==========================================================================
+dnl define PKG_CHECK_VAR for old pkg-config <= 0.28
+m4_ifndef([AS_VAR_COPY],
+[m4_define([AS_VAR_COPY],
+[AS_LITERAL_IF([$1[]$2], [$1=$$2], [eval $1=\$$2])])
+])
+m4_ifndef([PKG_CHECK_VAR], [
+AC_DEFUN([PKG_CHECK_VAR],
+[AC_REQUIRE([PKG_PROG_PKG_CONFIG])
+AC_ARG_VAR([$1], [value of $3 for $2, overriding pkg-config])
+
+_PKG_CONFIG([$1], [variable="][$3]["], [$2])
+AS_VAR_COPY([$1], [pkg_cv_][$1])
+
+AS_VAR_IF([$1], [""], [$5], [$4])
+])
+])
+dnl ==========================================================================
 
 AC_C_RESTRICT
 
@@ -73,7 +92,7 @@ AC_SUBST(UUID_LIBS, $LIBS)
 LIBS=$saved_LIBS
 
 AC_SEARCH_LIBS([clock_gettime],[rt posix4])
-AC_CHECK_FUNCS([posix_memalign clock_gettime])
+AC_CHECK_FUNCS([posix_memalign clock_gettime posix_fallocate])
 
 if test "x$enable_largefile" = "xno" ; then
   AC_MSG_ERROR([Building with --disable-largefile is not supported, it can cause data corruption.])
@@ -90,7 +109,7 @@ AC_FUNC_STRERROR_R
 dnl ==========================================================================
 
 AM_GNU_GETTEXT([external],[need-ngettext])
-AM_GNU_GETTEXT_VERSION([0.15])
+AM_GNU_GETTEXT_VERSION([0.18.3])
 
 dnl ==========================================================================
 
@@ -220,7 +239,6 @@ AC_DEFUN([CONFIGURE_OPENSSL], [
 		CRYPTO_STATIC_LIBS=$OPENSSL_STATIC_LIBS
 		PKG_CONFIG=$saved_PKG_CONFIG
 	fi
-	NO_FIPS([])
 ])
 
 AC_DEFUN([CONFIGURE_NSS], [
@@ -274,7 +292,7 @@ saved_LIBS=$LIBS
 
 AC_ARG_ENABLE([static-cryptsetup],
 	AS_HELP_STRING([--enable-static-cryptsetup],
-	[enable build of static cryptsetup binary]))
+	[enable build of static version of tools]))
 if test x$enable_static_cryptsetup = xyes; then
 	if test x$enable_static = xno; then
 		AC_MSG_WARN([Requested static cryptsetup build, enabling static library.])
@@ -283,14 +301,19 @@ if test x$enable_static_cryptsetup = xyes; then
 fi
 AM_CONDITIONAL(STATIC_TOOLS, test x$enable_static_cryptsetup = xyes)
 
+AC_ARG_ENABLE(cryptsetup,
+	AS_HELP_STRING([--disable-cryptsetup],
+	[disable cryptsetup support]),[], [enable_cryptsetup=yes])
+AM_CONDITIONAL(CRYPTSETUP, test x$enable_cryptsetup = xyes)
+
 AC_ARG_ENABLE(veritysetup,
 	AS_HELP_STRING([--disable-veritysetup],
 	[disable veritysetup support]),[], [enable_veritysetup=yes])
 AM_CONDITIONAL(VERITYSETUP, test x$enable_veritysetup = xyes)
 
 AC_ARG_ENABLE([cryptsetup-reencrypt],
-	AS_HELP_STRING([--enable-cryptsetup-reencrypt],
-	[enable cryptsetup-reencrypt tool]))
+	AS_HELP_STRING([--disable-cryptsetup-reencrypt],
+	[disable cryptsetup-reencrypt tool]),[], [enable_cryptsetup_reencrypt=yes])
 AM_CONDITIONAL(REENCRYPT, test x$enable_cryptsetup_reencrypt = xyes)
 
 AC_ARG_ENABLE(integritysetup,
@@ -320,6 +343,8 @@ LIBS="$LIBS $DEVMAPPER_LIBS"
 AC_CHECK_DECLS([dm_task_secure_data], [], [], [#include <libdevmapper.h>])
 AC_CHECK_DECLS([dm_task_retry_remove], [], [], [#include <libdevmapper.h>])
 AC_CHECK_DECLS([dm_task_deferred_remove], [], [], [#include <libdevmapper.h>])
+AC_CHECK_DECLS([dm_device_has_mounted_fs], [], [], [#include <libdevmapper.h>])
+AC_CHECK_DECLS([dm_device_has_holders], [], [], [#include <libdevmapper.h>])
 AC_CHECK_DECLS([DM_UDEV_DISABLE_DISK_RULES_FLAG], [have_cookie=yes], [have_cookie=no], [#include <libdevmapper.h>])
 if test "x$enable_udev" = xyes; then
 	if test "x$have_cookie" = xno; then
@@ -368,12 +393,24 @@ AM_CONDITIONAL(CRYPTO_BACKEND_NETTLE,  test $with_crypto_backend = nettle)
 AM_CONDITIONAL(CRYPTO_INTERNAL_PBKDF2, test $use_internal_pbkdf2 = 1)
 AC_DEFINE_UNQUOTED(USE_INTERNAL_PBKDF2, [$use_internal_pbkdf2], [Use internal PBKDF2])
 
-AC_ARG_ENABLE(argon2, AS_HELP_STRING([--disable-argon2],
-	[disable internal implementation of Argon2 PBKDF]),[], [enable_argon2=yes])
-AM_CONDITIONAL(CRYPTO_INTERNAL_ARGON2, test x$enable_argon2 = xyes)
-if test x$enable_argon2 = xyes ; then
-AC_DEFINE(USE_INTERNAL_ARGON2, 1, [Use internal Argon2])
+dnl Argon2 implementation
+AC_ARG_ENABLE(internal-argon2, AS_HELP_STRING([--disable-internal-argon2],
+	[disable internal implementation of Argon2 PBKDF]),[], [enable_internal_argon2=yes])
+
+AC_ARG_ENABLE([libargon2], AS_HELP_STRING([--enable-libargon2],
+	[enable external libargon2 (PHC) library (disables internal bundled version) ]),[], [enable_libargon2=no])
+
+if test x$enable_libargon2 = xyes ; then
+	AC_CHECK_HEADERS(argon2.h,,
+		[AC_MSG_ERROR([You need libargon2 development library installed.])])
+	PKG_CHECK_MODULES([LIBARGON2], [libargon2],,[LIBARGON2_LIBS="-largon2"])
+	enable_internal_argon2=no
 fi
+
+if test x$enable_internal_argon2 = xyes ; then
+	AC_DEFINE(USE_INTERNAL_ARGON2, 1, [Use internal Argon2])
+fi
+AM_CONDITIONAL(CRYPTO_INTERNAL_ARGON2, test x$enable_internal_argon2 = xyes)
 
 dnl Magic for cryptsetup.static build.
 if test x$enable_static_cryptsetup = xyes; then
@@ -407,6 +444,10 @@ if test x$enable_static_cryptsetup = xyes; then
 	PKG_CONFIG=$saved_PKG_CONFIG
 fi
 
+AC_MSG_CHECKING([for systemd tmpfiles config directory])
+PKG_CHECK_VAR([systemd_tmpfilesdir], [systemd], [tmpfilesdir], [], [systemd_tmpfilesdir=no])
+AC_MSG_RESULT([$systemd_tmpfilesdir])
+
 AC_SUBST([DEVMAPPER_LIBS])
 AC_SUBST([DEVMAPPER_STATIC_LIBS])
 
@@ -420,6 +461,7 @@ AC_SUBST([CRYPTO_LIBS])
 AC_SUBST([CRYPTO_STATIC_LIBS])
 
 AC_SUBST([JSON_C_LIBS])
+AC_SUBST([LIBARGON2_LIBS])
 
 AC_SUBST([LIBCRYPTSETUP_VERSION])
 AC_SUBST([LIBCRYPTSETUP_VERSION_INFO])
@@ -506,6 +548,16 @@ CS_NUM_WITH([verity-hash-block], [hash block size for verity mode], [4096])
 CS_NUM_WITH([verity-salt-size],  [salt size for verity mode], [32])
 CS_NUM_WITH([verity-fec-roots],  [parity bytes for verity FEC], [2])
 
+CS_STR_WITH([tmpfilesdir], [override default path to directory with systemd temporary files], [])
+test -z "$with_tmpfilesdir" && with_tmpfilesdir=$systemd_tmpfilesdir
+test "x$with_tmpfilesdir" == "xno" || {
+	test "${with_tmpfilesdir:0:1}" = "/" || AC_MSG_ERROR([--with-tmpfilesdir argument must be an absolute path.])
+	DEFAULT_TMPFILESDIR=$with_tmpfilesdir
+	AC_SUBST(DEFAULT_TMPFILESDIR)
+}
+AM_CONDITIONAL(CRYPTSETUP_TMPFILE, test -n "$DEFAULT_TMPFILESDIR")
+
+
 CS_STR_WITH([luks2-lock-path], [path to directory for LUKSv2 locks], [/run/lock/cryptsetup])
 test -z "$with_luks2_lock_path" && with_luks2_lock_path=/run/lock/cryptsetup
 test "${with_luks2_lock_path:0:1}" = "/" || AC_MSG_ERROR([--with-luks2-lock-path argument must be an absolute path.])
@@ -520,22 +572,9 @@ AC_SUBST(DEFAULT_LUKS2_LOCK_DIR_PERMS)
 dnl ==========================================================================
 
 AC_CONFIG_FILES([ Makefile
-lib/Makefile
 lib/libcryptsetup.pc
-lib/crypto_backend/Makefile
-lib/crypto_backend/argon2/Makefile
-lib/luks1/Makefile
-lib/luks2/Makefile
-lib/loopaes/Makefile
-lib/verity/Makefile
-lib/tcrypt/Makefile
-lib/integrity/Makefile
-src/Makefile
 po/Makefile.in
-man/Makefile
+scripts/cryptsetup.conf
 tests/Makefile
-python/Makefile
-scripts/Makefile
-scripts/cryptsetup_tmpfiles.conf
 ])
 AC_OUTPUT

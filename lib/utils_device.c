@@ -492,6 +492,27 @@ out:
 	return r;
 }
 
+/* For a file, allocate the required space */
+int device_fallocate(struct device *device, uint64_t size)
+{
+	struct stat st;
+	int devfd, r = -EINVAL;
+
+	devfd = open(device_path(device), O_WRONLY);
+	if(devfd == -1)
+		return -EINVAL;
+
+	if (!fstat(devfd, &st) && S_ISREG(st.st_mode) &&
+	    !posix_fallocate(devfd, 0, size)) {
+		r = 0;
+		if (device->file_path && crypt_loop_resize(device->path))
+			r = -EINVAL;
+	}
+
+	close(devfd);
+	return r;
+}
+
 static int device_info(struct crypt_device *cd,
 		       struct device *device,
 		       enum devcheck device_check,
@@ -693,7 +714,7 @@ void device_disable_direct_io(struct device *device)
 	device->o_direct = 0;
 }
 
-int device_direct_io(struct device *device)
+int device_direct_io(const struct device *device)
 {
 	return device->o_direct;
 }

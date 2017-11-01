@@ -929,7 +929,8 @@ static int _wipe_data_device(struct crypt_device *cd)
 
 static int action_luksFormat(void)
 {
-	int r = -EINVAL, keysize, integrity_keysize = 0, luks_version;
+	int r = -EINVAL, keysize, integrity_keysize = 0, luks_version, fd;
+	struct stat st;
 	const char *header_device;
 	char *msg = NULL, *key = NULL, *password = NULL;
 	char cipher [MAX_CIPHER_LEN], cipher_mode[MAX_CIPHER_LEN], integrity[MAX_CIPHER_LEN];
@@ -960,6 +961,24 @@ static int action_luksFormat(void)
 		return -EINVAL;
 	}
 
+	/* Create header file (must contain at least one sector)? */
+	if (opt_header_device && stat(opt_header_device, &st) < 0 && errno == ENOENT) {
+		if (!opt_batch_mode &&
+		    !yesDialog("Header file does not exist, do you want to create it?", NULL))
+		    return -EPERM;
+
+		log_dbg("Creating header file.");
+		fd = open(opt_header_device, O_CREAT|O_EXCL|O_WRONLY, S_IRUSR|S_IWUSR);
+		if (fd == -1 || posix_fallocate(fd, 0, 4096))
+			log_err(_("Cannot create header file %s.\n"), opt_header_device);
+		else
+			r = 0;
+		if (fd != -1)
+			close(fd);
+		if (r < 0)
+			return r;
+	}
+
 	header_device = opt_header_device ?: action_argv[0];
 
 	if(asprintf(&msg, _("This will overwrite data on %s irrevocably."),
@@ -980,7 +999,10 @@ static int action_luksFormat(void)
 		goto out;
 	}
 
-	if (luks_version == 2 && opt_integrity) {
+	if (luks_version != 2 && opt_integrity) {
+		log_err(_("Integrity option can be used only for LUKS2 format.\n"));
+		goto out;
+	} if (opt_integrity) {
 		r = crypt_parse_integrity_mode(opt_integrity, integrity, &integrity_keysize);
 		if (r < 0) {
 			log_err(_("No known integrity specification pattern detected.\n"));
@@ -2020,6 +2042,7 @@ int main(int argc, const char **argv)
 		{ "readonly",          'r',  POPT_ARG_NONE, &opt_readonly,              0, N_("Create a readonly mapping"), NULL },
 		{ "batch-mode",        'q',  POPT_ARG_NONE, &opt_batch_mode,            0, N_("Do not ask for confirmation"), NULL },
 		{ "timeout",           't',  POPT_ARG_INT, &opt_timeout,                0, N_("Timeout for interactive passphrase prompt (in seconds)"), N_("secs") },
+		{ "progress-frequency",'\0', POPT_ARG_INT, &opt_progress_frequency,     0, N_("Progress line update (in seconds)"), N_("secs") },
 		{ "tries",             'T',  POPT_ARG_INT, &opt_tries,                  0, N_("How often the input of the passphrase can be retried"), NULL },
 		{ "align-payload",     '\0', POPT_ARG_INT, &opt_align_payload,          0, N_("Align payload at <n> sector boundaries - for luksFormat"), N_("SECTORS") },
 		{ "header-backup-file",'\0', POPT_ARG_STRING, &opt_header_backup_file,  0, N_("File with LUKS header and keyslots backup."), NULL },
@@ -2034,8 +2057,8 @@ int main(int argc, const char **argv)
 		{ "tcrypt-system",     '\0', POPT_ARG_NONE, &opt_tcrypt_system,         0, N_("Device is system TCRYPT drive (with bootloader)."), NULL },
 		{ "tcrypt-backup",     '\0', POPT_ARG_NONE, &opt_tcrypt_backup,         0, N_("Use backup (secondary) TCRYPT header."), NULL },
 		{ "veracrypt",         '\0', POPT_ARG_NONE, &opt_veracrypt,             0, N_("Scan also for VeraCrypt compatible device."), NULL },
-		{ "veracrypt-pim",     '\0', POPT_ARG_INT, &opt_veracrypt_pim,          0, N_("Personal Iteration Multiplier for for VeraCrypt compatible device."), NULL },
-		{ "veracrypt-query-pim", '\0', POPT_ARG_NONE, &opt_veracrypt_query_pim, 0, N_("Query Personal Iteration Multiplier for for VeraCrypt compatible device."), NULL },
+		{ "veracrypt-pim",     '\0', POPT_ARG_INT, &opt_veracrypt_pim,          0, N_("Personal Iteration Multiplier for VeraCrypt compatible device."), NULL },
+		{ "veracrypt-query-pim", '\0', POPT_ARG_NONE, &opt_veracrypt_query_pim, 0, N_("Query Personal Iteration Multiplier for VeraCrypt compatible device."), NULL },
 		{ "type",               'M', POPT_ARG_STRING, &opt_type,                0, N_("Type of device metadata: luks, plain, loopaes, tcrypt."), NULL },
 		{ "force-password",    '\0', POPT_ARG_NONE, &opt_force_password,        0, N_("Disable password quality check (if enabled)."), NULL },
 		{ "perf-same_cpu_crypt",'\0', POPT_ARG_NONE, &opt_perf_same_cpu_crypt,  0, N_("Use dm-crypt same_cpu_crypt performance compatibility option."), NULL },

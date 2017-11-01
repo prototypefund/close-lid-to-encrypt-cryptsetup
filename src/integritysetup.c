@@ -370,7 +370,7 @@ static int action_status(int arg)
 			log_std("  loop:    %s\n", backing_file);
 			free(backing_file);
 		}
-		log_std("  sector size:  %u sectors\n", crypt_get_sector_size(cd));
+		log_std("  sector size:  %u bytes\n", crypt_get_sector_size(cd));
 		log_std("  interleave sectors: %u\n", ip.interleave_sectors);
 		log_std("  size:    %" PRIu64 " sectors\n", cad.size);
 		log_std("  mode:    %s%s\n",
@@ -483,6 +483,7 @@ int main(int argc, const char **argv)
 		{ "verbose",             'v', POPT_ARG_NONE, &opt_verbose,            0, N_("Shows more detailed error messages"), NULL },
 		{ "debug",              '\0', POPT_ARG_NONE, &opt_debug,              0, N_("Show debug messages"), NULL },
 		{ "batch-mode",          'q', POPT_ARG_NONE, &opt_batch_mode,         0, N_("Do not ask for confirmation"), NULL },
+		{ "progress-frequency", '\0', POPT_ARG_INT,  &opt_progress_frequency, 0, N_("Progress line update (in seconds)"), N_("secs") },
 		{ "no-wipe",            '\0', POPT_ARG_NONE, &opt_no_wipe,            0, N_("Do not wipe device after format"), NULL },
 
 		{ "journal-size",        'j', POPT_ARG_STRING,&opt_journal_size_str,  0, N_("Journal size"), N_("bytes") },

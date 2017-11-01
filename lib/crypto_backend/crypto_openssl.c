@@ -299,9 +299,6 @@ int crypt_hmac_destroy(struct crypt_hmac *ctx)
 /* RNG */
 int crypt_backend_rng(char *buffer, size_t length, int quality, int fips)
 {
-	if (fips)
-		return -EINVAL;
-
 	if (RAND_bytes((unsigned char *)buffer, length) != 1)
 		return -EINVAL;
 
@@ -331,11 +328,9 @@ int crypt_pbkdf(const char *kdf, const char *hash,
 	            (int)iterations, hash_id, (int)key_length, (unsigned char *)key))
 			return -EINVAL;
 		return 0;
-#if USE_INTERNAL_ARGON2
 	} else if (!strncmp(kdf, "argon2", 6)) {
 		return argon2(kdf, password, password_length, salt, salt_length,
 			      key, key_length, iterations, memory, parallel);
-#endif
 	}
 
 	return -EINVAL;

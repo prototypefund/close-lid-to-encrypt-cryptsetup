@@ -724,7 +724,7 @@ static int _crypt_load_luks(struct crypt_device *cd, const char *requested_type,
 
 	/* This will return 0 if primary LUKS2 header is damaged */
 	if (!requested_type)
-		version = LUKS2_hdr_version_unlocked(cd);
+		version = LUKS2_hdr_version_unlocked(cd, NULL);
 
 	if (isLUKS1(requested_type) || version == 1) {
 		if (cd->type && isLUKS2(cd->type)) {
@@ -1007,6 +1007,9 @@ static void crypt_free_type(struct crypt_device *cd)
 		free(cd->u.loopaes.cipher);
 	} else if (isVERITY(cd->type)) {
 		free(CONST_CAST(void*)cd->u.verity.hdr.hash_name);
+		free(CONST_CAST(void*)cd->u.verity.hdr.data_device);
+		free(CONST_CAST(void*)cd->u.verity.hdr.hash_device);
+		free(CONST_CAST(void*)cd->u.verity.hdr.fec_device);
 		free(CONST_CAST(void*)cd->u.verity.hdr.salt);
 		free(cd->u.verity.root_hash);
 		free(cd->u.verity.uuid);
@@ -1116,7 +1119,7 @@ static int _init_by_name_verity(struct crypt_device *cd, const char *name)
 		.target = DM_VERITY,
 		.u.verity.vp = &params,
 	};
-	int r;
+	int r, verity_type = 0;
 
 	r = dm_query_device(cd, name,
 				DM_ACTIVE_DEVICE |
@@ -1148,8 +1151,14 @@ static int _init_by_name_verity(struct crypt_device *cd, const char *name)
 		cd->u.verity.hdr.fec_roots = params.fec_roots;
 		cd->u.verity.fec_device = dmd.u.verity.fec_device;
 		cd->metadata_device = dmd.u.verity.hash_device;
+		verity_type = 1;
 	}
 out:
+	if (!verity_type) {
+		free(CONST_CAST(void*)params.hash_name);
+		free(CONST_CAST(void*)params.salt);
+		free(CONST_CAST(void*)params.fec_device);
+	}
 	device_free(dmd.data_device);
 	return r;
 }
@@ -1159,11 +1168,12 @@ static int _init_by_name_integrity(struct crypt_device *cd, const char *name)
 	struct crypt_dm_active_device dmd = {
 		.target = DM_INTEGRITY,
 	};
-	int r;
+	int r, integrity_type = 0;
 
 	r = dm_query_device(cd, name, DM_ACTIVE_DEVICE |
 				      DM_ACTIVE_CRYPT_KEY |
-				      DM_ACTIVE_CRYPT_KEYSIZE, &dmd);
+				      DM_ACTIVE_CRYPT_KEYSIZE |
+				      DM_ACTIVE_INTEGRITY_PARAMS, &dmd);
 	if (r < 0)
 		goto out;
 	if (r > 0)
@@ -1187,8 +1197,14 @@ static int _init_by_name_integrity(struct crypt_device *cd, const char *name)
 			cd->u.integrity.params.journal_integrity_key_size = dmd.u.integrity.journal_integrity_key->keylength;
 		if (dmd.u.integrity.journal_crypt_key)
 			cd->u.integrity.params.integrity_key_size = dmd.u.integrity.journal_crypt_key->keylength;
+		integrity_type = 1;
 	}
 out:
+	if (!integrity_type) {
+		free(CONST_CAST(void*)dmd.u.integrity.integrity);
+		free(CONST_CAST(void*)dmd.u.integrity.journal_integrity);
+		free(CONST_CAST(void*)dmd.u.integrity.journal_crypt);
+	}
 	crypt_free_volume_key(dmd.u.integrity.vk);
 	crypt_free_volume_key(dmd.u.integrity.journal_integrity_key);
 	crypt_free_volume_key(dmd.u.integrity.journal_crypt_key);
@@ -2049,6 +2065,14 @@ int crypt_resize(struct crypt_device *cd, const char *name, uint64_t new_size)
 	if (r)
 		goto out;
 
+	if (new_size & ((dmd.u.crypt.sector_size >> SECTOR_SHIFT) - 1)) {
+		log_err(cd, _("Device %s size is not aligned to requested sector size (%u bytes).\n"),
+			crypt_get_device_name(cd), (unsigned)dmd.u.crypt.sector_size);
+		r = -EINVAL;
+		goto out;
+	}
+
+
 	if (new_size == dmd.size) {
 		log_dbg("Device has already requested size %" PRIu64
 			" sectors.", dmd.size);
@@ -2154,7 +2178,7 @@ int crypt_header_restore(struct crypt_device *cd,
 {
 	struct luks_phdr hdr1;
 	struct luks2_hdr hdr2;
-	int r;
+	int r, version;
 
 	if (requested_type && !isLUKS(requested_type))
 		return -EINVAL;
@@ -2169,15 +2193,21 @@ int crypt_header_restore(struct crypt_device *cd,
 	log_dbg("Requested header restore to device %s (%s) from "
 		"file %s.", mdata_device_path(cd), requested_type ?: "any type", backup_file);
 
-	memset(&hdr2, 0, sizeof(hdr2));
-	if (!cd->type) {
-		if (!requested_type || isLUKS2(requested_type))
-			r = LUKS2_hdr_restore(cd, &hdr2, backup_file);
-		else
-			r = -ENOENT;
+	version = LUKS2_hdr_version_unlocked(cd, backup_file);
+	if (!version ||
+	   (requested_type && version == 1 && !isLUKS1(requested_type)) ||
+	   (requested_type && version == 2 && !isLUKS2(requested_type))) {
+		log_err(cd, _("Header backup file does not contain compatible LUKS header.\n"));
+		return -EINVAL;
+	}
 
-		if (r && (!requested_type || isLUKS1(requested_type)))
+	memset(&hdr2, 0, sizeof(hdr2));
+
+	if (!cd->type) {
+		if (version == 1)
 			r = LUKS_hdr_restore(backup_file, &hdr1, cd);
+		else
+			r = LUKS2_hdr_restore(cd, &hdr2, backup_file);
 
 		LUKS2_hdr_free(&hdr2);
 		crypt_memzero(&hdr1, sizeof(hdr1));
@@ -2255,13 +2285,16 @@ static char *crypt_get_device_key_description(const char *name)
 	char *tmp = NULL;
 	struct crypt_dm_active_device dmd;
 
-	if (dm_query_device(NULL, name, DM_ACTIVE_CRYPT_KEY | DM_ACTIVE_CRYPT_KEYSIZE, &dmd) < 0 || dmd.target != DM_CRYPT)
+	if (dm_query_device(NULL, name, DM_ACTIVE_CRYPT_KEY | DM_ACTIVE_CRYPT_KEYSIZE, &dmd) < 0)
 		return NULL;
 
-	if (dmd.flags & CRYPT_ACTIVATE_KEYRING_KEY)
-		tmp = strdup(crypt_volume_key_get_description(dmd.u.crypt.vk));
-
-	crypt_free_volume_key(dmd.u.crypt.vk);
+	if (dmd.target == DM_CRYPT) {
+		if (dmd.flags & CRYPT_ACTIVATE_KEYRING_KEY)
+			tmp = strdup(crypt_volume_key_get_description(dmd.u.crypt.vk));
+		crypt_free_volume_key(dmd.u.crypt.vk);
+	} else if (dmd.target == DM_INTEGRITY) {
+		crypt_free_volume_key(dmd.u.integrity.vk);
+	}
 
 	return tmp;
 }
@@ -2888,8 +2921,10 @@ static int _activate_by_passphrase(struct crypt_device *cd,
 			if (name)
 				r = LUKS2_activate(cd, name, vk, flags);
 		}
-	} else
+	} else {
+		log_err(cd, _("Device type is not properly initialised.\n"));
 		r = -EINVAL;
+	}
 out:
 	crypt_free_volume_key(vk);
 
@@ -2899,6 +2934,24 @@ out:
 	return r < 0 ? r : keyslot;
 }
 
+static int _activate_check_status(struct crypt_device *cd, const char *name)
+{
+	crypt_status_info ci;
+
+	if (!name)
+		return 0;
+
+	ci = crypt_status(cd, name);
+	if (ci == CRYPT_INVALID) {
+		log_err(cd, _("Cannot use device %s, name is invalid or still in use.\n"), name);
+		return -EINVAL;
+	} else if (ci >= CRYPT_ACTIVE) {
+		log_err(cd, _("Device %s already exists.\n"), name);
+		return -EEXIST;
+	}
+
+	return 0;
+}
 
 // activation/deactivation of device mapping
 int crypt_activate_by_passphrase(struct crypt_device *cd,
@@ -2908,7 +2961,7 @@ int crypt_activate_by_passphrase(struct crypt_device *cd,
 	size_t passphrase_size,
 	uint32_t flags)
 {
-	crypt_status_info ci;
+	int r;
 
 	if (!cd || !passphrase)
 		return -EINVAL;
@@ -2917,15 +2970,9 @@ int crypt_activate_by_passphrase(struct crypt_device *cd,
 		name ? "Activating" : "Checking", name ?: "passphrase",
 		keyslot);
 
-	if (name) {
-		ci = crypt_status(NULL, name);
-		if (ci == CRYPT_INVALID)
-			return -EINVAL;
-		else if (ci >= CRYPT_ACTIVE) {
-			log_err(cd, _("Device %s already exists.\n"), name);
-			return -EEXIST;
-		}
-	}
+	r = _activate_check_status(cd, name);
+	if (r < 0)
+		return r;
 
 	return _activate_by_passphrase(cd, name, keyslot, passphrase, passphrase_size, flags);
 }
@@ -2938,7 +2985,6 @@ int crypt_activate_by_keyfile_offset(struct crypt_device *cd,
 	size_t keyfile_offset,
 	uint32_t flags)
 {
-	crypt_status_info ci;
 	struct volume_key *vk = NULL;
 	char *passphrase_read = NULL;
 	size_t passphrase_size_read;
@@ -2951,16 +2997,9 @@ int crypt_activate_by_keyfile_offset(struct crypt_device *cd,
 	log_dbg("%s volume %s [keyslot %d] using keyfile %s.",
 		name ? "Activating" : "Checking", name ?: "passphrase", keyslot, keyfile);
 
-	if (name) {
-		ci = crypt_status(NULL, name);
-		if (ci == CRYPT_INVALID) {
-			log_err(cd, _("Cannot use device %s, name is invalid or still in use.\n"), name);
-			return -EINVAL;
-		} else if (ci >= CRYPT_ACTIVE) {
-			log_err(cd, _("Device %s already exists.\n"), name);
-			return -EEXIST;
-		}
-	}
+	r = _activate_check_status(cd, name);
+	if (r < 0)
+		return r;
 
 	if (isPLAIN(cd->type)) {
 		if (!name)
@@ -3035,8 +3074,10 @@ int crypt_activate_by_keyfile_offset(struct crypt_device *cd,
 		if (name)
 			r = LOOPAES_activate(cd, name, cd->u.loopaes.cipher,
 					     key_count, vk, flags);
-	} else
+	} else {
+		log_err(cd, _("Device type is not properly initialised.\n"));
 		r = -EINVAL;
+	}
 
 out:
 	crypt_safe_free(passphrase_read);
@@ -3065,9 +3106,8 @@ int crypt_activate_by_volume_key(struct crypt_device *cd,
 	size_t volume_key_size,
 	uint32_t flags)
 {
-	crypt_status_info ci;
 	struct volume_key *vk = NULL;
-	int r = -EINVAL;
+	int r;
 
 	if (!cd)
 		return -EINVAL;
@@ -3075,16 +3115,9 @@ int crypt_activate_by_volume_key(struct crypt_device *cd,
 	log_dbg("%s volume %s by volume key.", name ? "Activating" : "Checking",
 		name ?: "");
 
-	if (name) {
-		ci = crypt_status(NULL, name);
-		if (ci == CRYPT_INVALID) {
-			log_err(cd, _("Cannot use device %s, name is invalid or still in use.\n"), name);
-			return -EINVAL;
-		} else if (ci >= CRYPT_ACTIVE) {
-			log_err(cd, _("Device %s already exists.\n"), name);
-			return -EEXIST;
-		}
-	}
+	r = _activate_check_status(cd, name);
+	if (r < 0)
+		return r;
 
 	/* use key directly, no hash */
 	if (isPLAIN(cd->type)) {
@@ -3183,8 +3216,10 @@ int crypt_activate_by_volume_key(struct crypt_device *cd,
 		r = INTEGRITY_activate(cd, name, &cd->u.integrity.params, vk,
 				       cd->u.integrity.journal_crypt_key,
 				       cd->u.integrity.journal_mac_key, flags);
-	} else
+	} else {
 		log_err(cd, _("Device type is not properly initialised.\n"));
+		r = -EINVAL;
+	}
 
 	crypt_free_volume_key(vk);
 
@@ -3201,6 +3236,7 @@ int crypt_deactivate_by_name(struct crypt_device *cd, const char *name, uint32_t
 	const char *namei = NULL;
 	struct crypt_dm_active_device dmd = {};
 	int r;
+	uint32_t get_flags = DM_ACTIVE_DEVICE | DM_ACTIVE_HOLDERS;
 
 	if (!name)
 		return -EINVAL;
@@ -3214,16 +3250,25 @@ int crypt_deactivate_by_name(struct crypt_device *cd, const char *name, uint32_t
 		cd = fake_cd;
 	}
 
+	/* skip holders detection and early abort when some flags raised */
+	if (flags & (CRYPT_DEACTIVATE_FORCE | CRYPT_DEACTIVATE_DEFERRED))
+		get_flags &= ~DM_ACTIVE_HOLDERS;
+
 	switch (crypt_status(cd, name)) {
 		case CRYPT_ACTIVE:
 		case CRYPT_BUSY:
-			key_desc = crypt_get_device_key_description(name);
-
-			if (crypt_get_integrity_tag_size(cd)) {
-				r = dm_query_device(cd, name, DM_ACTIVE_DEVICE, &dmd);
-				if (r >= 0)
+			r = dm_query_device(cd, name, get_flags, &dmd);
+			if (r >= 0) {
+				if (dmd.holders) {
+					log_err(cd, _("Device %s is still in use.\n"), name);
+					r = -EBUSY;
+					break;
+				}
+				if (crypt_get_integrity_tag_size(cd))
 					namei = device_dm_name(dmd.data_device);
 			}
+
+			key_desc = crypt_get_device_key_description(name);
 
 			if (isTCRYPT(cd->type))
 				r = TCRYPT_deactivate(cd, name, flags);
@@ -4135,7 +4180,6 @@ int crypt_activate_by_keyring(struct crypt_device *cd,
 {
 	char *passphrase;
 	size_t passphrase_size;
-	crypt_status_info ci;
 	int r;
 
 	if (!cd || !key_description)
@@ -4149,15 +4193,9 @@ int crypt_activate_by_keyring(struct crypt_device *cd,
 		return -EINVAL;
 	}
 
-	if (name) {
-		ci = crypt_status(NULL, name);
-		if (ci == CRYPT_INVALID)
-			return -EINVAL;
-		else if (ci >= CRYPT_ACTIVE) {
-			log_err(cd, _("Device %s already exists.\n"), name);
-			return -EEXIST;
-		}
-	}
+	r = _activate_check_status(cd, name);
+	if (r < 0)
+		return r;
 
 	if (keyring_get_passphrase(key_description, &passphrase, &passphrase_size)) {
 		log_err(cd, _("Failed to read passphrase from keyring key %s"), key_description);
