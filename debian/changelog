@@ -2,6 +2,7 @@ cryptsetup (2:2.0.0~rc1-1) UNRELEASED; urgency=low
 
   * debian/rules: Compile with --enable-libargon2 to use system libargon2
     instead of bundled version.
+  * debian/control: Bump Standards-Version to 4.1.1 (no changes necessary).
 
  -- Guilhem Moulin <guilhem@debian.org>  Wed, 01 Nov 2017 13:49:49 +0100
 

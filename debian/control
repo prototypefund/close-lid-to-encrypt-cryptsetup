@@ -24,7 +24,7 @@ Build-Depends: autoconf,
                po-debconf,
                uuid-dev,
                xsltproc
-Standards-Version: 4.1.0
+Standards-Version: 4.1.1
 Homepage: https://gitlab.com/cryptsetup/cryptsetup
 Vcs-Browser: https://anonscm.debian.org/cgit/pkg-cryptsetup/cryptsetup.git
 Vcs-Git: https://anonscm.debian.org/git/pkg-cryptsetup/cryptsetup.git
