@@ -1,0 +1,22 @@
+From eecc98e9f5cfb94b6cc697fb616736dc3ef628eb Mon Sep 17 00:00:00 2001
+From: Guilhem Moulin <guilhem@debian.org>
+Date: Wed, 1 Nov 2017 14:58:01 +0100
+Subject: [PATCH] Remove libargon2 code from source tree
+
+---
+ Makefile.am |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -29,7 +29,9 @@ include python/Makemodule.am
+ 
+ include scripts/Makemodule.am
+ 
+-include lib/crypto_backend/argon2/Makemodule.am
++if CRYPTO_INTERNAL_ARGON2
++-include lib/crypto_backend/argon2/Makemodule.am
++endif
+ include lib/crypto_backend/Makemodule.am
+ include lib/Makemodule.am
+ 

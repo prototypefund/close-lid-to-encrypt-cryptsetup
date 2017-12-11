@@ -1,12 +1,28 @@
-cryptsetup (2:1.7.5-2) UNRELEASED; urgency=low
+cryptsetup (2:2.0.0~rc1-1) experimental; urgency=low
 
+  * debian/rules: Compile with --enable-libargon2 to use system libargon2
+    instead of bundled version.
+  * debian/control: Bump Standards-Version to 4.1.1 (no changes necessary).
+  * debian/copyright: Update licensing information.
+
+ -- Guilhem Moulin <guilhem@debian.org>  Wed, 01 Nov 2017 17:37:15 +0100
+
+cryptsetup (2:2.0.0~rc0-1) experimental; urgency=low
+
+  * New upstream release 2.0.0 RC0 (closes: #877566).  Highlights include:
+    - Support for new on-disk LUKS2 format, offering authenticated disk
+      encrption (EXPERIMENTAL), memory-hard PBKDF (argon2), kernel keyring for
+      storage of key material, and more.
+    - New CLI `integritysetup` which can setup standalone dm-integrity devices.
+    - soname bump of libcryptsetup library.
+  * Rename library package from libcryptsetup4 to libcryptsetup12.
   * Also remove deprecated upstart configuration files on upgrade and purge.
     (Closes: #883677)
   * debian/control: Bump Standards-Version to 4.1.0 (no changes necessary).
   * debian/*: Apply wrap-and-sort(1).
   * debian/copyright: Update copyright years.
 
- -- Guilhem Moulin <guilhem@debian.org>  Sun, 17 Sep 2017 13:35:13 +0200
+ -- Guilhem Moulin <guilhem@debian.org>  Tue, 03 Oct 2017 03:37:36 +0200
 
 cryptsetup (2:1.7.5-1) unstable; urgency=low
 

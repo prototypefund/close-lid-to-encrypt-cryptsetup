@@ -12,8 +12,10 @@ Build-Depends: autoconf,
                docbook-xsl (>= 1.74.3+dfsg),
                dpkg-dev (>= 1.15.1),
                gettext,
+               libargon2-0-dev,
                libdevmapper-dev (>= 2:1.02.24-4),
                libgcrypt20-dev (>= 1.6.1),
+               libjson-c-dev,
                libpopt-dev,
                libselinux1-dev,
                libsepol1-dev,
@@ -22,7 +24,7 @@ Build-Depends: autoconf,
                po-debconf,
                uuid-dev,
                xsltproc
-Standards-Version: 4.1.0
+Standards-Version: 4.1.1
 Homepage: https://gitlab.com/cryptsetup/cryptsetup
 Vcs-Browser: https://anonscm.debian.org/cgit/pkg-cryptsetup/cryptsetup.git
 Vcs-Git: https://anonscm.debian.org/git/pkg-cryptsetup/cryptsetup.git
@@ -67,7 +69,7 @@ Description: disk encryption support - command line tools
  .
  This package provides cryptsetup, cryptsetup-reencrypt and luksformat.
 
-Package: libcryptsetup4
+Package: libcryptsetup12
 Section: libs
 Architecture: linux-any
 Multi-Arch: same
@@ -87,7 +89,7 @@ Package: libcryptsetup-dev
 Section: libdevel
 Architecture: linux-any
 Multi-Arch: same
-Depends: libcryptsetup4 (= ${binary:Version}), ${misc:Depends}
+Depends: libcryptsetup12 (= ${binary:Version}), ${misc:Depends}
 Description: disk encryption support - development files
  Cryptsetup provides an interface for configuring encryption on block
  devices (such as /home or swap partitions), using the Linux kernel
@@ -109,7 +111,7 @@ Description: disk encryption support - commandline tools (udeb)
  .
  This udeb package provides cryptsetup for the Debian Installer.
 
-Package: libcryptsetup4-udeb
+Package: libcryptsetup12-udeb
 Section: debian-installer
 Package-Type: udeb
 Architecture: linux-any
