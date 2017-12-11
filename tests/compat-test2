@@ -112,7 +112,9 @@ function prepare()
 	esac
 
 	if [ ! -e $KEY1 ]; then
-		dd if=/dev/urandom of=$KEY1 count=1 bs=32 >/dev/null 2>&1
+		#dd if=/dev/urandom of=$KEY1 count=1 bs=32 >/dev/null 2>&1
+		echo -n $'\x48\xc6\x74\x4f\x41\x4e\x50\xc0\x79\xc2\x2d\x5b\x5f\x68\x84\x17' >$KEY1
+		echo -n $'\x9c\x03\x5e\x1b\x4d\x0f\x9a\x75\xb3\x90\x70\x32\x0a\xf8\xae\xc4'>>$KEY1
 	fi
 
 	if [ ! -e $KEY2 ]; then
@@ -333,7 +335,7 @@ echo -e "$PWD1\n$PWD2\n" | $CRYPTSETUP luksAddKey $FAST_PBKDF_OPT $LOOPDEV --key
 echo $PWD2 | $CRYPTSETUP luksOpen $LOOPDEV --test-passphrase --key-slot 1 || fail
 $CRYPTSETUP luksDump $LOOPDEV | grep -q "1: luks2" || fail
 # keyfile/passphrase
-echo -e "$PWD2\n" | $CRYPTSETUP luksAddKey $FAST_PBKDF_OPT $LOOPDEV $KEY1 --key-slot 2 --new-keyfile-size 1 || fail
+echo -e "$PWD2\n" | $CRYPTSETUP luksAddKey $FAST_PBKDF_OPT $LOOPDEV $KEY1 --key-slot 2 --new-keyfile-size 3 || fail
 $CRYPTSETUP luksDump $LOOPDEV | grep -q "2: luks2" || fail
 
 prepare "[18] RemoveKey passphrase and keyfile" reuse
@@ -728,12 +730,12 @@ $CRYPTSETUP luksDump $LOOPDEV | grep "PBKDF:" | grep -q "argon2id" || fail
 echo $PWD1 | $CRYPTSETUP luksFormat --type luks2 --pbkdf argon2i  --pbkdf-force-iterations 1 \
 	--pbkdf-memory 1234 --pbkdf-parallel 1 $LOOPDEV || fail
 $CRYPTSETUP luksDump $LOOPDEV | grep "PBKDF:" | grep -q "argon2i" || fail
-$CRYPTSETUP luksDump $LOOPDEV | grep "Time:" | grep -q "1" || fail
+$CRYPTSETUP luksDump $LOOPDEV | grep "Time cost:" | grep -q "1" || fail
 $CRYPTSETUP luksDump $LOOPDEV | grep "Memory:" | grep -q "1234" || fail
 $CRYPTSETUP luksDump $LOOPDEV | grep "Threads:" | grep -q "1" || fail
 # Benchmark
 echo $PWD1 | $CRYPTSETUP luksFormat --type luks2 --pbkdf argon2i -i 500 --pbkdf-memory 1234 --pbkdf-parallel 1 $LOOPDEV || fail
-[ 0"$($CRYPTSETUP luksDump $LOOPDEV | grep "Time:" | cut -d: -f 2 | sed -e 's/\ //g')" -gt 0 ] || fail
+[ 0"$($CRYPTSETUP luksDump $LOOPDEV | grep "Time cost:" | cut -d: -f 2 | sed -e 's/\ //g')" -gt 0 ] || fail
 [ 0"$($CRYPTSETUP luksDump $LOOPDEV | grep "Memory:" | cut -d: -f 2 | sed -e 's/\ //g')" -gt 0 ] || fail
 echo $PWD1 | $CRYPTSETUP luksFormat --type luks2 --pbkdf pbkdf2 -i 500 $LOOPDEV || fail
 [ 0"$($CRYPTSETUP luksDump $LOOPDEV | grep -m1 "Iterations:" | cut -d' ' -f 2 | sed -e 's/\ //g')" -gt 1000 ] || fail

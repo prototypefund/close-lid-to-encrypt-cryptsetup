@@ -398,12 +398,16 @@ int LUKS2_token_open_and_activate(struct crypt_device *cd,
 
 	keyslot = r;
 
-	if ((name || (flags & CRYPT_ACTIVATE_KEYRING_KEY)) && crypt_use_keyring_for_vk(cd))
+	if ((name || (flags & CRYPT_ACTIVATE_KEYRING_KEY)) && crypt_use_keyring_for_vk(cd)) {
+		crypt_volume_key_set_description(vk, crypt_get_key_description_by_keyslot(cd, keyslot));
 		r = crypt_volume_key_load_in_keyring(cd, vk);
+	}
 
 	if (r >= 0 && name)
 		r = LUKS2_activate(cd, name, vk, flags);
 
+	if (r < 0)
+		crypt_drop_keyring_key(cd, crypt_volume_key_get_description(vk));
 	crypt_free_volume_key(vk);
 
 	return r < 0 ? r : keyslot;
@@ -440,12 +444,16 @@ int LUKS2_token_open_and_activate_any(struct crypt_device *cd,
 
 	keyslot = r;
 
-	if (r >= 0 && (name || (flags & CRYPT_ACTIVATE_KEYRING_KEY)) && crypt_use_keyring_for_vk(cd))
+	if (r >= 0 && (name || (flags & CRYPT_ACTIVATE_KEYRING_KEY)) && crypt_use_keyring_for_vk(cd)) {
+		crypt_volume_key_set_description(vk, crypt_get_key_description_by_keyslot(cd, keyslot));
 		r = crypt_volume_key_load_in_keyring(cd, vk);
+	}
 
 	if (r >= 0 && name)
 		r = LUKS2_activate(cd, name, vk, flags);
 
+	if (r < 0)
+		crypt_drop_keyring_key(cd, crypt_volume_key_get_description(vk));
 	crypt_free_volume_key(vk);
 
 	return r < 0 ? r : keyslot;

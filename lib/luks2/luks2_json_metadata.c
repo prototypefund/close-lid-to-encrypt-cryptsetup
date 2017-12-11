@@ -184,7 +184,6 @@ uint32_t json_object_get_uint32(json_object *jobj)
 }
 
 /* jobj has to be json_type_string and numbered */
-/* FIXME: sscanf() instead? */
 static json_bool json_str_to_uint64(json_object *jobj, uint64_t *value)
 {
 	char *endptr;
@@ -192,7 +191,7 @@ static json_bool json_str_to_uint64(json_object *jobj, uint64_t *value)
 
 	errno = 0;
 	tmp = strtoull(json_object_get_string(jobj), &endptr, 10);
-	if (*endptr || errno || tmp >= UINT64_MAX) {
+	if (*endptr || errno || tmp > UINT64_MAX) {
 		log_dbg("Failed to parse uint64_t type from string %s.",
 			json_object_get_string(jobj));
 		*value = 0;
@@ -207,6 +206,21 @@ uint64_t json_object_get_uint64(json_object *jobj)
 {
 	uint64_t r;
 	return json_str_to_uint64(jobj, &r) ? r : 0;
+}
+
+json_object *json_object_new_uint64(uint64_t value)
+{
+	/* 18446744073709551615 */
+	char num[21];
+	int r;
+	json_object *jobj;
+
+	r = snprintf(num, sizeof(num), "%" PRIu64, value);
+	if (r < 0 || (size_t)r >= sizeof(num))
+		return NULL;
+
+	jobj = json_object_new_string(num);
+	return jobj;
 }
 
 /*
@@ -844,7 +858,7 @@ static void LUKS2_hdr_free_unused_objects(struct crypt_device *cd, struct luks2_
 
 int LUKS2_hdr_write(struct crypt_device *cd, struct luks2_hdr *hdr)
 {
-	/* FIXME: we risk to hide future intenal implementation bugs with this */
+	/* FIXME: we risk to hide future internal implementation bugs with this */
 	LUKS2_hdr_free_unused_objects(cd, hdr);
 
 	if (LUKS2_hdr_validate(hdr->jobj))
@@ -1317,7 +1331,7 @@ int LUKS2_config_set_requirements(struct crypt_device *cd, struct luks2_hdr *hdr
 
 	/* any remaining bit in requirements is unknown therefore illegal */
 	if (reqs) {
-		log_dbg("Illegal requiremnt flag(s) requested");
+		log_dbg("Illegal requirement flag(s) requested");
 		goto err;
 	}
 
@@ -1587,13 +1601,13 @@ const char *LUKS2_get_cipher(struct luks2_hdr *hdr, int segment)
 		return NULL;
 
 	if (!json_object_object_get_ex(hdr->jobj, "segments", &jobj1))
-		return 0;
+		return NULL;
 
 	if (!json_object_object_get_ex(jobj1, buf, &jobj2))
-		return 0;
+		return NULL;
 
 	if (!json_object_object_get_ex(jobj2, "encryption", &jobj3))
-		return 0;
+		return NULL;
 
 	return json_object_get_string(jobj3);
 }
@@ -1607,16 +1621,16 @@ const char *LUKS2_get_integrity(struct luks2_hdr *hdr, int segment)
 		return NULL;
 
 	if (!json_object_object_get_ex(hdr->jobj, "segments", &jobj1))
-		return 0;
+		return NULL;
 
 	if (!json_object_object_get_ex(jobj1, buf, &jobj2))
-		return 0;
+		return NULL;
 
 	if (!json_object_object_get_ex(jobj2, "integrity", &jobj3))
-		return 0;
+		return NULL;
 
 	if (!json_object_object_get_ex(jobj3, "type", &jobj4))
-		return 0;
+		return NULL;
 
 	return json_object_get_string(jobj4);
 }
@@ -1788,6 +1802,7 @@ int LUKS2_activate(struct crypt_device *cd,
 					   &dmd.size);
 		if (r < 0) {
 			log_err(cd, "Cannot detect integrity device size.\n");
+			device_free(device);
 			dm_remove_device(cd, dm_int_name, 0);
 			return r;
 		}

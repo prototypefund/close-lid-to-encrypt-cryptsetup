@@ -5,7 +5,8 @@
 #
 # *** Description ***
 #
-# generate primary header with one area included within another one (in terms of 'offset' + 'length')
+# generate primary header with segment size set to UINT64_MAX - 511
+# (512 sector aligned value)
 #
 # secondary header is corrupted on purpose as well
 #
@@ -24,9 +25,8 @@ function prepare()
 
 function generate()
 {
-	# make area 7 being included in area 6
-	json_str=$(jq -c '.keyslots."7".area.offset = (.keyslots."6".area.offset | tonumber + 1 | tostring ) |
-	       .keyslots."7".area.size = ( .keyslots."6".area.size | tonumber - 1 | tostring)' $TMPDIR/json0)
+	# UINT64_MAX - 511 (so that it's sector aligned)
+	json_str=$(jq -c '.segments."0".size = "18446744073709551104"' $TMPDIR/json0)
 	test ${#json_str} -lt $((LUKS2_JSON_SIZE*512)) || exit 2
 
 	write_luks2_json "$json_str" $TMPDIR/json0
@@ -47,9 +47,7 @@ function check()
 	test "$str_res1" = "VACUUM" || exit 2
 
 	read_luks2_json0 $TGT_IMG $TMPDIR/json_res0
-	jq -c 'if (.keyslots."7".area.offset != (.keyslots."6".area.offset | tonumber + 1 | tostring)) or
-		  (.keyslots."7".area.size != (.keyslots."6".area.size | tonumber - 1 | tostring)) or
-		  (.keyslots."7".area.size | tonumber <= 0)
+	jq -c 'if .segments."0".size != "18446744073709551104"
 	       then error("Unexpected value in result json") else empty end' $TMPDIR/json_res0 || exit 5
 }
 

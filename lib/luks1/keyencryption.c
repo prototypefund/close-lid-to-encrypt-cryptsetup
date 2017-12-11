@@ -67,7 +67,7 @@ static int LUKS_endec_template(char *src, size_t srcLength,
 		}
 	};
 	int r, devfd = -1;
-	size_t bsize, alignment;
+	size_t bsize, keyslot_alignment, alignment;
 
 	log_dbg("Using dmcrypt to access keyslot area.");
 
@@ -76,7 +76,11 @@ static int LUKS_endec_template(char *src, size_t srcLength,
 	if (!bsize || !alignment)
 		return -EINVAL;
 
-	dmd.size = size_round_up(srcLength, bsize) / SECTOR_SIZE;
+	if (bsize > LUKS_ALIGN_KEYSLOTS)
+		keyslot_alignment = LUKS_ALIGN_KEYSLOTS;
+	else
+		keyslot_alignment = bsize;
+	dmd.size = size_round_up(srcLength, keyslot_alignment) / SECTOR_SIZE;
 
 	if (mode == O_RDONLY)
 		dmd.flags |= CRYPT_ACTIVATE_READONLY;
@@ -179,9 +183,9 @@ int LUKS_encrypt_to_storage(char *src, size_t srcLength,
 	if (devfd < 0)
 		goto out;
 
-	if (lseek(devfd, sector * SECTOR_SIZE, SEEK_SET) == -1 ||
-	    write_blockwise(devfd, device_block_size(device),
-			    device_alignment(device), src, srcLength) == -1)
+	if (write_lseek_blockwise(devfd, device_block_size(device),
+				  device_alignment(device), src, srcLength,
+				  sector * SECTOR_SIZE) < 0)
 		goto out;
 
 	r = 0;
@@ -235,9 +239,9 @@ int LUKS_decrypt_from_storage(char *dst, size_t dstLength,
 	if (devfd < 0)
 		goto bad;
 
-	if (lseek(devfd, sector * SECTOR_SIZE, SEEK_SET) == -1 ||
-	    read_blockwise(devfd, device_block_size(device),
-			   device_alignment(device), dst, dstLength) == -1)
+	if (read_lseek_blockwise(devfd, device_block_size(device),
+				 device_alignment(device), dst, dstLength,
+				 sector * SECTOR_SIZE) < 0)
 		goto bad;
 
 	close(devfd);

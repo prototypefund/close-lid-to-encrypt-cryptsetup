@@ -45,18 +45,21 @@ unsigned crypt_cpusonline(void)
 	return r < 0 ? 1 : r;
 }
 
-const char *uint64_to_str(char *buffer, size_t size, const uint64_t *val)
+uint64_t crypt_getphysmemory_kb(void)
 {
-	int r = snprintf(buffer, size, "%" PRIu64, *val);
-	if (r < 0) {
-		log_dbg("Failed to convert integer to string.");
-		*buffer = '\0';
-	} else if ((size_t)r >= size) {
-		log_dbg("Not enough space to store '%" PRIu64 "' to a string buffer.", *val);
-		*buffer = '\0';
-	}
+	long pagesize, phys_pages;
+	uint64_t phys_memory_kb;
 
-	return buffer;
+	pagesize = sysconf(_SC_PAGESIZE);
+	phys_pages = sysconf(_SC_PHYS_PAGES);
+
+	if (pagesize < 0 || phys_pages < 0)
+		return 0;
+
+	phys_memory_kb = pagesize / 1024;
+	phys_memory_kb *= phys_pages;
+
+	return phys_memory_kb;
 }
 
 ssize_t read_buffer(int fd, void *buf, size_t count)
@@ -421,7 +424,7 @@ int crypt_keyfile_read(struct crypt_device *cd,  const char *keyfile,
 		goto out_err;
 	}
 
-	/* If not requsted otherwise, we limit input to prevent memory exhaustion */
+	/* If not requested otherwise, we limit input to prevent memory exhaustion */
 	if (keyfile_size_max == 0) {
 		keyfile_size_max = DEFAULT_KEYFILE_SIZE_MAXKB * 1024 + 1;
 		unlimited_read = 1;

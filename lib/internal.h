@@ -57,8 +57,6 @@
 
 #define at_least(a, b) ({ __typeof__(a) __at_least = (a); (__at_least >= (b))?__at_least:(b); })
 
-#define CRYPT_DEFAULT_SEGMENT 0
-
 struct crypt_device;
 
 struct volume_key {
@@ -148,10 +146,9 @@ ssize_t read_lseek_blockwise(int fd, size_t bsize, size_t alignment, void *buf, 
 
 size_t crypt_getpagesize(void);
 unsigned crypt_cpusonline(void);
+uint64_t crypt_getphysmemory_kb(void);
 
 int init_crypto(struct crypt_device *ctx);
-
-const char *uint64_to_str(char *buffer, size_t size, const uint64_t *val);
 
 void logger(struct crypt_device *cd, int class, const char *file, int line, const char *format, ...) __attribute__ ((format (printf, 5, 6)));
 #define log_dbg(x...) logger(NULL, CRYPT_LOG_DEBUG, __FILE__, __LINE__, x)

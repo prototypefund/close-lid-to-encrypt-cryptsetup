@@ -141,6 +141,23 @@ static unsigned cpus_online(void)
 	return r;
 }
 
+static uint32_t adjusted_pbkdf_memory(void)
+{
+	long pagesize = sysconf(_SC_PAGESIZE);
+	long pages = sysconf(_SC_PHYS_PAGES);
+	uint64_t memory_kb;
+
+	if (pagesize <= 0 || pages <= 0)
+		return DEFAULT_LUKS2_MEMORY_KB;
+
+	memory_kb = pagesize / 1024 * pages / 2;
+
+	if (memory_kb < DEFAULT_LUKS2_MEMORY_KB)
+		return (uint32_t)memory_kb;
+
+	return DEFAULT_LUKS2_MEMORY_KB;
+}
+
 static unsigned _min(unsigned a, unsigned b)
 {
 	return a < b ? a : b;
@@ -367,7 +384,7 @@ static key_serial_t _kernel_key_by_segment(struct crypt_device *cd, int segment)
 {
 	char key_description[1024];
 
-	if (snprintf(key_description, sizeof(key_description), "cryptsetup:%s-%u", crypt_get_uuid(cd), segment) < 1)
+	if (snprintf(key_description, sizeof(key_description), "cryptsetup:%s-d%u", crypt_get_uuid(cd), segment) < 1)
 		return -1;
 
 	return request_key("logon", key_description, NULL, 0);
@@ -485,6 +502,9 @@ static void SuspendDevice(void)
 	}
 
 	OK_(suspend_status);
+#ifdef KERNEL_KEYRING
+	FAIL_(_volume_key_in_keyring(cd, 0), "");
+#endif
 	FAIL_(crypt_suspend(cd, CDEVICE_1), "already suspended");
 
 	FAIL_(crypt_resume_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, KEY1, strlen(KEY1)-1), "wrong key");
@@ -608,8 +628,8 @@ static void AddDeviceLuks2(void)
 	OK_(crypt_deactivate(cd, CDEVICE_1));
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_INACTIVE);
 	// restrict format only to empty context
-	FAIL_(crypt_format(cd, CRYPT_LUKS2, cipher, cipher_mode, NULL, key, key_size, &params), "Context is already formated");
-	FAIL_(crypt_format(cd, CRYPT_LUKS2, cipher, cipher_mode, NULL, key, key_size, NULL), "Context is already formated");
+	FAIL_(crypt_format(cd, CRYPT_LUKS2, cipher, cipher_mode, NULL, key, key_size, &params), "Context is already formatted");
+	FAIL_(crypt_format(cd, CRYPT_LUKS2, cipher, cipher_mode, NULL, key, key_size, NULL), "Context is already formatted");
 	// change data device to wrong one
 	OK_(crypt_set_data_device(cd, DMDIR L_DEVICE_0S));
 	FAIL_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0), "Device too small");
@@ -628,7 +648,7 @@ static void AddDeviceLuks2(void)
 	EQ_(crypt_activate_by_passphrase(cd, CDEVICE_1, 7, passphrase, strlen(passphrase) ,0), 7);
 	crypt_free(cd);
 	OK_(crypt_init_by_name_and_header(&cd, CDEVICE_1, DMDIR H_DEVICE));
-	FAIL_(crypt_format(cd, CRYPT_LUKS2, cipher, cipher_mode, NULL, key, key_size, &params), "Context is already formated");
+	FAIL_(crypt_format(cd, CRYPT_LUKS2, cipher, cipher_mode, NULL, key, key_size, &params), "Context is already formatted");
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 	crypt_free(cd);
 	// check active status without header
@@ -854,7 +874,7 @@ static void Luks2HeaderRestore(void)
 		.size = 0
 	};
 	struct crypt_params_luks1 luks1 = {
-		.data_alignment = 8192, // 4M offset to pass alignement test
+		.data_alignment = 8192, // 4M offset to pass alignment test
 	};
 	char key[128];
 
@@ -2125,7 +2145,7 @@ static void Pbkdf(void)
 	OK_(strcmp(pbkdf->type, DEFAULT_LUKS2_PBKDF));
 	OK_(strcmp(pbkdf->hash, DEFAULT_LUKS1_HASH));
 	EQ_(pbkdf->time_ms, DEFAULT_LUKS2_ITER_TIME);
-	EQ_(pbkdf->max_memory_kb, DEFAULT_LUKS2_MEMORY_KB);
+	EQ_(pbkdf->max_memory_kb, adjusted_pbkdf_memory());
 	EQ_(pbkdf->parallel_threads, _min(cpus_online(), DEFAULT_LUKS2_PARALLEL_THREADS));
 	// set and verify argon2 type
 	OK_(crypt_set_pbkdf_type(cd, &argon2));
@@ -2150,7 +2170,7 @@ static void Pbkdf(void)
 	OK_(strcmp(pbkdf->type, DEFAULT_LUKS2_PBKDF));
 	OK_(strcmp(pbkdf->hash, DEFAULT_LUKS1_HASH));
 	EQ_(pbkdf->time_ms, DEFAULT_LUKS2_ITER_TIME);
-	EQ_(pbkdf->max_memory_kb, DEFAULT_LUKS2_MEMORY_KB);
+	EQ_(pbkdf->max_memory_kb, adjusted_pbkdf_memory());
 	EQ_(pbkdf->parallel_threads, _min(cpus_online(), DEFAULT_LUKS2_PARALLEL_THREADS));
 	// try to pass illegal values
 	argon2.parallel_threads = 0;
@@ -2175,21 +2195,21 @@ static void Pbkdf(void)
 	// bad.hash = "hamster_hash";
 	// FAIL_(crypt_set_pbkdf_type(cd, &pbkdf2), "Unknown hash member");
 	crypt_free(cd);
-	// test whether crypt_get_pbkdf_type() behaves accordinglt after second crypt_load() call
+	// test whether crypt_get_pbkdf_type() behaves accordingly after second crypt_load() call
 	OK_(crypt_init(&cd, DEVICE_1));
 	OK_(crypt_load(cd, CRYPT_LUKS, NULL));
 	NOTNULL_(pbkdf = crypt_get_pbkdf_type(cd));
 	OK_(strcmp(pbkdf->type, DEFAULT_LUKS2_PBKDF));
 	OK_(strcmp(pbkdf->hash, DEFAULT_LUKS1_HASH));
 	EQ_(pbkdf->time_ms, DEFAULT_LUKS2_ITER_TIME);
-	EQ_(pbkdf->max_memory_kb, DEFAULT_LUKS2_MEMORY_KB);
+	EQ_(pbkdf->max_memory_kb, adjusted_pbkdf_memory());
 	EQ_(pbkdf->parallel_threads, _min(cpus_online(), DEFAULT_LUKS2_PARALLEL_THREADS));
 	crypt_set_iteration_time(cd, 1);
 	OK_(crypt_load(cd, CRYPT_LUKS, NULL));
 	OK_(strcmp(pbkdf->type, DEFAULT_LUKS2_PBKDF));
 	OK_(strcmp(pbkdf->hash, DEFAULT_LUKS1_HASH));
 	EQ_(pbkdf->time_ms, 1);
-	EQ_(pbkdf->max_memory_kb, DEFAULT_LUKS2_MEMORY_KB);
+	EQ_(pbkdf->max_memory_kb, adjusted_pbkdf_memory());
 	EQ_(pbkdf->parallel_threads, _min(cpus_online(), DEFAULT_LUKS2_PARALLEL_THREADS));
 	crypt_free(cd);
 
@@ -2367,7 +2387,7 @@ static void Luks2Requirements(void)
 	OK_(crypt_set_pbkdf_type(cd, &pbkdf2));
 	NOTNULL_(crypt_get_pbkdf_type(cd));
 
-	/* crypt_set_itertion_time (unrestricted) */
+	/* crypt_set_iteration_time (unrestricted) */
 	crypt_set_iteration_time(cd, 1);
 	pbkdf = crypt_get_pbkdf_type(cd);
 	NOTNULL_(pbkdf);
@@ -2504,7 +2524,7 @@ static void Luks2Requirements(void)
 	remove(BACKUP_FILE);
 	OK_(crypt_header_backup(cd, CRYPT_LUKS, BACKUP_FILE));
 
-	/* crypt_header_restore (restricted, do not drop the test untill we have safe option) */
+	/* crypt_header_restore (restricted, do not drop the test until we have safe option) */
 	FAIL_((r = crypt_header_restore(cd, CRYPT_LUKS2, BACKUP_FILE)), "Unmet requirements detected");
 	EQ_(r, -ETXTBSY);
 	remove(BACKUP_FILE);
@@ -2584,7 +2604,7 @@ static void Luks2Requirements(void)
 	OK_(crypt_init_by_name(&cd, CDEVICE_1));
 	OK_(crypt_suspend(cd, CDEVICE_1));
 
-	/* crypt_header_restore (restricted, do not drop the test untill we have safe option) */
+	/* crypt_header_restore (restricted, do not drop the test until we have safe option) */
 	/* refuse to overwrite header w/ backup including requirements */
 	FAIL_((r = crypt_header_restore(cd, CRYPT_LUKS2, BACKUP_FILE)), "Unmet requirements detected");
 	EQ_(r, -ETXTBSY);

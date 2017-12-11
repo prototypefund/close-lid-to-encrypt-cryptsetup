@@ -73,10 +73,9 @@ static int luks2_encrypt_to_storage(char *src, size_t srcLength,
 
 	devfd = device_open_locked(device, O_RDWR);
 	if (devfd >= 0) {
-		if (lseek(devfd, sector * SECTOR_SIZE, SEEK_SET) == -1 ||
-			write_blockwise(devfd, device_block_size(device),
-					device_alignment(device), src,
-					srcLength) == -1)
+		if (write_lseek_blockwise(devfd, device_block_size(device),
+					  device_alignment(device), src,
+					  srcLength, sector * SECTOR_SIZE) < 0)
 			r = -EIO;
 		else
 			r = 0;
@@ -132,9 +131,9 @@ static int luks2_decrypt_from_storage(char *dst, size_t dstLength,
 
 	devfd = device_open_locked(device, O_RDONLY);
 	if (devfd >= 0) {
-		if (lseek(devfd, sector * SECTOR_SIZE, SEEK_SET) == -1 ||
-			read_blockwise(devfd, device_block_size(device),
-				       device_alignment(device), dst, dstLength) == -1)
+		if (read_lseek_blockwise(devfd, device_block_size(device),
+					 device_alignment(device), dst,
+					 dstLength, sector * SECTOR_SIZE) < 0)
 			r = -EIO;
 		else
 			r = 0;
@@ -381,7 +380,6 @@ int luks2_keyslot_alloc(struct crypt_device *cd,
 {
 	struct luks2_hdr *hdr;
 	const struct crypt_pbkdf_type *pbkdf;
-	char area_offset_string[24], area_length_string[24];
 	char cipher[2 * MAX_CIPHER_LEN + 1], num[16];
 	uint64_t area_offset, area_length;
 	json_object *jobj_keyslots, *jobj_keyslot, *jobj_kdf, *jobj_af, *jobj_area;
@@ -463,10 +461,8 @@ int luks2_keyslot_alloc(struct crypt_device *cd,
 
 	json_object_object_add(jobj_area, "encryption", json_object_new_string(cipher));
 	json_object_object_add(jobj_area, "key_size", json_object_new_int(keyslot_key_len));
-	uint64_to_str(area_offset_string, sizeof(area_offset_string), &area_offset);
-	json_object_object_add(jobj_area, "offset", json_object_new_string(area_offset_string));
-	uint64_to_str(area_length_string, sizeof(area_length_string), &area_length);
-	json_object_object_add(jobj_area, "size", json_object_new_string(area_length_string));
+	json_object_object_add(jobj_area, "offset", json_object_new_uint64(area_offset));
+	json_object_object_add(jobj_area, "size", json_object_new_uint64(area_length));
 	json_object_object_add(jobj_keyslot, "area", jobj_area);
 
 	snprintf(num, sizeof(num), "%d", keyslot);
@@ -579,7 +575,7 @@ static int luks2_keyslot_dump(struct crypt_device *cd, int keyslot)
 		log_std(cd, "\tIterations: %" PRIu64 "\n", json_object_get_uint64(jobj1));
 	} else {
 		json_object_object_get_ex(jobj_kdf, "time", &jobj1);
-		log_std(cd, "\tTime:       %" PRIu64 "\n", json_object_get_int64(jobj1));
+		log_std(cd, "\tTime cost:  %" PRIu64 "\n", json_object_get_int64(jobj1));
 
 		json_object_object_get_ex(jobj_kdf, "memory", &jobj1);
 		log_std(cd, "\tMemory:     %" PRIu64 "\n", json_object_get_int64(jobj1));
