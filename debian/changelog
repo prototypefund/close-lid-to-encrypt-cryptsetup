@@ -5,6 +5,7 @@ cryptsetup (2:2.0.0-1) UNRELEASED; urgency=low
     care of by the cryptdisks-early init file.
   * Remove debian/patches/Use-system-libargon2.patch (applied upstream).
   * debian/README.{source,gbp.conf}: Upgrade to latest upstream conventions.
+  * debian/control: Bump Standards-Version to 4.1.2 (no changes necessary).
 
  -- Guilhem Moulin <guilhem@debian.org>  Mon, 11 Dec 2017 13:32:41 +0100
 
