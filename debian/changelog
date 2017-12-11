@@ -4,6 +4,7 @@ cryptsetup (2:2.0.0-1) UNRELEASED; urgency=low
     LUKS2 locking directory /run/lock/cryptsetup.  For sysVinit, this is taken
     care of by the cryptdisks-early init file.
   * Remove debian/patches/Use-system-libargon2.patch (applied upstream).
+  * debian/README.{source,gbp.conf}: Upgrade to latest upstream conventions.
 
  -- Guilhem Moulin <guilhem@debian.org>  Mon, 11 Dec 2017 13:32:41 +0100
 
