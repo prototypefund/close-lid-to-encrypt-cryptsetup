@@ -30,6 +30,8 @@ Importing a new upstream release
 
            TAG="v$VERSION"
 
+       This convention may change, so double-check with git tag.
+
     3. Validate the gpg signature for this release tag:
 
            git verify-tag "$TAG"
