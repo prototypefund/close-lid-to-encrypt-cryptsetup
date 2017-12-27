@@ -7,6 +7,8 @@ cryptsetup (2:2.0.0-1) unstable; urgency=low
   * Remove debian/patches/Use-system-libargon2.patch (applied upstream).
   * debian/README.{source,gbp.conf}: Upgrade to latest upstream conventions.
   * debian/control: Bump Standards-Version to 4.1.2 (no changes necessary).
+  * debian/rules: Fix symlink target of libcryptsetup.so in libcryptsetup-dev
+    package.  Thanks to Alan Fung for the report and patch.  (Closes: #885435.)
 
   [ Jonas Meurer ]
   * debian/initramfs/cryptopensc-*: Install required libs and and config files

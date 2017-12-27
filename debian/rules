@@ -114,7 +114,7 @@ install-stamp: build-stamp
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/$(DEB_HOST_MULTIARCH)/
 	mkdir -p $(CURDIR)/debian/cryptsetup-bin/usr/lib/tmpfiles.d
 	install -m0644 ./scripts/cryptsetup.conf $(CURDIR)/debian/cryptsetup-bin/usr/lib/tmpfiles.d
-	dh_link -plibcryptsetup-dev lib/$(DEB_HOST_MULTIARCH)/$$(basename $$(readlink debian/libcryptsetup12/lib/$(DEB_HOST_MULTIARCH)/libcryptsetup.so.4)) usr/lib/$(DEB_HOST_MULTIARCH)/libcryptsetup.so
+	dh_link -plibcryptsetup-dev lib/$(DEB_HOST_MULTIARCH)/$$(basename $$(readlink debian/libcryptsetup12/lib/$(DEB_HOST_MULTIARCH)/libcryptsetup.so.12)) usr/lib/$(DEB_HOST_MULTIARCH)/libcryptsetup.so
 
 	# Remove libraries from cryptsetup package, they're shiped in seperate library packages
 	rm -rf $(CURDIR)/debian/cryptsetup-bin/lib
