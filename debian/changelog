@@ -19,7 +19,7 @@ cryptsetup (2:2.0.0-1) unstable; urgency=low
     pcscd and use correct path to pcscd. Thanks to Martijn van de Streek for
     bugreport and patch. (Closes: #880750)
 
- -- Jonas Meurer <jonas@freesources.org>  Sun, 17 Dec 2017 09:32:54 +0100
+ -- Guilhem Moulin <guilhem@debian.org>  Mon, 22 Jan 2018 00:25:52 +0100
 
 cryptsetup (2:2.0.0~rc1-1) experimental; urgency=low
 
