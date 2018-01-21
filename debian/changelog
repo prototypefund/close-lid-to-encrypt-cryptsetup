@@ -14,9 +14,9 @@ cryptsetup (2:2.0.0-1) unstable; urgency=low
     Liehne for the report and patch.  (Closes: #872342.)
 
   [ Jonas Meurer ]
-  * debian/initramfs/cryptopensc-*: Install required libs and and config files
-    for pcscd and use correct path to pcscd. Thanks to Martijn van de Streek
-    for bugreport and patch. (Closes: #880750)
+  * debian/initramfs/cryptopensc-*: Install required libs and config files for
+    pcscd and use correct path to pcscd. Thanks to Martijn van de Streek for
+    bugreport and patch. (Closes: #880750)
 
  -- Jonas Meurer <jonas@freesources.org>  Sun, 17 Dec 2017 09:32:54 +0100
 
