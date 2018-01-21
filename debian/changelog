@@ -6,7 +6,8 @@ cryptsetup (2:2.0.0-1) unstable; urgency=low
     care of by the cryptdisks-early init file.
   * Remove debian/patches/Use-system-libargon2.patch (applied upstream).
   * debian/README.{source,gbp.conf}: Upgrade to latest upstream conventions.
-  * debian/control: Bump Standards-Version to 4.1.2 (no changes necessary).
+  * debian/control: Bump Standards-Version to 4.1.3 (remove verbatim copy of
+    CC0-1.0 license from debian/copyright).
   * debian/rules: Fix symlink target of libcryptsetup.so in libcryptsetup-dev
     package.  Thanks to Alan Fung for the report and patch.  (Closes: #885435.)
   * debian/initramfs/cryptroot-{hook,script}: Add support for 'skip' and
