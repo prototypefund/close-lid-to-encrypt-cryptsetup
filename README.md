@@ -42,19 +42,16 @@ Download
 --------
 All release tarballs and release notes are hosted on [kernel.org](https://www.kernel.org/pub/linux/utils/cryptsetup/).
 
-**The latest cryptsetup TESTING version is 2.0.0-rc1**
-  * [cryptsetup-2.0.0-rc1.tar.xz](https://www.kernel.org/pub/linux/utils/cryptsetup/v2.0/cryptsetup-2.0.0-rc1.tar.xz)
-  * Signature [cryptsetup-2.0.0-rc1.tar.sign](https://www.kernel.org/pub/linux/utils/cryptsetup/v2.0/cryptsetup-2.0.0-rc1.tar.sign)
+**The latest cryptsetup version is 2.0.0**
+  * [cryptsetup-2.0.0.tar.xz](https://www.kernel.org/pub/linux/utils/cryptsetup/v2.0/cryptsetup-2.0.0.tar.xz)
+  * Signature [cryptsetup-2.0.0.tar.sign](https://www.kernel.org/pub/linux/utils/cryptsetup/v2.0/cryptsetup-2.0.0.tar.sign)
     _(You need to decompress file first to check signature.)_
-  * [Cryptsetup 2.0.0-rc1 Release Notes](https://www.kernel.org/pub/linux/utils/cryptsetup/v2.0/v2.0.0-rc1-ReleaseNotes).
-
-**The latest cryptsetup version is 1.7.5**
-  * [cryptsetup-1.7.5.tar.xz](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.5.tar.xz)
-  * Signature [cryptsetup-1.7.5.tar.sign](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.5.tar.sign)
-    _(You need to decompress file first to check signature.)_
-  * [Cryptsetup 1.7.5 Release Notes](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/v1.7.5-ReleaseNotes).
+  * [Cryptsetup 2.0.0 Release Notes](https://www.kernel.org/pub/linux/utils/cryptsetup/v2.0/v2.0.0-ReleaseNotes).
 
 Previous versions
+ * [Version 1.7.5](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.5.tar.xz) -
+   [Signature](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.5.tar.sign) -
+   [Release Notes](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/v1.7.5-ReleaseNotes).
  * [Version 1.7.4](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.4.tar.xz) -
    [Signature](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/cryptsetup-1.7.4.tar.sign) -
    [Release Notes](https://www.kernel.org/pub/linux/utils/cryptsetup/v1.7/v1.7.4-ReleaseNotes).
@@ -90,4 +87,4 @@ For cryptsetup and LUKS related questions, please use the dm-crypt mailing list,
 If you want to subscribe just send an empty mail to [dm-crypt-subscribe@saout.de](mailto:dm-crypt-subscribe@saout.de).
 
 You can also browse [list archive](http://www.saout.de/pipermail/dm-crypt/) or read it through
-[web interface](http://news.gmane.org/gmane.linux.kernel.device-mapper.dm-crypt).
+[web interface](https://marc.info/?l=dm-crypt).

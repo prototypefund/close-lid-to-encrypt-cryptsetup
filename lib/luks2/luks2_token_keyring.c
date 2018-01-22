@@ -1,8 +1,8 @@
 /*
  * LUKS - Linux Unified Key Setup v2, kernel keyring token
  *
- * Copyright (C) 2016-2017, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2016-2017, Ondrej Kozina. All rights reserved.
+ * Copyright (C) 2016-2018, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2016-2018, Ondrej Kozina. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,8 +41,7 @@ static int keyring_open(struct crypt_device *cd,
 
 	json_object_object_get_ex(jobj_token, "key_description", &jobj_key);
 
-	/* TODO: if r == -ENOKEY then instantiate the key? */
-	if (keyring_get_passphrase(json_object_get_string(jobj_key), buffer, buffer_len))
+	if (crypt_get_passphrase_from_keyring(json_object_get_string(jobj_key), buffer, buffer_len))
 		return -EINVAL;
 
 	return 0;

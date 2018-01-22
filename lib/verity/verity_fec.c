@@ -2,7 +2,7 @@
  * dm-verity Forward Error Correction (FEC) support
  *
  * Copyright (C) 2015, Google, Inc. All rights reserved.
- * Copyright (C) 2017, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2017-2018, Red Hat, Inc. All rights reserved.
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -51,8 +51,8 @@ struct fec_input_device {
 };
 
 struct fec_context {
-	int rsn;
-	int roots;
+	uint32_t rsn;
+	uint32_t roots;
 	uint64_t size;
 	uint64_t blocks;
 	uint64_t rounds;
@@ -110,7 +110,8 @@ static int FEC_encode_inputs(struct crypt_device *cd,
 			     struct fec_input_device *inputs,
 			     size_t ninputs, int fd)
 {
-	int i, r = 0;
+	int r = 0;
+	unsigned int i;
 	struct fec_context ctx;
 	uint32_t b;
 	uint64_t n;
@@ -141,7 +142,7 @@ static int FEC_encode_inputs(struct crypt_device *cd,
 	ctx.blocks = FEC_div_round_up(ctx.size, ctx.block_size);
 	ctx.rounds = FEC_div_round_up(ctx.blocks, ctx.rsn);
 
-	buf = malloc(ctx.block_size * ctx.rsn);
+	buf = malloc((size_t)ctx.block_size * ctx.rsn);
 	if (!buf) {
 		log_err(cd, _("Failed to allocate buffer.\n"));
 		r = -ENOMEM;

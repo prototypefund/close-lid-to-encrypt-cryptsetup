@@ -1,8 +1,8 @@
 /*
  * LUKS - Linux Unified Key Setup v2
  *
- * Copyright (C) 2015-2017, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2015-2017, Milan Broz. All rights reserved.
+ * Copyright (C) 2015-2018, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2015-2018, Milan Broz. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,7 @@
 #ifndef _CRYPTSETUP_LUKS2_ONDISK_H
 #define _CRYPTSETUP_LUKS2_ONDISK_H
 
-#include <stdint.h>
+#include "libcryptsetup.h"
 
 #define LUKS2_MAGIC_1ST "LUKS\xba\xbe"
 #define LUKS2_MAGIC_2ND "SKUL\xba\xbe"
@@ -42,8 +42,6 @@
 #define LUKS2_TOKEN_KEYRING LUKS2_BUILTIN_TOKEN_PREFIX "keyring"
 
 #define LUKS2_DIGEST_MAX 8
-
-typedef int digests_t[LUKS2_DIGEST_MAX];
 
 #define CRYPT_ANY_SEGMENT -1
 #define CRYPT_DEFAULT_SEGMENT 0
@@ -95,6 +93,25 @@ struct luks2_hdr {
 	uint8_t		salt2[LUKS2_SALT_L];
 	char		uuid[LUKS2_UUID_L];
 	json_object	*jobj;
+};
+
+struct luks2_keyslot_params {
+	enum { LUKS2_KEYSLOT_AF_LUKS1 = 0 } af_type;
+	enum { LUKS2_KEYSLOT_AREA_RAW = 0 } area_type;
+
+	union {
+	struct {
+		char hash[LUKS2_CHECKSUM_ALG_L]; // or include luks.h
+		unsigned int stripes;
+	} luks1;
+	} af;
+
+	union {
+	struct {
+		char encryption[65]; // or include utils_crypt.h
+		size_t key_size;
+	} raw;
+	} area;
 };
 
 /*
@@ -153,7 +170,8 @@ int LUKS2_keyslot_store(struct crypt_device *cd,
 	int keyslot,
 	const char *password,
 	size_t password_len,
-	const struct volume_key *vk);
+	const struct volume_key *vk,
+	const struct luks2_keyslot_params *params);
 
 int LUKS2_keyslot_wipe(struct crypt_device *cd,
 	struct luks2_hdr *hdr,
@@ -227,16 +245,14 @@ int LUKS2_token_open_and_activate_any(struct crypt_device *cd,
 /*
  * Generic LUKS2 digest
  */
-int LUKS2_digests_by_segment(struct crypt_device *cd,
+int LUKS2_digest_by_segment(struct crypt_device *cd,
 	struct luks2_hdr *hdr,
-	int segment,
-	digests_t digests);
+	int segment);
 
-int LUKS2_digests_verify_by_segment(struct crypt_device *cd,
+int LUKS2_digest_verify_by_segment(struct crypt_device *cd,
 	struct luks2_hdr *hdr,
 	int segment,
-	const struct volume_key *vk,
-	digests_t digests);
+	const struct volume_key *vk);
 
 void LUKS2_digests_erase_unused(struct crypt_device *cd,
 	struct luks2_hdr *hdr);
@@ -248,18 +264,6 @@ int LUKS2_digest_verify(struct crypt_device *cd,
 
 int LUKS2_digest_dump(struct crypt_device *cd,
 	int digest);
-
-int LUKS2_digest_json_set(struct crypt_device *cd,
-	struct luks2_hdr *hdr,
-	int digest,
-	const char *json);
-
-int LUKS2_digests_assign(struct crypt_device *cd,
-	struct luks2_hdr *hdr,
-	int keyslot,
-	digests_t digests,
-	int assign,
-	int commit);
 
 int LUKS2_digest_assign(struct crypt_device *cd,
 	struct luks2_hdr *hdr,
@@ -275,10 +279,9 @@ int LUKS2_digest_segment_assign(struct crypt_device *cd,
 	int assign,
 	int commit);
 
-int LUKS2_digests_by_keyslot(struct crypt_device *cd,
+int LUKS2_digest_by_keyslot(struct crypt_device *cd,
 	struct luks2_hdr *hdr,
-	int keyslot,
-	digests_t digests);
+	int keyslot);
 
 int LUKS2_digest_create(struct crypt_device *cd,
 	const char *type,
@@ -316,6 +319,10 @@ uint64_t LUKS2_get_data_offset(struct luks2_hdr *hdr);
 int LUKS2_get_sector_size(struct luks2_hdr *hdr);
 const char *LUKS2_get_cipher(struct luks2_hdr *hdr, int segment);
 const char *LUKS2_get_integrity(struct luks2_hdr *hdr, int segment);
+int LUKS2_keyslot_params_default(struct crypt_device *cd, struct luks2_hdr *hdr,
+	size_t key_size, struct luks2_keyslot_params *params);
+int LUKS2_get_keyslot_params(struct luks2_hdr *hdr, int keyslot,
+	struct luks2_keyslot_params *params);
 int LUKS2_get_volume_key_size(struct luks2_hdr *hdr, int segment);
 int LUKS2_get_keyslot_key_size(struct luks2_hdr *hdr, int keyslot);
 int LUKS2_keyslot_find_empty(struct luks2_hdr *hdr, const char *type);
@@ -344,6 +351,8 @@ int crypt_use_keyring_for_vk(const struct crypt_device *cd);
 int crypt_volume_key_load_in_keyring(struct crypt_device *cd, struct volume_key *vk);
 void crypt_drop_keyring_key(struct crypt_device *cd, const char *key_description);
 const char *crypt_get_key_description_by_keyslot(struct crypt_device *cd, int keyslot);
+int crypt_get_passphrase_from_keyring(const char *key_description,
+				      char **passphrase, size_t *passphrase_len);
 
 struct luks_phdr;
 int LUKS2_luks1_to_luks2(struct crypt_device *cd,

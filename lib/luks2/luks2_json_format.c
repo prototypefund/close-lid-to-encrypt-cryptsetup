@@ -1,8 +1,8 @@
 /*
  * LUKS - Linux Unified Key Setup v2, LUKS2 header format code
  *
- * Copyright (C) 2015-2017, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2015-2017, Milan Broz. All rights reserved.
+ * Copyright (C) 2015-2018, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2015-2018, Milan Broz. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -186,7 +186,7 @@ int LUKS2_generate_hdr(
 	else {
 		//FIXME
 		//offset = size_round_up(areas[7].offset + areas[7].length, alignPayload * SECTOR_SIZE);
-		offset = size_round_up(LUKS2_HDR_DEFAULT_LEN, alignPayload * sector_size);
+		offset = size_round_up(LUKS2_HDR_DEFAULT_LEN, (size_t)alignPayload * sector_size);
 		offset += alignOffset;
 	}
 

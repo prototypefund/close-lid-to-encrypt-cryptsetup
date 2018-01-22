@@ -3,8 +3,8 @@
  *
  * Copyright (C) 2004, Jana Saout <jana@saout.de>
  * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
- * Copyright (C) 2009-2017, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2009-2017, Milan Broz
+ * Copyright (C) 2009-2018, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2009-2018, Milan Broz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -52,7 +52,7 @@
 #define MAX_ERROR_LENGTH	512
 
 #define MAX_PBKDF_THREADS	4
-#define MAX_PBKDF_MEMORY	1024*1024 /* 1GiB */
+#define MAX_PBKDF_MEMORY	4*1024*1024 /* 4GiB */
 #define MIN_PBKDF2_ITERATIONS	1000 /* recommendation in NIST SP 800-132 */
 
 #define at_least(a, b) ({ __typeof__(a) __at_least = (a); (__at_least >= (b))?__at_least:(b); })
@@ -196,5 +196,12 @@ int crypt_get_integrity_tag_size(struct crypt_device *cd);
 
 int crypt_key_in_keyring(struct crypt_device *cd);
 void crypt_set_key_in_keyring(struct crypt_device *cd, unsigned key_in_keyring);
+
+static inline uint64_t version(uint16_t major, uint16_t minor, uint16_t patch, uint16_t release)
+{
+	return (uint64_t)release | ((uint64_t)patch << 16) | ((uint64_t)minor << 32) | ((uint64_t)major << 48);
+}
+
+int kernel_version(uint64_t *kversion);
 
 #endif /* INTERNAL_H */

@@ -2,8 +2,8 @@
  * utils_crypt - cipher utilities for cryptsetup
  *
  * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
- * Copyright (C) 2009-2017, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2009-2017, Milan Broz
+ * Copyright (C) 2009-2018, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2009-2018, Milan Broz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,7 +37,7 @@ int crypt_parse_name_and_mode(const char *s, char *cipher, int *key_nums,
 	if (sscanf(s, "%" MAX_CIPHER_LEN_STR "[^-]-%" MAX_CIPHER_LEN_STR "s",
 		   cipher, cipher_mode) == 2) {
 		if (!strcmp(cipher_mode, "plain"))
-			strncpy(cipher_mode, "cbc-plain", 10);
+			strcpy(cipher_mode, "cbc-plain");
 		if (key_nums) {
 			char *tmp = strchr(cipher, ':');
 			*key_nums = tmp ? atoi(++tmp) : 1;
@@ -49,16 +49,16 @@ int crypt_parse_name_and_mode(const char *s, char *cipher, int *key_nums,
 	}
 
 	/* Short version for "empty" cipher */
-	if (!strcmp(s, "null")) {
-		strncpy(cipher, "cipher_null", MAX_CIPHER_LEN);
-		strncpy(cipher_mode, "ecb", 9);
+	if (!strcmp(s, "null") || !strcmp(s, "cipher_null")) {
+		strcpy(cipher, "cipher_null");
+		strcpy(cipher_mode, "ecb");
 		if (key_nums)
 			*key_nums = 0;
 		return 0;
 	}
 
 	if (sscanf(s, "%" MAX_CIPHER_LEN_STR "[^-]", cipher) == 1) {
-		strncpy(cipher_mode, "cbc-plain", 10);
+		strcpy(cipher_mode, "cbc-plain");
 		if (key_nums)
 			*key_nums = 1;
 		return 0;

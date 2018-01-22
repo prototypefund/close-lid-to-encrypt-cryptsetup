@@ -1,9 +1,9 @@
 AC_PREREQ([2.67])
-AC_INIT([cryptsetup],[2.0.0])
+AC_INIT([cryptsetup],[2.0.1])
 
 dnl library version from <major>.<minor>.<release>[-<suffix>]
 LIBCRYPTSETUP_VERSION=$(echo $PACKAGE_VERSION | cut -f1 -d-)
-LIBCRYPTSETUP_VERSION_INFO=12:0:0
+LIBCRYPTSETUP_VERSION_INFO=13:0:1
 
 AM_SILENT_RULES([yes])
 AC_CONFIG_SRCDIR(src/cryptsetup.c)
@@ -403,6 +403,7 @@ AC_ARG_ENABLE([libargon2], AS_HELP_STRING([--enable-libargon2],
 if test x$enable_libargon2 = xyes ; then
 	AC_CHECK_HEADERS(argon2.h,,
 		[AC_MSG_ERROR([You need libargon2 development library installed.])])
+	AC_CHECK_DECL(Argon2_id,,[AC_MSG_ERROR([You need more recent Argon2 library with support for Argon2id.])], [#include <argon2.h>])
 	PKG_CHECK_MODULES([LIBARGON2], [libargon2],,[LIBARGON2_LIBS="-largon2"])
 	enable_internal_argon2=no
 else
@@ -560,8 +561,8 @@ test "x$with_tmpfilesdir" == "xno" || {
 AM_CONDITIONAL(CRYPTSETUP_TMPFILE, test -n "$DEFAULT_TMPFILESDIR")
 
 
-CS_STR_WITH([luks2-lock-path], [path to directory for LUKSv2 locks], [/run/lock/cryptsetup])
-test -z "$with_luks2_lock_path" && with_luks2_lock_path=/run/lock/cryptsetup
+CS_STR_WITH([luks2-lock-path], [path to directory for LUKSv2 locks], [/run/cryptsetup])
+test -z "$with_luks2_lock_path" && with_luks2_lock_path=/run/cryptsetup
 test "${with_luks2_lock_path:0:1}" = "/" || AC_MSG_ERROR([--with-luks2-lock-path argument must be an absolute path.])
 DEFAULT_LUKS2_LOCK_PATH=$with_luks2_lock_path
 AC_SUBST(DEFAULT_LUKS2_LOCK_PATH)

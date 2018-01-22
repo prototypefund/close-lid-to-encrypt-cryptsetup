@@ -1,8 +1,8 @@
 /*
  * LUKS - Linux Unified Key Setup v2, keyslot handling
  *
- * Copyright (C) 2015-2017, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2015-2017, Milan Broz. All rights reserved.
+ * Copyright (C) 2015-2018, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2015-2018, Milan Broz. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -82,75 +82,23 @@ int LUKS2_keyslot_find_empty(struct luks2_hdr *hdr, const char *type)
 	return -EINVAL;
 }
 
-static int digests_by_segment(json_object *jobj_digests, const char *segment,
-			      digests_t digests)
-{
-	json_object *jobj_segs;
-	int i = 0;
-
-	json_object_object_foreach(jobj_digests, dig, val) {
-		json_object_object_get_ex(val, "segments", &jobj_segs);
-		if (LUKS2_array_jobj(jobj_segs, segment))
-			digests[i++] = atoi(dig);
-	}
-
-	if (i < LUKS2_DIGEST_MAX)
-		digests[i] = -1;
-
-	return i ? 0 : -ENOENT;
-}
-
-static int is_in(const int super[], int super_size, int elem)
-{
-	int i;
-
-	for (i = 0; i < super_size && super[i] != -1; i++)
-		if (super[i] == elem)
-			return 1;
-	return 0;
-}
-
-static int is_subset(const int super[], const int sub[], int super_size)
-{
-	int i;
-
-	for (i = 0; i < super_size && sub[i] != -1; i++)
-		if (!is_in(super, super_size, sub[i]))
-			return 0;
-
-	return 1;
-}
-
 int LUKS2_keyslot_for_segment(struct luks2_hdr *hdr, int keyslot, int segment)
 {
-	char keyslot_name[16], segment_name[16];
-	digests_t keyslot_digests, segment_digests;
-	json_object *jobj_digests;
-	int r = -ENOENT;
+	int keyslot_digest, segment_digest;
 
 	/* no need to check anything */
 	if (segment == CRYPT_ANY_SEGMENT)
 		return 0;
 
-	if (snprintf(segment_name, sizeof(segment_name), "%u", segment) < 1 ||
-	    snprintf(keyslot_name, sizeof(keyslot_name), "%u", keyslot) < 1)
+	keyslot_digest = LUKS2_digest_by_keyslot(NULL, hdr, keyslot);
+	if (keyslot_digest < 0)
 		return -EINVAL;
 
-	/* empty set is subset of any set and it'd be wrong */
-	json_object_object_get_ex(hdr->jobj, "digests", &jobj_digests);
-	r = LUKS2_digests_by_keyslot(NULL, hdr, keyslot, keyslot_digests);
-	if (r)
-		return r;
+	segment_digest = LUKS2_digest_by_segment(NULL, hdr, segment);
+	if (segment_digest < 0)
+		return -EINVAL;
 
-	/* empty set can't be superset of non-empty one */
-	if (digests_by_segment(jobj_digests, segment_name, segment_digests))
-		return r;
-
-	/*
-	 * keyslot may activate segment if set of digests for keyslot
-	 * is actually subset of set of digests for segment
-	 */
-	return is_subset(segment_digests, keyslot_digests, LUKS2_DIGEST_MAX) ? 0 : -ENOENT;
+	return segment_digest == keyslot_digest ? 0 : -ENOENT;
 }
 
 int LUKS2_keyslot_active_count(struct luks2_hdr *hdr, int segment)
@@ -160,7 +108,6 @@ int LUKS2_keyslot_active_count(struct luks2_hdr *hdr, int segment)
 
 	json_object_object_get_ex(hdr->jobj, "keyslots", &jobj_keyslots);
 
-	/* keyslot digests must be subset of segment digests */
 	json_object_object_foreach(jobj_keyslots, slot, val) {
 		UNUSED(val);
 		if (!LUKS2_keyslot_for_segment(hdr, atoi(slot), segment))
@@ -168,6 +115,50 @@ int LUKS2_keyslot_active_count(struct luks2_hdr *hdr, int segment)
 	}
 
 	return num;
+}
+
+int LUKS2_keyslot_params_default(struct crypt_device *cd, struct luks2_hdr *hdr,
+	size_t key_size, struct luks2_keyslot_params *params)
+{
+	int r, integrity_key_size = crypt_get_integrity_key_size(cd);
+	const struct crypt_pbkdf_type *pbkdf = crypt_get_pbkdf_type(cd);
+
+	if (!hdr || !pbkdf || !params)
+		return -EINVAL;
+
+	params->af_type   = LUKS2_KEYSLOT_AF_LUKS1;
+	params->area_type = LUKS2_KEYSLOT_AREA_RAW;
+
+	/* set keyslot AF parameters */
+	/* currently we use hash for AF from pbkdf settings */
+	r = snprintf(params->af.luks1.hash, sizeof(params->af.luks1.hash),
+		     "%s", pbkdf->hash);
+	if (r < 0 || (size_t)r >= sizeof(params->af.luks1.hash))
+		return -EINVAL;
+
+	params->af.luks1.stripes = 4000;
+
+	/* set keyslot area encryption parameters */
+	/* short circuit authenticated encryption hardcoded defaults */
+	if (crypt_get_integrity_tag_size(cd) || key_size == 0) {
+		// FIXME: fixed cipher and key size can be wrong
+		snprintf(params->area.raw.encryption, sizeof(params->area.raw.encryption),
+			 "aes-xts-plain64");
+		params->area.raw.key_size = 32;
+		return 0;
+	}
+
+	r = snprintf(params->area.raw.encryption, sizeof(params->area.raw.encryption),
+		     "%s", LUKS2_get_cipher(hdr, CRYPT_DEFAULT_SEGMENT));
+	if (r < 0 || (size_t)r >= sizeof(params->area.raw.encryption))
+		return -EINVAL;
+
+	/* Slot encryption tries to use the same key size as for the main algorithm */
+	if ((size_t)integrity_key_size > key_size)
+		return -EINVAL;
+	params->area.raw.key_size = key_size - integrity_key_size;
+
+	return 0;
 }
 
 crypt_keyslot_info LUKS2_keyslot_info(struct luks2_hdr *hdr, int keyslot)
@@ -315,7 +306,7 @@ int LUKS2_keyslot_open(struct crypt_device *cd,
 			password, password_len, segment, vk);
 		if (r_prio >= 0)
 			r = r_prio;
-		else if (r_prio < 0 && (r_prio != -EPERM) && (r_prio != -ENOENT))
+		else if (r_prio != -EPERM && r_prio != -ENOENT)
 			r = r_prio;
 		else
 			r = LUKS2_keyslot_open_priority(cd, hdr, CRYPT_SLOT_PRIORITY_NORMAL,
@@ -334,7 +325,8 @@ int LUKS2_keyslot_store(struct crypt_device *cd,
 	int keyslot,
 	const char *password,
 	size_t password_len,
-	const struct volume_key *vk)
+	const struct volume_key *vk,
+	const struct luks2_keyslot_params *params)
 {
 	const keyslot_handler *h;
 	int r;
@@ -348,7 +340,7 @@ int LUKS2_keyslot_store(struct crypt_device *cd,
 		if (!h)
 			return -EINVAL;
 
-		r = h->alloc(cd, keyslot, vk->keylength);
+		r = h->alloc(cd, keyslot, vk->keylength, params);
 		if (r)
 			return r;
 	} else if (!(h = LUKS2_keyslot_handler(cd, keyslot)))

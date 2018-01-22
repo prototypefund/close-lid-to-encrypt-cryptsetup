@@ -2,7 +2,7 @@
  * Generic wrapper for storage encryption modes and Initial Vectors
  * (reimplementation of some functions from Linux dm-crypt kernel)
  *
- * Copyright (C) 2014-2017, Milan Broz
+ * Copyright (C) 2014-2018, Milan Broz
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -64,12 +64,15 @@ static int crypt_sector_iv_init(struct crypt_sector_iv *ctx,
 	if (ctx->iv_size < 8)
 		return -ENOENT;
 
-	if (!iv_name ||
-	    !strcmp(cipher_name, "cipher_null") ||
+	if (!strcmp(cipher_name, "cipher_null") ||
 	    !strcmp(mode_name, "ecb")) {
+		if (iv_name)
+			return -EINVAL;
 		ctx->type = IV_NONE;
 		ctx->iv_size = 0;
 		return 0;
+	} else if (!iv_name) {
+		return -EINVAL;
 	} else if (!strcasecmp(iv_name, "null")) {
 		ctx->type = IV_NULL;
 	} else if (!strcasecmp(iv_name, "plain64")) {

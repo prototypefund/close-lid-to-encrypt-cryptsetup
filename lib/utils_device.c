@@ -3,8 +3,8 @@
  *
  * Copyright (C) 2004, Jana Saout <jana@saout.de>
  * Copyright (C) 2004-2007, Clemens Fruhwirth <clemens@endorphin.org>
- * Copyright (C) 2009-2017, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2009-2017, Milan Broz
+ * Copyright (C) 2009-2018, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2009-2018, Milan Broz
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,8 +48,8 @@ struct device {
 
 	struct crypt_lock_handle *lh;
 
-	int o_direct:1;
-	int init_done:1;
+	unsigned int o_direct:1;
+	unsigned int init_done:1;
 
 	/* cached values */
 	size_t alignment;

@@ -1,8 +1,8 @@
 /*
  * loop-AES compatible volume handling
  *
- * Copyright (C) 2011-2017, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2011-2017, Milan Broz
+ * Copyright (C) 2011-2018, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2011-2018, Milan Broz
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -92,7 +92,7 @@ static int hash_keys(struct crypt_device *cd,
 		return -EINVAL;
 	}
 
-	*vk = crypt_alloc_volume_key(key_len_output * keys_count, NULL);
+	*vk = crypt_alloc_volume_key((size_t)key_len_output * keys_count, NULL);
 	if (!*vk)
 		return -ENOMEM;
 

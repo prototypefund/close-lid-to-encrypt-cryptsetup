@@ -1,7 +1,7 @@
 /*
  * Integrity volume handling
  *
- * Copyright (C) 2016-2017, Milan Broz
+ * Copyright (C) 2016-2018, Milan Broz
  *
  * This file is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -130,6 +130,7 @@ int INTEGRITY_key_size(struct crypt_device *cd)
 
 int INTEGRITY_tag_size(struct crypt_device *cd,
 		       const char *integrity,
+		       const char *cipher,
 		       const char *cipher_mode)
 {
 	int iv_tag_size = 0, auth_tag_size = 0;

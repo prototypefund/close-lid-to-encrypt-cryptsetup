@@ -1,8 +1,8 @@
 /*
  * LUKS - Linux Unified Key Setup v2
  *
- * Copyright (C) 2015-2017, Red Hat, Inc. All rights reserved.
- * Copyright (C) 2015-2017, Milan Broz. All rights reserved.
+ * Copyright (C) 2015-2018, Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2015-2018, Milan Broz. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -83,7 +83,8 @@ struct json_object *LUKS2_array_remove(struct json_object *array, const char *nu
  * LUKS2 keyslots handlers (EXPERIMENTAL)
  */
 typedef int (*keyslot_alloc_func)(struct crypt_device *cd, int keyslot,
-				  size_t volume_key_len);
+				  size_t volume_key_len,
+				  const struct luks2_keyslot_params *params);
 typedef int (*keyslot_open_func) (struct crypt_device *cd, int keyslot,
 				  const char *password, size_t password_len,
 				  char *volume_key, size_t volume_key_len);
@@ -96,7 +97,8 @@ typedef int (*keyslot_validate_func) (struct crypt_device *cd, int keyslot);
 
 int luks2_keyslot_alloc(struct crypt_device *cd,
 	int keyslot,
-	size_t volume_key_len);
+	size_t volume_key_len,
+	const struct luks2_keyslot_params *params);
 
 typedef struct  {
 	const char *name;
@@ -124,12 +126,9 @@ typedef struct  {
 	digest_dump_func   dump;
 } digest_handler;
 
-int crypt_digest_register(const digest_handler *handler);
 const digest_handler *LUKS2_digest_handler_type(struct crypt_device *cd, const char *type);
 
 #define CRYPT_ANY_DIGEST -1
-int crypt_keyslot_assign_digest(struct crypt_device *cd, int keyslot, int digest);
-int crypt_keyslot_unassign_digest(struct crypt_device *cd, int keyslot, int digest);
 
 /**
  * LUKS2 token handlers (internal use only)
