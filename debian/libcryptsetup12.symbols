@@ -3,9 +3,11 @@ libcryptsetup.so.12 libcryptsetup12 #MINVER#
  crypt_activate_by_keyfile@CRYPTSETUP_2.0 2:1.4
  crypt_activate_by_keyfile_offset@CRYPTSETUP_2.0 2:1.4.3
  crypt_activate_by_keyring@CRYPTSETUP_2.0 2:2.0
+ crypt_activate_by_keyfile_device_offset@CRYPTSETUP_2.0 2:2.0.1
  crypt_activate_by_passphrase@CRYPTSETUP_2.0 2:1.4
  crypt_activate_by_token@CRYPTSETUP_2.0 2:2.0
  crypt_activate_by_volume_key@CRYPTSETUP_2.0 2:1.4
+ crypt_keyslot_add_by_keyfile_device_offset@CRYPTSETUP_2.0 2:2.0.1
  crypt_benchmark@CRYPTSETUP_2.0 2:1.6
  crypt_benchmark_pbkdf@CRYPTSETUP_2.0 2:2.0
  crypt_convert@CRYPTSETUP_2.0 2:2.0
@@ -34,6 +36,7 @@ libcryptsetup.so.12 libcryptsetup12 #MINVER#
  crypt_init@CRYPTSETUP_2.0 2:1.4
  crypt_init_by_name@CRYPTSETUP_2.0 2:1.4
  crypt_init_by_name_and_header@CRYPTSETUP_2.0 2:1.4
+ crypt_keyfile_device_read@CRYPTSETUP_2.0 2:2.0.1
  crypt_keyfile_read@CRYPTSETUP_2.0 2:2.0
  crypt_keyslot_add_by_key@CRYPTSETUP_2.0 2:2.0
  crypt_keyslot_add_by_keyfile@CRYPTSETUP_2.0 2:1.4
@@ -56,6 +59,7 @@ libcryptsetup.so.12 libcryptsetup12 #MINVER#
  crypt_repair@CRYPTSETUP_2.0 2:1.4.3
  crypt_resize@CRYPTSETUP_2.0 2:1.4
  crypt_resume_by_keyfile@CRYPTSETUP_2.0 2:1.4
+ crypt_resume_by_keyfile_device_offset@CRYPTSETUP_2.0 2:2.0.1
  crypt_resume_by_keyfile_offset@CRYPTSETUP_2.0 2:1.4.3
  crypt_resume_by_passphrase@CRYPTSETUP_2.0 2:1.4
  crypt_set_confirm_callback@CRYPTSETUP_2.0 2:1.4
