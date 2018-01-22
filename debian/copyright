@@ -5,8 +5,8 @@ Source: https://gitlab.com/cryptsetup/cryptsetup
 Files: *
 Copyright: © 2004      Christophe Saout <christophe@saout.de>
            © 2004-2008 Clemens Fruhwirth <clemens@endorphin.org>
-           © 2008-2017 Red Hat, Inc.
-           © 2008-2017 Milan Broz <gmazyland@gmail.com>
+           © 2008-2018 Red Hat, Inc.
+           © 2008-2018 Milan Broz <gmazyland@gmail.com>
 License: GPL-2+
 
 Files: debian/*
@@ -41,16 +41,16 @@ Copyright: © 2005 Canonical Ltd.
 License: GPL-2+
 
 Files: docs/examples/*
-Copyright: © 2011-2017 Red Hat, Inc.
+Copyright: © 2011-2018 Red Hat, Inc.
 License: LGPL-2.1+
 
 Files: lib/base64.c
-Copyright: © 1999-2001, 2004-2006, 2009-2017 Free Software Foundation, Inc.
+Copyright: © 1999-2001, 2004-2006, 2009-2018 Free Software Foundation, Inc.
 License: GPL-2+
 
 Files: lib/crypto_backend/* lib/loopaes/* lib/tcrypt/* lib/verity/* python/*
-Copyright: © 2009-2017 Red Hat, Inc.
-           © 2010-2017 Milan Broz <gmazyland@gmail.com>
+Copyright: © 2009-2018 Red Hat, Inc.
+           © 2010-2018 Milan Broz <gmazyland@gmail.com>
 License: LGPL-2.1+
 
 Files: lib/crypto_backend/argon2/*

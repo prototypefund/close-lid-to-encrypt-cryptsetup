@@ -3,6 +3,7 @@ cryptsetup (2:2.0.1-1) UNRELEASED; urgency=low
   * New upstream release 2.0.1:
     - Use /run/cryptsetup as default for cryptsetup locking dir.
     - Add missing symbols for new functions to debian/libcryptsetup12.symbols.
+  * debian/copyright: update copyright years.
 
  -- Guilhem Moulin <guilhem@debian.org>  Mon, 22 Jan 2018 13:53:04 +0100
 
