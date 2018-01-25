@@ -4,6 +4,8 @@ cryptsetup (2:2.0.1-1) UNRELEASED; urgency=low
     - Use /run/cryptsetup as default for cryptsetup locking dir.
     - Add missing symbols for new functions to debian/libcryptsetup12.symbols.
   * debian/copyright: update copyright years.
+  * debian/patches: backport upstream's 8728ba08 to fix opening of loop-AES
+    devices using --key-file=-.  (Closes: #888162.)
 
  -- Guilhem Moulin <guilhem@debian.org>  Mon, 22 Jan 2018 13:53:04 +0100
 
