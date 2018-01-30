@@ -44,7 +44,7 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	find -xtype f ! -name manifest >manifest
-	autoreconf --force --install
+	dh_autoreconf
 	./configure $(confflags)  \
 		--prefix=/usr \
 		--libdir=/lib \
@@ -211,8 +211,8 @@ clean:
 	dh_testdir
 	dh_testroot
 	# clean up the source directory
+	dh_autoreconf_clean
 	if test -f Makefile; then $(MAKE) distclean; fi
-	rm -f autom4te.cache
 	rm -f manifest manifest.new
 	rm -f debian/doc/*.[0-9] debian/doc/variables.xml
 	rm -f debian/luksformat.8

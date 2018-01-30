@@ -6,6 +6,9 @@ cryptsetup (2:2.0.1-1) UNRELEASED; urgency=low
   * debian/copyright: update copyright years.
   * debian/patches: backport upstream's 8728ba08 to fix opening of loop-AES
     devices using --key-file=-.  (Closes: #888162.)
+  * debian/rules: replace `autoreconf -f -i` with `dh_autoreconf` and add
+    `dh_autoreconf_clean` to the "clean:" target.  This bumps the minimum
+    debhelper version to 9.20160403~ in Build-Depends. (Closes: #888742.)
 
  -- Guilhem Moulin <guilhem@debian.org>  Mon, 22 Jan 2018 13:53:04 +0100
 
