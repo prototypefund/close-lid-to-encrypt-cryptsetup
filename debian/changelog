@@ -3,7 +3,7 @@ cryptsetup (2:2.0.1-2) UNRELEASED; urgency=medium
   * debian/initramfs/cryptroot-hook: copy libgcc_s.so.1 to the initrd, as
     libargon2 (used by LUKS2 devices) uses pthread_cancel.  (Closes: #890798.)
   * debian/initramfs/cryptroot-script: create locking directory at initramfs
-    stage, before runing the cryptsetup binary, which would create it
+    stage, before running the cryptsetup binary, which would create it
     automatically but also spew a warning.
 
  -- Guilhem Moulin <guilhem@debian.org>  Mon, 19 Feb 2018 01:20:54 +0100
