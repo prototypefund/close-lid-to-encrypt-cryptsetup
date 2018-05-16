@@ -114,6 +114,8 @@ install-stamp: build-stamp
 	#	$(CURDIR)/debian/libcryptsetup-dev/usr/lib/$(DEB_HOST_MULTIARCH)/
 	mkdir -p $(CURDIR)/debian/cryptsetup-bin/usr/lib/tmpfiles.d
 	install -m0644 ./scripts/cryptsetup.conf $(CURDIR)/debian/cryptsetup-bin/usr/lib/tmpfiles.d
+	mkdir -p $(CURDIR)/debian/cryptsetup/lib/systemd/system/systemd-suspend.service.d
+	install -m0644 debian/cryptroot-suspend/systemd_cryptroot-suspend.conf $(CURDIR)/debian/cryptsetup/lib/systemd/system/systemd-suspend.service.d
 	dh_link -plibcryptsetup-dev lib/$(DEB_HOST_MULTIARCH)/$$(basename $$(readlink debian/libcryptsetup12/lib/$(DEB_HOST_MULTIARCH)/libcryptsetup.so.12)) usr/lib/$(DEB_HOST_MULTIARCH)/libcryptsetup.so
 
 	# Remove libraries from cryptsetup package, they're shiped in seperate library packages
@@ -127,6 +129,7 @@ install-stamp: build-stamp
 	install -m 0755 debian/scripts/cryptdisks_stop $(CURDIR)/debian/cryptsetup/sbin/
 	install -m 0755 debian/scripts/decrypt_* $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
 	install -m 0755 debian/scripts/passdev $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
+	install -m 0755 debian/scripts/cryptroot-suspend $(CURDIR)/debian/cryptsetup/lib/cryptsetup/scripts/
 	install -m 0755 debian/askpass $(CURDIR)/debian/cryptsetup/lib/cryptsetup/
 	install -m 0755 debian/initramfs/cryptgnupg-hook \
 		$(CURDIR)/debian/cryptsetup/usr/share/initramfs-tools/hooks/cryptgnupg
