@@ -1,0 +1,8 @@
+cryptsetup (2:2.0.2-2) unstable; urgency=medium
+
+    cryptsetup 2:2.0.2-2 has been split into cryptsetup-run (init
+    script) and cryptsetup-initramfs (initramfs integration).
+    'cryptsetup' is now a transitional dummy package depending on
+    cryptsetup-run and cryptsetup-initramfs.
+
+ -- Guilhem Moulin <guilhem@debian.org>  Wed, 16 May 2018 23:39:20 +0200

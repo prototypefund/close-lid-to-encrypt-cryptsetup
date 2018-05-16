@@ -4,10 +4,6 @@ set -e
 
 case "$1" in
     remove)
-	if which update-initramfs >/dev/null; then
-		update-initramfs -u
-	fi
-
 	for file in cryptdisks_start cryptdisks_stop; do
 		if [ -L /usr/sbin/$file ]; then
 			rm /usr/sbin/$file

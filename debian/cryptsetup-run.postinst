@@ -22,10 +22,6 @@ case "$1" in
 		fi
 	done
 
-	if which update-initramfs >/dev/null; then
-		update-initramfs -u
-	fi
-
 	# Do a number of checks on the currently installed crypttab
 
 	egrep -v "^[[:space:]]*(#|$)" /etc/crypttab | while read dst src key opts; do

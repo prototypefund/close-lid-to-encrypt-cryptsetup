@@ -3,6 +3,10 @@ cryptsetup (2:2.0.2-2) UNRELEASED; urgency=medium
   * debian/control:
     - Change my mail address to 'jonas@freesources.org'
     - Change Vcs links to the new repository on salsa.debian.org
+    - Split cryptsetup package into cryptsetup-run (init scripts and
+      libraries) and cryptsetup-initramfs (initramfs integration).  The
+      'cryptsetup' package is now a transitional dummy package.
+      (Closes: #783297.)
 
  -- Jonas Meurer <jonas@freesources.org>  Tue, 17 Apr 2018 13:26:19 +0200
 

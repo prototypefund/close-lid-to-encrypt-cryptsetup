@@ -29,21 +29,17 @@ Homepage: https://gitlab.com/cryptsetup/cryptsetup
 Vcs-Browser: https://salsa.debian.org/cryptsetup-team/cryptsetup
 Vcs-Git: https://salsa.debian.org/cryptsetup-team/cryptsetup.git
 
-Package: cryptsetup
+Package: cryptsetup-run
 Architecture: linux-any
 Depends: cryptsetup-bin (>= 2:1.6.0),
          dmsetup,
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: busybox | busybox-static,
-            console-setup,
-            initramfs-tools (>= 0.129) | linux-initramfs-tool,
-            kbd
 Suggests: dosfstools, keyutils, liblocale-gettext-perl
 Provides: cryptsetup-luks
 Conflicts: cryptsetup-luks
-Replaces: cryptsetup-luks, hashalot (<< 0.3-2)
-Breaks: hashalot (<< 0.3-2)
+Replaces: cryptsetup-luks, hashalot (<< 0.3-2), cryptsetup (<< 2:2.0.2-2)
+Breaks: hashalot (<< 0.3-2), cryptsetup (<< 2:2.0.2-2)
 Description: disk encryption support - startup scripts
  Cryptsetup provides an interface for configuring encryption on block
  devices (such as /home or swap partitions), using the Linux kernel
@@ -68,6 +64,34 @@ Description: disk encryption support - command line tools
  Setup (LUKS) support.
  .
  This package provides cryptsetup, cryptsetup-reencrypt and luksformat.
+
+Package: cryptsetup-initramfs
+Architecture: all
+Depends: ${misc:Depends}, ${shlibs:Depends}, cryptsetup-run (>= ${source:Version}),
+         busybox | busybox-static,
+         console-setup,
+         initramfs-tools (>= 0.129) | linux-initramfs-tool,
+         kbd
+Breaks: cryptsetup (<< 2:2.0.2-2)
+Replaces: cryptsetup (<< 2:2.0.2-2)
+Description: disk encryption support - initramfs integration
+ Cryptsetup provides an interface for configuring encryption on block
+ devices (such as /home or swap partitions), using the Linux kernel
+ device mapper target dm-crypt. It features integrated Linux Unified Key
+ Setup (LUKS) support.
+ .
+ This package provides initramfs integration for cryptsetup.
+
+Package: cryptsetup
+Architecture: all
+Section: oldlibs
+Depends: cryptsetup-initramfs (>= 2:2.0.2-2),
+         cryptsetup-run (>= 2:2.0.2-2),
+         ${misc:Depends}
+Description: transitional dummy package for cryptsetup-{run,initramfs}
+ This is a transitional dummy package to get upgrading systems to install the
+ cryptsetup-run and cryptsetup-initramfs packages. It can safely be removed
+ once no other package depends on it.
 
 Package: libcryptsetup12
 Section: libs
