@@ -3,10 +3,9 @@ cryptsetup (2:2.0.2-2) UNRELEASED; urgency=medium
   * debian/control:
     - Change my mail address to 'jonas@freesources.org'
     - Change Vcs links to the new repository on salsa.debian.org
-    - Split cryptsetup package into cryptsetup-run (init scripts and
-      libraries) and cryptsetup-initramfs (initramfs integration).  The
-      'cryptsetup' package is now a transitional dummy package.
-      (Closes: #783297.)
+  * Split cryptsetup package into cryptsetup-run (init scripts and libraries)
+    and cryptsetup-initramfs (initramfs integration).  The 'cryptsetup'
+    package is now a transitional dummy package.  (Closes: #783297.)
   * debian/cryptsetup-run.preinst: remove logic for rm_conffile
     /etc/udev/rules.d/z60_cryptsetup.rules, which was added for #493151 in
     2:1.0.6-5.
