@@ -1,17 +1,18 @@
 #!/bin/sh
 
+#set -x
 set -e -u
-trap 'echo "Press ENTER to continue."; read dummy' ERR
 
 ################################################################################
 ## Parameters and helper functions
 
-INITRAMFS_DIR=/run/cryptroot-suspend
+TMPFS_DIR=/run/cryptroot-suspend
 SYSTEM_SLEEP_PATH=/lib/systemd/system-sleep
 BIND_PATHS="/sys /proc /dev /run"
 REMOUNT=0
 # Retrieve cryptdevice name from boot cmdline
-CRYPTNAME="$(sed -n 's/.*cryptdevice=[^: ]*:\([^: ]*\).*$/\1/p' /proc/cmdline)"
+#TODO: doesn't work on Debian
+#CRYPTNAME="$(sed -n 's/.*cryptdevice=[^: ]*:\([^: ]*\).*$/\1/p' /proc/cmdline)"
 ROOTDEV=$(sed -n 's/.*root=\([^ ]*\).*/\1/p' /proc/cmdline)
 
 # run_dir DIR ARGS...
@@ -24,12 +25,12 @@ run_dir() {
 
 # Prepare chroot
 prepare_chroot() {
-    mkdir -p ${INITRAMFS_DIR}
-    mount -t tmpfs none ${INITRAMFS_DIR}
+    mkdir -p ${TMPFS_DIR}
+    mount -t tmpfs none ${TMPFS_DIR}
 
     # initramfs hook functions don't play well with 'set -u'
     set +u
-    DESTDIR="$INITRAMFS_DIR"
+    DESTDIR="$TMPFS_DIR"
     . /usr/share/initramfs-tools/hook-functions
 
     copy_exec /lib/cryptsetup/askpass
@@ -37,41 +38,45 @@ prepare_chroot() {
     copy_exec /bin/sync
     copy_exec /bin/dash
     copy_exec /bin/udevadm
-    copy_exec /usr/share/cryptsetup/initramfs/bin/cryptroot-suspend /suspend
-    ln -s ${INITRAMFS_DIR}/bin/sh /bin/dash
+    copy_exec /lib/systemd/systemd-udevd
+    copy_exec /bin/sleep
+    copy_exec /root/initramfs/cryptroot-suspend /suspend
+    ln -s /bin/dash ${TMPFS_DIR}/bin/sh
     set -u
 
     local p
     for p in ${BIND_PATHS}; do
-        mkdir "${INITRAMFS_DIR}${p}"
-        mount -o bind ${p} "${INITRAMFS_DIR}${p}"
+        mkdir "${TMPFS_DIR}${p}"
+        mount -o bind ${p} "${TMPFS_DIR}${p}"
     done
 }
 
 # Restore chroot
-umount_initramfs() {
+umount_tmpfs() {
     local p
     for p in ${BIND_PATHS}; do
-        ! mountpoint -q "${INITRAMFS_DIR}${p}" || umount "${INITRAMFS_DIR}${p}"
+        ! mountpoint -q "${TMPFS_DIR}${p}" || umount "${TMPFS_DIR}${p}"
     done
-    ! mountpoint -q "${INITRAMFS_DIR}" || umount "${INITRAMFS_DIR}"
-    rmdir ${INITRAMFS_DIR}
+    ! mountpoint -q "${TMPFS_DIR}" || umount "${TMPFS_DIR}"
+    rmdir ${TMPFS_DIR}
 }
 
 ext4_cryptdevice_mount_options() {
-    local mt="$(grep "^${1} " /proc/mounts | cut -d ' ' -f 3,4)"
-    if [[ "${mt:0:5}" == "ext4 " ]]; then
-        echo "${mt:5}"
+    local fs="$(grep "^${1} / " /proc/mounts | cut -d ' ' -f 3)"
+    if [ "$fs" = "ext4" ]; then
+        local mt="$(grep "^${1} / " /proc/mounts | cut -d ' ' -f 4)"
+        echo "$mt"
     fi
 }
 
 ################################################################################
 ## Main script
 
-#[ -e "${INITRAMFS_DIR}/suspend" ] || exec /lib/systemd/systemd-sleep suspend
+#TODO: enable as fallback once everything works
+#[ -e "${TMPFS_DIR}/suspend" ] || exec /lib/systemd/systemd-sleep suspend
 
 # Prepare chroot
-#trap umount_initramfs EXIT
+trap umount_tmpfs EXIT
 prepare_chroot
 
 # Run pre-suspend scripts
@@ -93,15 +98,16 @@ systemctl stop systemd-journald.service
 # if mounted with `barrier=1`, which is the default. Temporarily remount with
 # `barrier=0` if this is true of the crypt fs.
 MOUNT_OPTS="$(ext4_cryptdevice_mount_options "$ROOTDEV")"
-if [[ "$MOUNT_OPTS" ]] && ! [[ "$MOUNT_OPTS" == *nobarrier* || "$MOUNT_OPTS" == *barrier=0* ]]; then
+if [ -n "$MOUNT_OPTS" ] && ! [ "$MOUNT_OPTS" = *nobarrier* ] || echo "$MOUNT_OPTS"| grep -qF "barrier=0"; then
     REMOUNT=1
     mount -o remount,"$MOUNT_OPTS",barrier=0 /
 fi
 
-# Hand over execution to script inside initramfs
-cd "${INITRAMFS_DIR}"
-exit 0
-chroot . /suspend "$CRYPTNAME"
+# Hand over execution to script inside tmpfs
+cd "${TMPFS_DIR}"
+#TODO: use $CRYPTNAME once it's fixed above
+#chroot . /suspend "$CRYPTNAME"
+chroot . /suspend "sda3_crypt"
 
 # Restore original mount options if necessary
 if ((REMOUNT)); then
