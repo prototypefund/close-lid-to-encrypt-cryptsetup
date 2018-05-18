@@ -815,16 +815,7 @@ rootdevs=""
 usrdevs=""
 resumedevs=""
 
-# XXX Backward compatibility: remove once Stretch has been promoted stable
-for v in CRYPTSETUP KEYFILE_PATTERN; do
-	if eval [ "\${$v+x}" ]; then
-		echo "WARNING: Setting $v in /etc/initramfs-tools/initramfs.conf" \
-		     "is deprecated and will stop working in the future." \
-		     "Use /etc/cryptsetup-initramfs/conf-hook instead." >&2
-	fi
-done
-
-# Load the hook's config
+# Load the hook config
 if [ -f "/etc/cryptsetup-initramfs/conf-hook" ]; then
 	. /etc/cryptsetup-initramfs/conf-hook
 fi

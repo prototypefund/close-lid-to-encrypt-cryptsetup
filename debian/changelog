@@ -13,9 +13,14 @@ cryptsetup (2:2.0.2-2) UNRELEASED; urgency=medium
     with crypttab(5) targets that already exist, and only complete
     cryptdisks_start targets with crypttab(5) targets that don't exist yet.
     (Closes: #827200.)
-  * debian/initramfs/cryptroot-hook: use copy_file() from hook-functions to
-    copy key files to the initrd.  This ensures that relevant messages are
-    printed in verbose mode.  (Closes: #898516.)
+  * debian/initramfs/cryptroot-hook:
+    + use copy_file() from hook-functions to copy key files to the initrd.
+      This ensures that relevant messages are printed in verbose mode.
+      (Closes: #898516.)
+    + remove backward compatbility support for setting CRYPTSETUP and
+      KEYFILE_PATTERN in /etc/initramfs-tools/initramfs.conf.  Since 2:1.7.2-1
+      they should be set in /etc/cryptsetup-initramfs/conf-hook.
+
 
  -- Jonas Meurer <jonas@freesources.org>  Tue, 17 Apr 2018 13:26:19 +0200
 
