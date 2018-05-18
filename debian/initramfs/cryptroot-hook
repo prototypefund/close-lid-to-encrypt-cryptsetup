@@ -829,7 +829,7 @@ if [ "$KEYFILE_PATTERN" ]; then
 	setup="yes"
 	case "${UMASK:-$(umask)}" in
 		0[0-7]77) ;;
-		*) echo "WARNING: permissive UMASK (${UMASK:-$(umask)})." \
+		*) echo "cryptsetup: WARNING: permissive UMASK (${UMASK:-$(umask)})." \
 		        "Private key material inside the initrd might be left unprotected." >&2
 		;;
 	esac
