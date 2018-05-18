@@ -615,7 +615,7 @@ canonical_device() {
 #
 # This function takes a device name, does all required processing and adds the
 # result with all device options to /conf/conf.d/cryptroot in the initramfs.
-# Additionally, it returns required kernel modules.
+# Additionally, it prints required kernel modules to fd nr. 3.
 #
 add_device() {
 	local node nodes lvmnodes opts lastopts i count
@@ -692,7 +692,7 @@ add_device() {
 			case "$KEYFILE" in
 				$KEYFILE_PATTERN)
 					mkdir -pm0700 "$DESTDIR/cryptroot-keyfiles"
-					cp --preserve=all "$KEYFILE" "$DESTDIR/cryptroot-keyfiles/${node}.key"
+					copy_file keyfile "$KEYFILE" "cryptroot-keyfiles/${node}.key"
 					;;
 			esac
 		fi
@@ -722,12 +722,12 @@ add_device() {
 			echo "cryptsetup: WARNING: failed to determine cipher modules to load for $node" >&2
 			continue
 		fi
-		echo dm_mod
-		echo dm_crypt
-		echo "$modules"
+		echo dm_mod >&3
+		echo dm_crypt >&3
+		echo "$modules" >&3
 		# Load hardware aes module
 		if cpu_has_aesni; then
-			echo aesni
+			echo aesni >&3
 		fi
 		i=$(( $i + 1 ))
 	done
@@ -857,7 +857,7 @@ fi
 
 # Load the config opts and modules for each device
 for dev in $rootdevs $usrdevs $resumedevs $initramfsdevs; do
-	if ! modules=$(add_device "$dev"); then
+	if ! { modules=$(add_device "$dev" 3>&1 1>&4); } 4>&1; then
 		echo "cryptsetup: FAILURE: could not determine configuration for $dev" >&2
 		continue
 	fi
