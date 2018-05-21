@@ -10,6 +10,12 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
       `lvs` or `btrfs filesystem`.
     + Export relevant crypttab(5) snippet (for devices that need to be
       unlocked at initramfs stage) to the initramfs' /cryptroot/crypttab.
+    + Print a warning inviting the user to uninstall 'cryptsetup-initramfs'
+      if 1/ the CRYPTSETUP configuration option is unset or null (the
+      default), and 2/ the hook didn't detect any device to be unlocked at
+      initramfs stage.  The benefit is two-fold: it guides users through the
+      package split, and warns them that their system might not reboot if the
+      hook script didn't work properly.
 
   [ Jonas Meurer ]
   * debian/doc/crypttab.xml:

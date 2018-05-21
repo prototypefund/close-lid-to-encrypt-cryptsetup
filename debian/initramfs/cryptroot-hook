@@ -381,6 +381,8 @@ add_crypto_modules() {
 #######################################################################
 # Begin real processing
 
+CRYPTSETUP=''
+
 # Load the hook config
 if [ -f "/etc/cryptsetup-initramfs/conf-hook" ]; then
     . /etc/cryptsetup-initramfs/conf-hook
@@ -390,7 +392,7 @@ if [ -n "$CRYPTSETUP" ] && [ "$CRYPTSETUP" != 'n' ]; then
     CRYPTSETUP='y'
 fi
 
-if [ "$KEYFILE_PATTERN" ]; then
+if [ -n "$KEYFILE_PATTERN" ]; then
     CRYPTSETUP='y'
     case "${UMASK:-$(umask)}" in
         0[0-7]77) ;;
@@ -400,20 +402,25 @@ if [ "$KEYFILE_PATTERN" ]; then
     esac
 fi
 
-if [ -r /etc/crypttab ]; then
+CRYPTO_MODULES=
+# XXX Maybe post-Buster: deprecate CRYPTSETUP=n (always install the
+# cryptsetup integration).  Users that don't want initramfs integration
+# can just uninstall the package.
+if [ -r /etc/crypttab ] && [ "$CRYPTSETUP" != 'n' ]; then
     mkdir "$DESTDIR/cryptroot"
     generate_initrd_crypttab >"$DESTDIR/cryptroot/crypttab"
-fi
 
-CRYPTO_MODULES=
-if [ -s "$DESTDIR/cryptroot/crypttab" ]; then
     # populate CRYPTO_MODULES
     list_crypto_modules \
         $(sed -rn 's/^\s*([^#[:blank:]]+)\s.*/\1/p' "$DESTDIR/cryptroot/crypttab")
     [ -z "${CRYPTO_MODULES:+x}" ] || CRYPTSETUP='y'
 fi
 
-if [ "$CRYPTSETUP" = y ]; then
+if [ -z "$CRYPTSETUP" ]; then
+    cryptsetup_warn "The initramfs image may not contain cryptsetup binaries nor crypto modules." \
+        "If that's on purpose, you may want to uninstall the 'crypsetup-initramfs' package in" \
+        "order to disable the cryptsetup initramfs integration and avoid this warning."
+elif [ "$CRYPTSETUP" = y ]; then
     # add required components
     manual_add_modules dm_mod
     manual_add_modules dm_crypt
