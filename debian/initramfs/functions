@@ -39,4 +39,35 @@ crypttab_entry_get_keyscript() {
     return 0
 }
 
+# crypttab_copy_keyfiles_to_initramfs($keyscript)
+#   Copy keys to the initramfs image for each crypttab(5) entry using
+#   the given $keyscript.
+#   Return 0 on success, 1 on error.  Exits if the keyscript isn't
+#   already installed to the initramfs (by the cryptroot hook file).
+crypttab_copy_keys_to_initramfs() {
+    local keyscript="/lib/cryptsetup/scripts/$1"
+    local crypttab="$DESTDIR/cryptroot/crypttab"
+    local target source key options v
+    local rv=0
+
+    if [ ! -x "$DESTDIR/$keyscript" ] || [ ! -f "$crypttab" ]; then
+        exit 0
+    fi
+
+    # Install cryptroot key files into initramfs
+    while read target source key options; do
+        [ "${target#\#}" = "$target" ] || continue
+        if v="$(crypttab_entry_get_keyscript "$options")" &&
+                [ "$v" = "$keyscript" ]; then
+            if [ -f "$key" ]; then
+                copy_file keyfile "$key"
+            else
+                cryptsetup_fail "Target $target has a non-existing key file $key"
+                rv=1
+            fi
+        fi
+    done <"$crypttab"
+    return $rv
+}
+
 # vim: set filetype=sh :
