@@ -1,0 +1,42 @@
+# Logging helpers.  Print the argument list to the standard error.
+cryptsetup_warn() {
+    echo "cryptsetup: WARNING:" "$@" >&2
+}
+cryptsetup_fail() {
+    echo "cryptsetup: ERROR:" "$@" >&2
+}
+
+# crypttab_options_get_value($options, $arg)
+#   Return 1 if $options (taken from the 4th field of the crypttab(5)
+#   file entry) contains $arg, and 0 afterwards.  If $arg ends with a
+#   '=' character, the option value is printed out.
+crypttab_options_get_value() {
+    local options="$1" arg="$2"
+    if [ "${arg%=}" = "$arg" ]; then
+        printf '%s' "$options" | grep -Eq "^(.*,)?$arg(,.*)?$"
+    elif printf '%s' "$options" | grep -Eq "^(.*,)?$arg"; then
+        printf '%s' "$options" | sed -nr "s;^(.*,)?$arg([^,]*)(,.*)?$;\2;p"
+        return 0
+    else
+        return 1
+    fi
+}
+
+# crypttab_option_get_keyscript($options)
+#   Print the normalised keyscript from $options (taken from the 4th
+#   field of the crypttab(5) file entry).
+#   Return 0 on success (incl. if $options has no keyscript), 1 on error
+#   (invalid keyscript).
+crypttab_entry_get_keyscript() {
+    local keyscript
+    if keyscript="$(crypttab_options_get_value "$options" 'keyscript=')"; then
+        [ "${keyscript#/}" != "$keyscript" ] || keyscript="/lib/cryptsetup/scripts/$keyscript"
+        if [ ! -f "$keyscript" ] || [ ! -x "$keyscript" ]; then
+            return 1
+        fi
+        printf '%s\n' "$keyscript"
+    fi
+    return 0
+}
+
+# vim: set filetype=sh :

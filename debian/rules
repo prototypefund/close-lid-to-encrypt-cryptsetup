@@ -128,6 +128,8 @@ install-stamp: build-stamp
 	install -m 0755 debian/scripts/decrypt_* $(CURDIR)/debian/cryptsetup-run/lib/cryptsetup/scripts/
 	install -m 0755 debian/scripts/passdev $(CURDIR)/debian/cryptsetup-run/lib/cryptsetup/scripts/
 	install -m 0755 debian/askpass $(CURDIR)/debian/cryptsetup-run/lib/cryptsetup/
+	install -m 0644 debian/initramfs/functions \
+		$(CURDIR)/debian/cryptsetup-initramfs/usr/share/cryptsetup/initramfs/functions
 	install -m 0755 debian/initramfs/cryptgnupg-hook \
 		$(CURDIR)/debian/cryptsetup-initramfs/usr/share/initramfs-tools/hooks/cryptgnupg
 	install -m 0755 debian/initramfs/cryptkeyctl-hook \

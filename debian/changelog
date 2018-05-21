@@ -3,7 +3,9 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
   [ Guilhem Moulin ]
   * cryptsetup-initramfs: Demote "Depends: console-setup, kbd" to Recommends:
     (Closes: #901641.)
-  * debian/initramfs/cryptroot-hook: complete refactoring.
+  * debian/initramfs/*-hook: complete refactoring. Common functions are now in
+    /usr/share/cryptsetup/initramfs/functions (source-able from shell scripts).
+  * debian/initramfs/cryptroot-hook:
     + Use sysfs(5) block (resp. fs) hierarchies to detect slave dm-crypt
       devices such as LVM2 on top of LUKS (resp. multiple device filesystems
       such as btrfs).  This approach is more robust than parsing the output of

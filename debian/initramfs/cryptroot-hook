@@ -15,15 +15,8 @@ prereqs)
 esac
 
 . /usr/share/initramfs-tools/hook-functions
+. /usr/share/cryptsetup/initramfs/functions
 
-
-# Logging helpers.  Print the argument list to the standard error.
-cryptsetup_warn() {
-    echo "cryptsetup: WARNING:" "$@" >&2
-}
-cryptsetup_fail() {
-    echo "cryptsetup: ERROR:" "$@" >&2
-}
 
 # blkid_tag($device, $tag)
 #   Print the block device attribute for given $device and $tag.
@@ -121,22 +114,6 @@ get_dmcrypt_slaves() {
     done
 }
 
-# crypttab_entry_get_option($options, $arg)
-#   Return 1 if $options (taken from the 4th field of the crypttab(5)
-#   file entry) contains $arg, and 0 afterwards.  If $arg ends with a
-#   '=' character, the option value is printed out.
-crypttab_entry_has_option() {
-    local options="$1" arg="$2"
-    if [ "${arg%=}" = "$arg" ]; then
-        printf '%s' "$options" | grep -Eq "^(.*,)?$arg(,.*)?$"
-    elif printf '%s' "$options" | grep -Eq "^(.*,)?$arg"; then
-        printf '%s' "$options" | sed -nr "s;^(.*,)?$arg([^,]*)(,.*)?$;\2;p"
-        return 0
-    else
-        return 1
-    fi
-}
-
 # get_crypttab_entry($target)
 #   Print the crypttab(5) entry for the given $target.  The entry source
 #   is replaced by the corresponding UUID=<uuid> if possible.  If the
@@ -167,12 +144,9 @@ get_crypttab_entry() {
     fi
 
     local keyscript
-    if keyscript=$(crypttab_entry_has_option "$options" 'keyscript='); then
-        [ "${keyscript#/}" != "$keyscript" ] || keyscript="/lib/cryptsetup/scripts/$keyscript"
-        if [ ! -f "$keyscript" ] || [ ! -x "$keyscript" ]; then
-            cryptsetup_warn "Skipping target $name: invalid keyscript"
-            return 1
-        fi
+    if ! keyscript="$(crypttab_entry_get_keyscript "$options")"; then
+        cryptsetup_warn "Skipping target $name: invalid keyscript"
+        return 1
     fi
 
     if [ -z "${keyscript:+x}" ] && [ "$key" = '/dev/random' -o "$key" = '/dev/urandom' ]; then
@@ -182,18 +156,18 @@ get_crypttab_entry() {
     fi
 
     local luks='n'
-    if crypttab_entry_has_option "$options" 'luks'; then
+    if crypttab_options_get_value "$options" 'luks'; then
         luks='y'
     fi
 
     local header
-    if header=$(crypttab_entry_has_option "$options" 'header='); then
+    if header="$(crypttab_options_get_value "$options" 'header=')"; then
         [ -f "$header" ] || cryptsetup_warn "Target $name has an invalid header"
         [ "$luks" = y ] || cryptsetup_warn "Option LUKS missing in crypttab for target $name." \
                                 "Headers are only supported for LUKS devices."
     fi
 
-    local hash=$(crypttab_entry_has_option "$options" 'hash=') || true
+    local hash="$(crypttab_options_get_value "$options" 'hash=')" || true
     if [ -z "$hash" ] && [ "$luks" = n ]; then
         cryptsetup_warn "Option hash missing in crypttab for non-LUKS target $name." \
             "Please read /usr/share/doc/cryptsetup/README.initramfs.gz and" \
@@ -223,7 +197,7 @@ get_crypttab_entry() {
                         return 1
                     fi
                 else
-                    cryptsetup_warn "Target $target has uses an unexisting key"
+                    cryptsetup_warn "Target $target has a non-existing key file $key"
                     newkey="$key"
                 fi
                 key="/root$newkey"
@@ -231,6 +205,7 @@ get_crypttab_entry() {
         options="$options,keyscript=cat"
     fi
 
+    [ -z "$keyscript" ] || copy_exec "$keyscript"
     if [ "$keyscript" = '/lib/cryptsetup/scripts/decrypt_derived' ]; then
         # (recursively) list first the device to derive the key from (so
         # the boot scripts unlocks it first)
