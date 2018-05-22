@@ -9,7 +9,7 @@ prereqs()
     echo "$PREREQ"
 }
 
-case $1 in
+case "$1" in
     prereqs)
         prereqs
         exit 0
@@ -17,49 +17,28 @@ case $1 in
 esac
 
 . /usr/share/initramfs-tools/hook-functions
+. /usr/share/cryptsetup/initramfs/functions
 
 # Hooks for loading smartcard reading software into the initramfs
-
-# Check whether cryptroot hook has installed decrypt_opensc script
-if [ ! -x ${DESTDIR}/lib/cryptsetup/scripts/decrypt_opensc ] ; then
-    exit 0
-fi
-
-# Install cryptroot key files into initramfs
-keys=$(sed 's/^\(.*,\|\)key=//; s/,.*//' ${DESTDIR}/conf/conf.d/cryptroot)
-
-if [ "${keys}" != "none" ]; then
-    if [ -z "${keys}" ]; then
-        echo $0: Missing key files in ${DESTDIR}/conf/conf.d/cryptroot >&2
-        cat ${DESTDIR}/conf/conf.d/cryptroot >&2
-        exit 1
-    fi
-    for key in ${keys} ; do
-        if [ ! -d ${DESTDIR}/$(dirname ${key}) ] ; then
-            mkdir -p ${DESTDIR}/$(dirname ${key})
-        fi
-        cp ${key} ${DESTDIR}/${key}
-    done
-fi
+crypttab_copy_keys_to_initramfs 'decrypt_opensc' || exit 1
 
 # Install directories needed by smartcard reading daemon, command, and
 # key-script
-for dir in etc/opensc usr/lib/pcsc var/run tmp ; do
-    if [ ! -d ${DESTDIR}/${dir} ] ; then mkdir -p ${DESTDIR}/${dir} ; fi
-done
+mkdir -p "$DESTDIR/etc/opensc" "$DESTDIR/usr/lib/pcsc" "$DESTDIR/var/run" "$DESTDIR/tmp"
 
 # Install pcscd daemon, drivers, conf file, and include libgcc as well since
 # pcscd utilizes pthread_cancel
 copy_exec /usr/sbin/pcscd
-copy_exec /lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/libgcc_s.so.1
-copy_exec /lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/libusb-1.0.so.0
-copy_exec /lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/libusb-1.0.so.0.1.0
-copy_exec /usr/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)/libpcsclite.so.1
-cp -r /usr/lib/pcsc ${DESTDIR}/usr/lib
-cp /etc/reader.conf ${DESTDIR}/etc || true
-cp /etc/libccid_Info.plist ${DESTDIR}/etc
+LIBC_DIR="$(ldd /usr/sbin/pcscd | sed -nr 's#.* => (/lib.*)/libc\.so\.[0-9.-]+ \(0x[[:xdigit:]]+\)$#\1#p')"
+find -L "$LIBC_DIR" -maxdepth 1 \( -name 'libgcc_s.*' -o -name 'libusb-*.so*' -o -name 'libpcsclite.so*' \) -type f | while read so; do
+    copy_exec "$so"
+done
+
+cp -r /usr/lib/pcsc "$DESTDIR/usr/lib"
+cp /etc/reader.conf "$DESTDIR/etc" || true
+cp /etc/libccid_Info.plist "$DESTDIR/etc"
 
 # Install opensc commands and conf file
 copy_exec /usr/bin/opensc-tool
 copy_exec /usr/bin/pkcs15-crypt
-cp /etc/opensc/opensc.conf ${DESTDIR}/etc/opensc
+cp /etc/opensc/opensc.conf "$DESTDIR/etc/opensc"
