@@ -9,11 +9,11 @@ prereqs()
 	echo "$PREREQ"
 }
 
-case $1 in
-prereqs)
-	prereqs
-	exit 0
-	;;
+case "$1" in
+    prereqs)
+        prereqs
+        exit 0
+        ;;
 esac
 
 . /usr/share/initramfs-tools/hook-functions
@@ -21,7 +21,7 @@ esac
 # Hooks for loading keyctl software into the initramfs
 
 # Check whether cryptroot hook has installed decrypt_keyctl script
-if [ ! -x ${DESTDIR}/lib/cryptsetup/scripts/decrypt_keyctl ]; then
+if [ ! -x "$DESTDIR/lib/cryptsetup/scripts/decrypt_keyctl" ]; then
     exit 0
 fi
 

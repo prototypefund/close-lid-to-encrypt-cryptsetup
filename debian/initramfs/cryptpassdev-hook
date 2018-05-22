@@ -9,11 +9,11 @@ prereqs()
 	echo "$PREREQ"
 }
 
-case $1 in
-prereqs)
-	prereqs
-	exit 0
-	;;
+case "$1" in
+    prereqs)
+        prereqs
+        exit 0
+        ;;
 esac
 
 . /usr/share/initramfs-tools/hook-functions
@@ -22,7 +22,7 @@ esac
 # keyscript is used
 
 # Check whether the passdev script has been included
-if [ ! -x "${DESTDIR}/lib/cryptsetup/scripts/passdev" ]; then
+if [ ! -x "$DESTDIR/lib/cryptsetup/scripts/passdev" ]; then
 	exit 0
 fi
 
