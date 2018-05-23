@@ -131,6 +131,10 @@ one mapping needs to be setup in the initramfs stage of the boot.
 Example boot arguments:
 root=/dev/mapper/crypt0 cryptopts=target=crypt0,source=/dev/sda1,cipher=aes-xts-plain64,size=256,hash=sha1
 
+In particular, if all "cryptopts" boot arguments have an empty value
+then no mapping is setup.  This can be used to disable the cryptsetup
+initramfs scripts for a particular boot.
+
 8. Resume device support
 ------------------------
 The initramfs scripts will also try to automatically determine the devices,

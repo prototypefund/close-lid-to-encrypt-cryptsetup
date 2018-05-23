@@ -43,7 +43,7 @@ get_mnt_devices() {
         [ "${device#\#}" = "$device" ] || continue
         if [ "$mountpoint" = "$wantmount" ]; then
             # take the last mountpoint if used several times (shadowed)
-            unset devices
+            unset -v devices
             if [ "$type" = btrfs ]; then
                 # btrfs can span over multiple devices
                 if uuid=$(blkid_tag "$device" UUID); then
@@ -432,4 +432,5 @@ elif [ "$CRYPTSETUP" = y ]; then
         fi
         add_crypto_modules $(printf '%s' "${CRYPTO_MODULES-}" | tr ' ' '\n' | sort -u)
     fi
+    copy_file library /usr/share/cryptsetup/initramfs/functions /lib/cryptsetup/functions
 fi

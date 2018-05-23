@@ -39,7 +39,7 @@ crypttab_entry_get_keyscript() {
     return 0
 }
 
-# crypttab_copy_keyfiles_to_initramfs($keyscript)
+# crypttab_copy_keys_to_initramfs($keyscript)
 #   Copy keys to the initramfs image for each crypttab(5) entry using
 #   the given $keyscript.
 #   Return 0 on success, 1 on error.  Exits if the keyscript isn't
@@ -68,6 +68,42 @@ crypttab_copy_keys_to_initramfs() {
         fi
     done <"$crypttab"
     return $rv
+}
+
+# gen_crypttab_from_kernel_cmdline()
+#   Create or replace the initramfs' crypttab(5) with the entries
+#   computed from the "cryptopts" kernel boot arguments, if there are
+#   any.  (If there are no "cryptopts" kernel boot arguments, then the
+#   initramfs' crypttab(5) is preserved.)
+gen_crypttab_from_kernel_cmdline() {
+    grep -qE '^(.*\s)?cryptopts=' /proc/cmdline || return 0
+    mkdir -p /cryptroot # might not exist if there is no crypttab(5) yet
+
+    local IFS=',' cryptopts x
+    local target source key options
+    tr ' ' '\n' </proc/cmdline | sed -n 's/^cryptopts=//p' | while read cryptopts; do
+        # skip empty values (which can be used to disable the initramfs
+        # scripts for a particular boot, cf. #873840)
+        [ -n "$cryptopts" ] || continue
+
+        unset -v target source key options
+        for x in $cryptopts; do
+            case "$x" in
+                target=*) target="${x#target=}";;
+                source=*) source="${x#source=}";;
+                key=*) key="${x#key=}";;
+                *) options="${options+$options,}$x";;
+            esac
+        done
+        if [ -z "${source:+x}" ]; then
+            cryptsetup_fail "Missing source= value in kernel parameter cryptopts=$cryptopts"
+            continue
+        else
+            printf '%s %s %s %s\n' "${target:-cryptroot}" "$source" \
+                                   "${key:-none}" "$options"
+        fi
+    done >/cryptroot/crypttab
+    return 0
 }
 
 # vim: set filetype=sh :
