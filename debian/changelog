@@ -24,6 +24,9 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
     functions from /usr/share/cryptsetup/initramfs/functions.
     + One can disable the cryptsetup initramfs scripts for a particular boot
       by passing "cryptopts=" as kernel boot argument. (Closes: #873840.)
+  * debian/README.initramfs: Remove mention that the initramfs scripts and the
+    crypsetup binary are using a different hash algorithm for plain dm-crypt
+    volumes.  This is no longer true since 2:1.0.6~pre1+svn45-1, cf. #406317.
 
   [ Jonas Meurer ]
   * debian/doc/crypttab.xml:
