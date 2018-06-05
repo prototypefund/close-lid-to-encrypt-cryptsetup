@@ -25,13 +25,14 @@ PASSFIFO=/lib/cryptsetup/passfifo
 ASKPASS=/lib/cryptsetup/askpass
 UNLOCK_ALL=n
 
-# The list of configured devices to unlock.
-
 CRYPTTAB='/cryptroot/crypttab'
-if [ ! -f "$CRYPTTAB" ] || [ ! "$CRYPTTAB" -nt '/proc/1' ]; then
+if [ ! -f "$CRYPTTAB" ] || [ "$CRYPTTAB" -ot '/proc/1' ]; then
 	# Too early, init-top/cryptroot hasn't finished yet
+	echo "Try again later" >&2
 	exit 1
 fi
+
+# The list of configured devices to unlock.
 CRYPTDEVS="$(sed -nr 's/^\s*([^#[:blank:]]\S*)\s.*/\1/p' "$CRYPTTAB")"
 
 # Print the list of PIDs the executed command of which is $exe.
