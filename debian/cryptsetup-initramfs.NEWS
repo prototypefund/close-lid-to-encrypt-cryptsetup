@@ -1,0 +1,9 @@
+cryptsetup (2:2.0.3-2) unstable; urgency=medium
+
+    No longer sleep after exceeding the maximum number of unlocking
+    tries.  This was added in 2:1.7.3-2 as an attempt to mitigate
+    CVE-2016-4484.  To avoid dropping to the debug shell after exceeding
+    the maximum number of unlocking tries, users need to use the 'panic'
+    boot parameter and lock down their boot loader & BIOS/UEFI.
+
+ -- Guilhem Moulin <guilhem@debian.org>  Fri, 15 Jun 2018 18:50:56 +0200
