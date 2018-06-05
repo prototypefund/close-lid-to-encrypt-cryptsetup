@@ -26,7 +26,7 @@ blkid_tag() {
     if [ "${device#$tag=}" != "$device" ]; then
         printf '%s\n' "${device#$tag=}"
     elif ! blkid -s "$2" -o value "$device"; then
-        cryptsetup_fail "$device: Couldn't determine $tag"
+        cryptsetup_message "ERROR: $device: Couldn't determine $tag"
         return 1
     fi
 }
@@ -36,7 +36,7 @@ blkid_tag() {
 #   device filesystems) currenty mounted on $mountpoint.
 #   Return 0 on success, 1 on error (if $mountpoint is not a mountpoint).
 get_mnt_devices() {
-    local wantmount="$1" devices uuid dev
+    local wantmount="$1" devices= uuid dev
     local device mount type options _
 
     while read device mountpoint type options _; do
@@ -49,7 +49,7 @@ get_mnt_devices() {
                 if uuid=$(blkid_tag "$device" UUID); then
                     for dev in "/sys/fs/btrfs/$uuid/devices"/*; do
                         dev="/dev/${dev#/sys/fs/btrfs/$uuid/devices/}"
-                        devices="${devices+$devices }$dev"
+                        devices="${devices:+$devices }$dev"
                     done
                 fi
             else
@@ -57,28 +57,8 @@ get_mnt_devices() {
             fi
         fi
     done </proc/mounts
-    [ "${devices+x}" ] || return 1 # not found
+    [ -n "${devices:+x}" ] || return 1 # not found
     printf '%s\n' "$devices" | tr ' ' '\n'
-}
-
-# normalise_device($device)
-#   Print the block device (not symlink) associated with the given
-#   (link to a) block $device.  Like for fstab(5), LABEL=<label> or
-#   UUID=<uuid> may be given instead of a device name.
-#   Return 0 on success, 1 on error.
-normalise_device() {
-    local dev="$1"
-    local val="${dev#*=}"
-
-    case "$dev" in
-        UUID=*)  dev="/dev/disk/by-uuid/$val";;
-        LABEL=*) dev="/dev/disk/by-label/$(printf '%s' "$val" | sed 's,/,\\x2f,g')";;
-    esac
-    if ! readlink -e "$dev"; then
-        cryptsetup_fail "Couldn't normalise device $1"
-        return 1
-    fi
-    return 0
 }
 
 # sysfs_devdir($name)
@@ -88,7 +68,7 @@ normalise_device() {
 sysfs_devdir() {
     local dev="$(normalise_device "$1")" || return 1
     if [ ! -d "/sys/block/${dev#/dev/}" ]; then
-        cryptsetup_fail "Couldn't find sysfs hierarchy for $1"
+        cryptsetup_message "ERROR: Couldn't find sysfs hierarchy for $1"
         return 1
     fi
     printf '/sys/block/%s\n' "${dev#/dev/}"
@@ -129,7 +109,7 @@ get_crypttab_entry() {
         if slave="$(normalise_device "$source")"; then
             if base="$(sysfs_devdir "/dev/mapper/$name")" && \
                     [ ! -e "$base/slaves/${slave#/dev/}" ]; then
-                cryptsetup_fail "Source mismatch: $source != $slave"
+                cryptsetup_message "ERROR: Source mismatch: $source != $slave"
             elif uuid="$(blkid_tag "$slave" UUID)"; then
                 source="UUID=$uuid"
             fi
@@ -139,19 +119,19 @@ get_crypttab_entry() {
     done </etc/crypttab
 
     if [ "$found" = n ]; then
-        cryptsetup_warn "No crypttab entry for $name"
+        cryptsetup_message "WARNING: No crypttab entry for $name"
         return 1
     fi
 
     local keyscript
     if ! keyscript="$(crypttab_entry_get_keyscript "$options")"; then
-        cryptsetup_warn "Skipping target $name: invalid keyscript"
+        cryptsetup_message "WARNING: Skipping target $name: invalid keyscript"
         return 1
     fi
 
     if [ -z "${keyscript:+x}" ] && [ "$key" = '/dev/random' -o "$key" = '/dev/urandom' ]; then
         # XXX: not sure why we have that check at all.  Random swap don't hurt!
-        cryptsetup_warn "Skipping target $name: random key"
+        cryptsetup_message "WARNING: Skipping target $name: random key"
         return 1
     fi
 
@@ -162,16 +142,21 @@ get_crypttab_entry() {
 
     local header
     if header="$(crypttab_options_get_value "$options" 'header=')"; then
-        [ -f "$header" ] || cryptsetup_warn "Target $name has an invalid header"
-        [ "$luks" = y ] || cryptsetup_warn "Option LUKS missing in crypttab for target $name." \
+        [ -f "$header" ] || cryptsetup_message "WARNING: Target $name has an invalid header"
+        [ "$luks" = y ] || cryptsetup_message "WARNING: Option 'luks' missing in crypttab for target $name." \
                                 "Headers are only supported for LUKS devices."
     fi
 
-    local hash="$(crypttab_options_get_value "$options" 'hash=')" || true
-    if [ -z "$hash" ] && [ "$luks" = n ]; then
-        cryptsetup_warn "Option hash missing in crypttab for non-LUKS target $name." \
-            "Please read /usr/share/doc/cryptsetup/README.initramfs.gz and" \
-            "add the correct hash option to your /etc/crypttab."
+    local o v
+    if [ "$luks" = 'n' ] && ! crypttab_options_get_value "$options" 'tcrypt'; then
+        # the compiled-in default for 'cipher' and 'hash' are subject to change
+        for o in 'cipher' 'hash' 'size'; do
+            if ! v="$(crypttab_options_get_value "$options" "$o=")" || [ -z "$v" ]; then
+                cryptsetup_message "WARNING: Option '$o' missing in crypttab for plain dm-crypt" \
+                    "mapping $name. Please read /usr/share/doc/cryptsetup/README.initramfs and" \
+                    "add the correct '$o' option to your /etc/crypttab."
+            fi
+        done
     fi
 
     local newkey
@@ -186,23 +171,23 @@ get_crypttab_entry() {
                 ;;
             *)
                 if [ "$usage" = rootfs ]; then
-                    cryptsetup_warn "Skipping root target $target: uses a key file"
+                    cryptsetup_message "WARNING: Skipping root target $target: uses a key file"
                     return 1
                 elif [ "$usage" = resume ]; then
-                    cryptsetup_warn "Resume target $target uses a key file"
+                    cryptsetup_message "WARNING: Resume target $target uses a key file"
                 fi
-                if newkey=$(readlink -e "$key"); then
-                    if [ "$(stat -c %m -- "$newkey" 2>/dev/null)" != / ]; then
-                        cryptsetup_warn "Skipping target $target: key file is not on the root FS"
+                if newkey=$(readlink -f -- "$key") && [ -f "$newkey" ]; then
+                    if [ "$(stat -c %m -- "$newkey" 2>/dev/null)" != '/' ]; then
+                        cryptsetup_message "WARNING: Skipping target $target: key file is not on the root FS"
                         return 1
                     fi
                 else
-                    cryptsetup_warn "Target $target has a non-existing key file $key"
+                    cryptsetup_message "WARNING: Target $target has a non-existing key file $key"
                     newkey="$key"
                 fi
-                key="/root$newkey"
+                key="/FIXME-initramfs-rootmnt$newkey"
         esac
-        options="$options,keyscript=cat"
+        options="$options"
     fi
 
     [ -z "$keyscript" ] || copy_exec "$keyscript"
@@ -267,7 +252,7 @@ generate_initrd_crypttab() {
     local dev usage
     {
         if ! dev="$(get_mnt_devices /)"; then
-            cryptsetup_warn "Couldn't determine root device"
+            cryptsetup_message "WARNING: Couldn't determine root device"
         else
             usage=rootfs get_cryptdevs $dev
         fi
@@ -300,7 +285,7 @@ list_crypto_modules() {
         value="$(dmsetup table "$name" | cut -d' ' -f4)"
         cipher="$(printf '%s' "$value" | cut -d':' -f1 | cut -d'-' -f1)"
         if [ -z "$cipher" ]; then
-            cryptsetup_warn "Couldn't determine cipher modules to load for $name"
+            cryptsetup_message "WARNING: Couldn't determine cipher modules to load for $name"
             continue
         fi
         CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }$cipher"
@@ -371,7 +356,7 @@ if [ -n "$KEYFILE_PATTERN" ]; then
     CRYPTSETUP='y'
     case "${UMASK:-$(umask)}" in
         0[0-7]77) ;;
-        *) cryptsetup_warn "Permissive UMASK (${UMASK:-$(umask)})." \
+        *) cryptsetup_message "WARNING: Permissive UMASK (${UMASK:-$(umask)})." \
                 "Private key material within the initrd might be left unprotected."
         ;;
     esac
@@ -392,7 +377,7 @@ if [ -r /etc/crypttab ] && [ "$CRYPTSETUP" != 'n' ]; then
 fi
 
 if [ -z "$CRYPTSETUP" ]; then
-    cryptsetup_warn "The initramfs image may not contain cryptsetup binaries nor crypto modules." \
+    cryptsetup_message "WARNING: The initramfs image may not contain cryptsetup binaries nor crypto modules." \
         "If that's on purpose, you may want to uninstall the 'crypsetup-initramfs' package in" \
         "order to disable the cryptsetup initramfs integration and avoid this warning."
 elif [ "$CRYPTSETUP" = y ]; then
