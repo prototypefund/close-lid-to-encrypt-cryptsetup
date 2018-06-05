@@ -93,10 +93,15 @@ crypttab_copy_keys_to_initramfs() {
 #   Create or replace the initramfs' crypttab(5) with the entries
 #   computed from the "cryptopts" kernel boot arguments, if there are
 #   any.  (If there are no "cryptopts" kernel boot arguments, then the
-#   initramfs' crypttab(5) is preserved.)
+#   initramfs' crypttab(5) is preserved.)  This function always touches
+#   /cryptroot/crypttab, so other scripts can determine whether it is up
+#   to date by comparing its ctime with the uptime.
 gen_crypttab_from_kernel_cmdline() {
-    grep -qE '^(.*\s)?cryptopts=' /proc/cmdline || return 0
     mkdir -p /cryptroot # might not exist if there is no crypttab(5) yet
+    if ! grep -qE '^(.*\s)?cryptopts=' /proc/cmdline; then
+        touch /cryptroot/crypttab
+        return 0
+    fi
 
     local IFS=',' cryptopts x
     local target source key options

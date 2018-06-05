@@ -141,21 +141,25 @@ unlock_mapping() {
         tcrypthidden='y'
     fi
 
-    /sbin/cryptsetup -T1 \
-        ${header:+--header="$header"} \
-        ${cipher:+--cipher="$cipher"} \
-        ${size:+--size="$size"} \
-        ${hash:+--hash="$hash"} \
-        ${offset:+--offset="$offset"} \
-        ${skip:+--skip="$skip"} \
-        ${verify:+--verify-passphrase} \
-        ${readonly:+--readonly} \
-        ${discard:+--allow-discards} \
-        ${veracrypt:+--veracrypt} \
-        ${keyslot:+--key-slot="$keyslot"} \
-        ${tcrypthidden:+--tcrypt-hidden} \
-        --type="$type" --key-file="$key" \
-        open -- "$source" "$target"
+    # populate the environment since our `cryptroot-unlock` searches for
+    # a `cryptsetup process` with a matching 'CRYPTTAB_NAME' variable in
+    # its environment
+    CRYPTTAB_SOURCE="$source" CRYPTTAB_NAME="$target" \
+        /sbin/cryptsetup -T1 \
+            ${header:+--header="$header"} \
+            ${cipher:+--cipher="$cipher"} \
+            ${size:+--size="$size"} \
+            ${hash:+--hash="$hash"} \
+            ${offset:+--offset="$offset"} \
+            ${skip:+--skip="$skip"} \
+            ${verify:+--verify-passphrase} \
+            ${readonly:+--readonly} \
+            ${discard:+--allow-discards} \
+            ${veracrypt:+--veracrypt} \
+            ${keyslot:+--key-slot="$keyslot"} \
+            ${tcrypthidden:+--tcrypt-hidden} \
+            --type="$type" --key-file="$key" \
+            open -- "$source" "$target"
 }
 
 # wait_for_source()

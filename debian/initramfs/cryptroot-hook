@@ -372,7 +372,7 @@ if [ -r /etc/crypttab ] && [ "$CRYPTSETUP" != 'n' ]; then
 
     # populate CRYPTO_MODULES
     list_crypto_modules \
-        $(sed -rn 's/^\s*([^#[:blank:]]+)\s.*/\1/p' "$DESTDIR/cryptroot/crypttab")
+        $(sed -rn 's/^\s*([^#[:blank:]]\S*)\s.*/\1/p' "$DESTDIR/cryptroot/crypttab")
     [ -z "${CRYPTO_MODULES:+x}" ] || CRYPTSETUP='y'
 fi
 
