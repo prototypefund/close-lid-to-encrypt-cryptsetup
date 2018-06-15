@@ -1,4 +1,4 @@
-cryptsetup (2:2.0.3-1) UNRELEASED; urgency=medium
+cryptsetup (2:2.0.3-1) unstable; urgency=medium
 
   [ Guilhem Moulin ]
   * Split cryptsetup package into cryptsetup-run (init scripts and libraries)
@@ -31,7 +31,7 @@ cryptsetup (2:2.0.3-1) UNRELEASED; urgency=medium
   * debian/README.source: minor improvements
   * debian/doc/crypttab.xml: Fix typo in manpage
 
- -- Jonas Meurer <jonas@freesources.org>  Fri, 15 Jun 2018 13:59:29 +0200
+ -- Jonas Meurer <jonas@freesources.org>  Fri, 15 Jun 2018 15:32:16 +0200
 
 cryptsetup (2:2.0.2-1) unstable; urgency=low
 
