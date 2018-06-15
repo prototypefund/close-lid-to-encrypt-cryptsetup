@@ -18,8 +18,9 @@ Importing a new upstream release
        as a remote in the Git repository where you're doing the packaging
        work and it's up to date:
 
+           VERSION="2.0.3"
            git remote add --tags upstream git+ssh://gitlab.com/cryptsetup/cryptsetup.git
-           git config remote.upstream.fetch master:upstream-2.0.0
+           git config remote.upstream.fetch "master:upstream-$VERSION"
 
     1. Update 'upstream' remote
 
@@ -51,4 +52,4 @@ Importing a new upstream release
 
            gbp buildpackage --git-tag
 
- -- Jonas Meurer <mejo@debian.org>  Wed, 05 Oct 2016 20:57:12 +0200
+ -- Jonas Meurer <mejo@debian.org>  Fri, 15 Jun 2018 13:39:49 +0200
