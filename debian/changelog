@@ -15,7 +15,7 @@ cryptsetup (2:2.0.2-2) UNRELEASED; urgency=medium
     + use copy_file() from hook-functions to copy key files to the initrd.
       This ensures that relevant messages are printed in verbose mode.
       (Closes: #898516.)
-    + remove backward compatbility support for setting CRYPTSETUP and
+    + remove backward compatibility support for setting CRYPTSETUP and
       KEYFILE_PATTERN in /etc/initramfs-tools/initramfs.conf.  Since 2:1.7.2-1
       they should be set in /etc/cryptsetup-initramfs/conf-hook.
     + add 'algif_skcipher' kernel module to large initramfs (if the MODULES
