@@ -10,6 +10,9 @@
 # a device is detected that needs to be unlocked at initramfs stage
 # (such as root or resume devices or ones with explicit 'initramfs' flag
 # in /etc/crypttab).
+# Note: Honoring this setting will deprecated in the future.  Please
+# uninstall the 'cryptsetup-initramfs' package if you don't want the
+# cryptsetup initramfs integration.
 #
 
 #CRYPTSETUP=
