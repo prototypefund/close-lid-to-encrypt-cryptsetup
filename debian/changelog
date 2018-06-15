@@ -28,8 +28,9 @@ cryptsetup (2:2.0.3-1) UNRELEASED; urgency=medium
     - Change my mail address to 'jonas@freesources.org'
     - Change Vcs links to the new repository on salsa.debian.org
   * debian/README.source: minor improvements
+  * debian/doc/crypttab.xml: Fix typo in manpage
 
- -- Jonas Meurer <jonas@freesources.org>  Tue, 17 Apr 2018 13:26:19 +0200
+ -- Jonas Meurer <jonas@freesources.org>  Fri, 15 Jun 2018 13:58:21 +0200
 
 cryptsetup (2:2.0.2-1) unstable; urgency=low
 

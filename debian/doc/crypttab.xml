@@ -212,7 +212,7 @@
      <simpara>Check the content of the source device by a suitable program; if
       the check fails, the device is not created. If a program is provided as an
       argument, it is run, giving the source device as argument.
-      Cryptdisks/cryptroot searches for the given progam in
+      Cryptdisks/cryptroot searches for the given program in
       <filename class="directory">/lib/cryptsetup/checks/</filename> first, but
       full path to program is supported as well.
      </simpara>
