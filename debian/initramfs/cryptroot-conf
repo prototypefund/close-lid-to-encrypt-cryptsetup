@@ -5,10 +5,11 @@
 #
 # CRYPTSETUP: [ y | n ]
 #
-# Add cryptsetup modules to the initramfs image, regardless of _this_
-# machine configuration.  By default, cryptsetup modules are only added
-# when there is a device that needs to be unlocked at initramfs stage
-# (such as root or resume devices).
+# Add cryptsetup and its dependencies to the initramfs image, regardless
+# of _this_ machine configuration.  By default, they're only added when
+# a device is detected that needs to be unlocked at initramfs stage
+# (such as root or resume devices or ones with explicit 'initramfs' flag
+# in /etc/crypttab).
 #
 
 #CRYPTSETUP=
