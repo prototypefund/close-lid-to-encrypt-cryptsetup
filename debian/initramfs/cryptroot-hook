@@ -40,6 +40,9 @@ get_mnt_devices() {
     local device mount type options _
 
     while read device mountpoint type options _; do
+        # treat lines starting with '#' as comments; /proc/mounts
+        # doesn't seem to contain these but per procfs(5) the format of
+        # that file is analogous to fstab(5)'s
         [ "${device#\#}" = "$device" ] || continue
         if [ "$mountpoint" = "$wantmount" ]; then
             # take the last mountpoint if used several times (shadowed)
@@ -51,6 +54,8 @@ get_mnt_devices() {
                         dev="/dev/${dev#/sys/fs/btrfs/$uuid/devices/}"
                         devices="${devices:+$devices }$dev"
                     done
+                # blkid_tag() produces a warning upon failure, so we
+                # skip error handling here
                 fi
             else
                 devices="$device"
@@ -83,7 +88,7 @@ get_dmcrypt_slaves() {
     [ -d "$d/slaves" ] || return 0
     if [ -d "$d/dm" ]; then
         name="$(cat "$d/dm/name")"
-        if dmsetup table "$name" | grep -Eq '^([0-9]+\s+){2}crypt\s'; then
+        if [ "$(dmsetup info --noheadings -c -o subsystem -- "$name")" = "CRYPT" ]; then
             printf '%s\n' "$name"
         fi
     fi
@@ -224,7 +229,7 @@ get_resume_device() {
         dev="$(sed -nr 's/^resume device\s*[:=]\s*//p' "$filename")"
         if [ -n "$dev" ] && [ "$dev" != "<path_to_resume_device_file>" ]; then
             # trim quotes
-		    dev=$(printf '%s' "$dev" | sed -re 's/^"(.*)"\s*$/\1/' -e "s/^'(.*)'\s*$/\1/")
+            dev=$(printf '%s' "$dev" | sed -re 's/^"(.*)"\s*$/\1/' -e "s/^'(.*)'\s*$/\1/")
             printf '%s\n' "$dev"
         fi
     done
@@ -282,7 +287,7 @@ list_crypto_modules() {
     local mod value cipher blockcipher ivhash
     for name in "$@"; do
         [ "${name#\#}" = "$name" ] || continue
-        value="$(dmsetup table "$name" | cut -d' ' -f4)"
+        value="$(dmsetup table -- "$name" | cut -d' ' -f4)"
         cipher="$(printf '%s' "$value" | cut -d':' -f1 | cut -d'-' -f1)"
         if [ -z "$cipher" ]; then
             cryptsetup_message "WARNING: Couldn't determine cipher modules to load for $name"
