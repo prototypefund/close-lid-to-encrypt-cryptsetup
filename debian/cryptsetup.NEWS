@@ -1,7 +1,7 @@
 cryptsetup (2:2.0.3-1) unstable; urgency=medium
 
-    cryptsetup 2:2.0.3-1 has been split into cryptsetup-run (init
-    script) and cryptsetup-initramfs (initramfs integration).
+    With this version, cryptsetup has been split into cryptsetup-run
+    (init script) and cryptsetup-initramfs (initramfs integration).
     'cryptsetup' is now a transitional dummy package depending on
     cryptsetup-run and cryptsetup-initramfs.
 
