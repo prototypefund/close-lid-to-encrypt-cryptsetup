@@ -106,7 +106,7 @@ get_dmcrypt_slaves() {
 #   entries it depends on are (recursively) printed before hand.
 #   Return 0 on success, 1 on error.
 get_crypttab_entry() {
-    local name="$1" found='n' slave uuid base
+    local name="$1" found="n" slave uuid base
     local target source key options derived
     while read target source key options; do
         [ "${target#\#}" = "$target" ] || continue
@@ -119,7 +119,7 @@ get_crypttab_entry() {
                 source="UUID=$uuid"
             fi
         fi
-        found='y'
+        found="y"
         break
     done </etc/crypttab
 
@@ -134,28 +134,28 @@ get_crypttab_entry() {
         return 1
     fi
 
-    if [ -z "${keyscript:+x}" ] && [ "$key" = '/dev/random' -o "$key" = '/dev/urandom' ]; then
+    if [ -z "${keyscript:+x}" ] && [ "$key" = "/dev/random" -o "$key" = "/dev/urandom" ]; then
         # XXX: not sure why we have that check at all.  Random swap don't hurt!
         cryptsetup_message "WARNING: Skipping target $name: random key"
         return 1
     fi
 
-    local luks='n'
-    if crypttab_options_get_value "$options" 'luks'; then
-        luks='y'
+    local luks="n"
+    if crypttab_options_get_value "$options" "luks"; then
+        luks="y"
     fi
 
     local header
-    if header="$(crypttab_options_get_value "$options" 'header=')"; then
+    if header="$(crypttab_options_get_value "$options" "header=")"; then
         [ -f "$header" ] || cryptsetup_message "WARNING: Target $name has an invalid header"
         [ "$luks" = y ] || cryptsetup_message "WARNING: Option 'luks' missing in crypttab for target $name." \
                                 "Headers are only supported for LUKS devices."
     fi
 
     local o v
-    if [ "$luks" = 'n' ] && ! crypttab_options_get_value "$options" 'tcrypt'; then
+    if [ "$luks" = n ] && ! crypttab_options_get_value "$options" "tcrypt"; then
         # the compiled-in default for 'cipher' and 'hash' are subject to change
-        for o in 'cipher' 'hash' 'size'; do
+        for o in "cipher" "hash" "size"; do
             if ! v="$(crypttab_options_get_value "$options" "$o=")" || [ -z "$v" ]; then
                 cryptsetup_message "WARNING: Option '$o' missing in crypttab for plain dm-crypt" \
                     "mapping $name. Please read /usr/share/doc/cryptsetup/README.initramfs and" \
@@ -182,7 +182,7 @@ get_crypttab_entry() {
                     cryptsetup_message "WARNING: Resume target $target uses a key file"
                 fi
                 if newkey=$(readlink -f -- "$key") && [ -f "$newkey" ]; then
-                    if [ "$(stat -c %m -- "$newkey" 2>/dev/null)" != '/' ]; then
+                    if [ "$(stat -c %m -- "$newkey" 2>/dev/null)" != "/" ]; then
                         cryptsetup_message "WARNING: Skipping target $target: key file is not on the root FS"
                         return 1
                     fi
@@ -196,7 +196,7 @@ get_crypttab_entry() {
     fi
 
     [ -z "$keyscript" ] || copy_exec "$keyscript"
-    if [ "$keyscript" = '/lib/cryptsetup/scripts/decrypt_derived' ]; then
+    if [ "$keyscript" = "/lib/cryptsetup/scripts/decrypt_derived" ]; then
         # (recursively) list first the device to derive the key from (so
         # the boot scripts unlocks it first)
         get_crypttab_entry "$key"
@@ -296,12 +296,12 @@ list_crypto_modules() {
         CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }$cipher"
 
         blockcipher="$(printf '%s' "$value" | cut -d':' -f1 | cut -d'-' -f1)"
-        if [ -n "$blockcipher" ] && [ "$blockcipher" != 'plain' ]; then
+        if [ -n "$blockcipher" ] && [ "$blockcipher" != "plain" ]; then
             CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }$blockcipher"
         fi
 
         ivhash="$(printf '%s' "$value" | cut -d':' -s -f2)"
-        if [ -n "$ivhash" ] && [ "$ivhash" != 'plain' ]; then
+        if [ -n "$ivhash" ] && [ "$ivhash" != "plain" ]; then
             CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }$ivhash"
         fi
     done
@@ -346,19 +346,19 @@ add_crypto_modules() {
 #######################################################################
 # Begin real processing
 
-CRYPTSETUP=''
+CRYPTSETUP=""
 
 # Load the hook config
 if [ -f "/etc/cryptsetup-initramfs/conf-hook" ]; then
     . /etc/cryptsetup-initramfs/conf-hook
 fi
 
-if [ -n "$CRYPTSETUP" ] && [ "$CRYPTSETUP" != 'n' ]; then
-    CRYPTSETUP='y'
+if [ -n "$CRYPTSETUP" ] && [ "$CRYPTSETUP" != "n" ]; then
+    CRYPTSETUP="y"
 fi
 
 if [ -n "$KEYFILE_PATTERN" ]; then
-    CRYPTSETUP='y'
+    CRYPTSETUP="y"
     case "${UMASK:-$(umask)}" in
         0[0-7]77) ;;
         *) cryptsetup_message "WARNING: Permissive UMASK (${UMASK:-$(umask)})." \
@@ -371,14 +371,14 @@ CRYPTO_MODULES=
 # XXX Maybe post-Buster: deprecate CRYPTSETUP=n (always install the
 # cryptsetup integration).  Users that don't want initramfs integration
 # can just uninstall the package.
-if [ -r /etc/crypttab ] && [ "$CRYPTSETUP" != 'n' ]; then
+if [ -r /etc/crypttab ] && [ "$CRYPTSETUP" != "n" ]; then
     mkdir "$DESTDIR/cryptroot"
     generate_initrd_crypttab >"$DESTDIR/cryptroot/crypttab"
 
     # populate CRYPTO_MODULES
     list_crypto_modules \
         $(sed -rn 's/^\s*([^#[:blank:]]\S*)\s.*/\1/p' "$DESTDIR/cryptroot/crypttab")
-    [ -z "${CRYPTO_MODULES:+x}" ] || CRYPTSETUP='y'
+    [ -z "${CRYPTO_MODULES:+x}" ] || CRYPTSETUP="y"
 fi
 
 if [ -z "$CRYPTSETUP" ]; then

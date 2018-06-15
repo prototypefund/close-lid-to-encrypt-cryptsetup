@@ -51,16 +51,16 @@ run_keyscript() {
         export CRYPTTAB_KEY="$arg"
     elif [ "$arg" = none ]; then
         # don't export CRYPTTAB_KEY, it's just the prompt message
-        keyscript='/lib/cryptsetup/askpass'
+        keyscript="/lib/cryptsetup/askpass"
         arg="Please unlock disk $CRYPTTAB_NAME: "
     fi
 
     # Populate environment with CRYPTTAB_OPTION_<option>=<value> (or
-    # CRYPTTAB_OPTION_<option>='yes' for mere flags)
-    local IFS=',' o v
+    # CRYPTTAB_OPTION_<option>="yes" for mere flags)
+    local IFS="," o v
     for o in $options; do
         v="${o#*=}"
-        [ "$v" != "$o" ] || v='yes'
+        [ "$v" != "$o" ] || v="yes"
         o="${o%%=*}"
         # ensure the name is valid (so we can set the variable)
         crypttab_is_valid_option_name "$o" || continue
@@ -82,50 +82,50 @@ unlock_mapping() {
     modprobe -q dm_crypt
 
     local header=
-    if header="$(crypttab_options_get_value "$options" 'header=')"; then
+    if header="$(crypttab_options_get_value "$options" "header=")"; then
         if [ ! -f "$header" ]; then
             cryptsetup_message "ERROR: $target: LUKS header '$header' missing"
             return 1
         fi
     fi
 
-    local type='plain' # assume plain dm-crypt device by default
-    if crypttab_options_get_value "$options" 'tcrypt'; then
-        type='tcrypt'
-    elif crypttab_options_get_value "$options" 'plain'; then
-        type='plain'
-    elif crypttab_options_get_value "$options" 'luks' ||
+    local type="plain" # assume plain dm-crypt device by default
+    if crypttab_options_get_value "$options" "tcrypt"; then
+        type="tcrypt"
+    elif crypttab_options_get_value "$options" "plain"; then
+        type="plain"
+    elif crypttab_options_get_value "$options" "luks" ||
             /sbin/cryptsetup isLuks "${header:-$source}"; then
-        type='luks'
+        type="luks"
     fi
 
     local cipher= size= hash= offset= skip=
-    if [ "$type" = 'plain' ]; then
-        cipher="$(crypttab_options_get_value "$options" 'cipher=')"
-        size="$(crypttab_options_get_value "$options" 'size=')"
-        hash="$(crypttab_options_get_value "$options" 'hash=')"
-        offset="$(crypttab_options_get_value "$options" 'offset=')"
-        skip="$(crypttab_options_get_value "$options" 'skip=')"
+    if [ "$type" = "plain" ]; then
+        cipher="$(crypttab_options_get_value "$options" "cipher=")"
+        size="$(crypttab_options_get_value "$options" "size=")"
+        hash="$(crypttab_options_get_value "$options" "hash=")"
+        offset="$(crypttab_options_get_value "$options" "offset=")"
+        skip="$(crypttab_options_get_value "$options" "skip=")"
     fi
 
     local verify=
-    if crypttab_options_get_value "$options" 'verify'; then
-        verify='y'
+    if crypttab_options_get_value "$options" "verify"; then
+        verify="y"
     fi
 
     local readonly=
-    if crypttab_options_get_value "$options" 'readonly'; then
-        readonly='y'
+    if crypttab_options_get_value "$options" "readonly"; then
+        readonly="y"
     fi
 
     local discard=
-    if crypttab_options_get_value "$options" 'discard'; then
-        discard='y'
+    if crypttab_options_get_value "$options" "discard"; then
+        discard="y"
     fi
 
     local veracrypt=
-    if [ "$type" = tcrypt ] && crypttab_options_get_value "$options" 'veracrypt'; then
-        veracrypt='y'
+    if [ "$type" = tcrypt ] && crypttab_options_get_value "$options" "veracrypt"; then
+        veracrypt="y"
     fi
 
     # TODO swap, tmp=<tmpfs>, precheck=<precheck>, check=<check>, checkargs=<arguments>
@@ -133,12 +133,12 @@ unlock_mapping() {
 
     local keyslot=
     if [ "$type" = luks ]; then
-        keyslot="$(crypttab_options_get_value "$options" 'keyslot=')" || true
+        keyslot="$(crypttab_options_get_value "$options" "keyslot=")" || true
     fi
 
     local tcrypthidden=
-    if [ "$type" = tcrypt ] && crypttab_options_get_value "$options" 'tcrypthidden'; then
-        tcrypthidden='y'
+    if [ "$type" = tcrypt ] && crypttab_options_get_value "$options" "tcrypthidden"; then
+        tcrypthidden="y"
     fi
 
     # populate the environment since our `cryptroot-unlock` searches for
@@ -241,7 +241,7 @@ setup_mapping() {
     fi
 
     local crypttries
-    if [ -z "${keyscript:+x}" ] && [ "$key" != 'none' ]; then
+    if [ -z "${keyscript:+x}" ] && [ "$key" != "none" ]; then
         if [ ! -f "$key" ]; then
             cryptsetup_message "ERROR: Skipping target $target: missing key file $key"
             return 1
@@ -249,10 +249,10 @@ setup_mapping() {
         # try only once if we have a key file
         crypttries=1
     else
-        crypttries="$(crypttab_options_get_value "$options" 'tries=')" || true
+        crypttries="$(crypttab_options_get_value "$options" "tries=")" || true
         case "$crypttries" in
             # substitute default and invalid values
-            *[![:digit:].]*|'') crypttries=3;;
+            *[![:digit:].]*|"") crypttries=3;;
         esac
     fi
 
@@ -260,7 +260,7 @@ setup_mapping() {
     while [ $crypttries -le 0 ] || [ $count -lt $crypttries ]; do
         count=$(( $count + 1 ))
 
-        if [ -z "${keyscript:+x}" ] && [ "$key" != 'none' ]; then
+        if [ -z "${keyscript:+x}" ] && [ "$key" != "none" ]; then
             # unlock via keyfile
             unlock_mapping "$target" "$source" "$key" "$options"
         else

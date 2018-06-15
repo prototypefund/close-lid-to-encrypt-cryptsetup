@@ -25,8 +25,8 @@ PASSFIFO=/lib/cryptsetup/passfifo
 ASKPASS=/lib/cryptsetup/askpass
 UNLOCK_ALL=n
 
-CRYPTTAB='/cryptroot/crypttab'
-if [ ! -f "$CRYPTTAB" ] || [ "$CRYPTTAB" -ot '/proc/1' ]; then
+CRYPTTAB="/cryptroot/crypttab"
+if [ ! -f "$CRYPTTAB" ] || [ "$CRYPTTAB" -ot "/proc/1" ]; then
 	# Too early, init-top/cryptroot hasn't finished yet
 	echo "Try again later" >&2
 	exit 1
@@ -122,7 +122,7 @@ wait_for_prompt() {
 		exit 1
 	fi
 
-	for pid in $(pgrep_exe '/sbin/cryptsetup'); do
+	for pid in $(pgrep_exe "/sbin/cryptsetup"); do
 		if grep -Fxqz "CRYPTTAB_NAME=$CRYPTTAB_NAME" "/proc/$pid/environ"; then
 			PID=$pid
 			BIRTH=$(stat -c'%Z' "/proc/$PID")
