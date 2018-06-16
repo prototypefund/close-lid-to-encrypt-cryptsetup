@@ -3,6 +3,7 @@ TABFILE="${TABFILE-/etc/crypttab}"
 # Logging helpers. Send the argument list to plymouth(1), or fold it
 # and print it to the standard error.
 cryptsetup_message() {
+    local IFS=' '
     if [ "${INITSTATE-}" = "initramfs" ] && [ -x /bin/plymouth ] && plymouth --ping; then
         plymouth message --text="cryptsetup: $*"
     elif [ ${#*} -lt 70 ]; then
@@ -14,50 +15,131 @@ cryptsetup_message() {
     return 0
 }
 
-# crypttab_is_valid_option_name($arg)
-#   Return 0 if $arg is a valid crypttab(5) option name, and 1
-#   otherwise.
-crypttab_is_valid_option_name() {
-    local arg="$1"
-    if printf '%s' "$arg" | grep -Eq "^[_A-Za-z][_0-9A-Za-z]*$"; then
-        return 0
-    else
-        cryptsetup_message "ERROR: Invalid crypttab option name: $arg"
-        return 1
-    fi
-}
-
-# crypttab_options_get_value($options, $arg)
-#   Return 1 if $options (taken from the 4th field of the crypttab(5)
-#   file entry) contains $arg, and 0 afterwards.  If $arg ends with a
-#   '=' character, the option value is printed out.
-crypttab_options_get_value() {
-    local options="$1" arg="$2"
-    if [ "${arg%=}" = "$arg" ]; then
-        printf '%s' "$options" | grep -Eq "^(.*,)?$arg(,.*)?$"
-    elif printf '%s' "$options" | grep -Eq "^(.*,)?$arg"; then
-        printf '%s' "$options" | sed -nr "s;^(.*,)?$arg([^,]*)(,.*)?$;\2;p"
-        return 0
-    else
-        return 1
-    fi
-}
-
-# crypttab_option_get_keyscript($options)
-#   Print the normalised keyscript from $options (taken from the 4th
-#   field of the crypttab(5) file entry).
-#   Return 0 on success (incl. if $options has no keyscript), 1 on error
-#   (invalid keyscript).
-crypttab_entry_get_keyscript() {
-    local keyscript
-    if keyscript="$(crypttab_options_get_value "$options" 'keyscript=')"; then
-        [ "${keyscript#/}" != "$keyscript" ] || keyscript="/lib/cryptsetup/scripts/$keyscript"
-        if [ ! -f "$keyscript" ] || [ ! -x "$keyscript" ]; then
-            return 1
+# crypttab_parse_options([$CRYPTTAB_OPTIONS, $export])
+#   Parse CRYPTTAB_OPTIONS, a comma-separated option string from the
+#   crypttab(5) 4th column, build a suitable CRYPTTAB_OPTION_<option>
+#   environment unless $export is "n"
+crypttab_parse_options() {
+    local options="${1:-$CRYPTTAB_OPTIONS}" export="${2:-y}"
+    local IFS=',' x o v
+    unset -v CRYPTTAB_OPTION_cipher \
+             CRYPTTAB_OPTION_size \
+             CRYPTTAB_OPTION_hash \
+             CRYPTTAB_OPTION_offset \
+             CRYPTTAB_OPTION_skip \
+             CRYPTTAB_OPTION_verify \
+             CRYPTTAB_OPTION_readonly \
+             CRYPTTAB_OPTION_discard \
+             CRYPTTAB_OPTION_luks \
+             CRYPTTAB_OPTION_tcrypt \
+             CRYPTTAB_OPTION_veracrypt \
+             CRYPTTAB_OPTION_swap \
+             CRYPTTAB_OPTION_tmp \
+             CRYPTTAB_OPTION_precheck \
+             CRYPTTAB_OPTION_check \
+             CRYPTTAB_OPTION_checkargs \
+             CRYPTTAB_OPTION_tries \
+             CRYPTTAB_OPTION_initramfs \
+             CRYPTTAB_OPTION_noearly \
+             CRYPTTAB_OPTION_noauto \
+             CRYPTTAB_OPTION_loud \
+             CRYPTTAB_OPTION_quiet \
+             CRYPTTAB_OPTION_keyscript \
+             CRYPTTAB_OPTION_keyslot \
+             CRYPTTAB_OPTION_header \
+             CRYPTTAB_OPTION_tcrypthidden
+    for x in $options; do
+        o="${x%%=*}"
+        v="${x#*=}"
+        case "$x" in
+            cipher=*|hash=*|header=*)
+                if [ -z "$v" ]; then
+                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: no value for '$o' option, skipping"
+                    return 1
+                fi
+            ;;
+            # numeric options >0
+            size=*)
+                if [ -z "$v" ] || ! printf '%s' "$v" | grep -Exq "[0-9]+" || [ ${v:--1} -le 0 ]; then
+                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '$o' option, skipping"
+                    return 1
+                fi
+            ;;
+            # numeric options >=0
+            offset=*|skip=*|tries=*|keyslot=*)
+                if [ -z "$v" ] || ! printf '%s' "$v" | grep -Exq "[0-9]+" || [ ${v:--1} -lt 0 ]; then
+                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '$o' option, skipping"
+                    return 1
+                fi
+            ;;
+            ###
+            tmp|tmp=*)
+                [ "$x" != "$o" ] || v="ext4"
+                if [ -z "$v" ]; then
+                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: no value for '$o' option, skipping"
+                    return 1
+                fi
+            ;;
+            precheck|precheck=*)
+                [ "$x" != "$o" ] || v="$CRYPTDISKS_PRECHECK"
+                if [ -x "/lib/cryptsetup/checks/$v" ] && [ -f "/lib/cryptsetup/checks/$v" ]; then
+                    v="/lib/cryptsetup/checks/$v"
+                elif [ ! -x "$v" ] || [ ! -f "$v" ]; then
+                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '$o' option, skipping"
+                    return 1
+                fi
+            ;;
+            check|check=*)
+                [ "$x" != "$o" ] || v="$CRYPTDISKS_CHECK"
+                if [ -x "/lib/cryptsetup/checks/$v" ] && [ -f "/lib/cryptsetup/checks/$v" ]; then
+                    v="/lib/cryptsetup/checks/$v"
+                elif [ ! -x "$v" ] || [ ! -f "$v" ]; then
+                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '$o' option, skipping"
+                    return 1
+                fi
+            ;;
+            checkargs=*)
+            ;;
+            keyscript=*)
+                if [ "${v#/}" = "$v" ]; then
+                    v="/lib/cryptsetup/scripts/$v"
+                fi
+                if [ ! -x "$v" ] || [ ! -f "$v" ]; then
+                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '$o' option, skipping"
+                    return 1
+                fi
+            ;;
+            # and now the flags
+            verify|loud|quiet) v="yes";;
+            initramfs|noearly|noauto) v="yes";;
+            readonly|discard|luks|swap) v="yes";;
+            tcrypt|veracrypt|tcrypthidden) v="yes";;
+            *)
+                cryptsetup_message "WARNING: $CRYPTTAB_NAME: ignoring unknown option '$o'";
+                continue
+            ;;
+        esac
+        if [ "$export" != "n" ]; then
+            export "CRYPTTAB_OPTION_$o"="$v"
+        else
+            eval "CRYPTTAB_OPTION_$o"='$v'
         fi
-        printf '%s\n' "$keyscript"
+    done
+
+    if [ -z "${CRYPTTAB_OPTION_luks+x}" ] && [ -n "${CRYPTTAB_OPTION_header+x}" ]; then
+        cryptsetup_message "WARNING: Option 'luks' missing in crypttab for target $CRYPTTAB_NAME." \
+                           "Headers are only supported for LUKS devices."
     fi
-    return 0
+    if [ -z "${CRYPTTAB_OPTION_luks+x}" ] && [ -z "${CRYPTTAB_OPTION_tcrypt+x}" ]; then
+        # the compiled-in default for these are subject to change
+        for o in "cipher" "hash" "size"; do
+            if eval [ -z "\${$CRYPTTAB_OPTION_$o+x}" ]; then
+                cryptsetup_message "WARNING: Option '$o' missing in crypttab for plain dm-crypt" \
+                    "mapping $CRYPTTAB_NAME. Please read /usr/share/doc/cryptsetup/README.initramfs and" \
+                    "add the correct '$o' option to your crypttab(5)."
+            fi
+        done
+    fi
 }
 
 # crypttab_copy_keys_to_initramfs($keyscript)
@@ -68,7 +150,7 @@ crypttab_entry_get_keyscript() {
 crypttab_copy_keys_to_initramfs() {
     local keyscript="/lib/cryptsetup/scripts/$1"
     local crypttab="$DESTDIR/cryptroot/crypttab"
-    local target source key options v
+    local CRYPTTAB_NAME CRYPTTAB_SOURCE key options v
     local rv=0
 
     if [ ! -x "$DESTDIR/$keyscript" ] || [ ! -f "$crypttab" ]; then
@@ -76,14 +158,14 @@ crypttab_copy_keys_to_initramfs() {
     fi
 
     # Install cryptroot key files into initramfs
-    while read target source key options; do
-        [ "${target#\#}" = "$target" ] || continue
-        if v="$(crypttab_entry_get_keyscript "$options")" &&
-                [ "$v" = "$keyscript" ]; then
+    while read CRYPTTAB_NAME CRYPTTAB_SOURCE key options; do
+        [ "${CRYPTTAB_NAME#\#}" = "$CRYPTTAB_NAME" ] || continue
+        crypttab_parse_options "$options" n || continue
+        if [ "${CRYPTTAB_OPTION_keyscript-}" = "$keyscript" ]; then
             if [ -f "$key" ]; then
                 copy_file keyfile "$key"
             else
-                cryptsetup_message "ERROR: Target $target has a non-existing key file $key"
+                cryptsetup_message "ERROR: Target $CRYPTTAB_NAME has a non-existing key file $key"
                 rv=1
             fi
         fi

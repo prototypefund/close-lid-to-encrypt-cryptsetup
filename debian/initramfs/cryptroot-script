@@ -29,149 +29,107 @@ esac
 . /lib/cryptsetup/functions
 
 
-# run_keyscript($target, $source, $options, $keyscript, $keyscriptarg, $tried_count)
-#   exec()'ute `$keyscript $keyscriptarg` in an environment populated as
-#   described by crypttab(5).
-#   If $keyscript is null and $keyscriptarg is "none" (meaning the
-#   passphrase is to be read interactively from the console), use
-#   `/lib/cryptsetup/askpass` as keyscript with a suitable prompt
-#   message.
-#   Since the shell process is replaced with the $keyscript program,
-#   run_keyscript() must be used on the left-hand side of a pipe, or
-#   similar.  In which case the CRYPTTAB_OPTION_<option> environment
-#   variables don't propagage to the rest of the script.
+# run_keyscript($keyscriptarg, $tried_count)
+#   exec()'ute `$CRYPTTAB_OPTION_keyscript $keyscriptarg`.
+#   If $CRYPTTAB_OPTION_keyscript is unset or null and $keyscriptarg is
+#   "none" (meaning the passphrase is to be read interactively from the
+#   console), use `/lib/cryptsetup/askpass` as keyscript with a suitable
+#   prompt message.
+#   Since the shell process is replaced with the $CRYPTTAB_OPTION_keyscript
+#   program, run_keyscript() must be used on the left-hand side of a
+#   pipe, or similar.
 run_keyscript() {
-    local CRYPTTAB_NAME="$1" CRYPTTAB_SOURCE="$2" CRYPTTAB_OPTIONS="$3"
-    local keyscript="$4" arg="$5" CRYPTTAB_TRIED="$6"
+    local keyscriptarg="$1" CRYPTTAB_TRIED="$2" keyscript;
+    export CRYPTTAB_TRIED
 
-    export CRYPTTAB_NAME CRYPTTAB_SOURCE CRYPTTAB_OPTIONS CRYPTTAB_TRIED
-
-    if [ -n "$keyscript" ]; then
-        # export the keyscript argument as $CRYPTTAB_KEY
-        export CRYPTTAB_KEY="$arg"
-    elif [ "$arg" = none ]; then
-        # don't export CRYPTTAB_KEY, it's just the prompt message
+    if [ -n "${CRYPTTAB_OPTION_keyscript+x}" ] && \
+            [ "$CRYPTTAB_OPTION_keyscript" != "/lib/cryptsetup/askpass" ]; then
+        # 'keyscript' option is present: export its argument as
+        # $CRYPTTAB_KEY
+        export CRYPTTAB_KEY="$keyscriptarg"
+        keyscript="$CRYPTTAB_OPTION_keyscript"
+    elif [ "$keyscriptarg" = none ]; then
+        # don't export the prompt message as CRYPTTAB_KEY
         keyscript="/lib/cryptsetup/askpass"
-        arg="Please unlock disk $CRYPTTAB_NAME: "
+        keyscriptarg="Please unlock disk $CRYPTTAB_NAME: "
     fi
 
-    # Populate environment with CRYPTTAB_OPTION_<option>=<value> (or
-    # CRYPTTAB_OPTION_<option>="yes" for mere flags)
-    local IFS="," o v
-    for o in $options; do
-        v="${o#*=}"
-        [ "$v" != "$o" ] || v="yes"
-        o="${o%%=*}"
-        # ensure the name is valid (so we can set the variable)
-        crypttab_is_valid_option_name "$o" || continue
-        export "CRYPTTAB_OPTION_$o"="$v"
-    done
-
-    exec "$keyscript" "$arg"
+    exec "$keyscript" "$keyscriptarg"
 }
 
-# unlock_mapping($target, $source, $key, $options)
+# unlock_mapping([$keyfile])
 #   Run cryptsetup(8) with suitable options and arguments to unlock
-#   $source and setup dm-crypt managed device-mapper mapping $target
+#   $CRYPTTAB_SOURCE and setup dm-crypt managed device-mapper mapping
+#   $CRYPTTAB_NAME
 unlock_mapping() {
-    local target="$1" source="$2" key="$3" options="$4"
+    local keyfile="$1"
 
     # Create locking directory before invoking cryptsetup(8) to avoid warnings
     mkdir -pm0700 /run/cryptsetup
 
     modprobe -q dm_crypt
 
-    local header=
-    if header="$(crypttab_options_get_value "$options" "header=")"; then
-        if [ ! -f "$header" ]; then
-            cryptsetup_message "ERROR: $target: LUKS header '$header' missing"
-            return 1
-        fi
+    if [ -n "${CRYPTTAB_OPTION_header+x}" ] && [ ! -f "${CRYPTTAB_OPTION_header}" ]; then
+        cryptsetup_message "ERROR: $CRYPTTAB_NAME: LUKS header '${CRYPTTAB_OPTION_header}' missing"
+        return 1
     fi
 
     local type="plain" # assume plain dm-crypt device by default
-    if crypttab_options_get_value "$options" "tcrypt"; then
+    if [ "${CRYPTTAB_OPTION_tcrypt-}" = "yes" ]; then
         type="tcrypt"
-    elif crypttab_options_get_value "$options" "plain"; then
+    elif [ "${CRYPTTAB_OPTION_plain-}" = "yes" ]; then
         type="plain"
-    elif crypttab_options_get_value "$options" "luks" ||
-            /sbin/cryptsetup isLuks "${header:-$source}"; then
+    elif [ "${CRYPTTAB_OPTION_luks-}" = "yes" ] ||
+            /sbin/cryptsetup isLuks -- "${CRYPTTAB_OPTION_header-$CRYPTTAB_SOURCE}"; then
         type="luks"
     fi
 
-    local cipher= size= hash= offset= skip=
-    if [ "$type" = "plain" ]; then
-        cipher="$(crypttab_options_get_value "$options" "cipher=")"
-        size="$(crypttab_options_get_value "$options" "size=")"
-        hash="$(crypttab_options_get_value "$options" "hash=")"
-        offset="$(crypttab_options_get_value "$options" "offset=")"
-        skip="$(crypttab_options_get_value "$options" "skip=")"
+    if [ "$type" = "luks" ] || [ "$type" = "tcrypt" ]; then
+        # ignored for LUKS and TCRYPT devices
+        unset -v CRYPTTAB_OPTION_cipher \
+                 CRYPTTAB_OPTION_size \
+                 CRYPTTAB_OPTION_hash \
+                 CRYPTTAB_OPTION_offset \
+                 CRYPTTAB_OPTION_skip
+    fi
+    if [ "$type" != "tcrypt" ]; then
+        # ignored for non-TCRYPT devices
+        unset -v CRYPTTAB_OPTION_veracrypt CRYPTTAB_OPTION_tcrypthidden
     fi
 
-    local verify=
-    if crypttab_options_get_value "$options" "verify"; then
-        verify="y"
+    if [ "$type" != "luks" ]; then
+        # ignored for non-LUKS devices
+        unset -v CRYPTTAB_OPTION_keyslot
     fi
 
-    local readonly=
-    if crypttab_options_get_value "$options" "readonly"; then
-        readonly="y"
-    fi
-
-    local discard=
-    if crypttab_options_get_value "$options" "discard"; then
-        discard="y"
-    fi
-
-    local veracrypt=
-    if [ "$type" = tcrypt ] && crypttab_options_get_value "$options" "veracrypt"; then
-        veracrypt="y"
-    fi
-
-    # TODO swap, tmp=<tmpfs>, precheck=<precheck>, check=<check>, checkargs=<arguments>
-    # TODO initramfs, noearly, noauto, loud, quiet
-
-    local keyslot=
-    if [ "$type" = luks ]; then
-        keyslot="$(crypttab_options_get_value "$options" "keyslot=")" || true
-    fi
-
-    local tcrypthidden=
-    if [ "$type" = tcrypt ] && crypttab_options_get_value "$options" "tcrypthidden"; then
-        tcrypthidden="y"
-    fi
-
-    # populate the environment since our `cryptroot-unlock` searches for
-    # a `cryptsetup process` with a matching 'CRYPTTAB_NAME' variable in
-    # its environment
-    CRYPTTAB_SOURCE="$source" CRYPTTAB_NAME="$target" \
-        /sbin/cryptsetup -T1 \
-            ${header:+--header="$header"} \
-            ${cipher:+--cipher="$cipher"} \
-            ${size:+--size="$size"} \
-            ${hash:+--hash="$hash"} \
-            ${offset:+--offset="$offset"} \
-            ${skip:+--skip="$skip"} \
-            ${verify:+--verify-passphrase} \
-            ${readonly:+--readonly} \
-            ${discard:+--allow-discards} \
-            ${veracrypt:+--veracrypt} \
-            ${keyslot:+--key-slot="$keyslot"} \
-            ${tcrypthidden:+--tcrypt-hidden} \
-            --type="$type" --key-file="$key" \
-            open -- "$source" "$target"
+    /sbin/cryptsetup -T1 \
+        ${CRYPTTAB_OPTION_header:+--header="$CRYPTTAB_OPTION_header"} \
+        ${CRYPTTAB_OPTION_cipher:+--cipher="$CRYPTTAB_OPTION_cipher"} \
+        ${CRYPTTAB_OPTION_size:+--size="$CRYPTTAB_OPTION_size"} \
+        ${CRYPTTAB_OPTION_hash:+--hash="$CRYPTTAB_OPTION_hash"} \
+        ${CRYPTTAB_OPTION_offset:+--offset="$CRYPTTAB_OPTION_offset"} \
+        ${CRYPTTAB_OPTION_skip:+--skip="$CRYPTTAB_OPTION_skip"} \
+        ${CRYPTTAB_OPTION_verify:+--verify-passphrase} \
+        ${CRYPTTAB_OPTION_readonly:+--readonly} \
+        ${CRYPTTAB_OPTION_discard:+--allow-discards} \
+        ${CRYPTTAB_OPTION_veracrypt:+--veracrypt} \
+        ${CRYPTTAB_OPTION_keyslot:+--key-slot="$CRYPTTAB_OPTION_keyslot"} \
+        ${CRYPTTAB_OPTION_tcrypthidden:+--tcrypt-hidden} \
+        --type="$type" --key-file="${keyfile:--}" \
+        open -- "$CRYPTTAB_SOURCE" "$CRYPTTAB_NAME"
 }
 
 # wait_for_source()
-#   Wait for encrypted $source for up to 180s.  Set $source to its
-#   normalized device name when it shows up; return 1 if timeout.
+#   Wait for encrypted $CRYPTTAB_SOURCE for up to 180s.  Set
+#   $CRYPTTAB_SOURCE to its normalized device name when it shows up;
+#   return 1 if timeout.
 wait_for_source() {
     local device
     wait_for_udev 10
 
-    if device="$(normalise_device --quiet "$source")"; then
+    if device="$(normalise_device --quiet "$CRYPTTAB_SOURCE")"; then
         # the device is here already, no need to loop
-        source="$device"
+        CRYPTTAB_SOURCE="$device"
         return 0
     fi
 
@@ -190,14 +148,14 @@ wait_for_source() {
         sleep 1
 
         if [ -x /scripts/local-block/lvm2 ]; then
-            # activate any VG that might hold $source
-            /scripts/local-block/lvm2 "$source"
+            # activate any VG that might hold $CRYPTTAB_SOURCE
+            /scripts/local-block/lvm2 "$CRYPTTAB_SOURCE"
         fi
 
-        if device="$(normalise_device --quiet "$source")"; then
+        if device="$(normalise_device --quiet "$CRYPTTAB_SOURCE")"; then
             wait_for_udev 10
             log_end_msg 0
-            source="$device"
+            CRYPTTAB_SOURCE="$device"
             return 0
         fi
 
@@ -210,21 +168,23 @@ wait_for_source() {
 # setup_mapping($target, $source, $key, $options)
 #   Set up a given crypttab(5) mapping
 setup_mapping() {
-    local target="$1" source="$2" key="$3" options="$4"
+    export CRYPTTAB_NAME="$1" CRYPTTAB_SOURCE="$2" CRYPTTAB_OPTIONS="$4"
+    local key="$3"
+    crypttab_parse_options || return 1
 
     # The same target can be specified multiple times
     # e.g. root and resume lvs-on-lvm-on-crypto
-    if [ -e "/dev/mapper/$target" ]; then
+    if [ -e "/dev/mapper/$CRYPTTAB_NAME" ]; then
         return 0
     fi
 
     if ! wait_for_source; then
         # we've given up
         if [ -n "$panic" ]; then
-            panic "ALERT! encrypted source device $source does not exist, can't unlock $target."
+            panic "ALERT! encrypted source device $CRYPTTAB_SOURCE does not exist, can't unlock $CRYPTTAB_NAME."
         else
             # let the user fix matters if they can
-            echo "	ALERT! encrypted source device $source does not exist, can't unlock $target."
+            echo "	ALERT! encrypted source device $CRYPTTAB_SOURCE does not exist, can't unlock $CRYPTTAB_NAME."
             echo "	Check cryptopts=source= bootarg: cat /proc/cmdline"
             echo "	or missing modules, devices: cat /proc/modules; ls /dev"
             panic "Dropping to a shell."
@@ -232,80 +192,66 @@ setup_mapping() {
         return 1
     fi
 
-    local keyscript
-    if ! keyscript="$(crypttab_entry_get_keyscript "$options")"; then
-        cryptsetup_message "ERROR: Skipping target $target: invalid keyscript"
-        return 1
-    fi
-
-    if [ -z "${keyscript:+x}" ] && [ "${key#/FIXME-initramfs-rootmnt/}" != "$key" ]; then
+    if [ -z "${CRYPTTAB_OPTION_keyscript+x}" ] && [ "${key#/FIXME-initramfs-rootmnt/}" != "$key" ]; then
         # skip the mapping if the root FS is not mounted yet
         sed -rn 's/^\s*[^#[:blank:]]\S*\s+(\S+)\s.*/\1/p' /proc/mounts | grep -Fxq -- "$rootmnt" || return 1
         # substitute the "/FIXME-initramfs-rootmnt/" prefix by the real root FS mountpoint otherwise
         key="$rootmnt/${key#/FIXME-initramfs-rootmnt/}"
     fi
 
-    local crypttries
-    if [ -z "${keyscript:+x}" ] && [ "$key" != "none" ]; then
+    if [ -z "${CRYPTTAB_OPTION_keyscript+x}" ] && [ "$key" != "none" ]; then
         if [ ! -f "$key" ]; then
-            cryptsetup_message "ERROR: Skipping target $target: missing key file $key"
+            cryptsetup_message "ERROR: Skipping target $CRYPTTAB_NAME: missing key file $key"
             return 1
         fi
         # try only once if we have a key file
-        crypttries=1
-    else
-        crypttries="$(crypttab_options_get_value "$options" "tries=")" || true
-        case "$crypttries" in
-            # substitute default and invalid values
-            *[![:digit:].]*|"") crypttries=3;;
-        esac
+        CRYPTTAB_OPTION_tries=1
     fi
 
-    local count=0 fstype vg
-    while [ $crypttries -le 0 ] || [ $count -lt $crypttries ]; do
+    local count=0 maxtries="${CRYPTTAB_OPTION_tries:-3}" fstype vg
+    while [ $maxtries -le 0 ] || [ $count -lt $maxtries ]; do
         count=$(( $count + 1 ))
 
-        if [ -z "${keyscript:+x}" ] && [ "$key" != "none" ]; then
+        if [ -z "${CRYPTTAB_OPTION_keyscript+x}" ] && [ "$key" != "none" ]; then
             # unlock via keyfile
-            unlock_mapping "$target" "$source" "$key" "$options"
+            unlock_mapping "$key"
         else
             # unlock interactively or via keyscript
-            run_keyscript "$target" "$source" "$options" "$keyscript" "$key" "$count" | \
-                unlock_mapping "$target" "$source" "-" "$options"
+            run_keyscript "$key" "$count" | unlock_mapping
         fi
 
         if [ $? -ne 0 ]; then
-            cryptsetup_message "ERROR: $target: cryptsetup failed, bad password or options?"
+            cryptsetup_message "ERROR: $CRYPTTAB_NAME: cryptsetup failed, bad password or options?"
             sleep 1
             continue
-        elif [ ! -e "/dev/mapper/$target" ]; then
-            cryptsetup_message "ERROR: $target: unknown error setting up device mapping"
+        elif [ ! -e "/dev/mapper/$CRYPTTAB_NAME" ]; then
+            cryptsetup_message "ERROR: $CRYPTTAB_NAME: unknown error setting up device mapping"
             return 1
         fi
 
-        if ! fstype="$(get_fstype "/dev/mapper/$target")" || [ "$fstype" = unknown ]; then
+        if ! fstype="$(get_fstype "/dev/mapper/$CRYPTTAB_NAME")" || [ "$fstype" = unknown ]; then
             # bad password for plain dm-crypt device?  or mkfs not run yet?
-            cryptsetup_message "ERROR: $target: unknown fstype, bad password or options?"
+            cryptsetup_message "ERROR: $CRYPTTAB_NAME: unknown fstype, bad password or options?"
             wait_for_udev 10
-            /sbin/cryptsetup remove -- "$target"
+            /sbin/cryptsetup remove -- "$CRYPTTAB_NAME"
             sleep 1
             continue
         elif [ "$fstype" = lvm2 ]; then
             if [ ! -x /sbin/lvm ]; then
-                cryptsetup_message "WARNING: $target: lvm is not available"
+                cryptsetup_message "WARNING: $CRYPTTAB_NAME: lvm is not available"
                 return 1
-            elif vg="$(lvm pvs --noheadings -o vg_name --config 'log{prefix=""}' "/dev/mapper/$target")"; then
+            elif vg="$(lvm pvs --noheadings -o vg_name --config 'log{prefix=""}' "/dev/mapper/$CRYPTTAB_NAME")"; then
                 # activate the VG held by the PV we just unlocked
                 lvm lvchange -a y --sysinit --ignoreskippedcluster -- "$vg"
             fi
         fi
 
-        cryptsetup_message "$target: set up successfully"
+        cryptsetup_message "$CRYPTTAB_NAME: set up successfully"
         wait_for_udev 10
         return 0
     done
 
-    cryptsetup_message "ERROR: $target: maximum number of tries exceeded"
+    cryptsetup_message "ERROR: $CRYPTTAB_NAME: maximum number of tries exceeded"
     exit 1
 }
 

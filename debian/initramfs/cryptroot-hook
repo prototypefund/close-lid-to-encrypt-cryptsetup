@@ -107,10 +107,10 @@ get_dmcrypt_slaves() {
 #   Return 0 on success, 1 on error.
 get_crypttab_entry() {
     local name="$1" found="n" slave uuid base
-    local target source key options derived
-    while read target source key options; do
-        [ "${target#\#}" = "$target" ] || continue
-        [ "$target" = "$name" ] || continue
+    local CRYPTTAB_NAME source key options derived
+    while read CRYPTTAB_NAME source key options; do
+        [ "${CRYPTTAB_NAME#\#}" = "$CRYPTTAB_NAME" ] || continue
+        [ "$CRYPTTAB_NAME" = "$name" ] || continue
         if slave="$(normalise_device "$source")"; then
             if base="$(sysfs_devdir "/dev/mapper/$name")" && \
                     [ ! -e "$base/slaves/${slave#/dev/}" ]; then
@@ -128,80 +128,57 @@ get_crypttab_entry() {
         return 1
     fi
 
-    local keyscript
-    if ! keyscript="$(crypttab_entry_get_keyscript "$options")"; then
-        cryptsetup_message "WARNING: Skipping target $name: invalid keyscript"
-        return 1
-    fi
+    crypttab_parse_options "$options" n || return 1
 
-    if [ -z "${keyscript:+x}" ] && [ "$key" = "/dev/random" -o "$key" = "/dev/urandom" ]; then
+    if [ -z "${CRYPTTAB_OPTION_keyscript+x}" ] && [ "$key" = "/dev/random" -o "$key" = "/dev/urandom" ]; then
         # XXX: not sure why we have that check at all.  Random swap don't hurt!
         cryptsetup_message "WARNING: Skipping target $name: random key"
         return 1
     fi
 
-    local luks="n"
-    if crypttab_options_get_value "$options" "luks"; then
-        luks="y"
-    fi
-
-    local header
-    if header="$(crypttab_options_get_value "$options" "header=")"; then
-        [ -f "$header" ] || cryptsetup_message "WARNING: Target $name has an invalid header"
-        [ "$luks" = y ] || cryptsetup_message "WARNING: Option 'luks' missing in crypttab for target $name." \
-                                "Headers are only supported for LUKS devices."
-    fi
-
-    local o v
-    if [ "$luks" = n ] && ! crypttab_options_get_value "$options" "tcrypt"; then
-        # the compiled-in default for 'cipher' and 'hash' are subject to change
-        for o in "cipher" "hash" "size"; do
-            if ! v="$(crypttab_options_get_value "$options" "$o=")" || [ -z "$v" ]; then
-                cryptsetup_message "WARNING: Option '$o' missing in crypttab for plain dm-crypt" \
-                    "mapping $name. Please read /usr/share/doc/cryptsetup/README.initramfs and" \
-                    "add the correct '$o' option to your $TABFILE."
-            fi
-        done
+    if [ -n "${CRYPTTAB_OPTION_header+x}" ] && [ ! -f "$CRYPTTAB_OPTION_header" ]; then
+        cryptsetup_message "WARNING: Target $name has an invalid header $CRYPTTAB_OPTION_header"
     fi
 
     local newkey
     # if keyscript is set, the "key" is just an argument to the script
-    if [ -z "${keyscript:+x}" ] && [ "$key" != "none" ]; then
+    if [ -z "${CRYPTTAB_OPTION_keyscript+x}" ] && [ "$key" != "none" ]; then
         case "$key" in
             $KEYFILE_PATTERN)
                 mkdir -pm0700 "$DESTDIR/cryptroot/keyfiles"
-                newkey="/cryptroot/keyfiles/$target.key"
+                newkey="/cryptroot/keyfiles/$name.key"
                 copy_file keyfile "$key" "$newkey"
                 key="$newkey"
                 ;;
             *)
                 if [ "$usage" = rootfs ]; then
-                    cryptsetup_message "WARNING: Skipping root target $target: uses a key file"
+                    cryptsetup_message "WARNING: Skipping root target $name: uses a key file"
                     return 1
                 elif [ "$usage" = resume ]; then
-                    cryptsetup_message "WARNING: Resume target $target uses a key file"
+                    cryptsetup_message "WARNING: Resume target $name uses a key file"
                 fi
                 if newkey=$(readlink -f -- "$key") && [ -f "$newkey" ]; then
                     if [ "$(stat -c %m -- "$newkey" 2>/dev/null)" != "/" ]; then
-                        cryptsetup_message "WARNING: Skipping target $target: key file is not on the root FS"
+                        cryptsetup_message "WARNING: Skipping target $name: key file is not on the root FS"
                         return 1
                     fi
                 else
-                    cryptsetup_message "WARNING: Target $target has a non-existing key file $key"
+                    cryptsetup_message "WARNING: Target $name has a non-existing key file $key"
                     newkey="$key"
                 fi
                 key="/FIXME-initramfs-rootmnt$newkey"
         esac
-        options="$options"
     fi
 
-    [ -z "$keyscript" ] || copy_exec "$keyscript"
-    if [ "$keyscript" = "/lib/cryptsetup/scripts/decrypt_derived" ]; then
+    if [ -n "${CRYPTTAB_OPTION_keyscript+x}" ]; then
+        copy_exec "$CRYPTTAB_OPTION_keyscript"
+    fi
+    if [ "${CRYPTTAB_OPTION_keyscript-}" = "/lib/cryptsetup/scripts/decrypt_derived" ]; then
         # (recursively) list first the device to derive the key from (so
         # the boot scripts unlocks it first)
         get_crypttab_entry "$key"
     fi
-    printf '%s %s %s %s\n' "$target" "$source" "$key" "$options"
+    printf '%s %s %s %s\n' "$name" "$source" "$key" "$options"
 }
 
 # get_cryptdevs($device, [$device ..])
