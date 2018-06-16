@@ -69,9 +69,8 @@ Package: cryptsetup-initramfs
 Architecture: all
 Depends: ${misc:Depends}, ${shlibs:Depends}, cryptsetup-run (>= ${source:Version}),
          busybox | busybox-static,
-         console-setup,
-         initramfs-tools (>= 0.129) | linux-initramfs-tool,
-         kbd
+         initramfs-tools (>= 0.129) | linux-initramfs-tool
+Recommends: console-setup, kbd
 Breaks: cryptsetup (<< 2:2.0.2-2)
 Replaces: cryptsetup (<< 2:2.0.2-2)
 Description: disk encryption support - initramfs integration
