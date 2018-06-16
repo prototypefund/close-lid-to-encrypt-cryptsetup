@@ -12,7 +12,7 @@
   <manvolnum>5</manvolnum>
   <xi:include href="variables.xml"
               xpointer="xpointer(/refentry/refmeta/*)"
-	      xmlns:xi="http://www.w3.org/2001/XInclude"/>
+              xmlns:xi="http://www.w3.org/2001/XInclude"/>
  </refmeta>
 
  <refnamediv>
@@ -48,14 +48,17 @@
    The second field, <emphasis>source device</emphasis>, describes either the
    block special device or file that contains the encrypted data. Instead of
    giving the <emphasis>source device</emphasis> explicitly, the UUID is
-   supported as well, using <emphasis>UUID=&lt;luks_uuid&gt;</emphasis>.
+   supported as well, using <quote>UUID=&lt;luks_uuid&gt;</quote>.
   </simpara>
   <simpara>
    The third field, <emphasis>key file</emphasis>, describes the file to use
    as a key for decrypting the data of the <emphasis>source device</emphasis>.
+   In case of a <emphasis>keyscript</emphasis>, the value of this field is
+   given as argument to the keyscript. Values with spaces and special
+   characters need to be quoted.
    Note that the <emphasis>entire</emphasis> key file will be used as the
-   passphrase; the passphrase must <emphasis>not</emphasis> be
-   followed by a newline character.
+   passphrase; the passphrase must <emphasis>not</emphasis> be followed by a
+   newline character.
   </simpara>
   <simpara>
    It can also be a device name (e.g.
@@ -64,9 +67,10 @@
    support random data keys.
   </simpara>
   <simpara>
-   If the <emphasis>key file</emphasis> is the string <quote>none</quote>,
-   a passphrase will be read interactively from the console. In this case, the
-   options precheck, check, checkargs and tries may be useful.
+   If the <emphasis>key file</emphasis> is the string
+   <emphasis>none</emphasis>, a passphrase will be read interactively from the
+   console. In this case, the options precheck, check, checkargs and tries may
+   be useful.
   </simpara>
   <simpara>
    The fourth field, <emphasis>options</emphasis>, describes the cryptsetup
@@ -256,10 +260,12 @@
    <varlistentry>
     <term><emphasis>tries</emphasis>=&lt;num&gt;</term>
     <listitem>
-     <simpara>The input of the passphrase is tried &lt;num&gt; times in case
-      of failure. If you want to disable retries, pass <quote>tries=1</quote>.
-      Default is 3. Setting <quote>tries=0</quote> will ask for the passphrase
-      until a correct one has been submitted (infinitive retries).
+      <simpara>Try to unlock the device &lt;num&gt; before failing. It's
+       particularly useful when using a passphrase or a
+       <emphasis>keyscript</emphasis> that asks for interactive input. If you
+       want to disable retries, pass <quote>tries=1</quote>. Default is
+       <quote>3</quote>. Setting <quote>tries=0</quote> means infinitive
+       retries.
      </simpara>
     </listitem>
    </varlistentry>
@@ -268,7 +274,7 @@
     <term><emphasis>initramfs</emphasis></term>
     <listitem>
      <simpara>The initramfs hook processes the root device, any resume devices
-      and any devices with the <quote>initramfs</quote> option set. These
+      and any devices with the <emphasis>initramfs</emphasis> option set. These
       devices are processed within the initramfs stage of boot. As an example,
       that allows the use of remote unlocking using dropbear.
      </simpara>
@@ -300,7 +306,6 @@
     <term><emphasis>loud</emphasis></term>
     <listitem>
      <simpara>Be loud. Print warnings if a device does not exist.
-     This option overwrites the option <emphasis>quiet</emphasis>.</simpara>
     </listitem>
    </varlistentry>
 
@@ -316,12 +321,13 @@
     <term><emphasis>keyscript</emphasis>=&lt;path&gt;</term>
     <listitem>
      <simpara>
-      The executable at the indicated path is executed with the
-      <emphasis>key file</emphasis> from the third field of the crypttab as its
-      only argument and the output is used as the key. This also works with
-      encrypted root filesystems via initramfs if the executable is
-      self-contained (i.e. an executable which does not rely on any external
-      program which is not present in the initramfs environment).
+      The executable at the indicated path is executed with the value of the
+      <emphasis>third field</emphasis> as only argument. The keyscript output
+      is passed to cryptsetup as decyption key. 
+      When used in initramfs, the executable either needs to be self-contained
+      (i.e. does'nt rely on any external program which is not present in the
+      initramfs environment) or the dependencies have to added to the initramfs
+      image by other means.
      </simpara>
      <simpara>
       LIMITATIONS: All binaries and files on which the keyscript depends must
@@ -338,46 +344,46 @@
       'initramfs' option for further information.
      </simpara>
      <para>
-      All fields of the appropriate crypttab entry are available to the keyscript
-      as exported environment variables:
+      All fields of the appropriate crypttab entry are available to the
+      keyscript as exported environment variables:
       <variablelist>
 
        <varlistentry>
         <term>CRYPTTAB_NAME</term>
         <listitem><para>
-	 The target name
+         The target name
         </para></listitem>
        </varlistentry>
        <varlistentry>
         <term>CRYPTTAB_SOURCE</term>
         <listitem><para>
-	 The source device
+         The source device
         </para></listitem>
        </varlistentry>
        <varlistentry>
         <term>CRYPTTAB_KEY</term>
         <listitem><para>
-	 The key file
-        </para></listitem>
-       </varlistentry>
-       <varlistentry>
-        <term>CRYPTTAB_TRIED</term>
-        <listitem><para>
-	 Number of previous tries since start of cryptdisks (counts until
-         maximum number of tries is reached).
+         The key file
         </para></listitem>
        </varlistentry>
        <varlistentry>
         <term>CRYPTTAB_OPTIONS</term>
         <listitem><para>
-	 A list of exported crypttab options
+         A list of exported crypttab options
         </para></listitem>
        </varlistentry>
        <varlistentry>
         <term>CRYPTTAB_OPTION_&lt;option&gt;</term>
         <listitem><para>
-	 The value of the appropriate crypttab option, with value set to 'yes'
+         The value of the appropriate crypttab option, with value set to 'yes'
          in case the option is merely a flag.
+        </para></listitem>
+       </varlistentry>
+       <varlistentry>
+        <term>CRYPTTAB_TRIED</term>
+        <listitem><para>
+         Number of previous tries since start of cryptdisks (counts until
+         maximum number of tries is reached).
         </para></listitem>
        </varlistentry>
 

@@ -1,9 +1,21 @@
 cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
 
+  [ Guilhem Moulin ]
   * cryptsetup-initramfs: Demote "Depends: console-setup, kbd" to Recommends:
     (Closes: #901641.)
 
- -- Guilhem Moulin <guilhem@debian.org>  Sat, 16 Jun 2018 14:09:26 +0200
+  [ Jonas Meurer ]
+  * debian/doc/crypttab.xml:
+    + Remove the wrong statement that option 'loud' overrides 'quiet'.
+      Actually it's the other way round.
+    + Clarify documentation of option 'tries'. It also applies when using
+      keyscripts, not only with interactive passphrases. (Closes: #826127)
+    + Make it obvious that in case a keyscript is configured, the third option
+      is passed as argument to the keyscript. Mention the optional requirement
+      to quote the value. (Closes: 826122)
+    + Some minor wording improvements.
+
+ -- Jonas Meurer <jonas@freesources.org>  Sat, 16 Jun 2018 19:22:36 +0200
 
 cryptsetup (2:2.0.3-1) unstable; urgency=medium
 
