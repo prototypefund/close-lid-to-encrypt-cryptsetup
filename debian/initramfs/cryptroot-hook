@@ -25,7 +25,7 @@ blkid_tag() {
     local device="$1" tag="$2"
     if [ "${device#$tag=}" != "$device" ]; then
         printf '%s\n' "${device#$tag=}"
-    elif ! blkid -s "$2" -o value "$device"; then
+    elif ! blkid -s "$2" -o value -- "$device"; then
         cryptsetup_message "ERROR: $device: Couldn't determine $tag"
         return 1
     fi
