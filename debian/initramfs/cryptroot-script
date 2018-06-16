@@ -219,11 +219,16 @@ setup_mapping() {
     fi
 
     if ! wait_for_source; then
-        # We've given up, but we'll let the user fix matters if they can
-        echo "	ALERT! encrypted source device $source does not exist, can't unlock $target."
-        echo "	Check cryptopts=source= bootarg: cat /proc/cmdline"
-        echo "	or missing modules, devices: cat /proc/modules; ls /dev"
-        panic "Dropping to a shell."
+        # we've given up
+        if [ -n "$panic" ]; then
+            panic "ALERT! encrypted source device $source does not exist, can't unlock $target."
+        else
+            # let the user fix matters if they can
+            echo "	ALERT! encrypted source device $source does not exist, can't unlock $target."
+            echo "	Check cryptopts=source= bootarg: cat /proc/cmdline"
+            echo "	or missing modules, devices: cat /proc/modules; ls /dev"
+            panic "Dropping to a shell."
+        fi
         return 1
     fi
 
@@ -271,6 +276,7 @@ setup_mapping() {
 
         if [ $? -ne 0 ]; then
             cryptsetup_message "ERROR: $target: cryptsetup failed, bad password or options?"
+            sleep 1
             continue
         elif [ ! -e "/dev/mapper/$target" ]; then
             cryptsetup_message "ERROR: $target: unknown error setting up device mapping"
@@ -282,13 +288,14 @@ setup_mapping() {
             cryptsetup_message "ERROR: $target: unknown fstype, bad password or options?"
             wait_for_udev 10
             /sbin/cryptsetup remove -- "$target"
+            sleep 1
             continue
         elif [ "$fstype" = lvm2 ]; then
             if [ ! -x /sbin/lvm ]; then
                 cryptsetup_message "WARNING: $target: lvm is not available"
                 return 1
             elif vg="$(lvm pvs --noheadings -o vg_name --config 'log{prefix=""}' "/dev/mapper/$target")"; then
-                # active the VG held by the PV we just unlocked
+                # activate the VG held by the PV we just unlocked
                 lvm lvchange -a y --sysinit --ignoreskippedcluster -- "$vg"
             fi
         fi

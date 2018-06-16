@@ -24,8 +24,10 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
     /usr/share/cryptsetup/initramfs/functions.
     + One can disable the cryptsetup initramfs scripts for a particular boot
       by passing "cryptopts=" as kernel boot argument. (Closes: #873840.)
-    + No longer sleep after exceeding the maximum number of unlocking tries.
-      (This was added in 2:1.7.3-2 as an attempt to mitigate CVE-2016-4484.)
+    + No longer sleep for a full minute after exceeding the maximum number of
+      unlocking tries.  (This was added in 2:1.7.3-2 as an attempt to mitigate
+      CVE-2016-4484.)  Instead, the script sleeps for 1 second after each failed
+      attempt in order to defeat online brute-force attacks. (Closes: #898495.)
   * debian/README.initramfs: Remove mention that the initramfs scripts and the
     crypsetup binary are using a different hash algorithm for plain dm-crypt
     volumes.  This is no longer true since 2:1.0.6~pre1+svn45-1, cf. #406317.
