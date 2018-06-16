@@ -24,7 +24,6 @@ prereqs)
 	;;
 esac
 
-# source for log_*_msg() functions, see LP: #272301
 . /scripts/functions
 . /lib/cryptsetup/functions
 
@@ -140,7 +139,7 @@ wait_for_source() {
     # If the source device hasn't shown up yet, give it a little while
     # to allow for asynchronous device discovery (e.g. USB).
 
-    log_begin_msg "Waiting for encrypted source device $source"
+    cryptsetup_message "Waiting for encrypted source device $CRYPTTAB_SOURCE..."
 
     # Default delay is 180s, cf. initramfs-tools(8)
     local slumber="${ROOTDELAY:-180}"
@@ -154,14 +153,12 @@ wait_for_source() {
 
         if device="$(normalise_device --quiet "$CRYPTTAB_SOURCE")"; then
             wait_for_udev 10
-            log_end_msg 0
             CRYPTTAB_SOURCE="$device"
             return 0
         fi
 
         slumber=$(( $slumber - 1 ))
     done
-    log_end_msg 1 || true
     return 1
 }
 
