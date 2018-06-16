@@ -1,7 +1,9 @@
+TABFILE="${TABFILE-/etc/crypttab}"
+
 # Logging helpers. Send the argument list to plymouth(1), or fold it
 # and print it to the standard error.
 cryptsetup_message() {
-    if [ -n "${init+x}" ] && [ -x /bin/plymouth ] && plymouth --ping; then
+    if [ "${INITSTATE-}" = "initramfs" ] && [ -x /bin/plymouth ] && plymouth --ping; then
         plymouth message --text="cryptsetup: $*"
     elif [ ${#*} -lt 70 ]; then
         echo "cryptsetup: $*" >&2

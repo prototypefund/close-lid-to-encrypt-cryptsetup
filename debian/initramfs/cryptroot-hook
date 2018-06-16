@@ -121,7 +121,7 @@ get_crypttab_entry() {
         fi
         found="y"
         break
-    done </etc/crypttab
+    done <"$TABFILE"
 
     if [ "$found" = n ]; then
         cryptsetup_message "WARNING: No crypttab entry for $name"
@@ -159,7 +159,7 @@ get_crypttab_entry() {
             if ! v="$(crypttab_options_get_value "$options" "$o=")" || [ -z "$v" ]; then
                 cryptsetup_message "WARNING: Option '$o' missing in crypttab for plain dm-crypt" \
                     "mapping $name. Please read /usr/share/doc/cryptsetup/README.initramfs and" \
-                    "add the correct '$o' option to your /etc/crypttab."
+                    "add the correct '$o' option to your $TABFILE."
             fi
         done
     fi
@@ -271,7 +271,7 @@ generate_initrd_crypttab() {
         fi
 
         # add crypttab entries with the 'initramfs' option set
-        for dev in $(sed -nr 's/^\s*([^#[:blank:]]\S*)\s+\S+\s+\S+\s+(\S+,)?initramfs(,\S+)?$/\1/p' /etc/crypttab); do
+        for dev in $(sed -nr 's/^\s*([^#[:blank:]]\S*)\s+\S+\s+\S+\s+(\S+,)?initramfs(,\S+)?$/\1/p' "$TABFILE"); do
             get_crypttab_entry "$dev"
         done
 
@@ -374,7 +374,7 @@ if [ -n "$KEYFILE_PATTERN" ]; then
 fi
 
 CRYPTO_MODULES=
-if [ -r /etc/crypttab ]; then
+if [ -r "$TABFILE" ]; then
     mkdir "$DESTDIR/cryptroot"
     generate_initrd_crypttab >"$DESTDIR/cryptroot/crypttab"
 
