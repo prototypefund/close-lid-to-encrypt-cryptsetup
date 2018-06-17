@@ -25,6 +25,7 @@ prereqs)
 esac
 
 . /scripts/functions
+INITSTATE="initramfs"
 . /lib/cryptsetup/functions
 
 
