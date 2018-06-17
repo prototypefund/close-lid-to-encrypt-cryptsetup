@@ -1,10 +1,5 @@
 cryptsetup (2:2.0.3-2) unstable; urgency=medium
 
-    With this version, cryptsetup has been split into cryptsetup-run
-    (init script) and cryptsetup-initramfs (initramfs integration).
-    'cryptsetup' is now a transitional dummy package depending on
-    cryptsetup-run and cryptsetup-initramfs.
-
     The 'decrypt_openct' keyscript has been removed, since openct itself
     is no longer developed and was removed from Debian since Jessie.
 
@@ -26,3 +21,12 @@ cryptsetup (2:2.0.3-2) unstable; urgency=medium
     tcrypt devices) containing a known filesystem (other that swap).
 
  -- Guilhem Moulin <guilhem@debian.org>  Tue, 22 May 2018 01:47:21 +0200
+
+cryptsetup (2:2.0.3-1) unstable; urgency=medium
+
+    With this version, cryptsetup has been split into cryptsetup-run
+    (init script) and cryptsetup-initramfs (initramfs integration).
+    'cryptsetup' is now a transitional dummy package depending on
+    cryptsetup-run and cryptsetup-initramfs.
+
+ -- Guilhem Moulin <guilhem@debian.org>  Wed, 16 May 2018 23:39:20 +0200
