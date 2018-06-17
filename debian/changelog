@@ -42,7 +42,7 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
       non-LUKS devices (plain dm-crypt and tcrypt devices) containing a known
       filesystem (other that swap).
     + Don't ignore the 'plain' option: disable auto-detection and treat the
-      device as a plain dm-crypt device.
+      device as a plain dm-crypt device. (Closes: #886007.)
     + Add support for some option aliases to unify with systemd's crypttab(5)
       options.  Namely, 'read-only' is an alias for 'readonly', 'key-slot=' is
       an alias for 'keyslot=', 'tcrypt-hidden' is an alias for 'tcrypthidden',
