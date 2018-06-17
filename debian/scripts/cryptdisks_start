@@ -9,18 +9,32 @@
 
 set -e
 
-if [ $# -lt 1 ]; then
-    echo "usage: $0 <name>" >&2
-    echo >&2
-    echo "reads /etc/crypttab and starts the mapping corresponding to <name>" >&2
-    exit 1
-fi
-
 . /lib/cryptsetup/cryptdisks.functions
 
 INITSTATE="manual"
 DEFAULT_LOUD="yes"
 FORCE_START="yes"
+
+usage() {
+    local rv="${1:-1}"
+    echo "Usage: $0 [-r|--readonly] <name> [.. <name>]" >&2
+    echo >&2
+    echo "reads $TABFILE and starts the mapping corresponding to <name>" >&2
+    exit $rv
+}
+
+CRYPTTAB_EXTRA_OPTIONS=
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -r|--readonly) CRYPTTAB_EXTRA_OPTIONS="${CRYPTTAB_EXTRA_OPTIONS:+$CRYPTTAB_EXTRA_OPTIONS,}readonly";;
+        -h|--help|-\?) usage 0;;
+        --) shift; break;;
+        -*) echo "Error: unknown option '$1'" >&2; usage 1;;
+        *) break;;
+    esac
+    shift
+done
+[ $# -gt 0 ] || usage 1
 
 if [ $(id -u) -ne 0 ]; then
     log_warning_msg "$0 needs root privileges"
@@ -36,6 +50,7 @@ for name in "$@"; do
         device_msg "$name" "failed, not found in crypttab"
         rv=1
     else
+        CRYPTTAB_OPTIONS="$CRYPTTAB_OPTIONS${CRYPTTAB_EXTRA_OPTIONS:+,$CRYPTTAB_EXTRA_OPTIONS}"
         setup_mapping "$CRYPTTAB_NAME" "$CRYPTTAB_SOURCE" "$CRYPTTAB_KEY" "$CRYPTTAB_OPTIONS" || rv=$?
     fi
 done
