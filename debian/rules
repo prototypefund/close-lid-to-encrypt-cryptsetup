@@ -120,7 +120,8 @@ install-stamp: build-stamp
 	rm -rf $(CURDIR)/debian/cryptsetup-bin/lib
 	rm -rf $(CURDIR)/debian/cryptsetup-bin/usr/include
 
-	install -m 0644 debian/cryptdisks.functions $(CURDIR)/debian/cryptsetup-run/lib/cryptsetup/
+	install -m 0644 debian/cryptdisks.functions $(CURDIR)/debian/cryptsetup-run/lib/cryptsetup/cryptdisks-functions
+	install -m 0644 debian/functions $(CURDIR)/debian/cryptsetup-run/lib/cryptsetup/functions
 	install -m 0755 debian/checks/* $(CURDIR)/debian/cryptsetup-run/lib/cryptsetup/checks/
 	install -m 0755 debian/scripts/luksformat $(CURDIR)/debian/cryptsetup-bin/usr/sbin/
 	install -m 0755 debian/scripts/cryptdisks_start $(CURDIR)/debian/cryptsetup-run/sbin/
@@ -128,8 +129,6 @@ install-stamp: build-stamp
 	install -m 0755 debian/scripts/decrypt_* $(CURDIR)/debian/cryptsetup-run/lib/cryptsetup/scripts/
 	install -m 0755 debian/scripts/passdev $(CURDIR)/debian/cryptsetup-run/lib/cryptsetup/scripts/
 	install -m 0755 debian/askpass $(CURDIR)/debian/cryptsetup-run/lib/cryptsetup/
-	install -m 0644 debian/initramfs/functions \
-		$(CURDIR)/debian/cryptsetup-initramfs/usr/share/cryptsetup/initramfs/functions
 	install -m 0755 debian/initramfs/cryptgnupg-hook \
 		$(CURDIR)/debian/cryptsetup-initramfs/usr/share/initramfs-tools/hooks/cryptgnupg
 	install -m 0755 debian/initramfs/cryptkeyctl-hook \

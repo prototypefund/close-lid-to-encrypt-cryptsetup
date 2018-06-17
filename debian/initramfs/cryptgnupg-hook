@@ -17,7 +17,7 @@ case "$1" in
 esac
 
 . /usr/share/initramfs-tools/hook-functions
-. /usr/share/cryptsetup/initramfs/functions
+. /lib/cryptsetup/functions
 
 # Hooks for loading gnupg software and symmetrically encrypted key into
 # the initramfs

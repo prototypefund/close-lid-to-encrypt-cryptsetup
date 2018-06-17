@@ -9,7 +9,7 @@
 
 set -e
 
-. /lib/cryptsetup/cryptdisks.functions
+. /lib/cryptsetup/cryptdisks-functions
 
 INITSTATE="manual"
 DEFAULT_LOUD="yes"

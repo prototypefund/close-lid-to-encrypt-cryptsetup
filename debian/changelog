@@ -4,7 +4,7 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
   * cryptsetup-initramfs: Demote "Depends: console-setup, kbd" to Recommends:
     (Closes: #901641.)
   * debian/initramfs/*-hook: complete refactoring. Common functions are now in
-    /usr/share/cryptsetup/initramfs/functions (source-able from shell scripts).
+    /lib/cryptsetup/functions (source-able from shell scripts).
   * debian/initramfs/cryptroot-hook:
     + Use sysfs(5) block (resp. fs) hierarchies to detect slave dm-crypt
       devices such as LVM2 on top of LUKS (resp. multiple device filesystems
@@ -21,7 +21,7 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
   * Remove the 'decrypt_openct' keyscript since openct was last seen in
     oldoldstable, cf. #760258 (ROM).
   * debian/initramfs/cryptroot-script: refactoring, using functions from
-    /usr/share/cryptsetup/initramfs/functions.
+    /lib/cryptsetup/functions.
     + One can disable the cryptsetup initramfs scripts for a particular boot
       by passing "cryptopts=" as kernel boot argument. (Closes: #873840.)
     + No longer sleep for a full minute after exceeding the maximum number of
@@ -31,8 +31,9 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
   * debian/README.initramfs: Remove mention that the initramfs scripts and the
     crypsetup binary are using a different hash algorithm for plain dm-crypt
     volumes.  This is no longer true since 2:1.0.6~pre1+svn45-1, cf. #406317.
-  * debian/cryptdisks.functions: refactoring, using functions from
-    /usr/share/cryptsetup/initramfs/functions.
+  * debian/cryptdisks.functions:
+    + Refactoring, using functions from /lib/cryptsetup/functions.
+    + Install to /lib/cryptsetup/cryptdisks-functions.
   * Remove support for the 'precheck' crypttab(5) option.  The precheck for
     LUKS devices is still hardcoded to `cryptsetup isLuks`; the script refuses
     to unlock non-LUKS devices (plain dm-crypt and tcrypt devices) containing

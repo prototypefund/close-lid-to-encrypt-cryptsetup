@@ -1,6 +1,6 @@
 #
 # This file is for inclusion with
-#    . /lib/cryptsetup/cryptdisks.functions
+#    . /lib/cryptsetup/cryptdisks-functions
 # and should not be executed directly.
 
 PATH="/usr/sbin:/usr/bin:/sbin:/bin"
@@ -20,7 +20,7 @@ fi
 
 MOUNT="$CRYPTDISKS_MOUNT"
 
-. /usr/share/cryptsetup/initramfs/functions
+. /lib/cryptsetup/functions
 
 
 # do_start()

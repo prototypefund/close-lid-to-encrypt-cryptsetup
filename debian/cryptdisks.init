@@ -16,8 +16,8 @@
 
 set -e
 
-if [ -r /lib/cryptsetup/cryptdisks.functions ]; then
-	. /lib/cryptsetup/cryptdisks.functions
+if [ -r /lib/cryptsetup/cryptdisks-functions ]; then
+	. /lib/cryptsetup/cryptdisks-functions
 else
 	exit 0
 fi

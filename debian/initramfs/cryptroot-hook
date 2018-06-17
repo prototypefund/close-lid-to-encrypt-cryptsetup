@@ -15,7 +15,7 @@ case "$1" in
 esac
 
 . /usr/share/initramfs-tools/hook-functions
-. /usr/share/cryptsetup/initramfs/functions
+. /lib/cryptsetup/functions
 
 
 # blkid_tag($device, $tag)
@@ -397,5 +397,5 @@ else
         fi
         add_crypto_modules $(printf '%s' "${CRYPTO_MODULES-}" | tr ' ' '\n' | sort -u)
     fi
-    copy_file library /usr/share/cryptsetup/initramfs/functions /lib/cryptsetup/functions
+    copy_file library /lib/cryptsetup/functions /lib/cryptsetup/functions
 fi
