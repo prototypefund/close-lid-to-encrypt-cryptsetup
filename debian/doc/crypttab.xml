@@ -161,6 +161,29 @@
    </varlistentry>
 
    <varlistentry>
+    <term><emphasis>keyfile-offset</emphasis>=&lt;keyfile-offset&gt;</term>
+    <listitem>
+     <simpara>
+      Specifies the number of bytes to skip at the start of the key file.
+     </simpara>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><emphasis>keyfile-size</emphasis>=&lt;keyfile-size&gt;</term>
+    <listitem>
+     <simpara>
+      Specifies the maximum number of bytes to read from the key file.
+      The default is to read the whole file up to the compiled-in maximum,
+      that can be queried with <emphasis role="strong">cryptsetup --help</emphasis>.
+      This option is ignored for plain dm-crypt devices, as the key file
+      size is then given by the encryption key size (option
+      <emphasis>size</emphasis>).
+     </simpara>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
     <term><emphasis>keyslot</emphasis>=&lt;slot&gt;, <emphasis>key-slot</emphasis>=&lt;slot&gt;</term>
     <listitem>
      <simpara>
@@ -471,6 +494,11 @@
          For option aliases, such as 'readonly' and 'read-only', the
          variable name refers to the first alternative listed (thus
          'CRYPTTAB_OPTION_readonly' in that case).
+         If the crypttab option name contains '-' characters, then they
+         are replaced with '_' in the exported variable name.  For
+         instance, the value of the 'CRYPTTAB_OPTION_keyfile_offset'
+         environment variable is set to the value of the
+         'keyfile-offset' crypttab option.
         </para></listitem>
        </varlistentry>
        <varlistentry>

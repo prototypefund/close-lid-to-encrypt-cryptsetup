@@ -100,19 +100,26 @@ _crypttab_validate_option() {
         tcrypt-veracrypt) OPTION="veracrypt";;
     esac
 
-    case "$OPTION" in
+    # sanitize the option name so CRYPTTAB_OPTION_$OPTION is a valid variable name
+    local o="$OPTION"
+    case "$o" in
+        keyfile-offset) OPTION="keyfile_offset";;
+        keyfile-size) OPTION="keyfile_size";;
+    esac
+
+    case "$o" in
         # value must be a non-empty string
         cipher|hash|header)
             [ -n "${VALUE:+x}" ] || return 1
         ;;
         # numeric options >0
-        size)
+        size|keyfile-size)
             if ! printf '%s' "${VALUE-}" | grep -Exq "0*[1-9][0-9]*"; then
                 return 1
             fi
         ;;
         # numeric options >=0
-        offset|skip|tries|keyslot)
+        offset|skip|tries|keyslot|keyfile-offset)
             if ! printf '%s' "${VALUE-}" | grep -Exq "[0-9]+"; then
                 return 1
             fi
@@ -167,7 +174,7 @@ _crypttab_validate_option() {
         veracrypt) ;;
         tcrypthidden) ;;
         *)
-            cryptsetup_message "WARNING: $CRYPTTAB_NAME: ignoring unknown option '$OPTION'";
+            cryptsetup_message "WARNING: $CRYPTTAB_NAME: ignoring unknown option '$o'";
             unset -v OPTION
         ;;
     esac
@@ -337,7 +344,13 @@ unlock_mapping() {
                  CRYPTTAB_OPTION_offset \
                  CRYPTTAB_OPTION_skip
     fi
-    if [ "$type" != "tcrypt" ]; then
+    if [ "$type" = "plain" ] || [ "$type" = "tcrypt" ]; then
+        unset -v CRYPTTAB_OPTION_keyfile_size
+    fi
+    if [ "$type" = "tcrypt" ]; then
+        # ignored for TCRYPT devices
+        unset -v CRYPTTAB_OPTION_keyfile_offset
+    else
         # ignored for non-TCRYPT devices
         unset -v CRYPTTAB_OPTION_veracrypt CRYPTTAB_OPTION_tcrypthidden
     fi
@@ -360,6 +373,8 @@ unlock_mapping() {
         ${CRYPTTAB_OPTION_veracrypt:+--veracrypt} \
         ${CRYPTTAB_OPTION_keyslot:+--key-slot="$CRYPTTAB_OPTION_keyslot"} \
         ${CRYPTTAB_OPTION_tcrypthidden:+--tcrypt-hidden} \
+        ${CRYPTTAB_OPTION_keyfile_size:+--keyfile-size="$CRYPTTAB_OPTION_keyfile_size"} \
+        ${CRYPTTAB_OPTION_keyfile_offset:+--keyfile-offset="$CRYPTTAB_OPTION_keyfile_offset"} \
         --type="$type" --key-file="${keyfile:--}" \
         open -- "$CRYPTTAB_SOURCE" "$name"
 }

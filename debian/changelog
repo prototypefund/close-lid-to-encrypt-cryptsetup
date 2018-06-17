@@ -47,6 +47,8 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
       options.  Namely, 'read-only' is an alias for 'readonly', 'key-slot=' is
       an alias for 'keyslot=', 'tcrypt-hidden' is an alias for 'tcrypthidden',
       and 'tcrypt-veracrypt' is an alias for 'veracrypt'.
+    + Add support for 'keyfile-size=' and 'keyfile-offset=' options.
+      (Closes: #849335.)
   * debian/scripts/cryptdisks_start: Add support for '-r'/'--readonly' switch
     to setup readonly mappings. (Closes: #782843.)
   * debian/scripts/cryptdisks_stop: Add support for closing multiple disks at
