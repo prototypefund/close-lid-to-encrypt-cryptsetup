@@ -69,8 +69,8 @@
   <simpara>
    If the <emphasis>key file</emphasis> is the string
    <emphasis>none</emphasis>, a passphrase will be read interactively from the
-   console. In this case, the options precheck, check, checkargs and tries may
-   be useful.
+   console. In this case, the options check, checkargs and tries may be
+   useful.
   </simpara>
   <simpara>
    The fourth field, <emphasis>options</emphasis>, describes the cryptsetup
@@ -206,26 +206,6 @@
      <simpara>
       Run <command moreinfo="refentry">mkfs</command> with filesystem type
       &lt;tmpfs&gt; on the created device. Default is ext4.
-     </simpara>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><emphasis>precheck</emphasis>=&lt;precheck&gt;</term>
-    <listitem>
-     <simpara>Check the content of the source device by a suitable program; if
-      the check fails, the device is not created. If a program is provided as an
-      argument, it is run, giving the source device as argument.
-      Cryptdisks/cryptroot searches for the given program in
-      <filename class="directory">/lib/cryptsetup/checks/</filename> first, but
-      full path to program is supported as well.
-     </simpara>
-     <simpara>
-      Prechecks aren't invoked for LUKS devices, as these are checked with isLuks
-      anyway. Default for plain dm-crypt devices is set in
-      <filename>/etc/default/cryptdisks</filename>, or <filename>un_blkid</filename>
-      otherwise. Set to <filename>/bin/true</filename> in order to disable
-      precheck for plain dm-crypt device.
      </simpara>
     </listitem>
    </varlistentry>
@@ -534,19 +514,6 @@ cdisk3 /dev/sda3 none cipher=twofish,size=256,hash=ripemd160
       <emphasis>check</emphasis> option is given in crypttab with no value. See
       documentation for <emphasis>check</emphasis> option above for more
       information.
-     </simpara>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><emphasis>CRYPTDISKS_PRECHECK</emphasis></term>
-    <listitem>
-     <simpara>Specifies the default checkscript to be run against the source
-      dm-crypt device, before cryptdisks has been invoked. The source device
-      is given as the first and only argument to the checkscript. Takes effect
-      if the <emphasis>precheck</emphasis> option is given in crypttab with no
-      value. See documentation for <emphasis>precheck</emphasis> option above
-      for more information.
      </simpara>
     </listitem>
    </varlistentry>

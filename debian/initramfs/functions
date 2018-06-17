@@ -35,7 +35,6 @@ crypttab_parse_options() {
              CRYPTTAB_OPTION_veracrypt \
              CRYPTTAB_OPTION_swap \
              CRYPTTAB_OPTION_tmp \
-             CRYPTTAB_OPTION_precheck \
              CRYPTTAB_OPTION_check \
              CRYPTTAB_OPTION_checkargs \
              CRYPTTAB_OPTION_tries \
@@ -77,15 +76,6 @@ crypttab_parse_options() {
                 [ "$x" != "$o" ] || v="ext4"
                 if [ -z "$v" ]; then
                     cryptsetup_message "ERROR: $CRYPTTAB_NAME: no value for '$o' option, skipping"
-                    return 1
-                fi
-            ;;
-            precheck|precheck=*)
-                [ "$x" != "$o" ] || v="$CRYPTDISKS_PRECHECK"
-                if [ -x "/lib/cryptsetup/checks/$v" ] && [ -f "/lib/cryptsetup/checks/$v" ]; then
-                    v="/lib/cryptsetup/checks/$v"
-                elif [ ! -x "$v" ] || [ ! -f "$v" ]; then
-                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '$o' option, skipping"
                     return 1
                 fi
             ;;

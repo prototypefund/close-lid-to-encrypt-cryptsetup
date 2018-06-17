@@ -20,4 +20,9 @@ cryptsetup (2:2.0.3-2) unstable; urgency=medium
     The initramfs hook nows uses /proc/mounts instead of /etc/fstab to
     detect the root device that is to be unlocked at initramfs stage.
 
+    The 'precheck' crypttab(5) option is no longer supported.  The
+    precheck for LUKS devices is still hardcoded to `cryptsetup isLuks`;
+    the script refuses to unlock non-LUKS devices (plain dm-crypt and
+    tcrypt devices) containing a known filesystem (other that swap).
+
  -- Guilhem Moulin <guilhem@debian.org>  Tue, 22 May 2018 01:47:21 +0200
