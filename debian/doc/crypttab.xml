@@ -90,6 +90,22 @@
   </simpara>
  </refsect1>
 
+ <refsect1 id="crypttab.implementations">
+  <title>ON DIFFERENT CRYPTTAB FORMATS</title>
+  <simpara>
+   Please note that there are several independent cryptsetup wrappers with
+   their own <emphasis>crypttab</emphasis> format. This manpage covers
+   Debians implementation for <emphasis>initramfs</emphasis> scripts and
+   <emphasis>SysVinit</emphasis> init scripts. <emphasis>systemd</emphasis>
+   brings its own <emphasis>crypttab</emphasis> implementation.
+   We try to cover the differences between the <emphasis>systemd</emphasis> and
+   our implementation in this manpage, but if in doubt, better check the
+   <emphasis>systemd</emphasis> <emphasis>crypttab(5)</emphasis> manpage, e.g.
+   online at
+   <emphasis>https://www.freedesktop.org/software/systemd/man/crypttab.html</emphasis>.
+  </simpara>
+ </refsect1>
+
  <refsect1 id="crypttab.options">
   <title>OPTIONS</title>
   <variablelist>
@@ -98,7 +114,8 @@
     <term><emphasis>cipher</emphasis>=&lt;cipher&gt;</term>
     <listitem>
      <simpara>
-      Encryption algorithm (ignored for LUKS and TCRYPT devices). See <command>cryptsetup -c</command>.
+      Encryption algorithm (ignored for LUKS and TCRYPT devices). See
+      <command>cryptsetup -c</command>.
      </simpara>
     </listitem>
    </varlistentry>
@@ -107,7 +124,8 @@
     <term><emphasis>size</emphasis>=&lt;size&gt;</term>
     <listitem>
      <simpara>
-      Encryption key size (ignored for LUKS and TCRYPT devices). See <command>cryptsetup -s</command>.
+      Encryption key size (ignored for LUKS and TCRYPT devices). See
+      <command>cryptsetup -s</command>.
      </simpara>
     </listitem>
    </varlistentry>
@@ -116,7 +134,8 @@
     <term><emphasis>hash</emphasis>=&lt;hash&gt;</term>
     <listitem>
      <simpara>
-      Hash algorithm (ignored for LUKS and TCRYPT devices). See <command>cryptsetup -h</command>.
+      Hash algorithm (ignored for LUKS and TCRYPT devices). See
+      <command>cryptsetup -h</command>.
      </simpara>
     </listitem>
    </varlistentry>
@@ -125,7 +144,8 @@
     <term><emphasis>offset</emphasis>=&lt;offset&gt;</term>
     <listitem>
      <simpara>
-      Start offset (ignored for LUKS and TCRYPT devices). Uses <emphasis role="strong">cryptsetup -o</emphasis>.
+      Start offset (ignored for LUKS and TCRYPT devices). Uses
+      <emphasis role="strong">cryptsetup -o</emphasis>.
      </simpara>
     </listitem>
    </varlistentry>
@@ -134,7 +154,28 @@
     <term><emphasis>skip</emphasis>=&lt;skip&gt;</term>
     <listitem>
      <simpara>
-      Skip sectors at the beginning (ignored for LUKS and TCRYPT devices). Uses <emphasis role="strong">cryptsetup -p</emphasis>.
+      Skip sectors at the beginning (ignored for LUKS and TCRYPT devices).
+      Uses <emphasis role="strong">cryptsetup -p</emphasis>.
+     </simpara>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><emphasis>keyslot</emphasis>=&lt;slot&gt;</term>
+    <listitem>
+     <simpara>
+      Key slot (ignored for non-LUKS devices). See <command>cryptsetup
+      -S</command>.
+     </simpara>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><emphasis>header</emphasis>=&lt;path&gt;</term>
+    <listitem>
+     <simpara>
+      Detached header file (ignored for plain dm-crypt devices). See
+      <command>cryptsetup --header</command>.
      </simpara>
     </listitem>
    </varlistentry>
@@ -156,16 +197,29 @@
    </varlistentry>
 
    <varlistentry>
+    <term><emphasis>tries</emphasis>=&lt;num&gt;</term>
+    <listitem>
+     <simpara>Try to unlock the device &lt;num&gt; before failing. It's
+      particularly useful when using a passphrase or a
+      <emphasis>keyscript</emphasis> that asks for interactive input. If you
+      want to disable retries, pass <quote>tries=1</quote>. Default is
+      <quote>3</quote>. Setting <quote>tries=0</quote> means infinitive
+      retries.
+     </simpara>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
     <term><emphasis>discard</emphasis></term>
     <listitem>
      <simpara>Allow using of discards (TRIM) requests for device.</simpara>
      <simpara><emphasis role="strong">WARNING</emphasis>: Assess the
-     specific security risks carefully before enabling this option.
-     For example, allowing discards on encrypted devices may lead to
-     the leak of information about the ciphertext device (filesystem
-     type, used space etc.) if the discarded blocks can be located
-     easily on the device later.</simpara>
-      <simpara>Kernel version 3.1 or more recent is required.
+      specific security risks carefully before enabling this option.
+      For example, allowing discards on encrypted devices may lead to
+      the leak of information about the ciphertext device (filesystem
+      type, used space etc.) if the discarded blocks can be located
+      easily on the device later.</simpara>
+     <simpara>Kernel version 3.1 or more recent is required.
       For older versions is the option ignored.</simpara>
     </listitem>
    </varlistentry>
@@ -173,21 +227,48 @@
    <varlistentry>
     <term><emphasis>luks</emphasis></term>
     <listitem>
-     <simpara>Use device with LUKS extensions.</simpara>
+     <simpara>Force LUKS mode. When this mode is used, the following options
+      are ignored since they are provided by the LUKS header on the device:
+      <emphasis>cipher=</emphasis>, <emphasis>hash=</emphasis>,
+     <emphasis>size=</emphasis></simpara>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><emphasis>plain</emphasis></term>
+    <listitem>
+     <simpara>Force plain encryption mode.</simpara>
     </listitem>
    </varlistentry>
 
    <varlistentry>
     <term><emphasis>tcrypt</emphasis></term>
     <listitem>
-     <simpara>Use device with TCRYPT extensions.</simpara>
+     <simpara>Use TrueCrypt encryption mode. When this mode is used, the
+      following options are ignored since they are provided by the TrueCrypt
+      header on the device or do not apply: <emphasis>cipher=</emphasis>,
+      <emphasis>hash=</emphasis>, <emphasis>keyfile-offset=</emphasis>,
+      <emphasis>keyfile-size=</emphasis>, <emphasis>size=</emphasis></simpara>
     </listitem>
    </varlistentry>
 
    <varlistentry>
     <term><emphasis>veracrypt</emphasis></term>
     <listitem>
-     <simpara>Use VeraCrypt extension to TCRYPT device. Only useful in conjunction with <emphasis>tcrypt</emphasis> option (ignored for non-TCRYPT devices).</simpara>
+     <simpara>
+      Use VeraCrypt extension to TrueCrypt device. Only useful in
+      conjunction with <emphasis>tcrypt</emphasis> option (ignored for
+      non-TrueCrypt devices).
+     </simpara>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
+    <term><emphasis>tcrypthidden</emphasis></term>
+    <listitem>
+     <simpara>
+       Use hidden TCRYPT header (ignored for non-TCRYPT devices).
+     </simpara>
     </listitem>
    </varlistentry>
 
@@ -196,6 +277,9 @@
     <listitem>
      <simpara>
       Run <command moreinfo="refentry">mkswap</command> on the created device.
+     </simpara>
+     <simpara>
+      This option is ignored for <emphasis>initramfs</emphasis> devices.
      </simpara>
     </listitem>
    </varlistentry>
@@ -206,6 +290,9 @@
      <simpara>
       Run <command moreinfo="refentry">mkfs</command> with filesystem type
       &lt;tmpfs&gt; on the created device. Default is ext4.
+     </simpara>
+     <simpara>
+      This option is ignored for <emphasis>initramfs</emphasis> devices.
      </simpara>
     </listitem>
    </varlistentry>
@@ -225,6 +312,10 @@
       Default is set in <filename>/etc/default/cryptdisks</filename>
       (<filename>blkid</filename>).
      </simpara>
+     <simpara>
+      This option is specific to the Debian <emphasis>crypttab</emphasis>
+      format. It's not supported by <emphasis>systemd</emphasis>.
+     </simpara>
     </listitem>
    </varlistentry>
 
@@ -235,19 +326,10 @@
       script. See the CHECKSCRIPTS section for more information.
      </simpara>
     </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><emphasis>tries</emphasis>=&lt;num&gt;</term>
-    <listitem>
-      <simpara>Try to unlock the device &lt;num&gt; before failing. It's
-       particularly useful when using a passphrase or a
-       <emphasis>keyscript</emphasis> that asks for interactive input. If you
-       want to disable retries, pass <quote>tries=1</quote>. Default is
-       <quote>3</quote>. Setting <quote>tries=0</quote> means infinitive
-       retries.
+     <simpara>
+      This option is specific to the Debian <emphasis>crypttab</emphasis>
+      format. It's not supported by <emphasis>systemd</emphasis>.
      </simpara>
-    </listitem>
    </varlistentry>
 
    <varlistentry>
@@ -257,6 +339,10 @@
       and any devices with the <emphasis>initramfs</emphasis> option set. These
       devices are processed within the initramfs stage of boot. As an example,
       that allows the use of remote unlocking using dropbear.
+     </simpara>
+     <simpara>
+      This option is specific to the Debian <emphasis>crypttab</emphasis>
+      format. It's not supported by <emphasis>systemd</emphasis>.
      </simpara>
     </listitem>
    </varlistentry>
@@ -270,6 +356,11 @@
       order. With this option the device is ignored during the first invocation
       of the cryptsetup init scripts.
      </simpara>
+     <simpara>
+      This option is ignored for <emphasis>initramfs</emphasis> devices and
+      specific to the Debian <emphasis>crypttab</emphasis> format. It's not
+      supported by <emphasis>systemd</emphasis>.
+     </simpara>
     </listitem>
    </varlistentry>
 
@@ -279,6 +370,11 @@
      <simpara>Entirely ignore the device at the boot process. It's still
       possible to map the device manually using cryptdisks_start.
      </simpara>
+     <simpara>
+      This option is ignored for <emphasis>initramfs</emphasis> devices and
+      specific to the Debian <emphasis>crypttab</emphasis> format. It's not
+      supported by <emphasis>systemd</emphasis>.
+     </simpara>
     </listitem>
    </varlistentry>
 
@@ -287,6 +383,11 @@
     <listitem>
      <simpara>Be loud. Print warnings if a device does not exist.
      This option overwrites the option <emphasis>loud</emphasis>.</simpara>
+     <simpara>
+      This option is ignored for <emphasis>initramfs</emphasis> devices and
+      specific to the Debian <emphasis>crypttab</emphasis> format. It's not
+      supported by <emphasis>systemd</emphasis>.
+     </simpara>
     </listitem>
    </varlistentry>
 
@@ -295,6 +396,11 @@
     <listitem>
      <simpara>Be quiet. Don't print warnings if a device does not exist.
      This option overwrites the option <emphasis>loud</emphasis>.</simpara>
+     <simpara>
+      This option is ignored for <emphasis>initramfs</emphasis> devices and
+      specific to the Debian <emphasis>crypttab</emphasis> format. It's not
+      supported by <emphasis>systemd</emphasis>.
+     </simpara>
     </listitem>
    </varlistentry>
 
@@ -315,6 +421,10 @@
       be available at the time of execution. Special care needs to be taken for
       encrypted filesystems like /usr or /var. As an example, unlocking
       encrypted /usr must not depend on binaries from /usr/(s)bin.
+     </simpara>
+     <simpara>
+      This option is specific to the Debian <emphasis>crypttab</emphasis>
+      format. It's not supported by <emphasis>systemd</emphasis>.
      </simpara>
      <simpara>
       WARNING: With systemd as init system, this option might be ignored. At
@@ -370,33 +480,6 @@
 
       </variablelist>
      </para>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><emphasis>keyslot</emphasis>=&lt;slot&gt;</term>
-    <listitem>
-     <simpara>
-       Key slot (ignored for non-LUKS devices). See <command>cryptsetup -S</command>.
-     </simpara>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><emphasis>header</emphasis>=&lt;path&gt;</term>
-    <listitem>
-     <simpara>
-       Detached header file (ignored for plain dm-crypt devices). See <command>cryptsetup --header</command>.
-     </simpara>
-    </listitem>
-   </varlistentry>
-
-   <varlistentry>
-    <term><emphasis>tcrypthidden</emphasis></term>
-    <listitem>
-     <simpara>
-       Use hidden TCRYPT header (ignored for non-TCRYPT devices).
-     </simpara>
     </listitem>
    </varlistentry>
 
@@ -564,16 +647,16 @@ cdisk3 /dev/sda3 none cipher=twofish,size=256,hash=ripemd160
    </author>
    <email>michael.geb@gmx.at</email>,
    <author>
-    <firstname>Jonas</firstname>
-    <surname>Meurer</surname>
-   </author>
-   <email>jonas@freesources.org</email>
-   and
-   <author>
     <firstname>David</firstname>
     <surname>Härdeman</surname>
    </author>
-   <email>david@hardeman.nu</email>.
+   <email>david@hardeman.nu</email>
+   and
+   <author>
+    <firstname>Jonas</firstname>
+    <surname>Meurer</surname>
+   </author>
+   <email>jonas@freesources.org</email>.
   </simpara>
  </refsect1>
 

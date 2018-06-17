@@ -34,7 +34,7 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
     volumes.  This is no longer true since 2:1.0.6~pre1+svn45-1, cf. #406317.
   * debian/cryptdisks.functions:
     + Refactoring, using functions from /lib/cryptsetup/functions.
-      (Closes: #714380, #859953, #891219.)
+      (Closes: #859953, #891219.)
     + Install to /lib/cryptsetup/cryptdisks-functions.
   * Remove support for the 'precheck' crypttab(5) option.  The precheck for
     LUKS devices is still hardcoded to `cryptsetup isLuks`; the script refuses
@@ -47,8 +47,10 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
 
   [ Jonas Meurer ]
   * debian/doc/crypttab.xml:
-    + Remove the wrong statement that option 'loud' overrides 'quiet'.
-      Actually it's the other way round.
+    + Add a section about the different crypttab formats of our package and
+      the systemd cryptsetup wrapper.
+    + Document, which options are ignored by the initramfs scripts and which
+      are unsupported by the systemd implementation. (Closes: #714380)
     + Clarify documentation of option 'tries'. It also applies when using
       keyscripts, not only with interactive passphrases. (Closes: #826127)
     + Make it obvious that in case a keyscript is configured, the third option
@@ -56,7 +58,7 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
       to quote the value. (Closes: 826122)
     + Some minor wording improvements.
 
- -- Jonas Meurer <jonas@freesources.org>  Sat, 16 Jun 2018 19:22:36 +0200
+ -- Jonas Meurer <jonas@freesources.org>  Sun, 17 Jun 2018 20:46:05 +0200
 
 cryptsetup (2:2.0.3-1) unstable; urgency=medium
 
