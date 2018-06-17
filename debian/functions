@@ -21,7 +21,7 @@ cryptsetup_message() {
 #   environment unless $export is "n"
 crypttab_parse_options() {
     local options="${1:-$CRYPTTAB_OPTIONS}" export="${2:-y}"
-    local IFS=',' x o v
+    local IFS=',' x OPTION VALUE
     unset -v CRYPTTAB_OPTION_cipher \
              CRYPTTAB_OPTION_size \
              CRYPTTAB_OPTION_hash \
@@ -49,73 +49,21 @@ crypttab_parse_options() {
              CRYPTTAB_OPTION_header \
              CRYPTTAB_OPTION_tcrypthidden
     for x in $options; do
-        o="${x%%=*}"
-        v="${x#*=}"
-        case "$x" in
-            cipher=*|hash=*|header=*)
-                if [ -z "$v" ]; then
-                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: no value for '$o' option, skipping"
-                    return 1
-                fi
-            ;;
-            # numeric options >0
-            size=*)
-                if [ -z "$v" ] || ! printf '%s' "$v" | grep -Exq "[0-9]+" || [ ${v:--1} -le 0 ]; then
-                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '$o' option, skipping"
-                    return 1
-                fi
-            ;;
-            # numeric options >=0
-            offset=*|skip=*|tries=*|keyslot=*)
-                if [ -z "$v" ] || ! printf '%s' "$v" | grep -Exq "[0-9]+" || [ ${v:--1} -lt 0 ]; then
-                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '$o' option, skipping"
-                    return 1
-                fi
-            ;;
-            ###
-            tmp|tmp=*)
-                [ "$x" != "$o" ] || v="ext4"
-                if [ -z "$v" ]; then
-                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: no value for '$o' option, skipping"
-                    return 1
-                fi
-            ;;
-            check|check=*)
-                if [ "$x" = "$o" ]; then
-                    [ -n "${CRYPTDISKS_CHECK-}" ] && v="$CRYPTDISKS_CHECK" || continue
-                fi
-                if [ -x "/lib/cryptsetup/checks/$v" ] && [ -f "/lib/cryptsetup/checks/$v" ]; then
-                    v="/lib/cryptsetup/checks/$v"
-                elif [ ! -x "$v" ] || [ ! -f "$v" ]; then
-                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '$o' option, skipping"
-                    return 1
-                fi
-            ;;
-            checkargs=*)
-            ;;
-            keyscript=*)
-                if [ "${v#/}" = "$v" ]; then
-                    v="/lib/cryptsetup/scripts/$v"
-                fi
-                if [ ! -x "$v" ] || [ ! -f "$v" ]; then
-                    cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '$o' option, skipping"
-                    return 1
-                fi
-            ;;
-            # and now the flags
-            verify|loud|quiet) v="yes";;
-            initramfs|noearly|noauto) v="yes";;
-            readonly|discard|plain|luks|swap) v="yes";;
-            tcrypt|veracrypt|tcrypthidden) v="yes";;
-            *)
-                cryptsetup_message "WARNING: $CRYPTTAB_NAME: ignoring unknown option '$o'";
-                continue
-            ;;
-        esac
+        OPTION="${x%%=*}"
+        VALUE="${x#*=}"
+        if [ "$x" = "$OPTION" ]; then
+            unset -v VALUE
+        fi
+        if ! _crypttab_validate_option; then
+            cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '$OPTION' option, skipping"
+            return 1
+        elif [ -z "${OPTION+x}" ]; then
+            continue
+        fi
         if [ "$export" != "n" ]; then
-            export "CRYPTTAB_OPTION_$o"="$v"
+            export "CRYPTTAB_OPTION_$OPTION"="${VALUE-yes}"
         else
-            eval "CRYPTTAB_OPTION_$o"='$v'
+            eval "CRYPTTAB_OPTION_$OPTION"='${VALUE-yes}'
         fi
     done
     IFS=' '
@@ -138,6 +86,83 @@ crypttab_parse_options() {
             fi
         done
     fi
+}
+
+# _crypttab_validate_option()
+#   Validate $OPTION=$VALUE (or flag $OPTION if VALUE is unset).  return
+#   1 on error, unsets OPTION for unknown or useless options.
+_crypttab_validate_option() {
+    case "${1-$OPTION}" in
+        # value must be a non-empty string
+        cipher|hash|header)
+            [ -n "${VALUE:+x}" ] || return 1
+        ;;
+        # numeric options >0
+        size)
+            if ! printf '%s' "${VALUE-}" | grep -Exq "0*[1-9][0-9]*"; then
+                return 1
+            fi
+        ;;
+        # numeric options >=0
+        offset|skip|tries|keyslot)
+            if ! printf '%s' "${VALUE-}" | grep -Exq "[0-9]+"; then
+                return 1
+            fi
+        ;;
+        tmp)
+            if [ -z "${VALUE+x}" ]; then
+                VALUE="ext4" # 'tmp flag'
+            elif [ -z "$VALUE" ]; then
+                return 1
+            fi
+        ;;
+        check)
+            if [ -z "${VALUE+x}" ]; then
+                if [ -n "${CRYPTDISKS_CHECK-}" ]; then
+                    VALUE="$CRYPTDISKS_CHECK"
+                else
+                    unset -v OPTION
+                    return 0
+                fi
+            fi
+            if [ -x "/lib/cryptsetup/checks/$VALUE" ] && [ -f "/lib/cryptsetup/checks/$VALUE" ]; then
+                VALUE="/lib/cryptsetup/checks/$VALUE"
+            elif [ ! -x "$VALUE" ] || [ ! -f "$VALUE" ]; then
+                return 1
+            fi
+        ;;
+        checkargs)
+            [ -n "${VALUE+x}" ] || return 1 # must have a value (possibly empty)
+        ;;
+        keyscript)
+            [ -n "${VALUE:+x}" ] || return 1 # must have a value
+            if [ "${VALUE#/}" = "$VALUE" ]; then
+                VALUE="/lib/cryptsetup/scripts/$VALUE"
+            fi
+            if [ ! -x "$VALUE" ] || [ ! -f "$VALUE" ]; then
+                return 1
+            fi
+        ;;
+        # and now the flags
+        verify) ;;
+        loud) ;;
+        quiet) ;;
+        initramfs) ;;
+        noearly) ;;
+        noauto) ;;
+        readonly) ;;
+        discard) ;;
+        plain) ;;
+        luks) ;;
+        swap) ;;
+        tcrypt) ;;
+        veracrypt) ;;
+        tcrypthidden) ;;
+        *)
+            cryptsetup_message "WARNING: $CRYPTTAB_NAME: ignoring unknown option '$OPTION'";
+            unset -v OPTION
+        ;;
+    esac
 }
 
 # crypttab_copy_keys_to_initramfs($keyscript)
