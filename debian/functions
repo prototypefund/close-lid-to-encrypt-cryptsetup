@@ -55,7 +55,7 @@ crypttab_parse_options() {
             unset -v VALUE
         fi
         if ! _crypttab_validate_option; then
-            cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '$OPTION' option, skipping"
+            cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '${x%%=*}' option, skipping"
             return 1
         elif [ -z "${OPTION+x}" ]; then
             continue
@@ -92,7 +92,15 @@ crypttab_parse_options() {
 #   Validate $OPTION=$VALUE (or flag $OPTION if VALUE is unset).  return
 #   1 on error, unsets OPTION for unknown or useless options.
 _crypttab_validate_option() {
-    case "${1-$OPTION}" in
+    # option aliases
+    case "$OPTION" in
+        read-only) OPTION="readonly";;
+        key-slot) OPTION="keyslot";;
+        tcrypt-hidden) OPTION="tcrypthidden";;
+        tcrypt-veracrypt) OPTION="veracrypt";;
+    esac
+
+    case "$OPTION" in
         # value must be a non-empty string
         cipher|hash|header)
             [ -n "${VALUE:+x}" ] || return 1

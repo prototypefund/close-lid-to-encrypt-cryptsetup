@@ -36,10 +36,17 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
     + Refactoring, using functions from /lib/cryptsetup/functions.
       (Closes: #859953, #891219.)
     + Install to /lib/cryptsetup/cryptdisks-functions.
-  * Remove support for the 'precheck' crypttab(5) option.  The precheck for
-    LUKS devices is still hardcoded to `cryptsetup isLuks`; the script refuses
-    to unlock non-LUKS devices (plain dm-crypt and tcrypt devices) containing
-    a known filesystem (other that swap).
+  * crypttab(5):
+    + Remove support for the 'precheck' option.  The precheck for LUKS devices
+      is still hardcoded to `cryptsetup isLuks`; the script refuses to unlock
+      non-LUKS devices (plain dm-crypt and tcrypt devices) containing a known
+      filesystem (other that swap).
+    + Don't ignore the 'plain' option: disable auto-detection and treat the
+      device as a plain dm-crypt device.
+    + Add support for some option aliases to unify with systemd's crypttab(5)
+      options.  Namely, 'read-only' is an alias for 'readonly', 'key-slot=' is
+      an alias for 'keyslot=', 'tcrypt-hidden' is an alias for 'tcrypthidden',
+      and 'tcrypt-veracrypt' is an alias for 'veracrypt'.
   * debian/scripts/cryptdisks_start: Add support for '-r'/'--readonly' switch
     to setup readonly mappings. (Closes: #782843.)
   * debian/scripts/cryptdisks_stop: Add support for closing multiple disks at

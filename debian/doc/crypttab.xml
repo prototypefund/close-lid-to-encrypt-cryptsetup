@@ -161,7 +161,7 @@
    </varlistentry>
 
    <varlistentry>
-    <term><emphasis>keyslot</emphasis>=&lt;slot&gt;</term>
+    <term><emphasis>keyslot</emphasis>=&lt;slot&gt;, <emphasis>key-slot</emphasis>=&lt;slot&gt;</term>
     <listitem>
      <simpara>
       Key slot (ignored for non-LUKS devices). See <command>cryptsetup
@@ -190,7 +190,7 @@
    </varlistentry>
 
    <varlistentry>
-    <term><emphasis>readonly</emphasis></term>
+    <term><emphasis>readonly</emphasis>, <emphasis>read-only</emphasis></term>
     <listitem>
      <simpara>The backing device is read-only (eg: a dvd).</simpara>
     </listitem>
@@ -253,7 +253,7 @@
    </varlistentry>
 
    <varlistentry>
-    <term><emphasis>veracrypt</emphasis></term>
+       <term><emphasis>veracrypt</emphasis>, <emphasis>tcrypt-veracrypt</emphasis></term>
     <listitem>
      <simpara>
       Use VeraCrypt extension to TrueCrypt device. Only useful in
@@ -264,7 +264,7 @@
    </varlistentry>
 
    <varlistentry>
-    <term><emphasis>tcrypthidden</emphasis></term>
+       <term><emphasis>tcrypthidden</emphasis>, <emphasis>tcrypt-hidden</emphasis></term>
     <listitem>
      <simpara>
        Use hidden TCRYPT header (ignored for non-TCRYPT devices).
@@ -468,6 +468,9 @@
         <listitem><para>
          The value of the appropriate crypttab option, with value set to 'yes'
          in case the option is merely a flag.
+         For option aliases, such as 'readonly' and 'read-only', the
+         variable name refers to the first alternative listed (thus
+         'CRYPTTAB_OPTION_readonly' in that case).
         </para></listitem>
        </varlistentry>
        <varlistentry>
