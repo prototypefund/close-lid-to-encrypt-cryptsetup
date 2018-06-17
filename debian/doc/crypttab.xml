@@ -306,6 +306,7 @@
     <term><emphasis>loud</emphasis></term>
     <listitem>
      <simpara>Be loud. Print warnings if a device does not exist.
+     This option overwrites the option <emphasis>loud</emphasis>.</simpara>
     </listitem>
    </varlistentry>
 
