@@ -30,6 +30,7 @@ crypttab_parse_options() {
              CRYPTTAB_OPTION_verify \
              CRYPTTAB_OPTION_readonly \
              CRYPTTAB_OPTION_discard \
+             CRYPTTAB_OPTION_plain \
              CRYPTTAB_OPTION_luks \
              CRYPTTAB_OPTION_tcrypt \
              CRYPTTAB_OPTION_veracrypt \
@@ -104,7 +105,7 @@ crypttab_parse_options() {
             # and now the flags
             verify|loud|quiet) v="yes";;
             initramfs|noearly|noauto) v="yes";;
-            readonly|discard|luks|swap) v="yes";;
+            readonly|discard|plain|luks|swap) v="yes";;
             tcrypt|veracrypt|tcrypthidden) v="yes";;
             *)
                 cryptsetup_message "WARNING: $CRYPTTAB_NAME: ignoring unknown option '$o'";
