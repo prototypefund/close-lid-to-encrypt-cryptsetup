@@ -47,8 +47,10 @@
   <simpara>
    The second field, <emphasis>source device</emphasis>, describes either the
    block special device or file that contains the encrypted data. Instead of
-   giving the <emphasis>source device</emphasis> explicitly, the UUID is
-   supported as well, using <quote>UUID=&lt;luks_uuid&gt;</quote>.
+   giving the <emphasis>source device</emphasis> explicitly, the UUID
+   (resp. LABEL, PARTUUID and PARTLABEL) is supported as well, using <quote>UUID=&lt;uuid&gt;</quote>
+   (resp. <quote>LABEL=&lt;label&gt;</quote>, <quote>PARTUUID=&lt;partuuid&gt;</quote>
+   and <quote>PARTLABEL=&lt;partlabel&gt;</quote>).
   </simpara>
   <simpara>
    The third field, <emphasis>key file</emphasis>, describes the file to use
@@ -570,7 +572,7 @@
 # Encrypted swap device
 cswap /dev/sda6 /dev/urandom cipher=aes-xts-plain64,size=256,hash=sha1,swap
 
-# Encrypted LUKS disk with interactive password, identified by UUID
+# Encrypted LUKS disk with interactive password, identified by its UUID
 cdisk0 UUID=12345678-9abc-def012345-6789abcdef01 none luks
 
 # Encrypted TCRYPT disk with interactive password
