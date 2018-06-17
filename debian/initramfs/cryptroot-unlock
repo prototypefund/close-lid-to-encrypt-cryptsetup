@@ -25,6 +25,13 @@ PASSFIFO=/lib/cryptsetup/passfifo
 ASKPASS=/lib/cryptsetup/askpass
 UNLOCK_ALL=n
 
+# load initramfs helper functions
+. /scripts/functions
+
+# load gettext support
+export TEXTDOMAIN="cryptsetup_cryptroot"
+gettext_support
+
 # The list of configured devices to unlock.
 # TODO refactor: this code should be shared with the cryptroot boot script
 if grep -qE '^(.*\s)?cryptopts=' /proc/cmdline; then
@@ -170,7 +177,7 @@ if [ -t 0 ] && [ -x "$ASKPASS" ]; then
 		wait_for_prompt
 		diskname="$CRYPTTAB_NAME"
 		[ "${CRYPTTAB_SOURCE#/dev/disk/by-uuid/}" != "$CRYPTTAB_SOURCE" ] || diskname="$diskname ($CRYPTTAB_SOURCE)"
-		read -rs -p "Please unlock disk $diskname: "; echo
+		read -rs -p "$(eval_gettext 'Please unlock disk $diskname: ')"; echo
 		printf '%s' "$REPLY" >"$PASSFIFO"
 		wait_for_answer || true
 	done
@@ -180,7 +187,7 @@ else
 	diskname="$CRYPTTAB_NAME"
 	# TODO: refactor $CRYPTTAB_NAME/$CRYPTTAB_SOURCE to prompt mapping
 	[ "${CRYPTTAB_SOURCE#/dev/disk/by-uuid/}" != "$CRYPTTAB_SOURCE" ] || diskname="$diskname ($CRYPTTAB_SOURCE)"
-	echo "Please unlock disk $diskname"
+	echo "$(eval_gettext 'Please unlock disk $diskname')"
 	cat >"$PASSFIFO"
 	wait_for_answer || exit 1
 fi

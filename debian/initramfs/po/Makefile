@@ -12,25 +12,25 @@ LOCALEDIR = /usr/share/locale
 PO = $(wildcard *.po)
 LANG = $(basename $(PO))
 MO = $(addsuffix .mo,$(LANG))
-SOURCES = ../luksformat
+SOURCES = ../cryptroot-script ../cryptroot-unlock
 
 all: update $(MO)
-update: luksformat.pot
+update: cryptsetup_cryptroot.pot
 	-@for po in $(PO); do \
 	echo -n "Updating $$po"; \
-	$(MSGMERGE) -U $$po luksformat.pot; \
+	$(MSGMERGE) -U $$po cryptsetup_cryptroot.pot; \
 	done;
 
-luksformat.pot: $(SOURCES)
-	$(XGETTEXT) -c -L Perl -kgtx \
-	--msgid-bugs-address=pkg-cryptsetup-devel@lists.alioth.debian.org \
+cryptsetup_cryptroot.pot: $(SOURCES)
+	$(XGETTEXT) -c -L Shell -kgtx \
+	--msgid-bugs-address=pkg-cryptsetup-devel@alioth-lists.debian.net \
 	-o $@ $(SOURCES)
 
 install: all
 	for i in $(MO) ; do \
 	  t=$(DESTDIR)/$(LOCALEDIR)/`basename $$i .mo`/LC_MESSAGES ;\
 	  install -d $$t ;\
-	  install -m 644 $$i $$t/luksformat.mo ;\
+	  install -m 644 $$i $$t/cryptsetup_cryptroot.mo ;\
 	done
 
 clean:

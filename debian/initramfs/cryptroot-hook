@@ -891,6 +891,13 @@ if [ "$setup" = "yes" ]; then
 	copy_exec /sbin/dmsetup
 	copy_exec /lib/cryptsetup/askpass
 
+	# optionally copy cryptsetup_cryptroot gettext files when LOCALES=y
+	if [ "$LOCALES" = "y" ] || [ "$LOCALES" = "Y" ]; then
+		for file in $(find /usr/share/locale -name cryptsetup_cryptroot.mo 2>&1); do
+			copy_file gettext_file $file
+		done
+	fi
+
 	# libargon2 utilizes pthread_cancel
 	LIBC_DIR="$(ldd /sbin/cryptsetup | sed -nr 's#.* => (/lib.*)/libc\.so\.[0-9.-]+ \(0x[[:xdigit:]]+\)$#\1#p')"
 	find -L "$LIBC_DIR" -maxdepth 1 -name 'libgcc_s.*' -type f | while read so; do

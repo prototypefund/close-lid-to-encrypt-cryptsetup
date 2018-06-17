@@ -1,0 +1,86 @@
+# German translations for PACKAGE package.
+# Copyright (C) 2018 Jonas Meurer
+# This file is distributed under the same license as the PACKAGE package.
+# Jonas Meurer <jonas@freesources.org>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: pkg-cryptsetup-devel@alioth-lists.debian.net\n"
+"POT-Creation-Date: 2018-06-17 03:40+0200\n"
+"PO-Revision-Date: 2018-06-16 22:08+0200\n"
+"Last-Translator: Jonas Meurer <jonas@freesources.org>\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../cryptroot-script:172
+#, sh-format
+msgid "source parameter missing"
+msgstr "Quellgerät-Parameter fehlt"
+
+#: ../cryptroot-script:182
+#, sh-format
+msgid "lvm is not available"
+msgstr "LVM ist nicht verfügbar"
+
+#: ../cryptroot-script:211 ../cryptroot-unlock:180
+#, sh-format
+msgid "Please unlock disk $diskname: "
+msgstr "Bitte Platte $diskname entsperren: "
+
+#: ../cryptroot-script:249
+#, sh-format
+msgid "Waiting for encrypted source device..."
+msgstr "Warte auf das verschüsselte Quellgerät..."
+
+#: ../cryptroot-script:284
+#, sh-format
+msgid "Dropping to a shell. Will skip ${cryptsource} if you cannot fix."
+msgstr ""
+"Starte eine Shell. ${cryptsource} wird übersprungen, wenn das Problem "
+"nicht behoben wird"
+
+#: ../cryptroot-script:330
+#, sh-format
+msgid "cryptsetup failed, bad password or options?"
+msgstr ""
+"Cryptsetup ist fehlgeschlagen. Fehler bei Passwort oder Optionen?"
+
+#: ../cryptroot-script:336
+#, sh-format
+msgid "unknown error setting up device mapping"
+msgstr "Unbekannter Fehler beim Aufsetzen des Device-Mapper"
+
+#: ../cryptroot-script:348
+#, sh-format
+msgid "lvm fs found but no lvm configured"
+msgstr "LVM Signatur gefunden obwohl LVM nicht konfiguriert wurde"
+
+#: ../cryptroot-script:373
+#, sh-format
+msgid "unknown fstype, bad password or options?"
+msgstr "Unbekannter Dateisystem-Typ. Fehler bei Passwort oder Optionen?"
+
+#: ../cryptroot-script:382
+#, sh-format
+msgid "set up successfully"
+msgstr "Erfolgreich aufgesetzt"
+
+#: ../cryptroot-script:389
+#, sh-format
+msgid "maximum number of tries exceeded"
+msgstr "Maximale Anzahl von Versuchen überschritten"
+
+#: ../cryptroot-script:390
+#, sh-format
+msgid "going to sleep for $failsleep seconds..."
+msgstr "Gehe für $failsleep Sekunden in den Schlafmodus..."
+
+#: ../cryptroot-unlock:190
+#, sh-format
+msgid "Please unlock disk $diskname"
+msgstr "Bitte Platte $diskname entsperren"

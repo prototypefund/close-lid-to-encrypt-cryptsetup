@@ -72,7 +72,8 @@ build-indep: build-stamp
 	pod2man --section=8 --center="Administrative commands" \
 		--release="$(DEB_VERSION)" debian/scripts/luksformat \
 		debian/luksformat.8
-	# generate gettext po files (for luksformat)
+	# generate gettext po files
+	$(MAKE) -C debian/initramfs/po all cryptsetup_cryptroot.pot
 	$(MAKE) -C debian/scripts/po all luksformat.pot
 
 build-arch: build-stamp
@@ -166,6 +167,7 @@ ifeq ($(shell dpkg-vendor --is Ubuntu && echo yes),yes)
 		$(CURDIR)/debian/cryptsetup-run/usr/share/apport/package-hooks/cryptsetup.py
 endif
 
+	$(MAKE) -C debian/initramfs/po DESTDIR=$(CURDIR)/debian/cryptsetup-initramfs install
 	$(MAKE) -C debian/scripts/po DESTDIR=$(CURDIR)/debian/cryptsetup-bin install
 	touch $@
 
@@ -216,6 +218,8 @@ clean:
 	rm -f manifest manifest.new
 	rm -f debian/doc/*.[0-9] debian/doc/variables.xml
 	rm -f debian/luksformat.8
+	# clean up the generated po files
+	#$(MAKE) -C debian/initramfs/po update clean
 	$(MAKE) -C debian/scripts/po update clean
 	rm -f debian/scripts/passdev
 	rm -f debian/askpass
