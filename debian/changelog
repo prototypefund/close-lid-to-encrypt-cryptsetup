@@ -68,7 +68,7 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
       is passed as argument to the keyscript. Mention the optional requirement
       to quote the value. (Closes: #826122)
     + Some minor wording improvements.
-  * debian/control, debian/combat: Bump debhelper compability level to 11.
+  * debian/control, debian/combat: Bump debhelper compatibility level to 11.
   * debian/rules:
     + Completely refactor the rules file, adapt to debhelper 11 style.
       (Closes: #901713)
