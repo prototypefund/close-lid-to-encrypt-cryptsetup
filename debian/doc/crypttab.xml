@@ -95,7 +95,7 @@
   <simpara>
    Please note that there are several independent cryptsetup wrappers with
    their own <emphasis>crypttab</emphasis> format. This manpage covers
-   Debians implementation for <emphasis>initramfs</emphasis> scripts and
+   Debian's implementation for <emphasis>initramfs</emphasis> scripts and
    <emphasis>SysVinit</emphasis> init scripts. <emphasis>systemd</emphasis>
    brings its own <emphasis>crypttab</emphasis> implementation.
    We try to cover the differences between the <emphasis>systemd</emphasis> and
