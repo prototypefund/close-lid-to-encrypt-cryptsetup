@@ -39,6 +39,8 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
     a known filesystem (other that swap).
   * debian/scripts/cryptdisks_start: Add support for '-r'/'--readonly' switch
     to setup readonly mappings. (Closes: #782843.)
+  * debian/scripts/cryptdisks_stop: Add support for closing multiple disks at
+    once.  (Closes: #783194.)
 
   [ Jonas Meurer ]
   * debian/doc/crypttab.xml:
