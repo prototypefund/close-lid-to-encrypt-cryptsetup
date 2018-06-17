@@ -47,15 +47,15 @@ case "$1" in
 					echo "WARNING: $dst in /etc/crypttab uses the deprecated ssl option, see man crypttab(5)." >&2
 					;;
 				luks)
-					plainopts="3"
+					plainopts="2"
 					;;
-				cipher|hash|size)
+				cipher|size)
 					plainopts="$(($plainopts+1))"
 					;;
 				esac
 			done
-			if [ "$plainopts" -lt "3" ]; then
-				echo "WARNING: you need to set all of cipher, hash and size for the plain dm-crypt mapping $dst in /etc/crypttab." >&2
+			if [ "$plainopts" -lt 2 ]; then
+				echo "WARNING: you need to set both cipher and size for the plain dm-crypt mapping $dst in /etc/crypttab." >&2
 			fi
 			unset IFS
 		fi
