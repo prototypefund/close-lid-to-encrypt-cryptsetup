@@ -28,96 +28,6 @@ esac
 . /lib/cryptsetup/functions
 
 
-# run_keyscript($keyscriptarg, $tried_count)
-#   exec()'ute `$CRYPTTAB_OPTION_keyscript $keyscriptarg`.
-#   If $CRYPTTAB_OPTION_keyscript is unset or null and $keyscriptarg is
-#   "none" (meaning the passphrase is to be read interactively from the
-#   console), use `/lib/cryptsetup/askpass` as keyscript with a suitable
-#   prompt message.
-#   Since the shell process is replaced with the $CRYPTTAB_OPTION_keyscript
-#   program, run_keyscript() must be used on the left-hand side of a
-#   pipe, or similar.
-run_keyscript() {
-    local keyscriptarg="$1" CRYPTTAB_TRIED="$2" keyscript;
-    export CRYPTTAB_TRIED
-
-    if [ -n "${CRYPTTAB_OPTION_keyscript+x}" ] && \
-            [ "$CRYPTTAB_OPTION_keyscript" != "/lib/cryptsetup/askpass" ]; then
-        # 'keyscript' option is present: export its argument as
-        # $CRYPTTAB_KEY
-        export CRYPTTAB_KEY="$keyscriptarg"
-        keyscript="$CRYPTTAB_OPTION_keyscript"
-    elif [ "$keyscriptarg" = none ]; then
-        # don't export the prompt message as CRYPTTAB_KEY
-        keyscript="/lib/cryptsetup/askpass"
-        keyscriptarg="Please unlock disk $CRYPTTAB_NAME: "
-    fi
-
-    exec "$keyscript" "$keyscriptarg"
-}
-
-# unlock_mapping([$keyfile])
-#   Run cryptsetup(8) with suitable options and arguments to unlock
-#   $CRYPTTAB_SOURCE and setup dm-crypt managed device-mapper mapping
-#   $CRYPTTAB_NAME
-unlock_mapping() {
-    local keyfile="$1"
-
-    # Create locking directory before invoking cryptsetup(8) to avoid warnings
-    mkdir -pm0700 /run/cryptsetup
-
-    modprobe -q dm_crypt
-
-    if [ -n "${CRYPTTAB_OPTION_header+x}" ] && [ ! -f "${CRYPTTAB_OPTION_header}" ]; then
-        cryptsetup_message "ERROR: $CRYPTTAB_NAME: LUKS header '${CRYPTTAB_OPTION_header}' missing"
-        return 1
-    fi
-
-    local type="plain" # assume plain dm-crypt device by default
-    if [ "${CRYPTTAB_OPTION_tcrypt-}" = "yes" ]; then
-        type="tcrypt"
-    elif [ "${CRYPTTAB_OPTION_plain-}" = "yes" ]; then
-        type="plain"
-    elif [ "${CRYPTTAB_OPTION_luks-}" = "yes" ] ||
-            /sbin/cryptsetup isLuks -- "${CRYPTTAB_OPTION_header-$CRYPTTAB_SOURCE}"; then
-        type="luks"
-    fi
-
-    if [ "$type" = "luks" ] || [ "$type" = "tcrypt" ]; then
-        # ignored for LUKS and TCRYPT devices
-        unset -v CRYPTTAB_OPTION_cipher \
-                 CRYPTTAB_OPTION_size \
-                 CRYPTTAB_OPTION_hash \
-                 CRYPTTAB_OPTION_offset \
-                 CRYPTTAB_OPTION_skip
-    fi
-    if [ "$type" != "tcrypt" ]; then
-        # ignored for non-TCRYPT devices
-        unset -v CRYPTTAB_OPTION_veracrypt CRYPTTAB_OPTION_tcrypthidden
-    fi
-
-    if [ "$type" != "luks" ]; then
-        # ignored for non-LUKS devices
-        unset -v CRYPTTAB_OPTION_keyslot
-    fi
-
-    /sbin/cryptsetup -T1 \
-        ${CRYPTTAB_OPTION_header:+--header="$CRYPTTAB_OPTION_header"} \
-        ${CRYPTTAB_OPTION_cipher:+--cipher="$CRYPTTAB_OPTION_cipher"} \
-        ${CRYPTTAB_OPTION_size:+--size="$CRYPTTAB_OPTION_size"} \
-        ${CRYPTTAB_OPTION_hash:+--hash="$CRYPTTAB_OPTION_hash"} \
-        ${CRYPTTAB_OPTION_offset:+--offset="$CRYPTTAB_OPTION_offset"} \
-        ${CRYPTTAB_OPTION_skip:+--skip="$CRYPTTAB_OPTION_skip"} \
-        ${CRYPTTAB_OPTION_verify:+--verify-passphrase} \
-        ${CRYPTTAB_OPTION_readonly:+--readonly} \
-        ${CRYPTTAB_OPTION_discard:+--allow-discards} \
-        ${CRYPTTAB_OPTION_veracrypt:+--veracrypt} \
-        ${CRYPTTAB_OPTION_keyslot:+--key-slot="$CRYPTTAB_OPTION_keyslot"} \
-        ${CRYPTTAB_OPTION_tcrypthidden:+--tcrypt-hidden} \
-        --type="$type" --key-file="${keyfile:--}" \
-        open -- "$CRYPTTAB_SOURCE" "$CRYPTTAB_NAME"
-}
-
 # wait_for_source()
 #   Wait for encrypted $CRYPTTAB_SOURCE for up to 180s.  Set
 #   $CRYPTTAB_SOURCE to its normalized device name when it shows up;
@@ -167,13 +77,14 @@ wait_for_source() {
 setup_mapping() {
     export CRYPTTAB_NAME="$1" CRYPTTAB_SOURCE="$2" CRYPTTAB_OPTIONS="$4"
     local key="$3"
-    crypttab_parse_options || return 1
 
     # The same target can be specified multiple times
     # e.g. root and resume lvs-on-lvm-on-crypto
     if [ -e "/dev/mapper/$CRYPTTAB_NAME" ]; then
         return 0
     fi
+
+    crypttab_parse_options || return 1
 
     if ! wait_for_source; then
         # we've given up
@@ -211,10 +122,10 @@ setup_mapping() {
 
         if [ -z "${CRYPTTAB_OPTION_keyscript+x}" ] && [ "$key" != "none" ]; then
             # unlock via keyfile
-            unlock_mapping "$key"
+            unlock_mapping "$key" "$CRYPTTAB_NAME"
         else
             # unlock interactively or via keyscript
-            run_keyscript "$key" "$count" | unlock_mapping
+            run_keyscript "$key" "$count" | unlock_mapping - "$CRYPTTAB_NAME"
         fi
 
         if [ $? -ne 0 ]; then
@@ -261,6 +172,10 @@ gen_crypttab_from_kernel_cmdline
 
 # Do we have any settings from the /cryptroot/crypttab file?
 if [ -s /cryptroot/crypttab ]; then
+    # Create locking directory before invoking cryptsetup(8) to avoid warnings
+    mkdir -pm0700 /run/cryptsetup
+    modprobe -q dm_crypt
+
     while read target source key options <&3; do
         [ "${target#\#}" = "$target" ] || continue
         setup_mapping "$target" "$source" "$key" "$options" 3<&-

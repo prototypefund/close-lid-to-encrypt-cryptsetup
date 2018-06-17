@@ -130,12 +130,6 @@ get_crypttab_entry() {
 
     crypttab_parse_options "$options" n || return 1
 
-    if [ -z "${CRYPTTAB_OPTION_keyscript+x}" ] && [ "$key" = "/dev/random" -o "$key" = "/dev/urandom" ]; then
-        # XXX: not sure why we have that check at all.  Random swap don't hurt!
-        cryptsetup_message "WARNING: Skipping target $name: random key"
-        return 1
-    fi
-
     if [ -n "${CRYPTTAB_OPTION_header+x}" ] && [ ! -f "$CRYPTTAB_OPTION_header" ]; then
         cryptsetup_message "WARNING: Target $name has an invalid header $CRYPTTAB_OPTION_header"
     fi
@@ -143,6 +137,7 @@ get_crypttab_entry() {
     local newkey
     # if keyscript is set, the "key" is just an argument to the script
     if [ -z "${CRYPTTAB_OPTION_keyscript+x}" ] && [ "$key" != "none" ]; then
+        check_key "$key" || return 1
         case "$key" in
             $KEYFILE_PATTERN)
                 mkdir -pm0700 "$DESTDIR/cryptroot/keyfiles"

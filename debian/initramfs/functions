@@ -90,7 +90,9 @@ crypttab_parse_options() {
                 fi
             ;;
             check|check=*)
-                [ "$x" != "$o" ] || v="$CRYPTDISKS_CHECK"
+                if [ "$x" = "$o" ]; then
+                    [ -n "${CRYPTDISKS_CHECK-}" ] && v="$CRYPTDISKS_CHECK" || continue
+                fi
                 if [ -x "/lib/cryptsetup/checks/$v" ] && [ -f "/lib/cryptsetup/checks/$v" ]; then
                     v="/lib/cryptsetup/checks/$v"
                 elif [ ! -x "$v" ] || [ ! -f "$v" ]; then
@@ -125,6 +127,7 @@ crypttab_parse_options() {
             eval "CRYPTTAB_OPTION_$o"='$v'
         fi
     done
+    IFS=' '
 
     if [ -z "${CRYPTTAB_OPTION_luks+x}" ] && [ -n "${CRYPTTAB_OPTION_header+x}" ]; then
         cryptsetup_message "WARNING: Option 'luks' missing in crypttab for target $CRYPTTAB_NAME." \
@@ -132,8 +135,12 @@ crypttab_parse_options() {
     fi
     if [ -z "${CRYPTTAB_OPTION_luks+x}" ] && [ -z "${CRYPTTAB_OPTION_tcrypt+x}" ]; then
         # the compiled-in default for these are subject to change
-        for o in "cipher" "hash" "size"; do
-            if eval [ -z "\${$CRYPTTAB_OPTION_$o+x}" ]; then
+        options='cipher size'
+        if [ -n "${CRYPTTAB_OPTION_keyscript+x}" ] || [ "$key" = "none" ]; then
+            options="$options hash" # --hash is being ignored in plain mode with keyfile specified
+        fi
+        for o in $options; do
+            if eval [ -z "\${CRYPTTAB_OPTION_$o+x}" ]; then
                 cryptsetup_message "WARNING: Option '$o' missing in crypttab for plain dm-crypt" \
                     "mapping $CRYPTTAB_NAME. Please read /usr/share/doc/cryptsetup/README.initramfs and" \
                     "add the correct '$o' option to your crypttab(5)."
@@ -239,6 +246,124 @@ normalise_device() {
         cryptsetup_message "ERROR: Couldn't normalise device $input"
     fi
     return 1
+}
+
+# run_keyscript($keyscriptarg, $tried_count)
+#   exec()'ute `$CRYPTTAB_OPTION_keyscript $keyscriptarg`.
+#   If $CRYPTTAB_OPTION_keyscript is unset or null and $keyscriptarg is
+#   "none" (meaning the passphrase is to be read interactively from the
+#   console), use `/lib/cryptsetup/askpass` as keyscript with a suitable
+#   prompt message.
+#   Since the shell process is replaced with the $CRYPTTAB_OPTION_keyscript
+#   program, run_keyscript() must be used on the left-hand side of a
+#   pipe, or similar.
+run_keyscript() {
+    local keyscriptarg="$1" CRYPTTAB_TRIED="$2" keyscript;
+    export CRYPTTAB_TRIED
+
+    if [ -n "${CRYPTTAB_OPTION_keyscript+x}" ] && \
+            [ "$CRYPTTAB_OPTION_keyscript" != "/lib/cryptsetup/askpass" ]; then
+        # 'keyscript' option is present: export its argument as
+        # $CRYPTTAB_KEY
+        export CRYPTTAB_KEY="$keyscriptarg"
+        keyscript="$CRYPTTAB_OPTION_keyscript"
+    elif [ "$keyscriptarg" = none ]; then
+        # don't export the prompt message as CRYPTTAB_KEY
+        keyscript="/lib/cryptsetup/askpass"
+        keyscriptarg="Please unlock disk $CRYPTTAB_NAME: "
+    fi
+
+    exec "$keyscript" "$keyscriptarg"
+}
+
+# get_crypt_type()
+#    Return the mapping's type, depending on its
+#    $CRYPTTAB_OPTION_<option> values
+get_crypt_type() {
+    local type="plain" # assume plain dm-crypt device by default
+    if [ "${CRYPTTAB_OPTION_tcrypt-}" = "yes" ]; then
+        type="tcrypt"
+    elif [ "${CRYPTTAB_OPTION_plain-}" = "yes" ]; then
+        type="plain"
+    elif [ "${CRYPTTAB_OPTION_luks-}" = "yes" ] ||
+            /sbin/cryptsetup isLuks -- "${CRYPTTAB_OPTION_header-$CRYPTTAB_SOURCE}"; then
+        type="luks"
+    fi
+    echo "$type"
+}
+
+# unlock_mapping($keyfile, $name)
+#   Run cryptsetup(8) with suitable options and arguments to unlock
+#   $CRYPTTAB_SOURCE and setup dm-crypt managed device-mapper mapping
+#   $name
+unlock_mapping() {
+    local keyfile="$1" name="$2"
+
+    if [ -n "${CRYPTTAB_OPTION_header+x}" ] && [ ! -f "${CRYPTTAB_OPTION_header}" ]; then
+        cryptsetup_message "ERROR: $name: LUKS header '${CRYPTTAB_OPTION_header}' missing"
+        return 1
+    fi
+
+    local type="$(get_crypt_type)"
+    if [ "$type" = "luks" ] || [ "$type" = "tcrypt" ]; then
+        # ignored for LUKS and TCRYPT devices
+        unset -v CRYPTTAB_OPTION_cipher \
+                 CRYPTTAB_OPTION_size \
+                 CRYPTTAB_OPTION_hash \
+                 CRYPTTAB_OPTION_offset \
+                 CRYPTTAB_OPTION_skip
+    fi
+    if [ "$type" != "tcrypt" ]; then
+        # ignored for non-TCRYPT devices
+        unset -v CRYPTTAB_OPTION_veracrypt CRYPTTAB_OPTION_tcrypthidden
+    fi
+
+    if [ "$type" != "luks" ]; then
+        # ignored for non-LUKS devices
+        unset -v CRYPTTAB_OPTION_keyslot
+    fi
+
+    /sbin/cryptsetup -T1 \
+        ${CRYPTTAB_OPTION_header:+--header="$CRYPTTAB_OPTION_header"} \
+        ${CRYPTTAB_OPTION_cipher:+--cipher="$CRYPTTAB_OPTION_cipher"} \
+        ${CRYPTTAB_OPTION_size:+--size="$CRYPTTAB_OPTION_size"} \
+        ${CRYPTTAB_OPTION_hash:+--hash="$CRYPTTAB_OPTION_hash"} \
+        ${CRYPTTAB_OPTION_offset:+--offset="$CRYPTTAB_OPTION_offset"} \
+        ${CRYPTTAB_OPTION_skip:+--skip="$CRYPTTAB_OPTION_skip"} \
+        ${CRYPTTAB_OPTION_verify:+--verify-passphrase} \
+        ${CRYPTTAB_OPTION_readonly:+--readonly} \
+        ${CRYPTTAB_OPTION_discard:+--allow-discards} \
+        ${CRYPTTAB_OPTION_veracrypt:+--veracrypt} \
+        ${CRYPTTAB_OPTION_keyslot:+--key-slot="$CRYPTTAB_OPTION_keyslot"} \
+        ${CRYPTTAB_OPTION_tcrypthidden:+--tcrypt-hidden} \
+        --type="$type" --key-file="${keyfile:--}" \
+        open -- "$CRYPTTAB_SOURCE" "$name"
+}
+
+# check_key($keyfile)
+#   Sanity check for keys
+check_key() {
+    local keyfile="$1"
+
+    if [ ! -f "$keyfile" ] && [ ! -b "$keyfile" ] && [ ! -c "$keyfile" ] ; then
+        cryptsetup_message "WARNING: $CRYPTTAB_NAME: keyfile '$keyfile' not found"
+        return 0
+    fi
+
+    if [ "$keyfile" = "/dev/random" -o "$keyfile" = "/dev/urandom" ]; then
+        if [ -n "${CRYPTTAB_OPTION_luks+x}" ] || [ -n "${CRYPTTAB_OPTION_tcrypt+x}" ]; then
+            cryptsetup_message "WARNING: $CRYPTTAB_NAME: has random data as key"
+            return 1
+        else
+            return 0
+        fi
+    fi
+
+    local mode="$(stat -c%a "$keyfile")"
+    if [ $(stat -c%u "$keyfile") -ne 0 ] || [ "${mode%00}" = "$mode" ]; then
+        cryptsetup_message "WARNING: $CRYPTTAB_NAME: key file $keyfile has" \
+            "insecure ownership, see /usr/share/doc/cryptsetup/README.Debian."
+    fi
 }
 
 # vim: set filetype=sh :
