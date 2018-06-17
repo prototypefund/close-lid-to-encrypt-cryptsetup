@@ -1,0 +1,4 @@
+scripts/cryptsetup.conf /usr/lib/tmpfiles.d/
+sbin/*
+usr/share/locale/*/*/*
+usr/share/man/*/*

@@ -66,10 +66,19 @@ cryptsetup (2:2.0.3-2) UNRELEASED; urgency=medium
       keyscripts, not only with interactive passphrases. (Closes: #826127)
     + Make it obvious that in case a keyscript is configured, the third option
       is passed as argument to the keyscript. Mention the optional requirement
-      to quote the value. (Closes: 826122)
+      to quote the value. (Closes: #826122)
     + Some minor wording improvements.
+  * debian/control, debian/combat: Bump debhelper compability level to 11.
+  * debian/rules:
+    + Completely refactor the rules file, adapt to debhelper 11 style.
+      (Closes: #901713)
+    + Move the luksformat script from cryptsetup-bin to cryptsetup-run.
+    + Install the bug-script into all packages.
+    + No longer install the sysvinit initscripts into cryptsetup-udeb.
+    + Remove many old build and compile flags, debhelper takes care of most of
+      them nowadays.
 
- -- Jonas Meurer <jonas@freesources.org>  Sun, 17 Jun 2018 20:46:05 +0200
+ -- Jonas Meurer <jonas@freesources.org>  Mon, 18 Jun 2018 01:37:12 +0200
 
 cryptsetup (2:2.0.3-1) unstable; urgency=medium
 

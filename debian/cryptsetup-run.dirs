@@ -1,9 +1,0 @@
-/etc/default
-/etc/init.d
-/lib/cryptsetup/checks
-/lib/cryptsetup/scripts
-/sbin
-/usr/share/bash-completion/completions
-/usr/share/bug
-/usr/share/man/man5
-/usr/share/man/man8
