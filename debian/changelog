@@ -20,8 +20,9 @@ cryptsetup (2:2.0.3-3) UNRELEASED; urgency=medium
     + Remove versioned build-depends on docbook-xsl, dpkg-dev,
       libdevmapper-dev, libgcrypt20-dev and libtool. All versions are
       satisfied since more than three releases.
+  * debian/*: Change maintainer contact address to @alioth-lists.debian.net.
 
- -- Jonas Meurer <jonas@freesources.org>  Mon, 18 Jun 2018 12:38:58 +0200
+ -- Jonas Meurer <jonas@freesources.org>  Mon, 18 Jun 2018 12:52:12 +0200
 
 cryptsetup (2:2.0.3-2) unstable; urgency=medium
 

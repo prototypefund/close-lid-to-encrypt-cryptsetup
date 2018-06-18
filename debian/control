@@ -1,7 +1,7 @@
 Source: cryptsetup
 Section: admin
 Priority: optional
-Maintainer: Debian Cryptsetup Team <pkg-cryptsetup-devel@lists.alioth.debian.org>
+Maintainer: Debian Cryptsetup Team <pkg-cryptsetup-devel@alioth-lists.debian.net>
 Uploaders: Jonas Meurer <jonas@freesources.org>,
            Guilhem Moulin <guilhem@debian.org>
 Build-Depends: autoconf,
