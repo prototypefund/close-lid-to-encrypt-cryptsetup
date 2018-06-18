@@ -1,5 +1,6 @@
 cryptsetup (2:2.0.3-3) UNRELEASED; urgency=medium
 
+  [ Jonas Meurer ]
   * debian/*: run wrap-and-sort(1)
   * debian/control:
     + Add Conflicts and Breaks on 'cryptsetup-bin (<< 2:2.0.3-2)' to
@@ -21,6 +22,11 @@ cryptsetup (2:2.0.3-3) UNRELEASED; urgency=medium
       libdevmapper-dev, libgcrypt20-dev and libtool. All versions are
       satisfied since more than three releases.
   * debian/*: Change maintainer contact address to @alioth-lists.debian.net.
+
+  [ Guilhem Moulin ]
+  * debian/control: Replace 2:2.0.2-2 with 2:2.0.3-1 in Breaks/Replaces/Depends
+    fields.  (2:2.0.2-2 was never released, the version we released after the
+    package split was 2:2.0.3-1.)
 
  -- Jonas Meurer <jonas@freesources.org>  Mon, 18 Jun 2018 12:52:12 +0200
 

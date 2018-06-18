@@ -38,9 +38,9 @@ Depends: cryptsetup-bin (>= 2:1.6.0),
          ${misc:Depends},
          ${shlibs:Depends}
 Suggests: dosfstools, keyutils, liblocale-gettext-perl
-Replaces: cryptsetup (<< 2:2.0.2-2),
+Replaces: cryptsetup (<< 2:2.0.3-1),
           cryptsetup-bin (<< 2:2.0.2-3)
-Breaks: cryptsetup (<< 2:2.0.2-2),
+Breaks: cryptsetup (<< 2:2.0.3-1),
         cryptsetup-bin (<< 2:2.0.2-3)
 Description: disk encryption support - startup scripts
  Cryptsetup provides an interface for configuring encryption on block
@@ -73,8 +73,8 @@ Depends: busybox | busybox-static,
          ${misc:Depends},
          ${shlibs:Depends}
 Recommends: console-setup, kbd
-Breaks: cryptsetup (<< 2:2.0.2-2)
-Replaces: cryptsetup (<< 2:2.0.2-2)
+Breaks: cryptsetup (<< 2:2.0.3-1)
+Replaces: cryptsetup (<< 2:2.0.3-1)
 Description: disk encryption support - initramfs integration
  Cryptsetup provides an interface for configuring encryption on block
  devices (such as /home or swap partitions), using the Linux kernel
@@ -86,8 +86,8 @@ Description: disk encryption support - initramfs integration
 Package: cryptsetup
 Architecture: all
 Section: oldlibs
-Depends: cryptsetup-initramfs (>= 2:2.0.2-2),
-         cryptsetup-run (>= 2:2.0.2-2),
+Depends: cryptsetup-initramfs (>= 2:2.0.3-1),
+         cryptsetup-run (>= 2:2.0.3-1),
          ${misc:Depends}
 Description: transitional dummy package for cryptsetup-{run,initramfs}
  This is a transitional dummy package to get upgrading systems to install the
