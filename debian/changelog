@@ -1,3 +1,9 @@
+cryptsetup (2:2.0.3-3) UNRELEASED; urgency=medium
+
+  * debian/*: run wrap-and-sort(1)
+
+ -- Jonas Meurer <jonas@freesources.org>  Mon, 18 Jun 2018 12:08:50 +0200
+
 cryptsetup (2:2.0.3-2) unstable; urgency=medium
 
   The "nights are long in summer" cryptsetup sprint release :-)

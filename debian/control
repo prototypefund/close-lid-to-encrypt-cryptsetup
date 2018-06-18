@@ -2,7 +2,8 @@ Source: cryptsetup
 Section: admin
 Priority: optional
 Maintainer: Debian Cryptsetup Team <pkg-cryptsetup-devel@lists.alioth.debian.org>
-Uploaders: Jonas Meurer <jonas@freesources.org>, Guilhem Moulin <guilhem@debian.org>
+Uploaders: Jonas Meurer <jonas@freesources.org>,
+           Guilhem Moulin <guilhem@debian.org>
 Build-Depends: autoconf,
                automake (>= 1:1.12),
                autopoint,
@@ -39,8 +40,11 @@ Depends: cryptsetup-bin (>= 2:1.6.0),
 Suggests: dosfstools, keyutils, liblocale-gettext-perl
 Provides: cryptsetup-luks
 Conflicts: cryptsetup-luks
-Replaces: cryptsetup-luks, hashalot (<< 0.3-2), cryptsetup (<< 2:2.0.2-2)
-Breaks: hashalot (<< 0.3-2), cryptsetup (<< 2:2.0.2-2)
+Replaces: cryptsetup (<< 2:2.0.2-2),
+          cryptsetup-luks,
+          hashalot (<< 0.3-2)
+Breaks: cryptsetup (<< 2:2.0.2-2),
+        hashalot (<< 0.3-2)
 Description: disk encryption support - startup scripts
  Cryptsetup provides an interface for configuring encryption on block
  devices (such as /home or swap partitions), using the Linux kernel
@@ -68,9 +72,11 @@ Description: disk encryption support - command line tools
 
 Package: cryptsetup-initramfs
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, cryptsetup-run (>= ${source:Version}),
-         busybox | busybox-static,
-         initramfs-tools (>= 0.129) | linux-initramfs-tool
+Depends: busybox | busybox-static,
+         cryptsetup-run (>= ${source:Version}),
+         initramfs-tools (>= 0.129) | linux-initramfs-tool,
+         ${misc:Depends},
+         ${shlibs:Depends}
 Recommends: console-setup, kbd
 Breaks: cryptsetup (<< 2:2.0.2-2)
 Replaces: cryptsetup (<< 2:2.0.2-2)
