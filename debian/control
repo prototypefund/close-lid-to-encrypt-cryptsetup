@@ -41,9 +41,11 @@ Suggests: dosfstools, keyutils, liblocale-gettext-perl
 Provides: cryptsetup-luks
 Conflicts: cryptsetup-luks
 Replaces: cryptsetup (<< 2:2.0.2-2),
+          cryptsetup-bin (<< 2:2.0.2-3),
           cryptsetup-luks,
           hashalot (<< 0.3-2)
 Breaks: cryptsetup (<< 2:2.0.2-2),
+        cryptsetup-bin (<< 2:2.0.2-3),
         hashalot (<< 0.3-2)
 Description: disk encryption support - startup scripts
  Cryptsetup provides an interface for configuring encryption on block
