@@ -11,17 +11,17 @@ Build-Depends: autoconf,
                dh-exec,
                dh-strip-nondeterminism,
                docbook-xml,
-               docbook-xsl (>= 1.74.3+dfsg),
-               dpkg-dev (>= 1.15.1),
+               docbook-xsl,
+               dpkg-dev,
                gettext,
                libargon2-0-dev,
-               libdevmapper-dev (>= 2:1.02.24-4),
-               libgcrypt20-dev (>= 1.6.1),
+               libdevmapper-dev,
+               libgcrypt20-dev,
                libjson-c-dev,
                libpopt-dev,
                libselinux1-dev,
                libsepol1-dev,
-               libtool (>= 2.2),
+               libtool,
                pkg-config,
                po-debconf,
                uuid-dev,
@@ -39,8 +39,7 @@ Depends: cryptsetup-bin (>= 2:1.6.0),
          ${shlibs:Depends}
 Suggests: dosfstools, keyutils, liblocale-gettext-perl
 Replaces: cryptsetup (<< 2:2.0.2-2),
-          cryptsetup-bin (<< 2:2.0.2-3),
-          hashalot (<< 0.3-2)
+          cryptsetup-bin (<< 2:2.0.2-3)
 Breaks: cryptsetup (<< 2:2.0.2-2),
         cryptsetup-bin (<< 2:2.0.2-3)
 Description: disk encryption support - startup scripts
