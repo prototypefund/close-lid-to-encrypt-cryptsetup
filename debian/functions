@@ -403,7 +403,7 @@ check_key() {
         fi
     fi
 
-    local mode="$(stat -c%a "$keyfile")"
+    local mode="$(stat -c '%04a' "$keyfile")"
     if [ $(stat -c%u "$keyfile") -ne 0 ] || [ "${mode%00}" = "$mode" ]; then
         cryptsetup_message "WARNING: $CRYPTTAB_NAME: key file $keyfile has" \
             "insecure ownership, see /usr/share/doc/cryptsetup/README.Debian."
