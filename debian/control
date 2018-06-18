@@ -99,8 +99,8 @@ Package: libcryptsetup12
 Section: libs
 Architecture: linux-any
 Multi-Arch: same
-Depends: libgcrypt20 (>= 1.6.1),
-         libgpg-error0 (>= 1.10-0.1),
+Depends: libgcrypt20,
+         libgpg-error0,
          ${misc:Depends},
          ${shlibs:Depends}
 Description: disk encryption support - shared library

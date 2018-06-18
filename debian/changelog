@@ -14,8 +14,11 @@ cryptsetup (2:2.0.3-3) UNRELEASED; urgency=medium
       releases in between. We don't support dist-upgrades with skipped
       releases anyway.
     + Remove obsolete 'Breaks: hashalot (<< 0.3-2)' from cryptsetup-run.
+    + Remove versioned depends of libcryptsetup12 on libgcrypt20 and
+      libgpg-error0. Both versions are satisfied since more than three
+      releases.
 
- -- Jonas Meurer <jonas@freesources.org>  Mon, 18 Jun 2018 12:22:30 +0200
+ -- Jonas Meurer <jonas@freesources.org>  Mon, 18 Jun 2018 12:25:38 +0200
 
 cryptsetup (2:2.0.3-2) unstable; urgency=medium
 
