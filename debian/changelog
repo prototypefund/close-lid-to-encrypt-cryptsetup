@@ -1,11 +1,15 @@
 cryptsetup (2:2.0.3-3) UNRELEASED; urgency=medium
 
   * debian/*: run wrap-and-sort(1)
-  * debian/control: Add Conflicts and Breaks on 'cryptsetup-bin
-    (<< 2:2.0.3-2)' to cryptsetup-run. Needed since we moved luksformat
-    between the packages. (Closes: #901773)
+  * debian/control:
+    + Add Conflicts and Breaks on 'cryptsetup-bin (<< 2:2.0.3-2)' to
+      cryptsetup-run. Needed since we moved luksformat between the
+      packages. (Closes: #901773)
+    + Remove all traces of package 'cryptsetup-luks' from dependency
+      headers. This package has never been part of an official Debian
+      release and the time it existed is more than 12 years ago.
 
- -- Jonas Meurer <jonas@freesources.org>  Mon, 18 Jun 2018 12:09:27 +0200
+ -- Jonas Meurer <jonas@freesources.org>  Mon, 18 Jun 2018 12:13:31 +0200
 
 cryptsetup (2:2.0.3-2) unstable; urgency=medium
 

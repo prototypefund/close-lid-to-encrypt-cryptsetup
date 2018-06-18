@@ -38,11 +38,8 @@ Depends: cryptsetup-bin (>= 2:1.6.0),
          ${misc:Depends},
          ${shlibs:Depends}
 Suggests: dosfstools, keyutils, liblocale-gettext-perl
-Provides: cryptsetup-luks
-Conflicts: cryptsetup-luks
 Replaces: cryptsetup (<< 2:2.0.2-2),
           cryptsetup-bin (<< 2:2.0.2-3),
-          cryptsetup-luks,
           hashalot (<< 0.3-2)
 Breaks: cryptsetup (<< 2:2.0.2-2),
         cryptsetup-bin (<< 2:2.0.2-3),
