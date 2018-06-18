@@ -59,8 +59,6 @@ Description: disk encryption support - startup scripts
 Package: cryptsetup-bin
 Architecture: linux-any
 Depends: ${misc:Depends}, ${shlibs:Depends}
-Breaks: cryptsetup (<< 2:1.4.3-1~)
-Replaces: cryptsetup (<< 2:1.4.3-1~)
 Description: disk encryption support - command line tools
  Cryptsetup provides an interface for configuring encryption on block
  devices (such as /home or swap partitions), using the Linux kernel
