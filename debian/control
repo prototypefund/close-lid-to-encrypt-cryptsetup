@@ -42,8 +42,7 @@ Replaces: cryptsetup (<< 2:2.0.2-2),
           cryptsetup-bin (<< 2:2.0.2-3),
           hashalot (<< 0.3-2)
 Breaks: cryptsetup (<< 2:2.0.2-2),
-        cryptsetup-bin (<< 2:2.0.2-3),
-        hashalot (<< 0.3-2)
+        cryptsetup-bin (<< 2:2.0.2-3)
 Description: disk encryption support - startup scripts
  Cryptsetup provides an interface for configuring encryption on block
  devices (such as /home or swap partitions), using the Linux kernel
