@@ -22,13 +22,16 @@ esac
 #   Print the block device attribute for given $device and $tag.
 #   Return 0 on success, 1 on error.
 blkid_tag() {
-    local device="$1" tag="$2"
+    local device="$1" tag="$2" val
     if [ "${device#$tag=}" != "$device" ]; then
         printf '%s\n' "${device#$tag=}"
-    elif ! blkid -s "$2" -o value -- "$device"; then
+    elif ! val="$(blkid -s "$2" -o value -- "$device")" || [ -z "$val" ]; then
         cryptsetup_message "ERROR: $device: Couldn't determine $tag"
         return 1
+    else
+        printf '%s\n' "$val"
     fi
+    return 0
 }
 
 # get_mnt_devices($mountpoint)
