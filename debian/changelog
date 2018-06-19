@@ -28,7 +28,7 @@ cryptsetup (2:2.0.3-3) UNRELEASED; urgency=medium
     fields.  (2:2.0.2-2 was never released, the version we released after the
     package split was 2:2.0.3-1.)
   * debian/initramfs/cryptroot-script: exit immediately when
-    /lib/cryptsetup/functions is not present.
+    /lib/cryptsetup/functions is not present. (Closes: #901830.)
 
  -- Jonas Meurer <jonas@freesources.org>  Mon, 18 Jun 2018 12:52:12 +0200
 
