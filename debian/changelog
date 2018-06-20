@@ -1,4 +1,4 @@
-cryptsetup (2:2.0.3-3) UNRELEASED; urgency=medium
+cryptsetup (2:2.0.3-3) unstable; urgency=low
 
   [ Jonas Meurer ]
   * debian/*: run wrap-and-sort(1)
@@ -39,7 +39,7 @@ cryptsetup (2:2.0.3-3) UNRELEASED; urgency=medium
     + Print a warning when the mapping table specifies the cipher in kernel
       crypto API format ("capi:" prefix).  We don't support these yet.
 
- -- Jonas Meurer <jonas@freesources.org>  Mon, 18 Jun 2018 12:52:12 +0200
+ -- Guilhem Moulin <guilhem@debian.org>  Wed, 20 Jun 2018 17:22:36 +0200
 
 cryptsetup (2:2.0.3-2) unstable; urgency=medium
 
