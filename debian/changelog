@@ -31,6 +31,13 @@ cryptsetup (2:2.0.3-3) UNRELEASED; urgency=medium
     /lib/cryptsetup/functions is not present. (Closes: #901830.)
   * debian/cryptsetup-run.prerm: use `dmsetup table --target crypt` to avoid
     manually excluding mapped devices using another subsystem.
+  * d/initramfs/hooks/cryptroot:
+    + Fix parser for cipher specifications in mapping table of crypt targets.
+      In particular, the cipher mode wasn't parsed properly, potentially
+      causing missing modules in initrd.img compiled with MODULES=dep.
+      Regression introduced in 2:2.0.3-2.  (Closes: #901884.)
+    + Print a warning when the mapping table specifies the cipher in kernel
+      crypto API format ("capi:" prefix).  We don't support these yet.
 
  -- Jonas Meurer <jonas@freesources.org>  Mon, 18 Jun 2018 12:52:12 +0200
 

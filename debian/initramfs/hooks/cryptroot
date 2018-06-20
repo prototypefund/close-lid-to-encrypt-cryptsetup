@@ -259,25 +259,29 @@ generate_initrd_crypttab() {
 #   mapped (crypt) devices names, and append them to the CRYPTO_MODULES
 #   variable.
 populate_CRYPTO_MODULES() {
-    local mod value cipher blockcipher ivhash
+    local name cipher iv
     for name in "$@"; do
-        [ "${name#\#}" = "$name" ] || continue
-        value="$(dmsetup table -- "$name" | cut -d' ' -f4)"
-        cipher="$(printf '%s' "$value" | cut -d':' -f1 | cut -d'-' -f1)"
+        # cf. dmsetup(8) and https://gitlab.com/cryptsetup/cryptsetup/wikis/DMCrypt
+        cipher="$(dmsetup table --target crypt -- "$name" | cut -d' ' -f4)"
         if [ -z "$cipher" ]; then
             cryptsetup_message "WARNING: Couldn't determine cipher modules to load for $name"
             continue
         fi
-        CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }$cipher"
 
-        blockcipher="$(printf '%s' "$value" | cut -d':' -f1 | cut -d'-' -f1)"
-        if [ -n "$blockcipher" ] && [ "$blockcipher" != "plain" ]; then
-            CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }$blockcipher"
-        fi
-
-        ivhash="$(printf '%s' "$value" | cut -d':' -s -f2)"
-        if [ -n "$ivhash" ] && [ "$ivhash" != "plain" ]; then
-            CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }$ivhash"
+        if [ "${cipher#capi:}" = "$cipher" ]; then
+            # direct specification "cipher[:keycount]-chainmode-ivmode[:ivopts]"
+            CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }${cipher%%[-:]*}" # cipher
+            cipher="${cipher#${cipher%%-*}-}" # chainmode-ivmode[:ivopts]"
+            CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }${cipher%-*}" # chainmode
+            iv="${cipher##*-}" # ivmode[:ivopts]"
+            if [ "${iv#*:}" != "$iv" ]; then
+                CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }${iv#*:}" # ivopts
+            fi
+        else
+            # kernel crypto API format "capi:cipher_api_spec-ivmode[:ivopts]", since linux 4.12
+            cipher="${cipher#capi:}"
+            cryptsetup_message "WARNING: can't read cipher mapping table for $name" \
+                "(kernel crypto API format isn't supported yet)"
         fi
     done
 }
