@@ -284,7 +284,7 @@ populate_CRYPTO_MODULES() {
 
 # add_modules($glob, $moduledir, [$moduledir ..])
 #   Add modules matching under the given $moduledir(s), the name of
-#   which mantching $glob.
+#   which matching $glob.
 #   Return 0 if any module was found found, 1 if not.
 add_modules() {
     local glob="$1" found=n
