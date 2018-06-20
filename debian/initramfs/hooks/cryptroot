@@ -280,7 +280,7 @@ populate_CRYPTO_MODULES() {
         else
             # kernel crypto API format "capi:cipher_api_spec-ivmode[:ivopts]", since linux 4.12
             cipher="${cipher#capi:}"
-            cryptsetup_message "WARNING: can't read cipher mapping table for $name" \
+            cryptsetup_message "WARNING: Couldn't determine cipher modules to load for $name" \
                 "(kernel crypto API format isn't supported yet)"
         fi
     done
