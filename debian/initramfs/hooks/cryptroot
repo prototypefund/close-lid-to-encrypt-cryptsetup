@@ -314,8 +314,8 @@ add_crypto_modules() {
         # and (currently ignored):
         #
         #   d) /lib/modules/$VERSION/kernel/drivers/crypto/$specific-$mod.ko
-        add_modules "$mod-*" "$MODULESDIR"/kernel/arch/*/crypto \
-            || add_modules "${mod}_generic" "$MODULESDIR/kernel/crypto" \
+        add_modules "$mod-*" "$MODULESDIR"/kernel/arch/*/crypto || true
+        add_modules "${mod}_generic" "$MODULESDIR/kernel/crypto" \
             || add_modules "$mod" "$MODULESDIR/kernel/crypto" \
             || true
     done
