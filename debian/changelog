@@ -1,3 +1,10 @@
+cryptsetup (2:2.0.3-4) UNRELEASED; urgency=medium
+
+  * debian/initramfs/hooks/cryptroot: Fix typo in warning message.
+    (Closes: #901971.)
+
+ -- Guilhem Moulin <guilhem@debian.org>  Wed, 20 Jun 2018 22:34:08 +0200
+
 cryptsetup (2:2.0.3-3) unstable; urgency=low
 
   [ Jonas Meurer ]

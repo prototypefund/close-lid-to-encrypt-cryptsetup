@@ -365,7 +365,7 @@ fi
 # implies CRYPTSETUP=y
 if [ -z "${CRYPTSETUP-}" ] && [ -z "${KEYFILE_PATTERN-}" ] && [ -z "$CRYPTO_MODULES" ]; then
     cryptsetup_message "WARNING: The initramfs image may not contain cryptsetup binaries nor crypto modules." \
-        "If that's on purpose, you may want to uninstall the 'crypsetup-initramfs' package in" \
+        "If that's on purpose, you may want to uninstall the 'cryptsetup-initramfs' package in" \
         "order to disable the cryptsetup initramfs integration and avoid this warning."
 else
     # add required components
