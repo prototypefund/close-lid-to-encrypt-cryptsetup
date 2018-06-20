@@ -29,6 +29,8 @@ cryptsetup (2:2.0.3-3) UNRELEASED; urgency=medium
     package split was 2:2.0.3-1.)
   * debian/initramfs/cryptroot-script: exit immediately when
     /lib/cryptsetup/functions is not present. (Closes: #901830.)
+  * debian/cryptsetup-run.prerm: use `dmsetup table --target crypt` to avoid
+    manually excluding mapped devices using another subsystem.
 
  -- Jonas Meurer <jonas@freesources.org>  Mon, 18 Jun 2018 12:52:12 +0200
 
