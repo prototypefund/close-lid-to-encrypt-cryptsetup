@@ -70,16 +70,30 @@ get_mnt_devices() {
 }
 
 # sysfs_devdir($name)
-#   Print the sysfs(5) hierachy /sys/block/$device associated with
-#   device $name.
+#   Print the sysfs(5) hierachy /sys/block/$device or
+#   /sys/dev/block/$maj:$min associated with device $name.
 #   Return 0 on success, 1 on error.
 sysfs_devdir() {
     local dev="$(normalise_device "$1")" || return 1
-    if [ ! -d "/sys/block/${dev#/dev/}" ]; then
+    local dir maj min
+    # if the normalized pathname is of the form /dev/$blk, use /sys/block/$blk
+    if [ "${dev%/*}" = "/dev" ] && dir="/sys/block/${dev#/dev/}" \
+            && [ -d "$dir" ]; then
+        printf '%s\n' "$dir"
+    # otherwise, get the major/minor device numbers and use /sys/dev/block/$maj:$min
+    # (on d-i /dev/mapper/$name is a block device, not a symlink to /dev/dm-$i)
+    elif [ -d /sys/dev ] && [ -b "$dev" ] &&
+            maj="$(stat -c%t -- "$dev" 2>/dev/null)" && [ -n "$maj" ] && \
+            min="$(stat -c%T -- "$dev" 2>/dev/null)" && [ -n "$min" ] && \
+            maj=$(( 0x$maj )) && [ $maj -gt 0 ] && \
+            min=$(( 0x$min )) && [ $min -ge 0 ] && \
+            dir="/sys/dev/block/$maj:$min" && [ -d "$dir" ]; then
+        printf '%s\n' "$dir"
+    else
         cryptsetup_message "ERROR: Couldn't find sysfs hierarchy for $1"
         return 1
     fi
-    printf '/sys/block/%s\n' "${dev#/dev/}"
+    return 0
 }
 
 # get_dmcrypt_slaves(/sys/block/$device)
