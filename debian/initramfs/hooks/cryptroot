@@ -70,36 +70,32 @@ get_mnt_devices() {
 }
 
 # sysfs_devdir($name)
-#   Print the sysfs(5) hierachy /sys/block/$device or
-#   /sys/dev/block/$maj:$min associated with device $name.
+#   Print the sysfs(5) entry /sys/dev/block/$maj:$min (a symlink to
+#   pointing to the sysfs directory for the device) corresponding to
+#   device $name, where $maj:$min are its major/minor device numbers.
 #   Return 0 on success, 1 on error.
 sysfs_devdir() {
     local dev="$(normalise_device "$1")" || return 1
-    local dir maj min
-    # if the normalized pathname is of the form /dev/$blk, use /sys/block/$blk
-    if [ "${dev%/*}" = "/dev" ] && dir="/sys/block/${dev#/dev/}" \
-            && [ -d "$dir" ]; then
-        printf '%s\n' "$dir"
-    # otherwise, get the major/minor device numbers and use /sys/dev/block/$maj:$min
-    # (on d-i /dev/mapper/$name is a block device, not a symlink to /dev/dm-$i)
-    elif [ -d /sys/dev ] && [ -b "$dev" ] &&
-            maj="$(stat -c%t -- "$dev" 2>/dev/null)" && [ -n "$maj" ] && \
-            min="$(stat -c%T -- "$dev" 2>/dev/null)" && [ -n "$min" ] && \
-            maj=$(( 0x$maj )) && [ $maj -gt 0 ] && \
-            min=$(( 0x$min )) && [ $min -ge 0 ] && \
+    local devno dir maj min
+    # normalise_device() fails if $dev isn't a block device
+    if devno="$(stat -c"%t:%T" -- "$dev" 2>/dev/null)" &&
+            maj="${devno%:*}" && min="${devno#*:}" &&
+            [ "$devno" = "$maj:$min" ] && [ -n "$maj" ] && [ -n "$min" ] &&
+            maj=$(( 0x$maj )) && min=$(( 0x$min )) &&
             dir="/sys/dev/block/$maj:$min" && [ -d "$dir" ]; then
         printf '%s\n' "$dir"
+        return 0
     else
-        cryptsetup_message "ERROR: Couldn't find sysfs hierarchy for $1"
+        cryptsetup_message "ERROR: Couldn't find sysfs directory corresponding to $1"
         return 1
     fi
-    return 0
 }
 
-# get_dmcrypt_slaves(/sys/block/$device)
+# get_dmcrypt_slaves({/sys/dev/block/$maj:$min | /sys/devices/...})
 #   Recursively print the list of underlying dm-crypt devices names for
-#   the given $device (typically an md, lv, or dm-crypt device).  Slaves
-#   that aren't dm-crypt devices are NOT listed.
+#   the given sysfs directory (typically corresponding to an md, lv, or
+#   dm-crypt device).  Slaves that aren't dm-crypt devices are NOT
+#   listed.
 get_dmcrypt_slaves() {
     local d="$1" name slave
     [ -d "$d/slaves" ] || return 0

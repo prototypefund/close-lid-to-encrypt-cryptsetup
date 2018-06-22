@@ -2,10 +2,15 @@ cryptsetup (2:2.0.3-4) UNRELEASED; urgency=medium
 
   * debian/initramfs/hooks/cryptroot:
     + Fix typo in warning message. (Closes: #901971.)
-    + Fix sysfs_devdir() when the normalized device pathname isn't of the form
-      /dev/$blk.  This is the case in the debian-installer, where the devtmpfs
-      pseudo-filesystem exposes /dev/mapper/$name as a block device instead of
-      a symlink to /dev/dm-$index.
+    + sysfs_devdir(): don't croak when the normalized device pathname isn't of
+      the form /dev/$blk.  This is the case in the Debian installer, where the
+      devtmpfs pseudo-filesystem exposes /dev/mapper/$name as a block device
+      instead of a symlink to /dev/dm-$index.
+    + sysfs_devdir(): return /sys/dev/block/$maj:$min (a symlink pointing the
+      sysfs directory corresponding to the device) rather than /sys/block/$blk.
+      While the latter is present for mapped devices, it's not present for
+      block devices corresponding to disk partitions.  See sysfs(5) for
+      details. (Closes: #902183.)
 
  -- Guilhem Moulin <guilhem@debian.org>  Wed, 20 Jun 2018 22:34:08 +0200
 
