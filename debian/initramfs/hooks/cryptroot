@@ -128,7 +128,7 @@ get_crypttab_entry() {
             if base="$(sysfs_devdir "/dev/mapper/$name")" && \
                     [ ! -e "$base/slaves/${slave#/dev/}" ]; then
                 cryptsetup_message "ERROR: Source mismatch: $source != $slave"
-            elif uuid="$(blkid_tag "$slave" UUID)"; then
+            elif uuid="$(blkid_tag "$slave" UUID 2>/dev/null)"; then
                 source="UUID=$uuid"
             fi
         fi

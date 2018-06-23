@@ -11,6 +11,9 @@ cryptsetup (2:2.0.3-4) UNRELEASED; urgency=medium
       While the latter is present for mapped devices, it's not present for
       block devices corresponding to disk partitions.  See sysfs(5) for
       details. (Closes: #902183.)
+    + get_crypttab_entry(): skip (harmless) warning if blkid_tag() fails to
+      get the UUID of a dm-crypt device's slave (it's normal with plain
+      dm-crypt devices).
 
  -- Guilhem Moulin <guilhem@debian.org>  Wed, 20 Jun 2018 22:34:08 +0200
 
