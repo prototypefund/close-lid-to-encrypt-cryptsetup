@@ -368,7 +368,7 @@ unlock_mapping() {
     /sbin/cryptsetup -T1 \
         ${CRYPTTAB_OPTION_header:+--header="$CRYPTTAB_OPTION_header"} \
         ${CRYPTTAB_OPTION_cipher:+--cipher="$CRYPTTAB_OPTION_cipher"} \
-        ${CRYPTTAB_OPTION_size:+--size="$CRYPTTAB_OPTION_size"} \
+        ${CRYPTTAB_OPTION_size:+--key-size="$CRYPTTAB_OPTION_size"} \
         ${CRYPTTAB_OPTION_hash:+--hash="$CRYPTTAB_OPTION_hash"} \
         ${CRYPTTAB_OPTION_offset:+--offset="$CRYPTTAB_OPTION_offset"} \
         ${CRYPTTAB_OPTION_skip:+--skip="$CRYPTTAB_OPTION_skip"} \

@@ -14,6 +14,10 @@ cryptsetup (2:2.0.3-4) UNRELEASED; urgency=medium
     + get_crypttab_entry(): skip (harmless) warning if blkid_tag() fails to
       get the UUID of a dm-crypt device's slave (it's normal with plain
       dm-crypt devices).
+  * debian/functions:unlock_mapping(): translate crypttab(5) option
+    'size=<size>' to `cryptsetup --key-size=<size>`, not `--size` (which
+    doesn't set the key size but the size of the device in number of 512 byte
+    sectors).  Regression since 2:2.0.3-2. (Closes: #902245.)
 
  -- Guilhem Moulin <guilhem@debian.org>  Wed, 20 Jun 2018 22:34:08 +0200
 
