@@ -20,6 +20,11 @@ cryptsetup (2:2.0.3-4) UNRELEASED; urgency=medium
     'size=<size>' to `cryptsetup --key-size=<size>`, not `--size` (which
     doesn't set the key size but the size of the device in number of 512 byte
     sectors).  Regression since 2:2.0.3-2. (Closes: #902245.)
+  * debian/initramfs/scripts/local-top/cryptroot, debian/cryptdisks-functions,
+    debian/initramfs/cryptroot-unlock: Fix off-by-one unlock count.  Some
+    keyscripts (such as decrypt_keyctl) don't work properly if on first try
+    the CRYPTTAB_TRIED environment variable isn't set to 0.  Regression since
+    2:2.0.3-2. (Closes: #902116.)
 
  -- Guilhem Moulin <guilhem@debian.org>  Wed, 20 Jun 2018 22:34:08 +0200
 

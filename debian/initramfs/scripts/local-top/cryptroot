@@ -118,10 +118,8 @@ setup_mapping() {
         CRYPTTAB_OPTION_tries=1
     fi
 
-    local count=0 maxtries="${CRYPTTAB_OPTION_tries:-3}" fstype vg
+    local count=0 maxtries="${CRYPTTAB_OPTION_tries:-3}" fstype vg rv
     while [ $maxtries -le 0 ] || [ $count -lt $maxtries ]; do
-        count=$(( $count + 1 ))
-
         if [ -z "${CRYPTTAB_OPTION_keyscript+x}" ] && [ "$key" != "none" ]; then
             # unlock via keyfile
             unlock_mapping "$key" "$CRYPTTAB_NAME"
@@ -129,8 +127,10 @@ setup_mapping() {
             # unlock interactively or via keyscript
             run_keyscript "$key" "$count" | unlock_mapping - "$CRYPTTAB_NAME"
         fi
+        rv=$?
+        count=$(( $count + 1 ))
 
-        if [ $? -ne 0 ]; then
+        if [ $rv -ne 0 ]; then
             cryptsetup_message "ERROR: $CRYPTTAB_NAME: cryptsetup failed, bad password or options?"
             sleep 1
             continue
