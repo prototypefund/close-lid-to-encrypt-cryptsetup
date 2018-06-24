@@ -1,4 +1,4 @@
-cryptsetup (2:2.0.3-4) UNRELEASED; urgency=medium
+cryptsetup (2:2.0.3-4) unstable; urgency=low
 
   * debian/initramfs/hooks/cryptroot:
     + Fix typo in warning message. (Closes: #901971.)
@@ -28,7 +28,7 @@ cryptsetup (2:2.0.3-4) UNRELEASED; urgency=medium
   * debian/scripts/decrypt_keyctl: replace the source device path with the
     mapped device name in messages, to match the new askpass behavior.
 
- -- Guilhem Moulin <guilhem@debian.org>  Wed, 20 Jun 2018 22:34:08 +0200
+ -- Guilhem Moulin <guilhem@debian.org>  Sun, 24 Jun 2018 22:48:41 +0200
 
 cryptsetup (2:2.0.3-3) unstable; urgency=low
 
