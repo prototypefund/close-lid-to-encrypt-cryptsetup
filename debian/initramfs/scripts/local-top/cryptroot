@@ -110,7 +110,7 @@ setup_mapping() {
     fi
 
     if [ -z "${CRYPTTAB_OPTION_keyscript+x}" ] && [ "$key" != "none" ]; then
-        if [ ! -f "$key" ]; then
+        if [ ! -e "$key" ]; then
             cryptsetup_message "ERROR: Skipping target $CRYPTTAB_NAME: missing key file $key"
             return 1
         fi

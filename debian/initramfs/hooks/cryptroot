@@ -170,11 +170,10 @@ get_crypttab_entry() {
                         cryptsetup_message "WARNING: Skipping target $name: key file is not on the root FS"
                         return 1
                     fi
-                else
+                    key="/FIXME-initramfs-rootmnt$newkey"
+                elif [ ! -e "$key" ]; then
                     cryptsetup_message "WARNING: Target $name has a non-existing key file $key"
-                    newkey="$key"
                 fi
-                key="/FIXME-initramfs-rootmnt$newkey"
         esac
     fi
 
