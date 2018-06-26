@@ -97,10 +97,7 @@ Package: libcryptsetup12
 Section: libs
 Architecture: linux-any
 Multi-Arch: same
-Depends: libgcrypt20,
-         libgpg-error0,
-         ${misc:Depends},
-         ${shlibs:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: disk encryption support - shared library
  Cryptsetup provides an interface for configuring encryption on block
  devices (such as /home or swap partitions), using the Linux kernel
