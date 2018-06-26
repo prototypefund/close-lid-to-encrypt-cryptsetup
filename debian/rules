@@ -27,8 +27,8 @@ override_dh_auto_build:
 	dh_auto_build
 
 	# build askpass and passdev keyscripts
-	$(CC) -o debian/askpass debian/askpass.c $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -pedantic -std=c99
-	$(CC) -o debian/scripts/passdev debian/scripts/passdev.c $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -pedantic -std=c99
+	$(CC) -o debian/askpass debian/askpass.c $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -pedantic
+	$(CC) -o debian/scripts/passdev debian/scripts/passdev.c $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) -pedantic
 
 	# generate manpages
 	sed 's/VERSION/$(DEB_VERSION)/;s/DATE/$(DEB_DATE)/' \

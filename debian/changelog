@@ -1,3 +1,11 @@
+cryptsetup (2:2.0.3-5) UNRELEASED; urgency=medium
+
+  * debian/askpass.c, debian/scripts/passdev.c, debian/rules:
+    + Drop _BSD_SOURCE in favor of _DEFAULT_SOURCE
+    + Drop c99 std, as the default is now higher than that
+
+ -- Jonas Meurer <jonas@freesources.org>  Tue, 26 Jun 2018 17:44:03 +0200
+
 cryptsetup (2:2.0.3-4) unstable; urgency=low
 
   * debian/initramfs/hooks/cryptroot:
