@@ -154,7 +154,8 @@ wait_for_answer() {
 	if [ -b "/dev/mapper/$CRYPTTAB_NAME" ]; then
 		echo "cryptsetup: $CRYPTTAB_NAME set up successfully" >&2
 		[ "$UNLOCK_ALL" = y ] && return 0 || exit 0
-	elif [ $(( ${CRYPTTAB_TRIED:-0} + 1 )) -ge ${CRYPTTAB_OPTION_tries:-3} ]; then
+	elif [ $(( ${CRYPTTAB_TRIED:-0} + 1 )) -ge ${CRYPTTAB_OPTION_tries:-3} ] &&
+			[ ${CRYPTTAB_OPTION_tries:-3} -gt 0 ]; then
 		echo "cryptsetup: maximum number of tries exceeded for $CRYPTTAB_NAME" >&2
 		exit 1
 	else

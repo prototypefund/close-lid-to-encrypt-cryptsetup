@@ -1,11 +1,17 @@
 cryptsetup (2:2.0.3-5) UNRELEASED; urgency=medium
 
+  [ Jonas Meurer ]
   * debian/askpass.c, debian/scripts/passdev.c, debian/rules:
     + Drop _BSD_SOURCE in favor of _DEFAULT_SOURCE
     + Drop c99 std, as the default is now higher than that
   * debian/control:
     + Drop explicit dependencies on libgcrypt20 and libgpg-error0 from
       libcryptsetup12. They're pulled in by ${shlibs:Depends} automatically.
+
+  [ Guilhem Moulin ]
+  * debian/initramfs/cryptroot-unlock: Keep looping forever (as long as the
+    disk is locked) if the CRYPTTAB_OPTION_tries variable is set to 0, cf.
+    crypttab(5).
 
  -- Jonas Meurer <jonas@freesources.org>  Tue, 26 Jun 2018 17:46:13 +0200
 
