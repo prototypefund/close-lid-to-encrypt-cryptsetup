@@ -113,10 +113,11 @@ get_dmcrypt_slaves() {
 }
 
 # get_crypttab_entry($target)
-#   Print the crypttab(5) entry for the given $target.  The entry source
-#   is replaced by the corresponding UUID=<uuid> if possible.  If the
-#   entry uses the 'decrypt_derived' keyscript, the other crypttab(5)
-#   entries it depends on are (recursively) printed before hand.
+#   Print the crypttab(5) entry for the given $target to FD nr. 3.  The
+#   entry source is replaced by the corresponding UUID=<uuid> if
+#   possible.  If the entry uses the 'decrypt_derived' keyscript, the
+#   other crypttab(5) entries it depends on are (recursively) printed
+#   before hand.
 #   Return 0 on success, 1 on error.
 get_crypttab_entry() {
     local name="$1" found="n" slave uuid base
@@ -182,15 +183,15 @@ get_crypttab_entry() {
     fi
     if [ "${CRYPTTAB_OPTION_keyscript-}" = "/lib/cryptsetup/scripts/decrypt_derived" ]; then
         # (recursively) list first the device to derive the key from (so
-        # the boot scripts unlocks it first)
+        # the boot scripts unlock it first)
         get_crypttab_entry "$key"
     fi
-    printf '%s %s %s %s\n' "$name" "$source" "$key" "$options"
+    printf '%s %s %s %s\n' "$name" "$source" "$key" "$options" >&3
 }
 
 # get_cryptdevs($device, [$device ..])
-#   Print the list of crypttab(5) entries for each dm-crypt device
-#   holding any of the given $device (which can be an md, a lv, a
+#   Print the list of crypttab(5) entries to FD nr. 3 for each dm-crypt
+#   device holding any of the given $device (which can be an md, a lv, a
 #   mapped device, or a regular block device).
 get_cryptdevs() {
     local dev base name
@@ -236,9 +237,11 @@ get_resume_device() {
 # generate_initrd_crypttab()
 #   Generate the crypttab(5) snippet that is relevant at initramfs
 #   stage.  (Devices that aren't required at initramfs stage are
-#   ignore.)
+#   ignored.)
 generate_initrd_crypttab() {
     local dev usage
+    mkdir "$DESTDIR/cryptroot"
+
     {
         if ! dev="$(get_mnt_devices /)"; then
             cryptsetup_message "WARNING: Couldn't determine root device"
@@ -256,20 +259,25 @@ generate_initrd_crypttab() {
 
         # add crypttab entries with the 'initramfs' option set
         for dev in $(sed -nr 's/^\s*([^#[:blank:]]\S*)\s+\S+\s+\S+\s+(\S+,)?initramfs(,\S+)?$/\1/p' "$TABFILE"); do
-            get_crypttab_entry "$dev"
+            usage= get_crypttab_entry "$dev"
         done
 
+    } 3>"$DESTDIR/cryptroot/crypttab~"
+
     # remove duplicates (but preserve order)
-    } | awk '!seen[$1]++'
+    awk '!seen[$1]++' <"$DESTDIR/cryptroot/crypttab~" >"$DESTDIR/cryptroot/crypttab"
+    rm -f "$DESTDIR/cryptroot/crypttab~"
 }
 
-# populate_CRYPTO_MODULES($name, [$name])
-#   Find out which crytpo modules are required for the given list of
-#   mapped (crypt) devices names, and append them to the CRYPTO_MODULES
-#   variable.
+# populate_CRYPTO_MODULES()
+#   Find out which crytpo modules are required for the mapped (crypt)
+#   device names found in the initramfs's crypttab(5), and append them
+#   to the CRYPTO_MODULES variable.
 populate_CRYPTO_MODULES() {
-    local name cipher iv
-    for name in "$@"; do
+    local name _ cipher iv
+    while read name _; do
+        [ "${name#\#}" = "$name" ] || continue
+
         # cf. dmsetup(8) and https://gitlab.com/cryptsetup/cryptsetup/wikis/DMCrypt
         cipher="$(dmsetup table --target crypt -- "$name" | cut -d' ' -f4)"
         if [ -z "$cipher" ]; then
@@ -292,7 +300,7 @@ populate_CRYPTO_MODULES() {
             cryptsetup_message "WARNING: Couldn't determine cipher modules to load for $name" \
                 "(kernel crypto API format isn't supported yet)"
         fi
-    done
+    done <"$DESTDIR/cryptroot/crypttab"
 }
 
 # add_modules($glob, $moduledir, [$moduledir ..])
@@ -363,11 +371,8 @@ fi
 
 CRYPTO_MODULES=
 if [ -r "$TABFILE" ]; then
-    mkdir "$DESTDIR/cryptroot"
-    generate_initrd_crypttab >"$DESTDIR/cryptroot/crypttab"
-
-    populate_CRYPTO_MODULES \
-        $(sed -rn 's/^\s*([^#[:blank:]]\S*)\s.*/\1/p' "$DESTDIR/cryptroot/crypttab")
+    generate_initrd_crypttab
+    populate_CRYPTO_MODULES
 fi
 
 # per comment in the config file a non-empty KEYFILE_PATTERN value
