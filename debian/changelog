@@ -18,6 +18,8 @@ cryptsetup (2:2.0.3-5) UNRELEASED; urgency=medium
     with `update-initramfs -u -v` for key files matching $KEYFILE_PATTERN, or
     when a 'keyscript' is specified in the crypttab options.  Regression since
     2:2.0.3-2. (Closes: #902733.)
+  * debian/initramfs/conf-hook: Clarify that if KEYFILE_PATTERN if null or
+    unset then no key file is copied.
 
  -- Jonas Meurer <jonas@freesources.org>  Tue, 26 Jun 2018 17:46:13 +0200
 

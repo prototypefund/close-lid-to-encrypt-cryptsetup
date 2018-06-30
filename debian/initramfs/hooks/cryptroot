@@ -342,7 +342,8 @@ add_crypto_modules() {
 #######################################################################
 # Begin real processing
 
-unset -v CRYPTSETUP
+unset -v CRYPTSETUP KEYFILE_PATTERN
+KEYFILE_PATTERN=
 
 # Load the hook config
 if [ -f "/etc/cryptsetup-initramfs/conf-hook" ]; then
