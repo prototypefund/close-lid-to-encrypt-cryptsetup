@@ -217,7 +217,7 @@
    <varlistentry>
     <term><emphasis>readonly</emphasis>, <emphasis>read-only</emphasis></term>
     <listitem>
-     <simpara>The backing device is read-only (eg: a dvd).</simpara>
+     <simpara>Set up a read-only mapping.</simpara>
     </listitem>
    </varlistentry>
 

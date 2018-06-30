@@ -12,6 +12,8 @@ cryptsetup (2:2.0.3-5) UNRELEASED; urgency=medium
   * debian/initramfs/cryptroot-unlock: Keep looping forever (as long as the
     disk is locked) if the CRYPTTAB_OPTION_tries variable is set to 0, cf.
     crypttab(5).
+  * debian/doc/crypttab.xml: Clarify that the 'readonly' flag sets up a
+    read-only mapping.  Cf. `cryptsetup --readonly`.
 
  -- Jonas Meurer <jonas@freesources.org>  Tue, 26 Jun 2018 17:46:13 +0200
 
