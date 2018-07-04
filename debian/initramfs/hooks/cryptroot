@@ -113,14 +113,23 @@ get_dmcrypt_slaves() {
 }
 
 # get_crypttab_entry($target)
-#   Print the crypttab(5) entry for the given $target to FD nr. 3.  The
-#   entry source is replaced by the corresponding UUID=<uuid> if
+#   Print the crypttab(5) entry for the given $target to FD nr. 3; but
+#   only if the target has not already been processed during an earlier
+#   function call.  (Processed target names are stored in
+#   $DESTDIR/cryptroot/targets.)
+#   The entry source is replaced by the corresponding UUID=<uuid> if
 #   possible.  If the entry uses the 'decrypt_derived' keyscript, the
 #   other crypttab(5) entries it depends on are (recursively) printed
 #   before hand.
 #   Return 0 on success, 1 on error.
 get_crypttab_entry() {
     local name="$1" found="n" slave uuid base
+
+    if grep -Fxqz -e "$name" -- "$DESTDIR/cryptroot/targets"; then
+        # already processed
+        return 0
+    fi
+
     local CRYPTTAB_NAME source key options derived
     while read CRYPTTAB_NAME source key options; do
         [ "${CRYPTTAB_NAME#\#}" = "$CRYPTTAB_NAME" ] || continue
@@ -142,6 +151,7 @@ get_crypttab_entry() {
         return 1
     fi
 
+    printf '%s\0' "$name" >>"$DESTDIR/cryptroot/targets"
     crypttab_parse_options "$options" n || return 1
 
     if [ -n "${CRYPTTAB_OPTION_header+x}" ] && [ ! -f "$CRYPTTAB_OPTION_header" ]; then
@@ -241,6 +251,7 @@ get_resume_device() {
 generate_initrd_crypttab() {
     local dev usage
     mkdir "$DESTDIR/cryptroot"
+    >"$DESTDIR/cryptroot/targets"
 
     {
         if ! dev="$(get_mnt_devices /)"; then
@@ -262,11 +273,8 @@ generate_initrd_crypttab() {
             usage= get_crypttab_entry "$dev"
         done
 
-    } 3>"$DESTDIR/cryptroot/crypttab~"
-
-    # remove duplicates (but preserve order)
-    awk '!seen[$1]++' <"$DESTDIR/cryptroot/crypttab~" >"$DESTDIR/cryptroot/crypttab"
-    rm -f "$DESTDIR/cryptroot/crypttab~"
+    } 3>"$DESTDIR/cryptroot/crypttab"
+    rm -f "$DESTDIR/cryptroot/targets"
 }
 
 # populate_CRYPTO_MODULES()
