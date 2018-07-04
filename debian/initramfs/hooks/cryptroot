@@ -34,12 +34,12 @@ blkid_tag() {
     return 0
 }
 
-# get_mnt_devices($mountpoint)
-#   Print the device (or list of devices - one per line - for  multiple
-#   device filesystems) currenty mounted on $mountpoint.
+# get_mnt_devno($mountpoint)
+#   Print the major:minor device ID(s) holding the file system currently
+#   mounted currenty mounted on $mountpoint.
 #   Return 0 on success, 1 on error (if $mountpoint is not a mountpoint).
-get_mnt_devices() {
-    local wantmount="$1" devices= uuid dev
+get_mnt_devno() {
+    local wantmount="$1" devnos= uuid dev devno
     local device mount fstype options _
 
     while read device mountpoint fstype options _; do
@@ -49,101 +49,77 @@ get_mnt_devices() {
         [ "${device#\#}" = "$device" ] || continue
         if [ "$mountpoint" = "$wantmount" ]; then
             # take the last mountpoint if used several times (shadowed)
-            unset -v devices
+            unset -v devnos
+            devno="$(get_device_id "$device")" || continue
             if [ "$fstype" = "btrfs" ]; then
                 # btrfs can span over multiple devices
-                if uuid=$(blkid_tag "$device" UUID); then
-                    for dev in "/sys/fs/$fstype/$uuid/devices"/*; do
-                        dev="/dev/${dev#"/sys/fs/$fstype/$uuid/devices/"}"
-                        devices="${devices:+$devices }$dev"
+                if uuid="$(blkid_tag "/dev/block/$devno" UUID)"; then
+                    for dev in "/sys/fs/$fstype/$uuid/devices"/*/dev; do
+                        devnos="${devnos:+$devnos }$(cat "$dev")"
                     done
-                # blkid_tag() produces a warning upon failure, so we
-                # skip error handling here
+                    # blkid_tag() produces a warning upon failure, so we
+                    # skip error handling here
                 fi
             else
-                devices="$device"
+                devnos="$devno"
             fi
         fi
     done </proc/mounts
-    [ -n "${devices:+x}" ] || return 1 # not found
-    printf '%s\n' "$devices" | tr ' ' '\n'
-}
-
-# sysfs_devdir($name)
-#   Print the sysfs(5) entry /sys/dev/block/$maj:$min (a symlink to
-#   pointing to the sysfs directory for the device) corresponding to
-#   device $name, where $maj:$min are its major/minor device numbers.
-#   Return 0 on success, 1 on error.
-sysfs_devdir() {
-    local dev="$(normalise_device "$1")" || return 1
-    local devno dir maj min
-    # normalise_device() fails if $dev isn't a block device
-    if devno="$(stat -c"%t:%T" -- "$dev" 2>/dev/null)" &&
-            maj="${devno%:*}" && min="${devno#*:}" &&
-            [ "$devno" = "$maj:$min" ] && [ -n "$maj" ] && [ -n "$min" ] &&
-            maj=$(( 0x$maj )) && min=$(( 0x$min )) &&
-            dir="/sys/dev/block/$maj:$min" && [ -d "$dir" ]; then
-        printf '%s\n' "$dir"
-        return 0
+    if [ -z "${devnos:+x}" ]; then
+        return 1 # not found
     else
-        cryptsetup_message "ERROR: Couldn't find sysfs directory corresponding to $1"
-        return 1
+        printf '%s' "$devnos"
     fi
 }
 
 # get_dmcrypt_slaves({/sys/dev/block/$maj:$min | /sys/devices/...})
-#   Recursively print the list of underlying dm-crypt devices names for
-#   the given sysfs directory (typically corresponding to an md, lv, or
-#   dm-crypt device).  Slaves that aren't dm-crypt devices are NOT
-#   listed.
+#   Recursively print the crypttab(5) entries to FD nr. 3, for each
+#   dm-crypt device holding $maj:$min (typically corresponding to an md,
+#   lv, or dm-crypt device).  Slaves that aren't dm-crypt devices are
+#   NOT printed.
 get_dmcrypt_slaves() {
-    local d="$1" name slave
+    local d="$1" devno maj min name slave
     [ -d "$d/slaves" ] || return 0
-    if [ -d "$d/dm" ]; then
-        name="$(cat "$d/dm/name")"
-        if [ "$(dmsetup info --noheadings -c -o subsystem -- "$name")" = "CRYPT" ]; then
-            printf '%s\n' "$name"
-        fi
+    if [ -d "$d/dm" ] && devno="$(cat "$d/dev")" &&
+            maj="${devno%:*}" && min="${devno#*:}" &&
+            [ "$devno" = "$maj:$min" ] && [ -n "$maj" ] && [ -n "$min" ] &&
+            [ "$(dmsetup info -c --noheadings -o subsystem -j "$maj" -m "$min")" = "CRYPT" ] &&
+            name="$(dmsetup info -c --noheadings -o unmangled_name -j "$maj" -m "$min")"; then
+        # search for a crypttab entry with the given name
+        crypttab_find_entry "$name"
     fi
     for slave in "$d/slaves"/*; do
-        if slave="$(readlink -e "$slave")"; then
+        if [ -d "$slave" ] && slave="$(realpath -e -- "$slave")"; then
             get_dmcrypt_slaves "$slave"
         fi
     done
 }
 
-# get_crypttab_entry($target)
-#   Print the crypttab(5) entry for the given $target to FD nr. 3; but
-#   only if the target has not already been processed during an earlier
-#   function call.  (Processed target names are stored in
+# crypttab_find_entry($target)
+#   Find the crypttab(5) entry for the given $target and print it to FD
+#   nr. 3; but only if the target has not already been processed during
+#   an earlier function call.  (Processed target names are stored in
 #   $DESTDIR/cryptroot/targets.)
 #   The entry source is replaced by the corresponding UUID=<uuid> if
 #   possible.  If the entry uses the 'decrypt_derived' keyscript, the
 #   other crypttab(5) entries it depends on are (recursively) printed
 #   before hand.
 #   Return 0 on success, 1 on error.
-get_crypttab_entry() {
-    local name="$1" found="n" slave uuid base
+crypttab_find_entry() {
+    local name="$1" found="n"
 
     if grep -Fxqz -e "$name" -- "$DESTDIR/cryptroot/targets"; then
         # already processed
         return 0
     fi
 
-    local CRYPTTAB_NAME source key options derived
+    local CRYPTTAB_NAME source key options
     while read CRYPTTAB_NAME source key options; do
         [ "${CRYPTTAB_NAME#\#}" = "$CRYPTTAB_NAME" ] || continue
-        [ "$CRYPTTAB_NAME" = "$name" ] || continue
-        if slave="$(normalise_device "$source")"; then
-            if base="$(sysfs_devdir "/dev/mapper/$name")" && \
-                    [ ! -e "$base/slaves/${slave#/dev/}" ]; then
-                cryptsetup_message "ERROR: Source mismatch: $source != $slave"
-            elif uuid="$(blkid_tag "$slave" UUID 2>/dev/null)"; then
-                source="UUID=$uuid"
-            fi
+        if [ "$CRYPTTAB_NAME" = "$name" ]; then
+            found="y"
+            break
         fi
-        found="y"
-        break
     done <"$TABFILE"
 
     if [ "$found" = n ]; then
@@ -153,6 +129,26 @@ get_crypttab_entry() {
 
     printf '%s\0' "$name" >>"$DESTDIR/cryptroot/targets"
     crypttab_parse_options "$options" n || return 1
+    crypttab_print_entry "$name" "$source" "$key" "$options"
+}
+
+# crypttab_print_entry($name, $source, $key, $options)
+#   Print the given crypttab(5) entry to FD nr. 3.  Various checks are
+#   performed on the key and crypttab options, but no parsing is done so
+#   it's the responsibility of the caller to call
+#   crypttab_parse_options().
+#   Return 0 on success, 1 on error.
+crypttab_print_entry() {
+    local name="$1" source="$2" key="$3" options="$4"
+
+    local MIN MAJ uuid
+    if resolve_device_id "$source"; then
+        if [ "$(dmsetup info -c --noheadings -o devnos_used -- "$name" 2>/dev/null)" != "$MAJ:$MIN" ]; then
+            cryptsetup_message "ERROR: $name: Source mismatch"
+        elif uuid="$(blkid_tag "/dev/block/$MAJ:$MIN" UUID 2>/dev/null)"; then
+            source="UUID=$uuid"
+        fi
+    fi
 
     if [ -n "${CRYPTTAB_OPTION_header+x}" ] && [ ! -f "$CRYPTTAB_OPTION_header" ]; then
         cryptsetup_message "WARNING: Target $name has an invalid header $CRYPTTAB_OPTION_header"
@@ -194,28 +190,30 @@ get_crypttab_entry() {
     if [ "${CRYPTTAB_OPTION_keyscript-}" = "/lib/cryptsetup/scripts/decrypt_derived" ]; then
         # (recursively) list first the device to derive the key from (so
         # the boot scripts unlock it first)
-        get_crypttab_entry "$key"
+        crypttab_find_entry "$key"
     fi
     printf '%s %s %s %s\n' "$name" "$source" "$key" "$options" >&3
 }
 
-# get_cryptdevs($device, [$device ..])
-#   Print the list of crypttab(5) entries to FD nr. 3 for each dm-crypt
-#   device holding any of the given $device (which can be an md, a lv, a
-#   mapped device, or a regular block device).
+# get_cryptdevs($maj:$min, [$maj:$min ..])
+#   Print the list of crypttab(5) entries to FD nr. 3, for dm-crypt
+#   devices holding any of the given devices (which can be an md, a lv,
+#   a mapped device, or a regular block device).
 get_cryptdevs() {
-    local dev base name
-    for dev in "$@"; do
-        base="$(sysfs_devdir "$dev")" || return 1
-        for name in $(get_dmcrypt_slaves "$base"); do
-            get_crypttab_entry "$name"
-        done
+    local devno base
+    for devno in "$@"; do
+        base="/sys/dev/block/$devno"
+        if [ ! -d "$base" ]; then
+            cryptsetup_message "ERROR: Couldn't find sysfs directory for $devno"
+            return 1
+        fi
+        get_dmcrypt_slaves "$base"
     done
 }
 
-# get_resume_device()
-#   Return the device(s) used for system suspend/hibernate.
-get_resume_device() {
+# get_resume_devno()
+#   Return the device ID(s) used for system suspend/hibernate.
+get_resume_devno() {
     local dev filename
 
     # uswsusp
@@ -224,22 +222,26 @@ get_resume_device() {
         dev="$(sed -nr 's/^resume device\s*[:=]\s*//p' "$filename")"
         if [ -n "$dev" ] && [ "$dev" != "<path_to_resume_device_file>" ]; then
             # trim quotes
-            dev=$(printf '%s' "$dev" | sed -re 's/^"(.*)"\s*$/\1/' -e "s/^'(.*)'\s*$/\1/")
-            printf '%s\n' "$dev"
+            dev="$(printf '%s' "$dev" | sed -re 's/^"(.*)"\s*$/\1/' -e "s/^'(.*)'\s*$/\1/")"
+            get_device_id "$dev"
         fi
     done
 
     # regular swsusp
-    sed -nr 's,^(.*\s)?resume=(\S+)(\s.*)?$,\2,p' /proc/cmdline
+    dev="$(sed -nr 's,^(.*\s)?resume=(\S+)(\s.*)?$,\2,p' /proc/cmdline)"
+    if [ -n "$dev" ]; then
+        get_device_id "$dev"
+    fi
 
     # initramfs-tools >=0.129
     dev="${RESUME:-auto}"
     if [ "$dev" != none ]; then
         if [ "$dev" = auto ]; then
             # next line from /usr/share/initramfs-tools/hooks/resume
-            grep ^/dev/ /proc/swaps | sort -rnk3 | head -n 1 | cut -d " " -f 1
-        else
-            printf '%s\n' "$dev"
+            dev="$(grep ^/dev/ /proc/swaps | sort -rnk3 | head -n 1 | cut -d " " -f 1)"
+        fi
+        if [ -n "$dev" ]; then
+            get_device_id "$dev"
         fi
     fi
 }
@@ -249,30 +251,37 @@ get_resume_device() {
 #   stage.  (Devices that aren't required at initramfs stage are
 #   ignored.)
 generate_initrd_crypttab() {
-    local dev usage
-    mkdir "$DESTDIR/cryptroot"
+    local devnos usage IFS=" 	"
+    local name source key options
+    mkdir -- "$DESTDIR/cryptroot"
     >"$DESTDIR/cryptroot/targets"
 
     {
-        if ! dev="$(get_mnt_devices /)"; then
-            cryptsetup_message "WARNING: Couldn't determine root device"
+        if devnos="$(get_mnt_devno /)"; then
+            usage=rootfs get_cryptdevs $devnos
         else
-            usage=rootfs get_cryptdevs $dev
+            cryptsetup_message "WARNING: Couldn't determine root device"
         fi
 
-        if dev="$(get_resume_device)"; then
-            usage=resume get_cryptdevs $dev
+        if devnos="$(get_resume_devno)"; then
+            usage=resume get_cryptdevs $devnos
         fi
 
-        if dev="$(get_mnt_devices /usr)"; then
-            usage= get_cryptdevs $dev
+        if devnos="$(get_mnt_devno /usr)"; then
+            usage= get_cryptdevs $devnos
         fi
 
-        # add crypttab entries with the 'initramfs' option set
-        for dev in $(sed -nr 's/^\s*([^#[:blank:]]\S*)\s+\S+\s+\S+\s+(\S+,)?initramfs(,\S+)?$/\1/p' "$TABFILE"); do
-            usage= get_crypttab_entry "$dev"
-        done
-
+        # add crypttab entries with the 'initramfs' option set (if they
+        # have not been processed already)
+        while read name source key options; do
+            [ "${name#\#}" = "$name" ] || continue
+            if ! grep -Fxqz -e "$name" -- "$DESTDIR/cryptroot/targets" &&
+                    crypttab_parse_options "$options" n 2>/dev/null &&
+                    [ "${CRYPTTAB_OPTION_initramfs-no}" = "yes" ]; then
+                printf '%s\0' "$name" >>"$DESTDIR/cryptroot/targets"
+                usage= crypttab_print_entry "$name" "$source" "$key" "$options"
+            fi
+        done <"$TABFILE"
     } 3>"$DESTDIR/cryptroot/crypttab"
     rm -f "$DESTDIR/cryptroot/targets"
 }

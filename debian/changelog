@@ -20,8 +20,13 @@ cryptsetup (2:2.0.3-5) UNRELEASED; urgency=medium
       in the crypttab options.  Regression since 2:2.0.3-2. (Closes: #902733.)
     + Avoid processing entries multiple times in get_crypttab_entry(), which
       could happen with 'keyscript=decrypt_derived' for instance.
+    + Don't complain that the sysfs dir can't be found when the hook failed to
+      normalize the device (another warning is shown already).
   * debian/initramfs/conf-hook: Clarify that if KEYFILE_PATTERN if null or
     unset then no key file is copied.
+  * debian/initramfs/*, debian/functions, debian/cryptdisks-functions: use
+    major:minor device IDs internally, as this facilitate discovery of sysfs
+    directories, and we don't have to take care of the udev mangling.
 
  -- Jonas Meurer <jonas@freesources.org>  Tue, 26 Jun 2018 17:46:13 +0200
 

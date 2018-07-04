@@ -252,34 +252,49 @@ gen_crypttab_from_kernel_cmdline() {
     return 0
 }
 
-# normalise_device([--quiet],$device)
-#   Print the block device (not symlink) associated with the given
-#   (link to a) block $device.  Like for fstab(5), LABEL=<label>
-#   UUID=<uuid>, PARTUUID=<partuuid> and PARTLABEL=<partlabel> may be
-#   given instead of a device name.
+# get_device_id([--quiet], $device)
+#   Print major-ID:minor-ID, where major-ID (resp. minor-ID) is the
+#   major (resp. minor) ID decimal value of the given (symlink to a)
+#   block $device.
+#   Like for fstab(5), LABEL=<label> UUID=<uuid>, PARTUUID=<partuuid>
+#   and PARTLABEL=<partlabel> may be given instead of a device path.
 #   Return 0 on success, 1 on error.
-normalise_device() {
+get_device_id() {
+    local MAJ MIN
+    resolve_device_id "$@" || return $?
+    printf '%d:%d\n' "$MAJ" "$MIN"
+    return 0
+}
+
+# resolve_device_id([--quiet], $device)
+#   Like get_device_id(), but don't print anything and instead set MAJ
+#   (resp. MIN) to the major-ID (resp. minor ID) decimal value on
+#   success.
+resolve_device_id() {
     local dev="$1" quiet='n'
     if [ "$dev" = '--quiet' ] && [ $# -eq 2 ]; then
         quiet='y'
         dev="$2"
     fi
 
-    local input="$dev"
-    if [ "${dev#UUID=}" != "$dev" ] && [ -n "${dev#UUID=}" ]; then
-        dev="/dev/disk/by-uuid/${dev#UUID=}"
-    elif [ "${dev#LABEL=}" != "$dev" ] && [ -n "${dev#LABEL=}" ]; then
-        dev="/dev/disk/by-label/$(printf '%s' "${dev#LABEL=}" | sed 's,/,\\x2f,g')"
-    elif [ "${dev#PARTUUID=}" != "$dev" ] && [ -n "${dev#PARTUUID=}" ]; then
-        dev="/dev/disk/by-partuuid/${dev#PARTUUID=}"
-    elif [ "${dev#PARTLABEL=}" != "$dev" ] && [ -n "${dev#PARTLABEL=}" ]; then
-        dev="/dev/disk/by-partlabel/$(printf '%s' "${dev#PARTLABEL=}" | sed 's,/,\\x2f,g')"
-    fi
-    if dev="$(readlink -f -- "$dev")" && [ -n "$dev" ] && [ -b "$dev" ]; then
-        printf '%s\n' "$dev"
+    local arg="$dev" devno maj min
+    case "$dev" in
+        UUID=*|LABEL=*|PARTUUID=*|PARTLABEL=*)
+            # don't use /dev/disk/by-label/... to avoid gessing udev mangling
+            dev="$(blkid -l -t "$dev" -o device)" || dev=
+        ;;
+    esac
+    if [ -n "$dev" ] && [ -b "$dev" ] &&
+            devno="$(stat -L -c"%t:%T" -- "$dev" 2>/dev/null)" &&
+            maj="${devno%:*}" && min="${devno#*:}" &&
+            [ "$devno" = "$maj:$min" ] && [ -n "$maj" ] && [ -n "$min" ] &&
+            maj=$(( 0x$maj )) && min=$(( 0x$min )) && devno="$maj:$min" &&
+            [ -b "/dev/block/$devno" ]; then
+        MAJ="$maj"
+        MIN="$min"
         return 0
     elif [ "$quiet" = n ]; then
-        cryptsetup_message "ERROR: Couldn't normalise device $input"
+        cryptsetup_message "ERROR: Couldn't resolve device $arg"
     fi
     return 1
 }
