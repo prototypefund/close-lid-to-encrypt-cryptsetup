@@ -23,8 +23,8 @@ esac
 #   Return 0 on success, 1 on error.
 blkid_tag() {
     local device="$1" tag="$2" val
-    if [ "${device#$tag=}" != "$device" ]; then
-        printf '%s\n' "${device#$tag=}"
+    if [ "${device#"$tag="}" != "$device" ]; then
+        printf '%s\n' "${device#"$tag="}"
     elif ! val="$(blkid -s "$2" -o value -- "$device")" || [ -z "$val" ]; then
         cryptsetup_message "ERROR: $device: Couldn't determine $tag"
         return 1
@@ -40,9 +40,9 @@ blkid_tag() {
 #   Return 0 on success, 1 on error (if $mountpoint is not a mountpoint).
 get_mnt_devices() {
     local wantmount="$1" devices= uuid dev
-    local device mount type options _
+    local device mount fstype options _
 
-    while read device mountpoint type options _; do
+    while read device mountpoint fstype options _; do
         # treat lines starting with '#' as comments; /proc/mounts
         # doesn't seem to contain these but per procfs(5) the format of
         # that file is analogous to fstab(5)'s
@@ -50,11 +50,11 @@ get_mnt_devices() {
         if [ "$mountpoint" = "$wantmount" ]; then
             # take the last mountpoint if used several times (shadowed)
             unset -v devices
-            if [ "$type" = btrfs ]; then
+            if [ "$fstype" = "btrfs" ]; then
                 # btrfs can span over multiple devices
                 if uuid=$(blkid_tag "$device" UUID); then
-                    for dev in "/sys/fs/btrfs/$uuid/devices"/*; do
-                        dev="/dev/${dev#/sys/fs/btrfs/$uuid/devices/}"
+                    for dev in "/sys/fs/$fstype/$uuid/devices"/*; do
+                        dev="/dev/${dev#"/sys/fs/$fstype/$uuid/devices/"}"
                         devices="${devices:+$devices }$dev"
                     done
                 # blkid_tag() produces a warning upon failure, so we
@@ -280,7 +280,7 @@ populate_CRYPTO_MODULES() {
         if [ "${cipher#capi:}" = "$cipher" ]; then
             # direct specification "cipher[:keycount]-chainmode-ivmode[:ivopts]"
             CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }${cipher%%[-:]*}" # cipher
-            cipher="${cipher#${cipher%%-*}-}" # chainmode-ivmode[:ivopts]"
+            cipher="${cipher#"${cipher%%-*}-"}" # chainmode-ivmode[:ivopts]"
             CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }${cipher%-*}" # chainmode
             iv="${cipher##*-}" # ivmode[:ivopts]"
             if [ "${iv#*:}" != "$iv" ]; then
@@ -403,7 +403,7 @@ else
 
     if [ "$MODULES" = most ]; then
         for d in "$MODULESDIR"/kernel/arch/*/crypto; do
-            copy_modules_dir "${d#$MODULESDIR/}"
+            copy_modules_dir "${d#"$MODULESDIR/"}"
         done
         copy_modules_dir "kernel/crypto"
     else
