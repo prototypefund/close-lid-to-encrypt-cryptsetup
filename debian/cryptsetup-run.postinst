@@ -29,7 +29,7 @@ case "$1" in
 			continue
 		elif [ -z "$src" ] || [ -z "$key" ] || [ -z "$opts" ]; then
 			# All fields must be present
-			echo "WARNING: $dst in /etc/crypttab is missing some arguments, see man cryptab(5)." >&2
+			echo "WARNING: $dst in /etc/crypttab is missing some arguments, see man crypttab(5)." >&2
 			continue
 		else
 			# Strip comments - https://bugs.launchpad.net/bugs/185380
