@@ -34,6 +34,8 @@ cryptsetup (2:2.0.3-5) UNRELEASED; urgency=medium
     + Decode octal sequences when reading /etc/crypttab or /etc/fstab.  This
       means that key files and option values can contain blanks and special
       characters encoded as octal sequences.
+    + Refactor crypttab(5) parsing logic, to avoid duplication of boilerplate
+      code.
   * debian/functions: If the key file is a symlink, warn about insecure
     permissions of the target, not the link itself.
   * debian/scripts/decrypt_derived: For devices with keys in the kernel
