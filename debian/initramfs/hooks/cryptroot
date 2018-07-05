@@ -100,10 +100,11 @@ get_dmcrypt_slaves() {
 #   nr. 3; but only if the target has not already been processed during
 #   an earlier function call.  (Processed target names are stored in
 #   $DESTDIR/cryptroot/targets.)
-#   The entry source is replaced by the corresponding UUID=<uuid> if
-#   possible.  If the entry uses the 'decrypt_derived' keyscript, the
-#   other crypttab(5) entries it depends on are (recursively) printed
-#   before hand.
+#   The entry source is replaced by /dev/mapper/$sourcename for mapped
+#   sources, otherwise by UUID=<uuid> if possible (eg, for LUKS).  If
+#   the entry uses the 'decrypt_derived' keyscript, the other
+#   crypttab(5) entries it depends on are (recursively) printed before
+#   hand.
 #   Return 0 on success, 1 on error.
 crypttab_find_entry() {
     local name="$1" found="n"
@@ -141,11 +142,17 @@ crypttab_find_entry() {
 crypttab_print_entry() {
     local name="$1" source="$2" key="$3" options="$4"
 
-    local MIN MAJ uuid
+    local MIN MAJ sourcename uuid
     if resolve_device_id "$source"; then
         if [ "$(dmsetup info -c --noheadings -o devnos_used -- "$name" 2>/dev/null)" != "$MAJ:$MIN" ]; then
             cryptsetup_message "ERROR: $name: Source mismatch"
+       elif sourcename="$(dmsetup info -c --noheadings -o mangled_name -j "$MAJ" -m "$MIN" 2>/dev/null)" &&
+               [ -b "/dev/mapper/$sourcename" ]; then
+           # for mapped sources, use the dm name as the lvm
+           # local-block script doesn't work with UUIDs (#902943)
+           source="/dev/mapper/$sourcename"
         elif uuid="$(blkid_tag "/dev/block/$MAJ:$MIN" UUID 2>/dev/null)"; then
+            # otherwise, use its UUID if possible (eg. for LUKS)
             source="UUID=$uuid"
         fi
     fi

@@ -22,6 +22,10 @@ cryptsetup (2:2.0.3-5) UNRELEASED; urgency=medium
       could happen with 'keyscript=decrypt_derived' for instance.
     + Don't complain that the sysfs dir can't be found when the hook failed to
       normalize the device (another warning is shown already).
+    + If source device is mapped (for instance if it's a logical volume), put
+      its dm name into the initrd crypttab.  LVM2's local-block script doesn't
+      work with UUIDs, and giving it a VG+LV is better anyway as we avoid to
+      activate all volumes at initramfs stage. (Closes: #902943.)
   * debian/initramfs/conf-hook: Clarify that if KEYFILE_PATTERN if null or
     unset then no key file is copied.
   * debian/initramfs/*, debian/functions, debian/cryptdisks-functions: use
