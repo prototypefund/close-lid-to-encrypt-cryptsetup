@@ -24,7 +24,7 @@ crypttab_copy_keys_to_initramfs 'decrypt_opensc' || exit 1
 
 # Install directories needed by smartcard reading daemon, command, and
 # key-script
-mkdir -p "$DESTDIR/etc/opensc" "$DESTDIR/usr/lib/pcsc" "$DESTDIR/var/run" "$DESTDIR/tmp"
+mkdir -p -- "$DESTDIR/etc/opensc" "$DESTDIR/usr/lib/pcsc" "$DESTDIR/var/run" "$DESTDIR/tmp"
 
 # Install pcscd daemon, drivers, conf file, and include libgcc as well since
 # pcscd utilizes pthread_cancel
@@ -34,11 +34,11 @@ find -L "$LIBC_DIR" -maxdepth 1 \( -name 'libgcc_s.*' -o -name 'libusb-*.so*' -o
     copy_exec "$so"
 done
 
-cp -r /usr/lib/pcsc "$DESTDIR/usr/lib"
-cp /etc/reader.conf "$DESTDIR/etc" || true
-cp /etc/libccid_Info.plist "$DESTDIR/etc"
+cp -rt "$DESTDIR/usr/lib" /usr/lib/pcsc
+cp -t "$DESTDIR/etc" /etc/reader.conf || true
+cp -t "$DESTDIR/etc" /etc/libccid_Info.plist
 
 # Install opensc commands and conf file
 copy_exec /usr/bin/opensc-tool
 copy_exec /usr/bin/pkcs15-crypt
-cp /etc/opensc/opensc.conf "$DESTDIR/etc/opensc"
+cp -t "$DESTDIR/etc/opensc" /etc/opensc/opensc.conf
