@@ -78,11 +78,11 @@ wait_for_source() {
 #   Set up a given crypttab(5) mapping
 setup_mapping() {
     export CRYPTTAB_NAME="$1" CRYPTTAB_SOURCE="$2" CRYPTTAB_OPTIONS="$4"
-    local key="$3"
+    local key="$3" dev
 
     # The same target can be specified multiple times
     # e.g. root and resume lvs-on-lvm-on-crypto
-    if [ -e "/dev/mapper/$CRYPTTAB_NAME" ]; then
+    if dm_blkdevname "$CRYPTTAB_NAME" >/dev/null; then
         return 0
     fi
 
@@ -134,12 +134,12 @@ setup_mapping() {
             cryptsetup_message "ERROR: $CRYPTTAB_NAME: cryptsetup failed, bad password or options?"
             sleep 1
             continue
-        elif [ ! -e "/dev/mapper/$CRYPTTAB_NAME" ]; then
+        elif ! dev="$(dm_blkdevname "$CRYPTTAB_NAME")"; then
             cryptsetup_message "ERROR: $CRYPTTAB_NAME: unknown error setting up device mapping"
             return 1
         fi
 
-        if ! fstype="$(get_fstype "/dev/mapper/$CRYPTTAB_NAME")" || [ "$fstype" = unknown ]; then
+        if ! fstype="$(get_fstype "$dev")" || [ "$fstype" = unknown ]; then
             # bad password for plain dm-crypt device?  or mkfs not run yet?
             cryptsetup_message "ERROR: $CRYPTTAB_NAME: unknown fstype, bad password or options?"
             wait_for_udev 10
@@ -150,7 +150,7 @@ setup_mapping() {
             if [ ! -x /sbin/lvm ]; then
                 cryptsetup_message "WARNING: $CRYPTTAB_NAME: lvm is not available"
                 return 1
-            elif vg="$(lvm pvs --noheadings -o vg_name --config 'log{prefix=""}' "/dev/mapper/$CRYPTTAB_NAME")"; then
+            elif vg="$(lvm pvs --noheadings -o vg_name --config 'log{prefix=""}' -- "$dev")"; then
                 # activate the VG held by the PV we just unlocked
                 lvm lvchange -a y --sysinit --ignoreskippedcluster -- "$vg"
             fi
@@ -178,8 +178,12 @@ if [ -s /cryptroot/crypttab ]; then
     mkdir -pm0700 /run/cryptsetup
     modprobe -q dm_crypt
 
-    while read target source key options <&3; do
+    while IFS=" 	" read -r target source key options <&3; do
         [ "${target#\#}" = "$target" ] || continue
+        [ -n "$target" ] || continue
+        target="$(printf '%b' "$target")"
+        source="$(printf '%b' "$source")"
+        key="$(printf '%b' "$key")"
         setup_mapping "$target" "$source" "$key" "$options" 3<&-
     done 3< /cryptroot/crypttab
 fi

@@ -28,9 +28,12 @@ cryptsetup (2:2.0.3-5) UNRELEASED; urgency=medium
       activate all volumes at initramfs stage. (Closes: #902943.)
   * debian/initramfs/conf-hook: Clarify that if KEYFILE_PATTERN if null or
     unset then no key file is copied.
-  * debian/initramfs/*, debian/functions, debian/cryptdisks-functions: use
-    major:minor device IDs internally, as this facilitate discovery of sysfs
-    directories, and we don't have to take care of the udev mangling.
+  * debian/initramfs/*, debian/functions, debian/cryptdisks-functions:
+    + Use major:minor device IDs internally, as this facilitate discovery of
+      sysfs directories, and we don't have to take care of the udev mangling.
+    + Decode octal sequences when reading /etc/crypttab or /etc/fstab.  This
+      means that key files and option values can contain blanks and special
+      characters encoded as octal sequences.
   * debian/functions: If the key file is a symlink, warn about insecure
     permissions of the target, not the link itself.
   * debian/scripts/decrypt_derived: For devices with keys in the kernel

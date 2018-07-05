@@ -39,18 +39,20 @@ blkid_tag() {
 #   mounted currenty mounted on $mountpoint.
 #   Return 0 on success, 1 on error (if $mountpoint is not a mountpoint).
 get_mnt_devno() {
-    local wantmount="$1" devnos= uuid dev devno
-    local device mount fstype options _
+    local wantmount="$1" devnos= uuid dev devno IFS
+    local device mountpoint fstype _
 
-    while read device mountpoint fstype options _; do
+    while IFS=" 	" read -r device mountpoint fstype _; do
         # treat lines starting with '#' as comments; /proc/mounts
         # doesn't seem to contain these but per procfs(5) the format of
         # that file is analogous to fstab(5)'s
-        [ "${device#\#}" = "$device" ] || continue
-        if [ "$mountpoint" = "$wantmount" ]; then
+        if [ "${device#\#}" = "$device" ] && [ -n "$device" ] &&
+                [ "$(printf '%b' "$mountpoint")" = "$wantmount" ]; then
             # take the last mountpoint if used several times (shadowed)
             unset -v devnos
+            device="$(printf '%b' "$device")"
             devno="$(get_device_id "$device")" || continue
+            fstype="$(printf '%b' "$fstype")"
             if [ "$fstype" = "btrfs" ]; then
                 # btrfs can span over multiple devices
                 if uuid="$(blkid_tag "/dev/block/$devno" UUID)"; then
@@ -65,6 +67,7 @@ get_mnt_devno() {
             fi
         fi
     done </proc/mounts
+
     if [ -z "${devnos:+x}" ]; then
         return 1 # not found
     else
@@ -85,7 +88,7 @@ get_dmcrypt_slaves() {
             [ "$devno" = "$maj:$min" ] && [ -n "$maj" ] && [ -n "$min" ] &&
             [ "$(dmsetup info -c --noheadings -o subsystem -j "$maj" -m "$min")" = "CRYPT" ] &&
             name="$(dmsetup info -c --noheadings -o unmangled_name -j "$maj" -m "$min")"; then
-        # search for a crypttab entry with the given name
+        # search for a crypttab entry with the given unmangled name
         crypttab_find_entry "$name"
     fi
     for slave in "$d/slaves"/*; do
@@ -96,9 +99,10 @@ get_dmcrypt_slaves() {
 }
 
 # crypttab_find_entry($target)
-#   Find the crypttab(5) entry for the given $target and print it to FD
-#   nr. 3; but only if the target has not already been processed during
-#   an earlier function call.  (Processed target names are stored in
+#   Find the crypttab(5) entry for the given (unmangled) $target and
+#   print it - preserving the mangling - to FD nr. 3; but only if the
+#   target has not already been processed during an earlier function
+#   call.  (Processed target names are stored in
 #   $DESTDIR/cryptroot/targets.)
 #   The entry source is replaced by /dev/mapper/$sourcename for mapped
 #   sources, otherwise by UUID=<uuid> if possible (eg, for LUKS).  If
@@ -107,45 +111,48 @@ get_dmcrypt_slaves() {
 #   hand.
 #   Return 0 on success, 1 on error.
 crypttab_find_entry() {
-    local name="$1" found="n"
+    local CRYPTTAB_NAME="$1" found="n" IFS
 
-    if grep -Fxqz -e "$name" -- "$DESTDIR/cryptroot/targets"; then
+    if grep -Fxqz -e "$CRYPTTAB_NAME" -- "$DESTDIR/cryptroot/targets"; then
         # already processed
         return 0
     fi
 
-    local CRYPTTAB_NAME source key options
-    while read CRYPTTAB_NAME source key options; do
-        [ "${CRYPTTAB_NAME#\#}" = "$CRYPTTAB_NAME" ] || continue
-        if [ "$CRYPTTAB_NAME" = "$name" ]; then
+    local name source key options
+    while IFS=" 	" read -r name source key options; do
+        [ "${name#\#}" = "$name" ] || continue
+        if [ "$CRYPTTAB_NAME" = "$(printf '%b' "$name")" ]; then
             found="y"
             break
         fi
     done <"$TABFILE"
 
     if [ "$found" = n ]; then
-        cryptsetup_message "WARNING: No crypttab entry for $name"
+        cryptsetup_message "WARNING: No crypttab entry for $CRYPTTAB_NAME"
         return 1
     fi
 
-    printf '%s\0' "$name" >>"$DESTDIR/cryptroot/targets"
+    printf '%s\0' "$CRYPTTAB_NAME" >>"$DESTDIR/cryptroot/targets"
     crypttab_parse_options "$options" n || return 1
     crypttab_print_entry "$name" "$source" "$key" "$options"
 }
 
 # crypttab_print_entry($name, $source, $key, $options)
-#   Print the given crypttab(5) entry to FD nr. 3.  Various checks are
-#   performed on the key and crypttab options, but no parsing is done so
-#   it's the responsibility of the caller to call
+#   Print the given unmangled crypttab(5) entry to FD nr. 3.  Various
+#   checks are performed on the key and crypttab options, but no parsing
+#   is done so it's the responsibility of the caller to call
 #   crypttab_parse_options().
 #   Return 0 on success, 1 on error.
 crypttab_print_entry() {
     local name="$1" source="$2" key="$3" options="$4"
+    local CRYPTTAB_NAME="$(printf '%b' "$name")"
+    local CRYPTTAB_SOURCE="$(printf '%b' "$source")"
+    local CRYPTTAB_KEY="$(printf '%b' "$key")"
 
     local MIN MAJ sourcename uuid
-    if resolve_device_id "$source"; then
-        if [ "$(dmsetup info -c --noheadings -o devnos_used -- "$name" 2>/dev/null)" != "$MAJ:$MIN" ]; then
-            cryptsetup_message "ERROR: $name: Source mismatch"
+    if resolve_device_id "$CRYPTTAB_SOURCE"; then
+        if [ "$(dmsetup info -c --noheadings -o devnos_used -- "$CRYPTTAB_NAME" 2>/dev/null)" != "$MAJ:$MIN" ]; then
+            cryptsetup_message "ERROR: $CRYPTTAB_NAME: Source mismatch"
        elif sourcename="$(dmsetup info -c --noheadings -o mangled_name -j "$MAJ" -m "$MIN" 2>/dev/null)" &&
                [ -b "/dev/mapper/$sourcename" ]; then
            # for mapped sources, use the dm name as the lvm
@@ -158,35 +165,40 @@ crypttab_print_entry() {
     fi
 
     if [ -n "${CRYPTTAB_OPTION_header+x}" ] && [ ! -f "$CRYPTTAB_OPTION_header" ]; then
-        cryptsetup_message "WARNING: Target $name has an invalid header $CRYPTTAB_OPTION_header"
+        cryptsetup_message "WARNING: Target $CRYPTTAB_NAME has an invalid header $CRYPTTAB_OPTION_header"
     fi
 
     local newkey
     # if keyscript is set, the "key" is just an argument to the script
-    if [ -z "${CRYPTTAB_OPTION_keyscript+x}" ] && [ "$key" != "none" ]; then
-        check_key "$key" || return 1
-        case "$key" in
+    if [ -z "${CRYPTTAB_OPTION_keyscript+x}" ] && [ "$CRYPTTAB_KEY" != "none" ]; then
+        check_key "$CRYPTTAB_KEY" || return 1
+        case "$CRYPTTAB_KEY" in
             $KEYFILE_PATTERN)
-                mkdir -pm0700 "$DESTDIR/cryptroot/keyfiles"
-                newkey="/cryptroot/keyfiles/$name.key"
-                copy_file keyfile "$key" "$newkey"
-                key="$newkey"
+                mkdir -pm0700 -- "$DESTDIR/cryptroot/keyfiles"
+                # $CRYPTTAB_NAME can't contain / (even after unmangling)
+                newkey="/cryptroot/keyfiles/$CRYPTTAB_NAME.key"
+                copy_file keyfile "$CRYPTTAB_KEY" "$newkey"
+                key="/cryptroot/keyfiles/$name.key" # preserve mangled name
                 ;;
             *)
                 if [ "$usage" = rootfs ]; then
-                    cryptsetup_message "WARNING: Skipping root target $name: uses a key file"
+                    cryptsetup_message "WARNING: Skipping root target $CRYPTTAB_NAME: uses a key file"
                     return 1
                 elif [ "$usage" = resume ]; then
-                    cryptsetup_message "WARNING: Resume target $name uses a key file"
+                    cryptsetup_message "WARNING: Resume target $CRYPTTAB_NAME uses a key file"
                 fi
-                if newkey=$(readlink -f -- "$key") && [ -f "$newkey" ]; then
-                    if [ "$(stat -c %m -- "$newkey" 2>/dev/null)" != "/" ]; then
-                        cryptsetup_message "WARNING: Skipping target $name: key file is not on the root FS"
-                        return 1
-                    fi
-                    key="/FIXME-initramfs-rootmnt$newkey"
-                elif [ ! -e "$key" ]; then
-                    cryptsetup_message "WARNING: Target $name has a non-existing key file $key"
+                if [ -L "$CRYPTTAB_KEY" ] && newkey="$(readlink -- "$CRYPTTAB_KEY")" &&
+                        [ "${newkey#/}" != "$newkey" ]; then
+                    cryptsetup_message "WARNING: Skipping target $CRYPTTAB_NAME: key file is a symlink with absolute target"
+                    return 1
+                elif [ -f "$CRYPTTAB_KEY" ] && [ "$(stat -L -c %m -- "$CRYPTTAB_KEY" 2>/dev/null)" != "/" ]; then
+                    cryptsetup_message "WARNING: Skipping target $CRYPTTAB_NAME: key file is not on the root FS"
+                    return 1
+                fi
+                if [ ! -e "$CRYPTTAB_KEY" ]; then
+                    cryptsetup_message "WARNING: Target $CRYPTTAB_NAME has a non-existing key file $CRYPTTAB_KEY"
+                else
+                    key="/FIXME-initramfs-rootmnt$key" # preserve mangled name
                 fi
         esac
     fi
@@ -197,7 +209,7 @@ crypttab_print_entry() {
     if [ "${CRYPTTAB_OPTION_keyscript-}" = "/lib/cryptsetup/scripts/decrypt_derived" ]; then
         # (recursively) list first the device to derive the key from (so
         # the boot scripts unlock it first)
-        crypttab_find_entry "$key"
+        crypttab_find_entry "$CRYPTTAB_KEY"
     fi
     printf '%s %s %s %s\n' "$name" "$source" "$key" "$options" >&3
 }
@@ -230,12 +242,14 @@ get_resume_devno() {
         if [ -n "$dev" ] && [ "$dev" != "<path_to_resume_device_file>" ]; then
             # trim quotes
             dev="$(printf '%s' "$dev" | sed -re 's/^"(.*)"\s*$/\1/' -e "s/^'(.*)'\s*$/\1/")"
+            dev="$(printf '%b' "$dev")" # unmangle
             get_device_id "$dev"
         fi
     done
 
     # regular swsusp
     dev="$(sed -nr 's,^(.*\s)?resume=(\S+)(\s.*)?$,\2,p' /proc/cmdline)"
+    dev="$(printf '%b' "$dev")" # unmangle
     if [ -n "$dev" ]; then
         get_device_id "$dev"
     fi
@@ -247,6 +261,7 @@ get_resume_devno() {
             # next line from /usr/share/initramfs-tools/hooks/resume
             dev="$(grep ^/dev/ /proc/swaps | sort -rnk3 | head -n 1 | cut -d " " -f 1)"
         fi
+        dev="$(printf '%b' "$dev")" # unmangle
         if [ -n "$dev" ]; then
             get_device_id "$dev"
         fi
@@ -259,7 +274,7 @@ get_resume_devno() {
 #   ignored.)
 generate_initrd_crypttab() {
     local devnos usage IFS=" 	"
-    local name source key options
+    local name CRYPTTAB_NAME source key options
     mkdir -- "$DESTDIR/cryptroot"
     >"$DESTDIR/cryptroot/targets"
 
@@ -280,12 +295,14 @@ generate_initrd_crypttab() {
 
         # add crypttab entries with the 'initramfs' option set (if they
         # have not been processed already)
-        while read name source key options; do
+        while read -r name source key options; do
             [ "${name#\#}" = "$name" ] || continue
-            if ! grep -Fxqz -e "$name" -- "$DESTDIR/cryptroot/targets" &&
+            [ -n "$name" ] || continue
+            CRYPTTAB_NAME="$(printf '%b' "$name")"
+            if ! grep -Fxqz -e "$CRYPTTAB_NAME" -- "$DESTDIR/cryptroot/targets" &&
                     crypttab_parse_options "$options" n 2>/dev/null &&
                     [ "${CRYPTTAB_OPTION_initramfs-no}" = "yes" ]; then
-                printf '%s\0' "$name" >>"$DESTDIR/cryptroot/targets"
+                printf '%s\0' "$CRYPTTAB_NAME" >>"$DESTDIR/cryptroot/targets"
                 usage= crypttab_print_entry "$name" "$source" "$key" "$options"
             fi
         done <"$TABFILE"
@@ -298,9 +315,11 @@ generate_initrd_crypttab() {
 #   device names found in the initramfs's crypttab(5), and append them
 #   to the CRYPTO_MODULES variable.
 populate_CRYPTO_MODULES() {
-    local name _ cipher iv
-    while read name _; do
+    local name _ cipher iv IFS
+    while IFS=" 	" read -r name _; do
         [ "${name#\#}" = "$name" ] || continue
+        [ -n "$name" ] || continue
+        name="$(printf '%b' "$name")"
 
         # cf. dmsetup(8) and https://gitlab.com/cryptsetup/cryptsetup/wikis/DMCrypt
         cipher="$(dmsetup table --target crypt -- "$name" | cut -d' ' -f4)"

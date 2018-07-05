@@ -1,4 +1,5 @@
 TABFILE="${TABFILE-/etc/crypttab}"
+export DM_DEFAULT_NAME_MANGLING_MODE=hex
 
 # Logging helpers. Send the argument list to plymouth(1), or fold it
 # and print it to the standard error.
@@ -18,7 +19,10 @@ cryptsetup_message() {
 # crypttab_parse_options([$CRYPTTAB_OPTIONS, $export])
 #   Parse CRYPTTAB_OPTIONS, a comma-separated option string from the
 #   crypttab(5) 4th column, build a suitable CRYPTTAB_OPTION_<option>
-#   environment unless $export is "n"
+#   environment unless $export is "n".  For error and warning messages,
+#   CRYPTTAB_NAME should be set to the (unmangled) mapped device name.
+#   Return 1 on parsing error, 0 otherwise (incl. if unknown options
+#   were encountered).
 crypttab_parse_options() {
     local options="${1:-$CRYPTTAB_OPTIONS}" export="${2:-y}"
     local IFS=',' x OPTION VALUE
@@ -53,6 +57,8 @@ crypttab_parse_options() {
         VALUE="${x#*=}"
         if [ "$x" = "$OPTION" ]; then
             unset -v VALUE
+        else
+            VALUE="$(printf '%b' "$VALUE")"
         fi
         if ! _crypttab_validate_option; then
             cryptsetup_message "ERROR: $CRYPTTAB_NAME: invalid value for '${x%%=*}' option, skipping"
@@ -189,15 +195,19 @@ crypttab_copy_keys_to_initramfs() {
     local keyscript="/lib/cryptsetup/scripts/$1"
     local crypttab="$DESTDIR/cryptroot/crypttab"
     local CRYPTTAB_NAME CRYPTTAB_SOURCE key options v
-    local rv=0
+    local rv=0 IFS
 
     if [ ! -x "$DESTDIR/$keyscript" ] || [ ! -f "$crypttab" ]; then
         exit 0
     fi
 
     # Install cryptroot key files into initramfs
-    while read CRYPTTAB_NAME CRYPTTAB_SOURCE key options; do
+    while IFS=" 	" read -r CRYPTTAB_NAME CRYPTTAB_SOURCE key options; do
         [ "${CRYPTTAB_NAME#\#}" = "$CRYPTTAB_NAME" ] || continue
+        [ -n "$CRYPTTAB_NAME" ] || continue
+        CRYPTTAB_NAME="$(printf '%b' "$CRYPTTAB_NAME")"
+        CRYPTTAB_SOURCE="$(printf '%b' "$CRYPTTAB_SOURCE")"
+        key="$(printf '%b' "$key")"
         crypttab_parse_options "$options" n || continue
         if [ "${CRYPTTAB_OPTION_keyscript-}" = "$keyscript" ]; then
             if [ -f "$key" ]; then
@@ -219,19 +229,20 @@ crypttab_copy_keys_to_initramfs() {
 #   /cryptroot/crypttab, so other scripts can determine whether it is up
 #   to date by comparing its ctime with the uptime.
 gen_crypttab_from_kernel_cmdline() {
-    mkdir -p /cryptroot # might not exist if there is no crypttab(5) yet
+    mkdir -p /cryptroot # might not exist if there is no crypttab(5) in the main system
     if ! grep -qE '^(.*\s)?cryptopts=' /proc/cmdline; then
         touch /cryptroot/crypttab
         return 0
     fi
 
-    local IFS=',' cryptopts x
+    local IFS cryptopts x
     local target source key options
-    tr ' ' '\n' </proc/cmdline | sed -n 's/^cryptopts=//p' | while read cryptopts; do
+    tr ' ' '\n' </proc/cmdline | sed -n 's/^cryptopts=//p' | while IFS= read -r cryptopts; do
         # skip empty values (which can be used to disable the initramfs
         # scripts for a particular boot, cf. #873840)
         [ -n "$cryptopts" ] || continue
 
+        IFS=","
         unset -v target source key options
         for x in $cryptopts; do
             case "$x" in
@@ -422,6 +433,20 @@ check_key() {
     if [ $(stat -L -c%u "$keyfile") -ne 0 ] || [ "${mode%00}" = "$mode" ]; then
         cryptsetup_message "WARNING: $CRYPTTAB_NAME: key file $keyfile has" \
             "insecure ownership, see /usr/share/doc/cryptsetup/README.Debian."
+    fi
+}
+
+# dm_blkdevname($name)
+#   Print the mapped device name, or return 1 if the the device doesn't exist.
+dm_blkdevname() {
+    local name="$1" dev
+    # /dev/mapper/$name isn't reliable due to udev mangling
+    if dev="$(dmsetup info -c --noheadings -o blkdevname -- "$name" 2>/dev/null)" &&
+            [ -n "$dev" ] && [ -b "/dev/$dev" ]; then
+        echo "/dev/$dev"
+        return 0
+    else
+        return 1
     fi
 }
 

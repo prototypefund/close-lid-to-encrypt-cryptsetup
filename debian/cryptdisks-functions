@@ -26,7 +26,7 @@ MOUNT="$CRYPTDISKS_MOUNT"
 # do_start()
 #   Unlock all devices in the crypttab(5)
 do_start() {
-    local target source key options
+    local target source key options IFS
     [ -s "$TABFILE" ] || return 0
 
     # Create locking directory before invoking cryptsetup(8) to avoid warnings
@@ -40,8 +40,12 @@ do_start() {
     fi
     mount_fs
 
-    while read target source key options <&3; do
+    while IFS=" 	" read -r target source key options <&3; do
         [ "${target#\#}" = "$target" ] || continue
+        [ -n "$target" ] || continue
+        target="$(printf '%b' "$target")"
+        source="$(printf '%b' "$source")"
+        key="$(printf '%b' "$key")"
         setup_mapping "$target" "$source" "$key" "$options" 3<&- || log_action_end_msg $?
     done 3< "$TABFILE"
 
@@ -77,7 +81,7 @@ setup_mapping() {
     export CRYPTTAB_NAME="$1" CRYPTTAB_SOURCE="$2" CRYPTTAB_OPTIONS="$4"
     local key="$3"
 
-    if [ -e "/dev/mapper/$CRYPTTAB_NAME" ]; then
+    if dm_blkdevname "$CRYPTTAB_NAME" >/dev/null; then
         device_msg "running"
         return 0
     fi
@@ -117,7 +121,7 @@ setup_mapping() {
     CRYPTTAB_SOURCE="/dev/block/$source"
     device_msg "starting"
 
-    local type="$(get_crypt_type)" out
+    local type="$(get_crypt_type)" out tmpdev
     if [ "$type" != "luks" ]; then
         if ! out="$(/lib/cryptsetup/checks/un_blkid "$CRYPTTAB_SOURCE" 2>/dev/null)" &&
                 ! /lib/cryptsetup/checks/blkid "$CRYPTTAB_SOURCE" swap >/dev/null; then
@@ -142,28 +146,28 @@ setup_mapping() {
         rv=$?
         count=$(( $count + 1 ))
 
-        if [ $rv -ne 0 ] || [ ! -e "/dev/mapper/$tmptarget" ]; then
+        if [ $rv -ne 0 ] || ! tmpdev="$(dm_blkdevname "$tmptarget")"; then
             continue
         fi
         if [ -n "${CRYPTTAB_OPTION_check+x}" ] && \
-                ! "$CRYPTTAB_OPTION_check" "/dev/mapper/$tmptarget" $CRYPTTAB_OPTION_checkargs ; then
-            log_warning_msg "$CRYPTTAB_NAME: the check for '/dev/mapper/$tmptarget' failed"
+                ! "$CRYPTTAB_OPTION_check" "$tmpdev" $CRYPTTAB_OPTION_checkargs ; then
+            log_warning_msg "$CRYPTTAB_NAME: the check for '$tmptarget' failed"
             cryptsetup remove -- "$tmptarget"
             continue
         fi
         if [ "${CRYPTTAB_OPTION_swap+x}" ]; then
-            if out="$(/lib/cryptsetup/checks/un_blkid "/dev/mapper/$tmptarget" 2>/dev/null)" ||
-                    /lib/cryptsetup/checks/blkid "/dev/mapper/$tmptarget" swap >/dev/null 2>&1; then
-                mkswap "/dev/mapper/$tmptarget" >/dev/null 2>&1
+            if out="$(/lib/cryptsetup/checks/un_blkid "$tmpdev" 2>/dev/null)" ||
+                    /lib/cryptsetup/checks/blkid "$tmpdev" swap >/dev/null 2>&1; then
+                mkswap "$tmpdev" >/dev/null 2>&1
             else
-                log_warning_msg "$CRYPTTAB_NAME: the check for '/dev/mapper/$tmptarget' failed. /dev/mapper/$tmptarget contains data: $out"
+                log_warning_msg "$CRYPTTAB_NAME: the check for '$tmptarget' failed. $tmptarget contains data: $out"
                 cryptsetup remove -- "$tmptarget"
                 return 1
             fi
         elif [ "${CRYPTTAB_OPTION_tmp+x}" ]; then
             local tmpdir="$(mktemp --tmpdir="/run/cryptsetup" --directory)" rv=0
-            if ! mkfs -t "$CRYPTTAB_OPTION_tmp" -q "/dev/mapper/$tmptarget" >/dev/null 2>&1 ||
-                    ! mount -t "$CRYPTTAB_OPTION_tmp" "/dev/mapper/$tmptarget" "$tmpdir" ||
+            if ! mkfs -t "$CRYPTTAB_OPTION_tmp" -q "$tmpdev" >/dev/null 2>&1 ||
+                    ! mount -t "$CRYPTTAB_OPTION_tmp" "$tmpdev" "$tmpdir" ||
                     ! chmod 1777 "$tmpdir"; then
                 rv=1
             fi
@@ -174,7 +178,7 @@ setup_mapping() {
         if command -v udevadm >/dev/null 2>&1; then
             udevadm settle
         fi
-        dmsetup rename "$tmptarget" "$CRYPTTAB_NAME"
+        dmsetup rename -- "$tmptarget" "$CRYPTTAB_NAME"
         device_msg "started"
         return 0
     done
@@ -183,18 +187,20 @@ setup_mapping() {
 }
 
 # crypttab_find_target($name)
-#   Look for a crypttab(5) entry with target $name, and set
-#   CRYPTTAB_NAME, CRYPTTAB_SOURCE, CRYPTTAB_KEY and CRYPTTAB_OPTIONS if
-#   there a match.
+#   Look for a crypttab(5) entry with target $name, and set (unmangled)
+#   CRYPTTAB_NAME, CRYPTTAB_SOURCE, CRYPTTAB_KEY and (mangling-preserved)
+#   CRYPTTAB_OPTIONS if there a match.
 crypttab_find_target() {
     local name="$1"
-    local target source key options
-    while read target source key options; do
+    local target source key options IFS
+    while IFS=" 	" read -r target source key options; do
         [ "${target#\#}" = "$target" ] || continue
+        [ -n "$target" ] || continue
+        target="$(printf '%b' "$target")"
         if [ "$target" = "$name" ]; then
             CRYPTTAB_NAME="$target"
-            CRYPTTAB_SOURCE="$source"
-            CRYPTTAB_KEY="$key"
+            CRYPTTAB_SOURCE="$(printf '%b' "$source")"
+            CRYPTTAB_KEY="$(printf '%b' "$key")"
             CRYPTTAB_OPTIONS="$options"
             return 0
         fi
@@ -204,13 +210,15 @@ crypttab_find_target() {
 
 # Removes all mappings in crypttab
 do_stop () {
-    local target source key options i rv
+    local target source key options i rv IFS
 
     dmsetup mknodes
     log_action_begin_msg "Stopping $INITSTATE crypto disks"
 
-    while read target source key options <&3; do
+    while IFS=" 	" read -r target source key options <&3; do
         [ "${target#\#}" = "$target" ] || continue
+        [ -n "$target" ] || continue
+        target="$(printf '%b' "$target")"
         for i in 1 2 4 8 16 32; do
             remove_mapping "$target" "$options" 3<&- && break || rv=$?
             if [ $rv -eq 1 ] || [ $rv -eq 2 -a $i -gt 16 ]; then
@@ -247,7 +255,7 @@ device_msg() {
 remove_mapping() {
     local CRYPTTAB_NAME="$1" options="$2"
 
-    if [ ! -b "/dev/mapper/$CRYPTTAB_NAME" ]; then
+    if ! dm_blkdevname "$CRYPTTAB_NAME" >/dev/null; then
         device_msg "stopped"
         return 0
     fi
