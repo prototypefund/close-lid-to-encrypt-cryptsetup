@@ -33,6 +33,8 @@ cryptsetup (2:2.0.3-5) UNRELEASED; urgency=medium
     directories, and we don't have to take care of the udev mangling.
   * debian/functions: If the key file is a symlink, warn about insecure
     permissions of the target, not the link itself.
+  * debian/scripts/decrypt_derived: For devices with keys in the kernel
+    keyring (e.g., LUKS2 by default), refuse to derive anything.
 
  -- Jonas Meurer <jonas@freesources.org>  Tue, 26 Jun 2018 17:46:13 +0200
 
