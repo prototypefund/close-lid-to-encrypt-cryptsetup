@@ -103,13 +103,15 @@ setup_mapping() {
     fi
 
     local source
-    if ! source="$(get_device_id --quiet "$CRYPTTAB_SOURCE")"; then
-        if [ "$loud" = "yes" ]; then
-            device_msg "skipped, device $CRYPTTAB_SOURCE does not exist"
+    if [ ! -f "$CRYPTTAB_SOURCE" ]; then
+        if ! source="$(get_device_id --quiet "$CRYPTTAB_SOURCE")"; then
+            if [ "$loud" = "yes" ]; then
+                device_msg "skipped, device $CRYPTTAB_SOURCE does not exist"
+            fi
+            return 1
         fi
-        return 1
+        CRYPTTAB_SOURCE="/dev/block/$source"
     fi
-    CRYPTTAB_SOURCE="/dev/block/$source"
     device_msg "starting"
 
     local type="$(get_crypt_type)" out tmpdev
