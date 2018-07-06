@@ -1,4 +1,4 @@
-cryptsetup (2:2.0.3-5) UNRELEASED; urgency=medium
+cryptsetup (2:2.0.3-5) unstable; urgency=medium
 
   [ Jonas Meurer ]
   * debian/askpass.c, debian/scripts/passdev.c, debian/rules:
@@ -50,7 +50,7 @@ cryptsetup (2:2.0.3-5) UNRELEASED; urgency=medium
     (Closes: #902879.)
   * debian/control: Bump Standards-Version to 4.1.5 (no changes necessary).
 
- -- Jonas Meurer <jonas@freesources.org>  Tue, 26 Jun 2018 17:46:13 +0200
+ -- Guilhem Moulin <guilhem@debian.org>  Sat, 07 Jul 2018 01:47:57 +0200
 
 cryptsetup (2:2.0.3-4) unstable; urgency=low
 
