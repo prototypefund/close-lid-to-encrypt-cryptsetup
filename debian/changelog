@@ -1,3 +1,10 @@
+cryptsetup (2:2.0.3-6) UNRELEASED; urgency=medium
+
+  * debian/TODO.md: Remove mention of parent device detection for mdadm
+    (#629236) as it's fixed since 2:2.0.3-2.
+
+ -- Guilhem Moulin <guilhem@debian.org>  Sat, 07 Jul 2018 17:38:07 +0200
+
 cryptsetup (2:2.0.3-5) unstable; urgency=medium
 
   [ Jonas Meurer ]

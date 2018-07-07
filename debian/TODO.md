@@ -43,8 +43,8 @@
 * improve test suite
 
 * cryptroot hook script:
-  - We should add parent device detection for mdadm (#629236) and ZFS (#820888)
-    so users don't have to manually add the 'initramfs' option to the crypttab.
+  - We should add parent device detection for ZFS (#820888) so users
+    don't have to manually add the 'initramfs' option to the crypttab.
 * cryptroot local-top script:
   - Find a solution to run 'lvm vgchange' only after all lvm parent devices
     are unlocked. At the moment, ugly errors and warnings are shown in case
