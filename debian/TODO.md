@@ -36,7 +36,7 @@
   * try the patches
     * https://github.com/systemd/systemd/pull/3007#pullrequestreview-39358162
     * https://lists.freedesktop.org/archives/systemd-devel/2012-June/005693.html
-  * or completely remove crytpscripts feature from cryptsetup in Debian?
+  * or completely remove cryptscripts feature from cryptsetup in Debian?
 
 * ephemeral swap encryption
 

@@ -293,7 +293,7 @@ generate_initrd_crypttab() {
 }
 
 # populate_CRYPTO_MODULES()
-#   Find out which crytpo modules are required for a crypttab(5) entry,
+#   Find out which crypto modules are required for a crypttab(5) entry,
 #   and append them to the CRYPTO_MODULES variable.
 populate_CRYPTO_MODULES() {
     local cipher iv
