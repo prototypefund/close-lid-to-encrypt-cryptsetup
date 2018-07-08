@@ -8,6 +8,10 @@ cryptsetup (2:2.0.3-6) UNRELEASED; urgency=medium
     add configure flag '--disable-internal-tests'.  The internal test suite is
     run by dh_auto_test(1), and it is skipped if DEB_BUILD_OPTIONS environment
     variable contains the string "nocheck".
+  * debian/cryptdisks-functions, debian/initramfs/scripts/local-top/cryptroot:
+    When the 2nd column of a crypttab entry denodes a block special device,
+    resolve the device but don't convert it to /dev/block/$major:$minor.
+    (Closes: #903246.)
 
  -- Guilhem Moulin <guilhem@debian.org>  Sat, 07 Jul 2018 17:38:07 +0200
 

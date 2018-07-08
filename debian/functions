@@ -214,51 +214,25 @@ crypttab_validate_option() {
     esac
 }
 
-# get_device_id([--quiet], $device)
-#   Print major-ID:minor-ID, where major-ID (resp. minor-ID) is the
-#   major (resp. minor) ID decimal value of the given (symlink to a)
-#   block $device.
-#   Like for fstab(5), LABEL=<label> UUID=<uuid>, PARTUUID=<partuuid>
-#   and PARTLABEL=<partlabel> may be given instead of a device path.
-#   Return 0 on success, 1 on error.
-get_device_id() {
-    local MAJ MIN
-    resolve_device_id "$@" || return $?
-    printf '%d:%d\n' "$MAJ" "$MIN"
-    return 0
-}
-
-# resolve_device_id([--quiet], $device)
-#   Like get_device_id(), but don't print anything and instead set MAJ
-#   (resp. MIN) to the major-ID (resp. minor ID) decimal value on
-#   success.
-resolve_device_id() {
-    local dev="$1" quiet='n'
-    if [ "$dev" = '--quiet' ] && [ $# -eq 2 ]; then
-        quiet='y'
-        dev="$2"
-    fi
-
-    local arg="$dev" devno maj min
+# crypttab_resolve_source()
+#   Resolve the CRYPTTAB_SOURCE variable, containing value of the second
+#   field of a crypttab(5)-like file.  Like for fstab(5) LABEL=<label>,
+#   UUID=<uuid>, PARTUUID=<partuuid> and PARTLABEL=<partlabel> may be
+#   given instead of a device path.
+#   On error (non-existing source), CRYPTTAB_SOURCE is not changed and 1
+#   is returned.
+crypttab_resolve_source() {
+    # return immediately if source is a regular file; otherwise use
+    # blkid(1) to resolve the device specification
+    [ ! -f "$CRYPTTAB_SOURCE" ] || return 0
+    local dev="$CRYPTTAB_SOURCE"
     case "$dev" in
         UUID=*|LABEL=*|PARTUUID=*|PARTLABEL=*)
             # don't use /dev/disk/by-label/... to avoid gessing udev mangling
             dev="$(blkid -l -t "$dev" -o device)" || dev=
         ;;
     esac
-    if [ -n "$dev" ] && [ -b "$dev" ] &&
-            devno="$(stat -L -c"%t:%T" -- "$dev" 2>/dev/null)" &&
-            maj="${devno%:*}" && min="${devno#*:}" &&
-            [ "$devno" = "$maj:$min" ] && [ -n "$maj" ] && [ -n "$min" ] &&
-            maj=$(( 0x$maj )) && min=$(( 0x$min )) && devno="$maj:$min" &&
-            [ -b "/dev/block/$devno" ]; then
-        MAJ="$maj"
-        MIN="$min"
-        return 0
-    elif [ "$quiet" = n ]; then
-        cryptsetup_message "ERROR: Couldn't resolve device $arg"
-    fi
-    return 1
+    [ -b "$dev" ] && CRYPTTAB_SOURCE="$dev" || return 1
 }
 
 # run_keyscript($keyscriptarg, $tried_count)

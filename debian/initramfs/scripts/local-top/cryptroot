@@ -35,12 +35,10 @@ esac
 #   $CRYPTTAB_SOURCE to its normalized device name when it shows up;
 #   return 1 if timeout.
 wait_for_source() {
-    local devno
     wait_for_udev 10
 
-    if devno="$(get_device_id --quiet "$CRYPTTAB_SOURCE")"; then
+    if crypttab_resolve_source; then
         # the device is here already, no need to loop
-        CRYPTTAB_SOURCE="/dev/block/$devno"
         return 0
     fi
 
@@ -63,9 +61,8 @@ wait_for_source() {
             /scripts/local-block/lvm2 "$CRYPTTAB_SOURCE"
         fi
 
-        if devno="$(get_device_id --quiet "$CRYPTTAB_SOURCE")"; then
+        if crypttab_resolve_source; then
             wait_for_udev 10
-            CRYPTTAB_SOURCE="/dev/block/$devno"
             return 0
         fi
 

@@ -102,15 +102,11 @@ setup_mapping() {
         CRYPTTAB_OPTION_tries=1
     fi
 
-    local source
-    if [ ! -f "$CRYPTTAB_SOURCE" ]; then
-        if ! source="$(get_device_id --quiet "$CRYPTTAB_SOURCE")"; then
-            if [ "$loud" = "yes" ]; then
-                device_msg "skipped, device $CRYPTTAB_SOURCE does not exist"
-            fi
-            return 1
+    if ! crypttab_resolve_source; then
+        if [ "$loud" = "yes" ]; then
+            device_msg "skipped, device $CRYPTTAB_SOURCE does not exist"
         fi
-        CRYPTTAB_SOURCE="/dev/block/$source"
+        return 1
     fi
     device_msg "starting"
 

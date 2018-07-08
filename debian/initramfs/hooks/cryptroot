@@ -19,20 +19,51 @@ esac
 TABFILE="/etc/crypttab"
 
 
-# blkid_tag($device, $tag)
-#   Print the block device attribute for given $device and $tag.
-#   Return 0 on success, 1 on error.
-blkid_tag() {
-    local device="$1" tag="$2" val
-    if [ "${device#"$tag="}" != "$device" ]; then
-        printf '%s\n' "${device#"$tag="}"
-    elif ! val="$(blkid -s "$2" -o value -- "$device")" || [ -z "$val" ]; then
-        cryptsetup_message "ERROR: $device: Couldn't determine $tag"
-        return 1
+# devno_to_uuid($maj:$min)
+#   Print the UUID attribute of block special device with major/major ID
+#   $maj:$min.  Return 0 on success, 1 on error.
+devno_to_uuid() {
+    local devno="$1" device uuid
+    if device="$(udevadm info -rq name "/sys/dev/block/$devno" 2>/dev/null)" && \
+            uuid="$(blkid -s UUID -o value -- "$device")" && [ -n "$uuid" ]; then
+        printf '%s\n' "$uuid"
     else
-        printf '%s\n' "$val"
+        return 1
     fi
-    return 0
+}
+
+# get_device_id($device)
+#   Print major:minor device ID, in decimal value, of a block $device.
+#   Return 0 on success, 1 on error.
+get_device_id() {
+    local MAJ MIN
+    resolve_device_id "$@" || return $?
+    printf '%d:%d\n' "$MAJ" "$MIN"
+}
+
+# resolve_device_id($device)
+#   Like get_device_id(), but don't print anything and instead set MAJ
+#   (resp. MIN) to the major-ID (resp. minor ID) decimal value on
+#   success.
+resolve_device_id() {
+    local dev="$1" devno maj min
+    case "$dev" in
+        UUID=*|LABEL=*|PARTUUID=*|PARTLABEL=*)
+            # don't use /dev/disk/by-label/... to avoid gessing udev mangling
+            dev="$(blkid -l -t "$dev" -o device)" || dev=
+        ;;
+    esac
+    if [ -b "$dev" ] && devno="$(stat -L -c"%t:%T" -- "$dev" 2>/dev/null)" &&
+            maj="${devno%:*}" && min="${devno#*:}" &&
+            [ "$devno" = "$maj:$min" ] && [ -n "$maj" ] && [ -n "$min" ] &&
+            maj=$(( 0x$maj )) && min=$(( 0x$min )) && devno="$maj:$min"; then
+        MAJ="$maj"
+        MIN="$min"
+        return 0
+    else
+        cryptsetup_message "ERROR: Couldn't resolve device $1"
+    fi
+    return 1
 }
 
 # get_mnt_devno($mountpoint)
@@ -56,12 +87,12 @@ get_mnt_devno() {
             fstype="$(printf '%b' "$fstype")"
             if [ "$fstype" = "btrfs" ]; then
                 # btrfs can span over multiple devices
-                if uuid="$(blkid_tag "/dev/block/$devno" UUID)"; then
+                if uuid="$(devno_to_uuid "$devno")"; then
                     for dev in "/sys/fs/$fstype/$uuid/devices"/*/dev; do
                         devnos="${devnos:+$devnos }$(cat "$dev")"
                     done
-                    # blkid_tag() produces a warning upon failure, so we
-                    # skip error handling here
+                else
+                    cryptsetup_message "ERROR: $device: Couldn't determine UUID"
                 fi
             elif [ -n "$fstype" ]; then
                 devnos="$devno"
@@ -138,7 +169,7 @@ crypttab_print_entry() {
            # for mapped sources, use the dm name as the lvm
            # local-block script doesn't work with UUIDs (#902943)
            _CRYPTTAB_SOURCE="/dev/mapper/$sourcename"
-        elif uuid="$(blkid_tag "/dev/block/$MAJ:$MIN" UUID 2>/dev/null)"; then
+        elif uuid="$(devno_to_uuid "$MAJ:$MIN")"; then
             # otherwise, use its UUID if possible (eg. for LUKS)
             _CRYPTTAB_SOURCE="UUID=$uuid"
         fi
@@ -218,7 +249,7 @@ get_resume_devno() {
     # uswsusp
     for filename in /etc/uswsusp.conf /etc/suspend.conf; do
         [ -e "$filename" ] || continue
-        dev="$(sed -nr 's/^resume device\s*[:=]\s*//p' "$filename")"
+        dev="$(sed -nr '/^resume device\s*[:=]\s*/ {s///p;q}' "$filename")"
         if [ -n "$dev" ] && [ "$dev" != "<path_to_resume_device_file>" ]; then
             # trim quotes
             dev="$(printf '%s' "$dev" | sed -re 's/^"(.*)"\s*$/\1/' -e "s/^'(.*)'\s*$/\1/")"
