@@ -4,6 +4,10 @@ cryptsetup (2:2.0.3-6) UNRELEASED; urgency=medium
     (#629236) as it's fixed since 2:2.0.3-2.
   * debian/README.gnupg, debian/TODO.md, debian/doc/crypttab.xml: minor typo
     fixes.
+  * debian/rules, debian/patches/disable-internal-tests.patch: Remove patch to
+    add configure flag '--disable-internal-tests'.  The internal test suite is
+    run by dh_auto_test(1), and it is skipped if DEB_BUILD_OPTIONS environment
+    variable contains the string "nocheck".
 
  -- Guilhem Moulin <guilhem@debian.org>  Sat, 07 Jul 2018 17:38:07 +0200
 

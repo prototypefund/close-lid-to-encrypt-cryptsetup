@@ -14,10 +14,6 @@ CONFFLAGS =
 include /usr/share/dpkg/pkg-info.mk
 DEB_DATE := $(strip $(shell LC_ALL=C date -u +%F -d@$(SOURCE_DATE_EPOCH)))
 
-ifneq (,$(findstring skip-internal-tests,$(DEB_BUILD_OPTIONS)))
-CONFFLAGS += --disable-internal-tests
-endif
-
 %:
 	dh $@
 
