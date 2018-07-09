@@ -216,23 +216,15 @@ crypttab_validate_option() {
 
 # crypttab_resolve_source()
 #   Resolve the CRYPTTAB_SOURCE variable, containing value of the second
-#   field of a crypttab(5)-like file.  Like for fstab(5) LABEL=<label>,
-#   UUID=<uuid>, PARTUUID=<partuuid> and PARTLABEL=<partlabel> may be
-#   given instead of a device path.
+#   field of a crypttab(5)-like file.
 #   On error (non-existing source), CRYPTTAB_SOURCE is not changed and 1
 #   is returned.
 crypttab_resolve_source() {
-    # return immediately if source is a regular file; otherwise use
-    # blkid(1) to resolve the device specification
+    # return immediately if source is a regular file
     [ ! -f "$CRYPTTAB_SOURCE" ] || return 0
+    # otherwise resolve the block device specification
     local dev="$CRYPTTAB_SOURCE"
-    case "$dev" in
-        UUID=*|LABEL=*|PARTUUID=*|PARTLABEL=*)
-            # don't use /dev/disk/by-label/... to avoid gessing udev mangling
-            dev="$(blkid -l -t "$dev" -o device)" || dev=
-        ;;
-    esac
-    [ -b "$dev" ] && CRYPTTAB_SOURCE="$dev" || return 1
+    dev="$(resolve_device_spec "$dev")" && CRYPTTAB_SOURCE="$dev" || return 1
 }
 
 # run_keyscript($keyscriptarg, $tried_count)
@@ -359,6 +351,22 @@ crypttab_key_check() {
         cryptsetup_message "WARNING: $CRYPTTAB_NAME: key file $CRYPTTAB_KEY has" \
             "insecure ownership, see /usr/share/doc/cryptsetup/README.Debian."
     fi
+}
+
+# resolve_device_spec($spec)
+#   Resolve LABEL=<label>, UUID=<uuid>, PARTUUID=<partuuid> and
+#   PARTLABEL=<partlabel> to a block special device.  If $spec is
+#   already a (link to a block special device) then it is echoed as is.
+#   Return 1 if $spec doesn't correspond to a block special device.
+resolve_device_spec() {
+    local spec="$1"
+    case "$spec" in
+        UUID=*|LABEL=*|PARTUUID=*|PARTLABEL=*)
+            # don't use /dev/disk/by-label/... to avoid gessing udev mangling
+            spec="$(blkid -l -t "$spec" -o device)" || spec=
+        ;;
+    esac
+    [ -b "$spec" ] && printf '%s\n' "$spec" || return 1
 }
 
 # dm_blkdevname($name)

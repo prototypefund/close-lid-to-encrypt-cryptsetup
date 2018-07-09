@@ -19,49 +19,45 @@ esac
 TABFILE="/etc/crypttab"
 
 
-# devno_to_uuid($maj:$min)
-#   Print the UUID attribute of block special device with major/major ID
-#   $maj:$min.  Return 0 on success, 1 on error.
-devno_to_uuid() {
-    local devno="$1" device uuid
-    if device="$(udevadm info -rq name "/sys/dev/block/$devno" 2>/dev/null)" && \
-            uuid="$(blkid -s UUID -o value -- "$device")" && [ -n "$uuid" ]; then
+# device_uuid($device)
+#   Print the UUID attribute of given block special $device.  Return 0
+#   on success, 1 on error.
+device_uuid() {
+    local device="$1" uuid
+    if uuid="$(blkid -s UUID -o value -- "$device")" && [ -n "$uuid" ]; then
         printf '%s\n' "$uuid"
     else
         return 1
     fi
 }
 
-# get_device_id($device)
+# get_device_id({$device | $spec})
 #   Print major:minor device ID, in decimal value, of a block $device.
 #   Return 0 on success, 1 on error.
 get_device_id() {
-    local MAJ MIN
-    resolve_device_id "$@" || return $?
+    local DEV MAJ MIN
+    resolve_device "$1" || return $?
     printf '%d:%d\n' "$MAJ" "$MIN"
 }
 
-# resolve_device_id($device)
-#   Like get_device_id(), but don't print anything and instead set MAJ
-#   (resp. MIN) to the major-ID (resp. minor ID) decimal value on
-#   success.
-resolve_device_id() {
-    local dev="$1" devno maj min
-    case "$dev" in
-        UUID=*|LABEL=*|PARTUUID=*|PARTLABEL=*)
-            # don't use /dev/disk/by-label/... to avoid gessing udev mangling
-            dev="$(blkid -l -t "$dev" -o device)" || dev=
-        ;;
-    esac
-    if [ -b "$dev" ] && devno="$(stat -L -c"%t:%T" -- "$dev" 2>/dev/null)" &&
+# resolve_device({$device | $spec})
+#   Like get_device_id(), but don't print anything and instead set
+#   DEV to the (symlink to block) device, and MAJ (resp. MIN) to its
+#   major-ID (resp. minor ID) decimal value.  On error these variables
+#   are not changed and 1 is returned.
+resolve_device() {
+    local spec="$1" devno maj min
+    if dev="$(resolve_device_spec "$spec")" &&
+            devno="$(stat -L -c"%t:%T" -- "$dev" 2>/dev/null)" &&
             maj="${devno%:*}" && min="${devno#*:}" &&
             [ "$devno" = "$maj:$min" ] && [ -n "$maj" ] && [ -n "$min" ] &&
-            maj=$(( 0x$maj )) && min=$(( 0x$min )) && devno="$maj:$min"; then
+            maj=$(( 0x$maj )) && min=$(( 0x$min )); then
+        DEV="$dev"
         MAJ="$maj"
         MIN="$min"
         return 0
     else
-        cryptsetup_message "ERROR: Couldn't resolve device $1"
+        cryptsetup_message "ERROR: Couldn't resolve device $spec"
     fi
     return 1
 }
@@ -71,31 +67,31 @@ resolve_device_id() {
 #   mounted currenty mounted on $mountpoint.
 #   Return 0 on success, 1 on error (if $mountpoint is not a mountpoint).
 get_mnt_devno() {
-    local wantmount="$1" devnos= uuid dev devno IFS
-    local device mountpoint fstype _
+    local wantmount="$1" devnos= uuid dev IFS
+    local spec dev mountpoint fstype _ DEV MAJ MIN
 
-    while IFS=" 	" read -r device mountpoint fstype _; do
+    while IFS=" 	" read -r spec mountpoint fstype _; do
         # treat lines starting with '#' as comments; /proc/mounts
         # doesn't seem to contain these but per procfs(5) the format of
         # that file is analogous to fstab(5)'s
-        if [ "${device#\#}" = "$device" ] && [ -n "$device" ] &&
+        if [ "${spec#\#}" = "$spec" ] && [ -n "$spec" ] &&
                 [ "$(printf '%b' "$mountpoint")" = "$wantmount" ]; then
             # take the last mountpoint if used several times (shadowed)
             unset -v devnos
-            device="$(printf '%b' "$device")"
-            devno="$(get_device_id "$device")" || continue
+            spec="$(printf '%b' "$spec")"
+            resolve_device "$spec" || continue # resolve_device() already warns on error
             fstype="$(printf '%b' "$fstype")"
             if [ "$fstype" = "btrfs" ]; then
                 # btrfs can span over multiple devices
-                if uuid="$(devno_to_uuid "$devno")"; then
+                if uuid="$(device_uuid "$DEV")"; then
                     for dev in "/sys/fs/$fstype/$uuid/devices"/*/dev; do
                         devnos="${devnos:+$devnos }$(cat "$dev")"
                     done
                 else
-                    cryptsetup_message "ERROR: $device: Couldn't determine UUID"
+                    cryptsetup_message "ERROR: $spec: Couldn't determine UUID"
                 fi
             elif [ -n "$fstype" ]; then
-                devnos="$devno"
+                devnos="$MAJ:$MIN"
             fi
         fi
     done </proc/mounts
@@ -160,19 +156,21 @@ crypttab_find_and_print_entry() {
 #   crypttab_parse_options().
 #   Return 0 on success, 1 on error.
 crypttab_print_entry() {
-    local MIN MAJ sourcename uuid keyfile
-    if resolve_device_id "$CRYPTTAB_SOURCE"; then
+    local DEV MAJ MIN sourcename uuid keyfile
+    if resolve_device "$CRYPTTAB_SOURCE"; then
         if [ "$(dmsetup info -c --noheadings -o devnos_used -- "$CRYPTTAB_NAME" 2>/dev/null)" != "$MAJ:$MIN" ]; then
             cryptsetup_message "ERROR: $CRYPTTAB_NAME: Source mismatch"
-       elif sourcename="$(dmsetup info -c --noheadings -o mangled_name -j "$MAJ" -m "$MIN" 2>/dev/null)" &&
+        elif sourcename="$(dmsetup info -c --noheadings -o mangled_name -j "$MAJ" -m "$MIN" 2>/dev/null)" &&
                [ -b "/dev/mapper/$sourcename" ]; then
-           # for mapped sources, use the dm name as the lvm
-           # local-block script doesn't work with UUIDs (#902943)
-           _CRYPTTAB_SOURCE="/dev/mapper/$sourcename"
-        elif uuid="$(devno_to_uuid "$MAJ:$MIN")"; then
+            # for mapped sources, use the dm name as the lvm
+            # local-block script doesn't work with UUIDs (#902943)
+            _CRYPTTAB_SOURCE="/dev/mapper/$sourcename"
+        elif uuid="$(device_uuid "$DEV")"; then
             # otherwise, use its UUID if possible (eg. for LUKS)
             _CRYPTTAB_SOURCE="UUID=$uuid"
         fi
+        # on failure resolve_device() prints a warning and we try our
+        # luck with the unchanged _CRYPTTAB_SOURCE value
     fi
 
     if [ -n "${CRYPTTAB_OPTION_header+x}" ] && [ ! -f "$CRYPTTAB_OPTION_header" ]; then
