@@ -51,7 +51,7 @@ resolve_device() {
             devno="$(stat -L -c"%t:%T" -- "$dev" 2>/dev/null)" &&
             maj="${devno%:*}" && min="${devno#*:}" &&
             [ "$devno" = "$maj:$min" ] && [ -n "$maj" ] && [ -n "$min" ] &&
-            maj=$(( 0x$maj )) && min=$(( 0x$min )); then
+            maj=$(( 0x$maj )) && min=$(( 0x$min )) && [ $maj -gt 0 ]; then
         DEV="$dev"
         MAJ="$maj"
         MIN="$min"
