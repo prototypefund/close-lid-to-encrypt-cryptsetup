@@ -31,22 +31,13 @@ device_uuid() {
     fi
 }
 
-# get_device_id({$device | $spec})
-#   Print major:minor device ID, in decimal value, of a block $device.
-#   Return 0 on success, 1 on error.
-get_device_id() {
-    local DEV MAJ MIN
-    resolve_device "$1" || return $?
-    printf '%d:%d\n' "$MAJ" "$MIN"
-}
-
 # resolve_device({$device | $spec})
-#   Like get_device_id(), but don't print anything and instead set
-#   DEV to the (symlink to block) device, and MAJ (resp. MIN) to its
-#   major-ID (resp. minor ID) decimal value.  On error these variables
-#   are not changed and 1 is returned.
+#   Take a path to (or spec for) a block special device, and set DEV to
+#   the (symlink to block) device, and MAJ (resp. MIN) to its major-ID
+#   (resp. minor ID) decimal value.  On error these variables are not
+#   changed and 1 is returned.
 resolve_device() {
-    local spec="$1" devno maj min
+    local spec="$1" dev devno maj min
     if dev="$(resolve_device_spec "$spec")" &&
             devno="$(stat -L -c"%t:%T" -- "$dev" 2>/dev/null)" &&
             maj="${devno%:*}" && min="${devno#*:}" &&
@@ -251,17 +242,14 @@ get_resume_devno() {
         if [ -n "$dev" ] && [ "$dev" != "<path_to_resume_device_file>" ]; then
             # trim quotes
             dev="$(printf '%s' "$dev" | sed -re 's/^"(.*)"\s*$/\1/' -e "s/^'(.*)'\s*$/\1/")"
-            dev="$(printf '%b' "$dev")" # unmangle
-            get_device_id "$dev"
+            print_devno "$(printf '%b' "$dev")" # unmangle
         fi
     done
 
     # regular swsusp
     dev="$(sed -nr 's,^(.*\s)?resume=(\S+)(\s.*)?$,\2,p' /proc/cmdline)"
     dev="$(printf '%b' "$dev")" # unmangle
-    if [ -n "$dev" ]; then
-        get_device_id "$dev"
-    fi
+    print_devno "$(printf '%b' "$dev")" # unmangle
 
     # initramfs-tools >=0.129
     dev="${RESUME:-auto}"
@@ -270,10 +258,13 @@ get_resume_devno() {
             # next line from /usr/share/initramfs-tools/hooks/resume
             dev="$(grep ^/dev/ /proc/swaps | sort -rnk3 | head -n 1 | cut -d " " -f 1)"
         fi
-        dev="$(printf '%b' "$dev")" # unmangle
-        if [ -n "$dev" ]; then
-            get_device_id "$dev"
-        fi
+        print_devno "$(printf '%b' "$dev")" # unmangle
+    fi
+}
+print_devno() {
+    local DEV MAJ MIN # locally scope the 3 variables resolve_device() sets
+    if [ -n "$1" ] && resolve_device "$1"; then
+        printf '%d:%d\n' "$MAJ" "$MIN"
     fi
 }
 
