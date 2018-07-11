@@ -17,6 +17,11 @@ cryptsetup (2:2.0.3-6) UNRELEASED; urgency=medium
       /Documentation/admin-guide/devices.txt in the kernel source tree.
     + generate_initrd_crypttab(): add '\n' to the local IFS since
       get_resume_devno() prints one major:minor pair per line.
+  * debian/initramfs/scripts/local-{top,bottom}/cryptopensc:
+    + Save process ID of the pcscd daemon at local-top stage, and kill it at
+      local-bottom stage.  Thanks to Pascal Vibet for the patch.
+      (Closes: #903574.)
+    + Fix path to the pcscd executable (the fix for #880750 was incomplete).
 
  -- Guilhem Moulin <guilhem@debian.org>  Sat, 07 Jul 2018 17:38:07 +0200
 
