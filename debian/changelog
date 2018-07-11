@@ -12,9 +12,11 @@ cryptsetup (2:2.0.3-6) UNRELEASED; urgency=medium
     When the 2nd column of a crypttab entry denodes a block special device,
     resolve the device but don't convert it to /dev/block/$major:$minor.
     (Closes: #903246.)
-  * debian/initramfs/hooks/cryptroot: treat null device numbers as invalid in
-    resolve_device(), cf. /Documentation/admin-guide/devices.txt in the kernel
-    source tree.
+  * debian/initramfs/hooks/cryptroot:
+    + Treat null device numbers as invalid in resolve_device(), cf.
+      /Documentation/admin-guide/devices.txt in the kernel source tree.
+    + generate_initrd_crypttab(): add '\n' to the local IFS since
+      get_resume_devno() prints one major:minor pair per line.
 
  -- Guilhem Moulin <guilhem@debian.org>  Sat, 07 Jul 2018 17:38:07 +0200
 

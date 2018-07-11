@@ -286,7 +286,7 @@ crypttab_print_initramfs_entry() {
 #   stage.  (Devices that aren't required at initramfs stage are
 #   ignored.)
 generate_initrd_crypttab() {
-    local devnos usage IFS=" 	"
+    local devnos usage IFS="$(printf '\t\n ')"
     local name CRYPTTAB_NAME source key options
     mkdir -- "$DESTDIR/cryptroot"
     >"$DESTDIR/cryptroot/targets"
