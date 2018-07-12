@@ -24,6 +24,8 @@ cryptsetup (2:2.0.3-6) UNRELEASED; urgency=medium
     + Fix path to the pcscd executable (the fix for #880750 was incomplete).
   * debian/README.opensc: Remove mention of 'README.openct.gz' as it's gone
     since 2:2.0.3-2.
+  * debian/scripts/decrypt_opensc: Fix plymouth prompt message (use
+    $CRYPTTAB_NAME not $crypttarget).
 
  -- Guilhem Moulin <guilhem@debian.org>  Sat, 07 Jul 2018 17:38:07 +0200
 
