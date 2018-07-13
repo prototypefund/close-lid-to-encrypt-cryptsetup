@@ -59,7 +59,7 @@ resolve_device() {
 #   Return 0 on success, 1 on error (if $mountpoint is not a mountpoint).
 get_mnt_devno() {
     local wantmount="$1" devnos= uuid dev IFS
-    local spec dev mountpoint fstype _ DEV MAJ MIN
+    local spec mountpoint fstype _ DEV MAJ MIN
 
     while IFS=" 	" read -r spec mountpoint fstype _; do
         # treat lines starting with '#' as comments; /proc/mounts
