@@ -1,4 +1,4 @@
-cryptsetup (2:2.0.3-6) UNRELEASED; urgency=medium
+cryptsetup (2:2.0.3-6) unstable; urgency=medium
 
   * debian/TODO.md: Remove mention of parent device detection for mdadm
     (#629236) as it's fixed since 2:2.0.3-2.
@@ -27,7 +27,7 @@ cryptsetup (2:2.0.3-6) UNRELEASED; urgency=medium
   * debian/scripts/decrypt_opensc: Fix plymouth prompt message (use
     $CRYPTTAB_NAME not $crypttarget).
 
- -- Guilhem Moulin <guilhem@debian.org>  Sat, 07 Jul 2018 17:38:07 +0200
+ -- Guilhem Moulin <guilhem@debian.org>  Fri, 13 Jul 2018 22:10:43 +0200
 
 cryptsetup (2:2.0.3-5) unstable; urgency=medium
 
