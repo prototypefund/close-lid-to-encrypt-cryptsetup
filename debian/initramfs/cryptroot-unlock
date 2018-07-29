@@ -38,7 +38,8 @@ fi
 
 # Print the list of PIDs the executed command of which is $exe.
 pgrep_exe() {
-	local exe="$1" pid
+	local exe pid
+	exe="$(readlink -f -- "$1" 2>/dev/null)" && [ -f "$exe" ] || return 0
 	ps -eo pid= | while read pid; do
 		[ "$(readlink -f "/proc/$pid/exe")" != "$exe" ] || printf '%d\n' "$pid"
 	done
@@ -47,7 +48,8 @@ pgrep_exe() {
 # Return 0 if $pid has a file descriptor pointing to $name, and 1
 # otherwise.
 in_fds() {
-	local pid="$1" name="$2" fd
+	local pid="$1" name fd
+	name="$(readlink -f -- "$2" 2>/dev/null)" && [ -e "$name" ] || return 1
 	for fd in $(find "/proc/$pid/fd" -type l); do
 		[ "$(readlink -f "$fd")" != "$name" ] || return 0
 	done
