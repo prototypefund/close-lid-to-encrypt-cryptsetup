@@ -58,7 +58,7 @@ resolve_device() {
 #   mounted currenty mounted on $mountpoint.
 #   Return 0 on success, 1 on error (if $mountpoint is not a mountpoint).
 get_mnt_devno() {
-    local wantmount="$1" devnos= uuid dev IFS
+    local wantmount="$1" devnos="" uuid dev IFS
     local spec mountpoint fstype _ DEV MAJ MIN
 
     while IFS=" 	" read -r spec mountpoint fstype _; do
@@ -287,9 +287,8 @@ crypttab_print_initramfs_entry() {
 #   ignored.)
 generate_initrd_crypttab() {
     local devnos usage IFS="$(printf '\t\n ')"
-    local name CRYPTTAB_NAME source key options
     mkdir -- "$DESTDIR/cryptroot"
-    >"$DESTDIR/cryptroot/targets"
+    true >"$DESTDIR/cryptroot/targets"
 
     {
         if devnos="$(get_mnt_devno /)"; then
@@ -303,7 +302,7 @@ generate_initrd_crypttab() {
         fi
 
         if devnos="$(get_mnt_devno /usr)"; then
-            usage= get_cryptdevs $devnos
+            usage="" get_cryptdevs $devnos
         fi
 
         # add crypttab entries with the 'initramfs' option set
