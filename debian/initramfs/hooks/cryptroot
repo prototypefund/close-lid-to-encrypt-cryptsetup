@@ -241,7 +241,7 @@ get_resume_devno() {
         dev="$(sed -nr '/^resume device\s*[:=]\s*/ {s///p;q}' "$filename")"
         if [ -n "$dev" ] && [ "$dev" != "<path_to_resume_device_file>" ]; then
             # trim quotes
-            dev="$(printf '%s' "$dev" | sed -re 's/^"(.*)"\s*$/\1/' -e "s/^'(.*)'\s*$/\1/")"
+            dev="$(printf '%s' "$dev" | sed -re 's/^"(.*)"\s*$/\1/' -e "s/^'(.*)'\\s*$/\\1/")"
             print_devno "$(printf '%b' "$dev")" # unmangle
         fi
     done
