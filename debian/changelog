@@ -1,3 +1,9 @@
+cryptsetup (2:2.0.3-7) UNRELEASED; urgency=medium
+
+  * debian/scripts/gen-ssl-key: avoid storing temporary key file on disk.
+
+ -- Guilhem Moulin <guilhem@debian.org>  Sun, 29 Jul 2018 15:19:07 +0800
+
 cryptsetup (2:2.0.3-6) unstable; urgency=medium
 
   * debian/TODO.md: Remove mention of parent device detection for mdadm
