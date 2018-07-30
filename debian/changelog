@@ -1,4 +1,4 @@
-cryptsetup (2:2.0.3-7) UNRELEASED; urgency=medium
+cryptsetup (2:2.0.3-7) unstable; urgency=medium
 
   * debian/scripts/gen-ssl-key: avoid storing temporary key file on disk.
   * debian/initramfs/*, debian/scripts/*: improve quoting.
@@ -9,7 +9,7 @@ cryptsetup (2:2.0.3-7) UNRELEASED; urgency=medium
   * debian/functions: crypttab_find_entry(), crypttab_foreach_entry(): return
     gracefully if $TABFILE doesn't exist.
 
- -- Guilhem Moulin <guilhem@debian.org>  Sun, 29 Jul 2018 15:19:07 +0800
+ -- Guilhem Moulin <guilhem@debian.org>  Mon, 30 Jul 2018 16:32:07 +0800
 
 cryptsetup (2:2.0.3-6) unstable; urgency=medium
 
