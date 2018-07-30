@@ -3,7 +3,9 @@ cryptsetup (2:2.0.3-7) UNRELEASED; urgency=medium
   * debian/scripts/gen-ssl-key: avoid storing temporary key file on disk.
   * debian/initramfs/*, debian/scripts/*: improve quoting.
   * debian/initramfs/cryptroot-unlock: Normalize paths before comparison.
-    This fixes usage on usrmerge setups.
+    This fixes usage on initramfs images with an usrmerge layout, such as
+    images made by mkinitramfs(8) from initramfs-tools-core 0.132. (Closes:
+    #904926.)
 
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 29 Jul 2018 15:19:07 +0800
 
