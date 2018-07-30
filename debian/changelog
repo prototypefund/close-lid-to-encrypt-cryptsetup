@@ -6,6 +6,8 @@ cryptsetup (2:2.0.3-7) UNRELEASED; urgency=medium
     This fixes usage on initramfs images with an usrmerge layout, such as
     images made by mkinitramfs(8) from initramfs-tools-core 0.132. (Closes:
     #904926.)
+  * debian/functions: crypttab_find_entry(), crypttab_foreach_entry(): return
+    gracefully if $TABFILE doesn't exist.
 
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 29 Jul 2018 15:19:07 +0800
 

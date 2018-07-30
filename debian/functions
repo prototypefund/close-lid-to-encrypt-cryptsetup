@@ -398,24 +398,26 @@ crypttab_find_entry() {
         target="$2"
     fi
 
-    while IFS=" 	" read -r _CRYPTTAB_NAME _CRYPTTAB_SOURCE _CRYPTTAB_KEY _CRYPTTAB_OPTIONS; do
-        if [ "${_CRYPTTAB_NAME#\#}" != "$_CRYPTTAB_NAME" ] || [ -z "$_CRYPTTAB_NAME" ]; then
-            # ignore comments and empty lines
-            continue
-        fi
+    if [ -f "$TABFILE" ]; then
+        while IFS=" 	" read -r _CRYPTTAB_NAME _CRYPTTAB_SOURCE _CRYPTTAB_KEY _CRYPTTAB_OPTIONS; do
+            if [ "${_CRYPTTAB_NAME#\#}" != "$_CRYPTTAB_NAME" ] || [ -z "$_CRYPTTAB_NAME" ]; then
+                # ignore comments and empty lines
+                continue
+            fi
 
-        # unmangle names
-        CRYPTTAB_NAME="$(printf '%b' "$_CRYPTTAB_NAME")"
-        if [ -z "$_CRYPTTAB_SOURCE" ] || [ -z "$_CRYPTTAB_KEY" ] || [ -z "$_CRYPTTAB_OPTIONS" ]; then
-            cryptsetup_message "WARNING: '$CRYPTTAB_NAME' is missing some arguments, see crypttab(5)"
-            continue
-        elif [ "$CRYPTTAB_NAME" = "$target" ]; then
-            CRYPTTAB_SOURCE="$( printf '%b' "$_CRYPTTAB_SOURCE" )"
-            CRYPTTAB_KEY="$(    printf '%b' "$_CRYPTTAB_KEY"    )"
-            CRYPTTAB_OPTIONS="$(printf '%b' "$_CRYPTTAB_OPTIONS")"
-            return 0
-        fi
-    done <"$TABFILE"
+            # unmangle names
+            CRYPTTAB_NAME="$(printf '%b' "$_CRYPTTAB_NAME")"
+            if [ -z "$_CRYPTTAB_SOURCE" ] || [ -z "$_CRYPTTAB_KEY" ] || [ -z "$_CRYPTTAB_OPTIONS" ]; then
+                cryptsetup_message "WARNING: '$CRYPTTAB_NAME' is missing some arguments, see crypttab(5)"
+                continue
+            elif [ "$CRYPTTAB_NAME" = "$target" ]; then
+                CRYPTTAB_SOURCE="$( printf '%b' "$_CRYPTTAB_SOURCE" )"
+                CRYPTTAB_KEY="$(    printf '%b' "$_CRYPTTAB_KEY"    )"
+                CRYPTTAB_OPTIONS="$(printf '%b' "$_CRYPTTAB_OPTIONS")"
+                return 0
+            fi
+        done <"$TABFILE"
+    fi
 
     if [ "$quiet" = "n" ]; then
         cryptsetup_message "WARNING: target '$target' not found in $TABFILE"
@@ -436,6 +438,7 @@ crypttab_foreach_entry() {
     local _CRYPTTAB_NAME _CRYPTTAB_SOURCE _CRYPTTAB_KEY _CRYPTTAB_OPTIONS \
            CRYPTTAB_NAME  CRYPTTAB_SOURCE  CRYPTTAB_KEY  CRYPTTAB_OPTIONS
 
+    [ -f "$TABFILE" ] || return
     while IFS=" 	" read -r _CRYPTTAB_NAME _CRYPTTAB_SOURCE _CRYPTTAB_KEY _CRYPTTAB_OPTIONS <&9; do
         if [ "${_CRYPTTAB_NAME#\#}" != "$_CRYPTTAB_NAME" ] || [ -z "$_CRYPTTAB_NAME" ]; then
             # ignore comments and empty lines
