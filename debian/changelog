@@ -1,3 +1,11 @@
+cryptsetup (2:2.0.3-8) UNRELEASED; urgency=medium
+
+  * debian/cryptsetup-initramfs.preinst: Improve conffile ownership transfer
+    from 'cryptsetup' to 'cryptsetup-initramfs' to comply with Policy §10.7.3.
+    (Closes: #904926.)
+
+ -- Guilhem Moulin <guilhem@debian.org>  Thu, 02 Aug 2018 23:14:43 +0800
+
 cryptsetup (2:2.0.3-7) unstable; urgency=medium
 
   * debian/scripts/gen-ssl-key: avoid storing temporary key file on disk.
