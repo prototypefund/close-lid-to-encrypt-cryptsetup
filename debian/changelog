@@ -4,7 +4,7 @@ cryptsetup (2:2.0.4-1) unstable; urgency=medium
     libcryptsetup and utilities are now linked to libblkid.
   * debian/cryptsetup-initramfs.preinst: Improve conffile ownership transfer
     from 'cryptsetup' to 'cryptsetup-initramfs' to comply with Policy §10.7.3.
-    (Closes: #904926.)
+    (Closes: #905188.)
 
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 05 Aug 2018 04:59:10 +0800
 
