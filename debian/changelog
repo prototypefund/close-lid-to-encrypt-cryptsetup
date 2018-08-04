@@ -1,5 +1,7 @@
-cryptsetup (2:2.0.3-8) UNRELEASED; urgency=medium
+cryptsetup (2:2.0.4-1) UNRELEASED; urgency=medium
 
+  * New upstream release.  Add 'libblkid-dev' to Build-Depends since
+    libcryptsetup and utilities are now linked to libblkid.
   * debian/cryptsetup-initramfs.preinst: Improve conffile ownership transfer
     from 'cryptsetup' to 'cryptsetup-initramfs' to comply with Policy §10.7.3.
     (Closes: #904926.)
