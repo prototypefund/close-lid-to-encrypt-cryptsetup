@@ -1,3 +1,11 @@
+cryptsetup (2:2.0.4-3) UNRELEASED; urgency=medium
+
+  * Implement support for --sector-size cryptsetup plain mode option in
+    crypttab. Matching support is also proposed to systemd-cryptsetup as
+    well. LP: #1776626
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Fri, 24 Aug 2018 19:37:46 +0100
+
 cryptsetup (2:2.0.4-2) unstable; urgency=medium
 
   * debian/cryptsetup-initramfs.preinst: Don't try to overwrite

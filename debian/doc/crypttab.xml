@@ -134,6 +134,16 @@
    </varlistentry>
 
    <varlistentry>
+    <term><emphasis>sector-size</emphasis>=&lt;sector-size&gt;</term>
+    <listitem>
+     <simpara>
+      Sector size (ignored for LUKS and TCRYPT devices). See
+      <command>cryptsetup -h</command>.
+     </simpara>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
     <term><emphasis>hash</emphasis>=&lt;hash&gt;</term>
     <listitem>
      <simpara>
