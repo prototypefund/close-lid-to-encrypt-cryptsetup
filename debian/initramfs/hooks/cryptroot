@@ -388,14 +388,11 @@ if [ -f "/etc/cryptsetup-initramfs/conf-hook" ]; then
     . /etc/cryptsetup-initramfs/conf-hook
 fi
 
-# XXX post-Buster: remove this warning and the auto-detection logic below
-if [ -n "${CRYPTSETUP+x}" ]; then
-    cryptsetup_message "WARNING: Honoring CRYPTSETUP=[y|n] will deprecated in the future." \
+if [ "${CRYPTSETUP-}" = "n" ] || [ "${CRYPTSETUP-}" = "N" ]; then
+    # XXX post-Buster: remove this warning and the auto-detection logic below
+    cryptsetup_message "WARNING: Honoring CRYPTSETUP=\"n\" will deprecated in the future." \
         "Please uninstall the 'cryptsetup-initramfs' package if you don't want the" \
         "cryptsetup initramfs integration."
-fi
-
-if [ "${CRYPTSETUP-}" = "n" ] || [ "${CRYPTSETUP-}" = "N" ]; then
     exit 0
 fi
 
