@@ -1,3 +1,10 @@
+cryptsetup (2:2.0.4-3) UNRELEASED; urgency=medium
+
+  * debian/initramfs/hooks/cryptroot: Make _CRYPTTAB_* variables local to
+    crypttab_find_and_print_entry().  (Closes: #907243.)
+
+ -- Guilhem Moulin <guilhem@debian.org>  Sun, 09 Sep 2018 04:32:41 +0200
+
 cryptsetup (2:2.0.4-2) unstable; urgency=medium
 
   * debian/cryptsetup-initramfs.preinst: Don't try to overwrite
