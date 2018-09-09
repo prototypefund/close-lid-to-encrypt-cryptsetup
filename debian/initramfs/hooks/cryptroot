@@ -391,8 +391,8 @@ fi
 if [ "${CRYPTSETUP-}" = "n" ] || [ "${CRYPTSETUP-}" = "N" ]; then
     # XXX post-Buster: remove this warning and the auto-detection logic below
     cryptsetup_message "WARNING: Honoring CRYPTSETUP=\"n\" will deprecated in the future." \
-        "Please uninstall the 'cryptsetup-initramfs' package if you don't want the" \
-        "cryptsetup initramfs integration."
+        "Please uninstall the 'cryptsetup-initramfs' package instead" \
+        "if you don't want the cryptsetup initramfs integration."
     exit 0
 fi
 
