@@ -12,6 +12,7 @@ cryptsetup (2:2.0.4-3) UNRELEASED; urgency=medium
     (successful) unlocking of a LUKS device doesn't yield a known file system.
     The check is preserved for plain dm-crypt devices and tcrypt devices.
     (Closes: #906283.)
+  * debian/control: Bump Standards-Version to 4.2.1 (no changes necessary).
 
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 09 Sep 2018 04:32:41 +0200
 
