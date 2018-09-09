@@ -4,6 +4,10 @@ cryptsetup (2:2.0.4-3) UNRELEASED; urgency=medium
     crypttab_find_and_print_entry().  (Closes: #907243.)
   * debian/functions: Make get_crypt_type() set variable CRYPTTAB_TYPE to the
     type of crypt device ("luks" / "plain" / "tcrypt").
+  * debian/initramfs/scripts/local-top/cryptroot: Don't complain that
+    (successful) unlocking of a LUKS device doesn't yield a known file system.
+    The check is preserved for plain dm-crypt devices and tcrypt devices.
+    (Closes: #906283.)
 
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 09 Sep 2018 04:32:41 +0200
 
