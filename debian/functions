@@ -257,19 +257,20 @@ run_keyscript() {
 }
 
 # get_crypt_type()
-#    Return the mapping's type, depending on its
+#    Set CRYPTTAB_TYPE to the mapping type, depending on its
 #    $CRYPTTAB_OPTION_<option> values
 get_crypt_type() {
-    local type="plain" # assume plain dm-crypt device by default
     if [ "${CRYPTTAB_OPTION_tcrypt-}" = "yes" ]; then
-        type="tcrypt"
+        CRYPTTAB_TYPE="tcrypt"
     elif [ "${CRYPTTAB_OPTION_plain-}" = "yes" ]; then
-        type="plain"
+        CRYPTTAB_TYPE="plain"
     elif [ "${CRYPTTAB_OPTION_luks-}" = "yes" ] ||
             /sbin/cryptsetup isLuks -- "${CRYPTTAB_OPTION_header-$CRYPTTAB_SOURCE}"; then
-        type="luks"
+        CRYPTTAB_TYPE="luks"
+    else
+        # assume plain dm-crypt device by default
+        CRYPTTAB_TYPE="plain"
     fi
-    echo "$type"
 }
 
 # unlock_mapping([$keyfile])
@@ -284,8 +285,7 @@ unlock_mapping() {
         return 1
     fi
 
-    local type="$(get_crypt_type)"
-    if [ "$type" = "luks" ] || [ "$type" = "tcrypt" ]; then
+    if [ "$CRYPTTAB_TYPE" = "luks" ] || [ "$CRYPTTAB_TYPE" = "tcrypt" ]; then
         # ignored for LUKS and TCRYPT devices
         unset -v CRYPTTAB_OPTION_cipher \
                  CRYPTTAB_OPTION_size \
@@ -293,10 +293,10 @@ unlock_mapping() {
                  CRYPTTAB_OPTION_offset \
                  CRYPTTAB_OPTION_skip
     fi
-    if [ "$type" = "plain" ] || [ "$type" = "tcrypt" ]; then
+    if [ "$CRYPTTAB_TYPE" = "plain" ] || [ "$CRYPTTAB_TYPE" = "tcrypt" ]; then
         unset -v CRYPTTAB_OPTION_keyfile_size
     fi
-    if [ "$type" = "tcrypt" ]; then
+    if [ "$CRYPTTAB_TYPE" = "tcrypt" ]; then
         # ignored for TCRYPT devices
         unset -v CRYPTTAB_OPTION_keyfile_offset
     else
@@ -304,7 +304,7 @@ unlock_mapping() {
         unset -v CRYPTTAB_OPTION_veracrypt CRYPTTAB_OPTION_tcrypthidden
     fi
 
-    if [ "$type" != "luks" ]; then
+    if [ "$CRYPTTAB_TYPE" != "luks" ]; then
         # ignored for non-LUKS devices
         unset -v CRYPTTAB_OPTION_keyslot
     fi
@@ -324,7 +324,7 @@ unlock_mapping() {
         ${CRYPTTAB_OPTION_tcrypthidden:+--tcrypt-hidden} \
         ${CRYPTTAB_OPTION_keyfile_size:+--keyfile-size="$CRYPTTAB_OPTION_keyfile_size"} \
         ${CRYPTTAB_OPTION_keyfile_offset:+--keyfile-offset="$CRYPTTAB_OPTION_keyfile_offset"} \
-        --type="$type" --key-file="$keyfile" \
+        --type="$CRYPTTAB_TYPE" --key-file="$keyfile" \
         open -- "$CRYPTTAB_SOURCE" "$CRYPTTAB_NAME"
 }
 

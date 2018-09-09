@@ -2,6 +2,8 @@ cryptsetup (2:2.0.4-3) UNRELEASED; urgency=medium
 
   * debian/initramfs/hooks/cryptroot: Make _CRYPTTAB_* variables local to
     crypttab_find_and_print_entry().  (Closes: #907243.)
+  * debian/functions: Make get_crypt_type() set variable CRYPTTAB_TYPE to the
+    type of crypt device ("luks" / "plain" / "tcrypt").
 
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 09 Sep 2018 04:32:41 +0200
 
