@@ -1,5 +1,6 @@
 cryptsetup (2:2.0.4-3) UNRELEASED; urgency=medium
 
+  [ Guilhem Moulin ]
   * debian/initramfs/hooks/cryptroot:
     + Make _CRYPTTAB_* variables local to crypttab_find_and_print_entry().
       (Closes: #907243.)
@@ -13,6 +14,9 @@ cryptsetup (2:2.0.4-3) UNRELEASED; urgency=medium
     The check is preserved for plain dm-crypt devices and tcrypt devices.
     (Closes: #906283.)
   * debian/control: Bump Standards-Version to 4.2.1 (no changes necessary).
+
+  [ Helmut Grohne ]
+  * Fix FTCBFS: Supply $(CC) from dpkg's buildtools.mk. (Closes: #911042)
 
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 09 Sep 2018 04:32:41 +0200
 
