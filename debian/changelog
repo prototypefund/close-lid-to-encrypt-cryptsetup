@@ -14,6 +14,7 @@ cryptsetup (2:2.0.4-3) UNRELEASED; urgency=medium
     The check is preserved for plain dm-crypt devices and tcrypt devices.
     (Closes: #906283.)
   * debian/control: Bump Standards-Version to 4.2.1 (no changes necessary).
+  * debian/doc/crypttab.xml: Improve formatting.
 
   [ Helmut Grohne ]
   * Fix FTCBFS: Supply $(CC) from dpkg's buildtools.mk. (Closes: #911042)
