@@ -17,6 +17,8 @@ cryptsetup (2:2.0.4-3) UNRELEASED; urgency=medium
   * debian/doc/crypttab.xml: Improve formatting.
   * debian/cryptsetup-run.lintian-overrides: Remove unused override
     init.d-script-possible-missing-stop (x2).
+  * debian/libcryptsetup12.symbols: Add "Build-Depends-Package:
+    libcryptsetup-dev" field.
 
   [ Helmut Grohne ]
   * Fix FTCBFS: Supply $(CC) from dpkg's buildtools.mk. (Closes: #911042)
