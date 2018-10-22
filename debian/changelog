@@ -15,6 +15,8 @@ cryptsetup (2:2.0.4-3) UNRELEASED; urgency=medium
     (Closes: #906283.)
   * debian/control: Bump Standards-Version to 4.2.1 (no changes necessary).
   * debian/doc/crypttab.xml: Improve formatting.
+  * debian/cryptsetup-run.lintian-overrides: Remove unused override
+    init.d-script-possible-missing-stop (x2).
 
   [ Helmut Grohne ]
   * Fix FTCBFS: Supply $(CC) from dpkg's buildtools.mk. (Closes: #911042)
