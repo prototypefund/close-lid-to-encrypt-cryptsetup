@@ -1,4 +1,4 @@
-cryptsetup (2:2.0.4-3) UNRELEASED; urgency=medium
+cryptsetup (2:2.0.4-3) unstable; urgency=medium
 
   [ Guilhem Moulin ]
   * debian/initramfs/hooks/cryptroot:
@@ -27,7 +27,7 @@ cryptsetup (2:2.0.4-3) UNRELEASED; urgency=medium
   * Implement support for `cryptsetup --sector-size` in crypttab(5).
     LP: #1776626.
 
- -- Guilhem Moulin <guilhem@debian.org>  Sun, 09 Sep 2018 04:32:41 +0200
+ -- Guilhem Moulin <guilhem@debian.org>  Mon, 22 Oct 2018 17:45:35 +0200
 
 cryptsetup (2:2.0.4-2) unstable; urgency=medium
 
