@@ -134,6 +134,17 @@
    </varlistentry>
 
    <varlistentry>
+    <term><emphasis>sector-size</emphasis>=&lt;bytes&gt;</term>
+    <listitem>
+     <simpara>
+      Sector size. See
+      <citerefentry><refentrytitle>cryptsetup</refentrytitle><manvolnum>8</manvolnum></citerefentry>
+      for possible values and the default value of this option.
+     </simpara>
+    </listitem>
+   </varlistentry>
+
+   <varlistentry>
     <term><emphasis>hash</emphasis>=&lt;hash&gt;</term>
     <listitem>
      <simpara>

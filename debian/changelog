@@ -18,6 +18,10 @@ cryptsetup (2:2.0.4-3) UNRELEASED; urgency=medium
   [ Helmut Grohne ]
   * Fix FTCBFS: Supply $(CC) from dpkg's buildtools.mk. (Closes: #911042)
 
+  [ Dimitri John Ledkov ]
+  * Implement support for `cryptsetup --sector-size` in crypttab(5).
+    LP: #1776626.
+
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 09 Sep 2018 04:32:41 +0200
 
 cryptsetup (2:2.0.4-2) unstable; urgency=medium
