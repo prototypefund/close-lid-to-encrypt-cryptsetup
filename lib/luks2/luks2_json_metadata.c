@@ -535,22 +535,14 @@ static int hdr_validate_crypt_segment(json_object *jobj, const char *key, json_o
 	}
 
 	sector_size = json_object_get_uint32(jobj_sector_size);
-	if (!sector_size || sector_size % SECTOR_SIZE) {
+	if (!sector_size || MISALIGNED_512(sector_size)) {
 		log_dbg("Illegal sector size: %" PRIu32, sector_size);
 		return 1;
 	}
 
 	if (!numbered("iv_tweak", json_object_get_string(jobj_ivoffset)) ||
-	    !json_str_to_uint64(jobj_ivoffset, &ivoffset))
-		return 1;
-
-	if (offset % sector_size) {
-		log_dbg("Offset field has to be aligned to sector size: %" PRIu32, sector_size);
-		return 1;
-	}
-
-	if (ivoffset % sector_size) {
-		log_dbg("IV offset field has to be aligned to sector size: %" PRIu32, sector_size);
+	    !json_str_to_uint64(jobj_ivoffset, &ivoffset)) {
+		log_dbg("Illegal iv_tweak value.");
 		return 1;
 	}
 
@@ -564,7 +556,8 @@ static int hdr_validate_crypt_segment(json_object *jobj, const char *key, json_o
 
 static int hdr_validate_segments(json_object *hdr_jobj)
 {
-	json_object *jobj, *jobj_digests, *jobj_offset, *jobj_size, *jobj_type;
+	json_object *jobj, *jobj_digests, *jobj_offset, *jobj_size, *jobj_type, *jobj_flags;
+	int i;
 	uint64_t offset, size;
 
 	if (!json_object_object_get_ex(hdr_jobj, "segments", &jobj)) {
@@ -604,13 +597,22 @@ static int hdr_validate_segments(json_object *hdr_jobj)
 			size = 0;
 
 		/* all device-mapper devices are aligned to 512 sector size */
-		if (offset % SECTOR_SIZE) {
+		if (MISALIGNED_512(offset)) {
 			log_dbg("Offset field has to be aligned to sector size: %" PRIu32, SECTOR_SIZE);
 			return 1;
 		}
-		if (size % SECTOR_SIZE) {
+		if (MISALIGNED_512(size)) {
 			log_dbg("Size field has to be aligned to sector size: %" PRIu32, SECTOR_SIZE);
 			return 1;
+		}
+
+		/* flags array is optional and must contain strings */
+		if (json_object_object_get_ex(val, "flags", NULL)) {
+			if (!(jobj_flags = json_contains(val, key, "Segment", "flags", json_type_array)))
+				return 1;
+			for (i = 0; i < (int) json_object_array_length(jobj_flags); i++)
+				if (!json_object_is_type(json_object_array_get_idx(jobj_flags, i), json_type_string))
+					return 1;
 		}
 
 		/* crypt */
@@ -732,7 +734,7 @@ static int validate_keyslots_size(json_object *hdr_jobj, json_object *jobj_keysl
 	if (!json_str_to_uint64(jobj_keyslots_size, &keyslots_size))
 		return 1;
 
-	if (keyslots_size % 4096) {
+	if (MISALIGNED_4K(keyslots_size)) {
 		log_dbg("keyslots_size is not 4 KiB aligned");
 		return 1;
 	}
@@ -789,7 +791,7 @@ static int hdr_validate_config(json_object *hdr_jobj)
 		return 1;
 	}
 
-	if (json_size % 4096) {
+	if (MISALIGNED_4K(json_size)) {
 		log_dbg("Json area is not properly aligned to 4 KiB.");
 		return 1;
 	}
@@ -1189,19 +1191,18 @@ int LUKS2_hdr_restore(struct crypt_device *cd, struct luks2_hdr *hdr,
 	/* end of TODO */
 
 out:
+	LUKS2_hdr_free(hdr);
 	LUKS2_hdr_free(&hdr_file);
 	LUKS2_hdr_free(&tmp_hdr);
 	crypt_memzero(&hdr_file, sizeof(hdr_file));
 	crypt_memzero(&tmp_hdr, sizeof(tmp_hdr));
 	crypt_safe_free(buffer);
 
-	if (devfd >= 0)
+	if (devfd >= 0) {
+		device_sync(device, devfd);
 		close(devfd);
-
-	if (!r) {
-		LUKS2_hdr_free(hdr);
-		r = LUKS2_hdr_read(cd, hdr, 1);
 	}
+
 
 	return r;
 }
@@ -1539,40 +1540,56 @@ static void hdr_dump_tokens(struct crypt_device *cd, json_object *hdr_jobj)
 	}
 }
 
-/* FIXME: sort segments when more segments available later */
 static void hdr_dump_segments(struct crypt_device *cd, json_object *hdr_jobj)
 {
-	json_object *jobj1, *jobj2, *jobj3;
+	char segment[16];
+	json_object *jobj_segments, *jobj_segment, *jobj1, *jobj2;
+	int i, j, flags;
 	uint64_t value;
 
 	log_std(cd, "Data segments:\n");
-	json_object_object_get_ex(hdr_jobj, "segments", &jobj1);
+	json_object_object_get_ex(hdr_jobj, "segments", &jobj_segments);
 
-	json_object_object_foreach(jobj1, key, val) {
-		json_object_object_get_ex(val, "type", &jobj2);
-		log_std(cd, "  %s: %s\n", key, json_object_get_string(jobj2));
+	for (i = 0; i < LUKS2_SEGMENT_MAX; i++) {
+		(void) snprintf(segment, sizeof(segment), "%i", i);
+		if (!json_object_object_get_ex(jobj_segments, segment, &jobj_segment))
+			continue;
 
-		json_object_object_get_ex(val, "offset", &jobj3);
-		json_str_to_uint64(jobj3, &value);
+		json_object_object_get_ex(jobj_segment, "type", &jobj1);
+		log_std(cd, "  %s: %s\n", segment, json_object_get_string(jobj1));
+
+		json_object_object_get_ex(jobj_segment, "offset", &jobj1);
+		json_str_to_uint64(jobj1, &value);
 		log_std(cd, "\toffset: %" PRIu64 " [bytes]\n", value);
 
-		json_object_object_get_ex(val, "size", &jobj3);
-		if (!(strcmp(json_object_get_string(jobj3), "dynamic")))
+		json_object_object_get_ex(jobj_segment, "size", &jobj1);
+		if (!(strcmp(json_object_get_string(jobj1), "dynamic")))
 			log_std(cd, "\tlength: (whole device)\n");
 		else {
-			json_str_to_uint64(jobj3, &value);
+			json_str_to_uint64(jobj1, &value);
 			log_std(cd, "\tlength: %" PRIu64 " [bytes]\n", value);
 		}
 
-		if (json_object_object_get_ex(val, "encryption", &jobj3))
-			log_std(cd, "\tcipher: %s\n", json_object_get_string(jobj3));
+		if (json_object_object_get_ex(jobj_segment, "encryption", &jobj1))
+			log_std(cd, "\tcipher: %s\n", json_object_get_string(jobj1));
 
-		if (json_object_object_get_ex(val, "sector_size", &jobj3))
-			log_std(cd, "\tsector: %" PRIu32 " [bytes]\n", json_object_get_uint32(jobj3));
+		if (json_object_object_get_ex(jobj_segment, "sector_size", &jobj1))
+			log_std(cd, "\tsector: %" PRIu32 " [bytes]\n", json_object_get_uint32(jobj1));
 
-		if (json_object_object_get_ex(val, "integrity", &jobj2) &&
-		    json_object_object_get_ex(jobj2, "type", &jobj3))
-			log_std(cd, "\tintegrity: %s\n", json_object_get_string(jobj3));
+		if (json_object_object_get_ex(jobj_segment, "integrity", &jobj1) &&
+		    json_object_object_get_ex(jobj1, "type", &jobj2))
+			log_std(cd, "\tintegrity: %s\n", json_object_get_string(jobj2));
+
+		if (json_object_object_get_ex(jobj_segment, "flags", &jobj1) &&
+		    (flags = (int)json_object_array_length(jobj1)) > 0) {
+			jobj2 = json_object_array_get_idx(jobj1, 0);
+			log_std(cd, "\tflags : %s", json_object_get_string(jobj2));
+			for (j = 1; j < flags; j++) {
+				jobj2 = json_object_array_get_idx(jobj1, j);
+				log_std(cd, ", %s", json_object_get_string(jobj2));
+			}
+			log_std(cd, "\n");
+		}
 
 		log_std(cd, "\n");
 	}

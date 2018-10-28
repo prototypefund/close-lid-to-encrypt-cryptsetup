@@ -166,7 +166,7 @@ static void _set_activation_flags(uint32_t *flags)
 static int action_open_plain(void)
 {
 	struct crypt_device *cd = NULL;
-	char cipher[MAX_CIPHER_LEN], cipher_mode[MAX_CIPHER_LEN];
+	char *msg, cipher[MAX_CIPHER_LEN], cipher_mode[MAX_CIPHER_LEN];
 	struct crypt_params_plain params = {
 		.hash = opt_hash ?: DEFAULT_PLAIN_HASH,
 		.skip = opt_skip,
@@ -175,8 +175,8 @@ static int action_open_plain(void)
 		.sector_size = opt_sector_size,
 	};
 	char *password = NULL;
-	size_t passwordLen, key_size_max;
-	size_t key_size = (opt_key_size ?: DEFAULT_PLAIN_KEYBITS) / 8;
+	size_t passwordLen, key_size_max, signatures = 0,
+	       key_size = (opt_key_size ?: DEFAULT_PLAIN_KEYBITS) / 8;
 	uint32_t activate_flags = 0;
 	int r;
 
@@ -204,6 +204,27 @@ static int action_open_plain(void)
 
 	if ((r = crypt_init(&cd, action_argv[0])))
 		goto out;
+
+	/* Skip blkid scan when activating plain device with offset */
+	if (!opt_offset) {
+		/* Print all present signatures in read-only mode */
+		r = tools_detect_signatures(action_argv[0], 0, &signatures);
+		if (r < 0)
+			goto out;
+	}
+
+	if (signatures) {
+		r = asprintf(&msg, _("Detected device signature(s) on %s. Proceeding further may damage existing data."), action_argv[0]);
+		if (r == -1) {
+			r = -ENOMEM;
+			goto out;
+		}
+
+		r = yesDialog(msg, _("Operation aborted.\n")) ? 0 : -EINVAL;
+		free(msg);
+		if (r < 0)
+			goto out;
+	}
 
 	r = crypt_format(cd, CRYPT_PLAIN,
 			 cipher, cipher_mode,
@@ -923,7 +944,7 @@ static int _wipe_data_device(struct crypt_device *cd)
 
 static int action_luksFormat(void)
 {
-	int r = -EINVAL, keysize, integrity_keysize = 0, fd;
+	int r = -EINVAL, keysize, integrity_keysize = 0, fd, created = 0;
 	struct stat st;
 	const char *header_device, *type;
 	char *msg = NULL, *key = NULL, *password = NULL;
@@ -977,8 +998,10 @@ static int action_luksFormat(void)
 		fd = open(opt_header_device, O_CREAT|O_EXCL|O_WRONLY, S_IRUSR|S_IWUSR);
 		if (fd == -1 || posix_fallocate(fd, 0, 4096))
 			log_err(_("Cannot create header file %s."), opt_header_device);
-		else
+		else {
 			r = 0;
+			created = 1;
+		}
 		if (fd != -1)
 			close(fd);
 		if (r < 0)
@@ -986,20 +1009,6 @@ static int action_luksFormat(void)
 	}
 
 	header_device = opt_header_device ?: action_argv[0];
-
-	/* Print all present signatures in read-only mode */
-	r = tools_detect_signatures(header_device, 0, &signatures);
-	if (r < 0)
-		return r;
-
-	r = asprintf(&msg, _("This will overwrite data on %s irrevocably."), header_device);
-	if (r == -1)
-		return -ENOMEM;
-
-	r = yesDialog(msg, _("Operation aborted.\n")) ? 0 : -EINVAL;
-	free(msg);
-	if (r < 0)
-		return r;
 
 	r = crypt_parse_name_and_mode(opt_cipher ?: DEFAULT_CIPHER(LUKS1),
 				      cipher, NULL, cipher_mode);
@@ -1026,6 +1035,24 @@ static int action_luksFormat(void)
 		if (opt_header_device)
 			log_err(_("Cannot use %s as on-disk header."), header_device);
 		return r;
+	}
+
+	/* Print all present signatures in read-only mode */
+	r = tools_detect_signatures(header_device, 0, &signatures);
+	if (r < 0)
+		goto out;
+
+	if (!created) {
+		r = asprintf(&msg, _("This will overwrite data on %s irrevocably."), header_device);
+		if (r == -1) {
+			r = -ENOMEM;
+			goto out;
+		}
+
+		r = yesDialog(msg, _("Operation aborted.\n")) ? 0 : -EINVAL;
+		free(msg);
+		if (r < 0)
+			goto out;
 	}
 
 	keysize = (opt_key_size ?: DEFAULT_LUKS1_KEYBITS) / 8 + integrity_keysize;
@@ -1066,8 +1093,10 @@ static int action_luksFormat(void)
 	r = crypt_keyslot_add_by_volume_key(cd, opt_key_slot,
 					    key, keysize,
 					    password, passwordLen);
-	if (r < 0) /* FIXME: call wipe signatures again */
+	if (r < 0) {
+		(void) tools_wipe_all_signatures(header_device);
 		goto out;
+	}
 	tools_keyslot_msg(r, CREATED);
 
 	if (opt_integrity && !opt_integrity_no_wipe)
@@ -1098,8 +1127,11 @@ static int action_open_luks(void)
 	if ((r = crypt_init(&cd, header_device)))
 		goto out;
 
-	if ((r = crypt_load(cd, luksType(opt_type), NULL)))
+	if ((r = crypt_load(cd, luksType(opt_type), NULL))) {
+		log_err(_("Device %s is not a valid LUKS device."),
+			header_device);
 		goto out;
+	}
 
 	if (data_device &&
 	    (r = crypt_set_data_device(cd, data_device)))
@@ -1217,8 +1249,11 @@ static int action_luksKillSlot(void)
 
 	crypt_set_confirm_callback(cd, yesDialog, NULL);
 
-	if ((r = crypt_load(cd, luksType(opt_type), NULL)))
+	if ((r = crypt_load(cd, luksType(opt_type), NULL))) {
+		log_err(_("Device %s is not a valid LUKS device."),
+			uuid_or_device_header(NULL));
 		goto out;
+	}
 
 	ki = crypt_keyslot_status(cd, opt_key_slot);
 	switch (ki) {
@@ -1253,7 +1288,7 @@ static int action_luksKillSlot(void)
 	}
 
 	r = crypt_keyslot_destroy(cd, opt_key_slot);
-	tools_keyslot_msg(r, REMOVED);
+	tools_keyslot_msg(opt_key_slot, REMOVED);
 out:
 	crypt_free(cd);
 	return r;
@@ -1271,8 +1306,11 @@ static int action_luksRemoveKey(void)
 
 	crypt_set_confirm_callback(cd, yesDialog, NULL);
 
-	if ((r = crypt_load(cd, luksType(opt_type), NULL)))
+	if ((r = crypt_load(cd, luksType(opt_type), NULL))) {
+		log_err(_("Device %s is not a valid LUKS device."),
+			uuid_or_device_header(NULL));
 		goto out;
+	}
 
 	r = tools_get_key(_("Enter passphrase to be deleted: "),
 		      &password, &passwordLen,
@@ -1303,7 +1341,7 @@ static int action_luksRemoveKey(void)
 	}
 
 	r = crypt_keyslot_destroy(cd, opt_key_slot);
-	tools_keyslot_msg(r, REMOVED);
+	tools_keyslot_msg(opt_key_slot, REMOVED);
 out:
 	crypt_safe_free(password);
 	crypt_free(cd);
@@ -1324,8 +1362,11 @@ static int luksAddUnboundKey(void)
 
 	crypt_set_confirm_callback(cd, yesDialog, NULL);
 
-	if ((r = crypt_load(cd, CRYPT_LUKS2, NULL)))
+	if ((r = crypt_load(cd, CRYPT_LUKS2, NULL))) {
+		log_err(_("Device %s is not a valid LUKS device."),
+			uuid_or_device_header(NULL));
 		goto out;
+	}
 
 	/* Never call pwquality if using null cipher */
 	if (tools_is_cipher_null(crypt_get_cipher(cd)))
@@ -1384,8 +1425,11 @@ static int action_luksAddKey(void)
 
 	crypt_set_confirm_callback(cd, yesDialog, NULL);
 
-	if ((r = crypt_load(cd, luksType(opt_type), NULL)))
+	if ((r = crypt_load(cd, luksType(opt_type), NULL))) {
+		log_err(_("Device %s is not a valid LUKS device."),
+			uuid_or_device_header(NULL));
 		goto out;
+	}
 
 	/* Never call pwquality if using null cipher */
 	if (tools_is_cipher_null(crypt_get_cipher(cd)))
@@ -1473,8 +1517,11 @@ static int action_luksChangeKey(void)
 	if ((r = crypt_init(&cd, uuid_or_device_header(NULL))))
 		goto out;
 
-	if ((r = crypt_load(cd, luksType(opt_type), NULL)))
+	if ((r = crypt_load(cd, luksType(opt_type), NULL))) {
+		log_err(_("Device %s is not a valid LUKS device."),
+			uuid_or_device_header(NULL));
 		goto out;
+	}
 
 	/* Never call pwquality if using null cipher */
 	if (tools_is_cipher_null(crypt_get_cipher(cd)))
@@ -1495,7 +1542,7 @@ static int action_luksChangeKey(void)
 
 	/* Check password before asking for new one */
 	r = crypt_activate_by_passphrase(cd, NULL, opt_key_slot,
-					 password, password_size, 0);
+					 password, password_size, CRYPT_ACTIVATE_ALLOW_UNBOUND_KEY);
 	tools_passphrase_msg(r);
 	check_signal(&r);
 	if (r < 0)
@@ -1530,8 +1577,17 @@ static int action_luksConvertKey(void)
 	if ((r = crypt_init(&cd, uuid_or_device_header(NULL))))
 		goto out;
 
-	if ((r = crypt_load(cd, CRYPT_LUKS2, NULL)))
+	if ((r = crypt_load(cd, CRYPT_LUKS2, NULL))) {
+		log_err(_("Device %s is not a valid LUKS device."),
+			uuid_or_device_header(NULL));
 		goto out;
+	}
+
+	if (crypt_keyslot_status(cd, opt_key_slot) == CRYPT_SLOT_INACTIVE) {
+		r = -EINVAL;
+		log_err(_("Keyslot %d is not active."), opt_key_slot);
+		goto out;
+	}
 
 	r = set_pbkdf_params(cd, crypt_get_type(cd));
 	if (r) {
@@ -1677,8 +1733,11 @@ static int action_luksDump(void)
 	if ((r = crypt_init(&cd, uuid_or_device_header(NULL))))
 		goto out;
 
-	if ((r = crypt_load(cd, luksType(opt_type), NULL)))
+	if ((r = crypt_load(cd, luksType(opt_type), NULL))) {
+		log_err(_("Device %s is not a valid LUKS device."),
+			uuid_or_device_header(NULL));
 		goto out;
+	}
 
 	if (opt_dump_master_key)
 		r = luksDump_with_volume_key(cd);
@@ -1823,8 +1882,11 @@ static int action_luksErase(void)
 
 	crypt_set_confirm_callback(cd, yesDialog, NULL);
 
-	if ((r = crypt_load(cd, luksType(opt_type), NULL)))
+	if ((r = crypt_load(cd, luksType(opt_type), NULL))) {
+		log_err(_("Device %s is not a valid LUKS device."),
+			uuid_or_device_header(NULL));
 		goto out;
+	}
 
 	if(asprintf(&msg, _("This operation will erase all keyslots on device %s.\n"
 			    "Device will become unusable after this operation."),
@@ -1849,7 +1911,7 @@ static int action_luksErase(void)
 			r = crypt_keyslot_destroy(cd, i);
 			if (r < 0)
 				goto out;
-			tools_keyslot_msg(r, REMOVED);
+			tools_keyslot_msg(i, REMOVED);
 		}
 	}
 out:
@@ -1881,6 +1943,8 @@ static int action_luksConvert(void)
 
 	if ((r = crypt_load(cd, CRYPT_LUKS, NULL)) ||
 	    !(from_type = crypt_get_type(cd))) {
+		log_err(_("Device %s is not a valid LUKS device."),
+			uuid_or_device_header(NULL));
 		crypt_free(cd);
 		return r;
 	}
@@ -1944,8 +2008,11 @@ static int action_luksConfig(void)
 	if ((r = crypt_init(&cd, uuid_or_device_header(NULL))))
 		return r;
 
-	if ((r = crypt_load(cd, CRYPT_LUKS2, NULL)))
+	if ((r = crypt_load(cd, CRYPT_LUKS2, NULL))) {
+		log_err(_("Device %s is not a valid LUKS device."),
+			uuid_or_device_header(NULL));
 		goto out;
+	}
 
 	if (opt_priority && (r = _config_priority(cd)))
 		goto out;
@@ -2106,6 +2173,8 @@ static int action_token(void)
 		return r;
 
 	if ((r = crypt_load(cd, CRYPT_LUKS2, NULL))) {
+		log_err(_("Device %s is not a valid LUKS device."),
+			uuid_or_device(opt_header_device ?: action_argv[1]));
 		crypt_free(cd);
 		return r;
 	}

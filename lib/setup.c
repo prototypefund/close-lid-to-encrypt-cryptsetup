@@ -182,6 +182,11 @@ static const char *mdata_device_path(struct crypt_device *cd)
 	return device_path(cd->metadata_device ?: cd->device);
 }
 
+static const char *data_device_path(struct crypt_device *cd)
+{
+	return device_path(cd->device);
+}
+
 /* internal only */
 struct device *crypt_metadata_device(struct crypt_device *cd)
 {
@@ -777,8 +782,11 @@ static int _crypt_load_luks(struct crypt_device *cd, const char *requested_type,
 		 * perform repair.
 		 */
 		r =  _crypt_load_luks2(cd, cd->type != NULL, repair);
-	} else
+	} else {
+		if (version > 2)
+			log_err(cd, _("Unsupported LUKS version %d."), version);
 		r = -EINVAL;
+	}
 out:
 	crypt_memzero(&hdr, sizeof(hdr));
 
@@ -1361,7 +1369,7 @@ static int _crypt_format_plain(struct crypt_device *cd,
 		sector_size = SECTOR_SIZE;
 
 	if (sector_size < SECTOR_SIZE || sector_size > MAX_SECTOR_SIZE ||
-	    (sector_size & (sector_size - 1))) {
+	    NOTPOW2(sector_size)) {
 		log_err(cd, _("Unsupported encryption sector size."));
 		return -EINVAL;
 	}
@@ -1466,9 +1474,7 @@ static int _crypt_format_luks1(struct crypt_device *cd,
 	if (r < 0)
 		return r;
 
-	/* Wipe first 8 sectors - fs magic numbers etc. */
-	r = crypt_wipe_device(cd, crypt_metadata_device(cd), CRYPT_WIPE_ZERO, 0,
-			      8 * SECTOR_SIZE, 8 * SECTOR_SIZE, NULL, NULL);
+	r = LUKS_wipe_header_areas(&cd->u.luks1.hdr, cd);
 	if (r < 0) {
 		log_err(cd, _("Cannot wipe header on device %s."),
 			mdata_device_path(cd));
@@ -1505,7 +1511,7 @@ static int _crypt_format_luks2(struct crypt_device *cd,
 	}
 
 	if (sector_size < SECTOR_SIZE || sector_size > MAX_SECTOR_SIZE ||
-	    (sector_size & (sector_size - 1))) {
+	    NOTPOW2(sector_size)) {
 		log_err(cd, _("Unsupported encryption sector size."));
 		return -EINVAL;
 	}
@@ -1535,12 +1541,8 @@ static int _crypt_format_luks2(struct crypt_device *cd,
 	}
 
 	r = device_check_access(cd, crypt_metadata_device(cd), DEV_EXCL);
-	if (r < 0) {
-		log_err(cd, _("Cannot use device %s which is in use "
-			      "(already mapped or mounted)."),
-			      device_path(crypt_metadata_device(cd)));
+	if (r < 0)
 		return r;
-	}
 
 	if (!(cd->type = strdup(CRYPT_LUKS2)))
 		return -ENOMEM;
@@ -1567,9 +1569,9 @@ static int _crypt_format_luks2(struct crypt_device *cd,
 		cd->device = NULL;
 		if (device_alloc(&cd->device, params->data_device) < 0)
 			return -ENOMEM;
-		required_alignment = params->data_alignment * sector_size;
+		required_alignment = params->data_alignment * SECTOR_SIZE;
 	} else if (params && params->data_alignment) {
-		required_alignment = params->data_alignment * sector_size;
+		required_alignment = params->data_alignment * SECTOR_SIZE;
 	} else
 		device_topology_alignment(cd->device,
 				       &required_alignment,
@@ -1596,8 +1598,8 @@ static int _crypt_format_luks2(struct crypt_device *cd,
 			       cipher, cipher_mode,
 			       integrity, uuid,
 			       sector_size,
-			       required_alignment / sector_size,
-			       alignment_offset / sector_size,
+			       required_alignment,
+			       alignment_offset,
 			       cd->metadata_device ? 1 : 0);
 	if (r < 0)
 		goto out;
@@ -1609,41 +1611,37 @@ static int _crypt_format_luks2(struct crypt_device *cd,
 			goto out;
 	}
 
+	r = LUKS2_wipe_header_areas(cd, &cd->u.luks2.hdr);
+	if (r < 0) {
+		log_err(cd, _("Cannot wipe header on device %s."),
+			mdata_device_path(cd));
+		goto out;
+	}
+
 	/* Wipe integrity superblock and create integrity superblock */
 	if (crypt_get_integrity_tag_size(cd)) {
-		/* FIXME: this should be locked. */
-		r = crypt_wipe_device(cd, crypt_metadata_device(cd), CRYPT_WIPE_ZERO,
+		r = crypt_wipe_device(cd, crypt_data_device(cd), CRYPT_WIPE_ZERO,
 				      crypt_get_data_offset(cd) * SECTOR_SIZE,
 				      8 * SECTOR_SIZE, 8 * SECTOR_SIZE, NULL, NULL);
 		if (r < 0) {
 			if (r == -EBUSY)
 				log_err(cd, _("Cannot format device %s which is still in use."),
-					mdata_device_path(cd));
+					data_device_path(cd));
 			else if (r == -EACCES) {
 				log_err(cd, _("Cannot format device %s, permission denied."),
-					mdata_device_path(cd));
+					data_device_path(cd));
 				r = -EINVAL;
 			} else
 				log_err(cd, _("Cannot wipe header on device %s."),
-					mdata_device_path(cd));
+					data_device_path(cd));
 
-			goto out;
-		}
-
-		r = device_write_lock(cd, crypt_metadata_device(cd));
-		if (r) {
-			log_err(cd, _("Failed to acquire write lock on device %s."),
-				mdata_device_path(cd));
-			r = -EINVAL;
 			goto out;
 		}
 
 		r = INTEGRITY_format(cd, params ? params->integrity_params : NULL, NULL, NULL);
 		if (r)
 			log_err(cd, _("Cannot format integrity for device %s."),
-				mdata_device_path(cd));
-
-		device_write_unlock(crypt_metadata_device(cd));
+				data_device_path(cd));
 	}
 
 	if (r < 0)
@@ -1740,12 +1738,12 @@ static int _crypt_format_verity(struct crypt_device *cd,
 		return -EINVAL;
 	}
 
-	if (params->hash_area_offset % 512) {
+	if (MISALIGNED_512(params->hash_area_offset)) {
 		log_err(cd, _("Unsupported VERITY hash offset."));
 		return -EINVAL;
 	}
 
-	if (params->fec_area_offset % 512) {
+	if (MISALIGNED_512(params->fec_area_offset)) {
 		log_err(cd, _("Unsupported VERITY FEC offset."));
 		return -EINVAL;
 	}
@@ -2112,7 +2110,7 @@ int crypt_resize(struct crypt_device *cd, const char *name, uint64_t new_size)
 	if (r)
 		goto out;
 
-	if (new_size & ((dmd.u.crypt.sector_size >> SECTOR_SHIFT) - 1)) {
+	if (MISALIGNED(new_size, dmd.u.crypt.sector_size >> SECTOR_SHIFT)) {
 		log_err(cd, _("Device %s size is not aligned to requested sector size (%u bytes)."),
 			crypt_get_device_name(cd), (unsigned)dmd.u.crypt.sector_size);
 		r = -EINVAL;
@@ -2255,16 +2253,19 @@ int crypt_header_restore(struct crypt_device *cd,
 		else
 			r = LUKS2_hdr_restore(cd, &hdr2, backup_file);
 
-		LUKS2_hdr_free(&hdr2);
 		crypt_memzero(&hdr1, sizeof(hdr1));
 		crypt_memzero(&hdr2, sizeof(hdr2));
 	} else if (isLUKS2(cd->type) && (!requested_type || isLUKS2(requested_type))) {
 		r = LUKS2_hdr_restore(cd, &cd->u.luks2.hdr, backup_file);
-		/* FIXME: if (r != 0) context may be lost */
-	} else if (isLUKS1(cd->type) && (!requested_type || isLUKS1(requested_type))) {
+		if (r)
+			_luks2_reload(cd);
+	} else if (isLUKS1(cd->type) && (!requested_type || isLUKS1(requested_type)))
 		r = LUKS_hdr_restore(backup_file, &cd->u.luks1.hdr, cd);
-	} else
+	else
 		r = -EINVAL;
+
+	if (!r)
+		r = _crypt_load_luks(cd, version == 1 ? CRYPT_LUKS1 : CRYPT_LUKS2, 1, 1);
 
 	return r;
 }
@@ -2907,6 +2908,23 @@ int crypt_keyslot_destroy(struct crypt_device *cd, int keyslot)
 	return LUKS2_keyslot_wipe(cd, &cd->u.luks2.hdr, keyslot, 0);
 }
 
+static int _check_header_data_overlap(struct crypt_device *cd, const char *name)
+{
+	if (!name || !isLUKS(cd->type))
+		return 0;
+
+	if (!device_is_identical(crypt_data_device(cd), crypt_metadata_device(cd)))
+		return 0;
+
+	/* FIXME: check real header size */
+	if (crypt_get_data_offset(cd) == 0) {
+		log_err(cd, _("Device header overlaps with data area."));
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
 /*
  * Activation/deactivation of a device
  */
@@ -2925,6 +2943,10 @@ static int _activate_by_passphrase(struct crypt_device *cd,
 
 	if ((flags & CRYPT_ACTIVATE_ALLOW_UNBOUND_KEY) && name)
 		return -EINVAL;
+
+	r = _check_header_data_overlap(cd, name);
+	if (r < 0)
+		return r;
 
 	/* plain, use hashed passphrase */
 	if (isPLAIN(cd->type)) {
@@ -3123,6 +3145,10 @@ int crypt_activate_by_volume_key(struct crypt_device *cd,
 		name ?: "");
 
 	r = _activate_check_status(cd, name);
+	if (r < 0)
+		return r;
+
+	r = _check_header_data_overlap(cd, name);
 	if (r < 0)
 		return r;
 
