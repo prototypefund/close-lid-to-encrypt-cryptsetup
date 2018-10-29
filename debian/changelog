@@ -1,11 +1,11 @@
-cryptsetup (2:2.0.5-1) UNRELEASED; urgency=medium
+cryptsetup (2:2.0.5-1) unstable; urgency=medium
 
   * New upstream release.
   * Remove d/patches/Disable-blockwise-compat-test-as-it-s-FS-dependent.patch
     as the test suite no longer fails on misaligned I/O in O_DIRECT mode.
     (Cf. upstream issue #403.)
 
- -- Guilhem Moulin <guilhem@debian.org>  Sun, 28 Oct 2018 16:41:46 +0100
+ -- Guilhem Moulin <guilhem@debian.org>  Mon, 29 Oct 2018 12:21:00 +0100
 
 cryptsetup (2:2.0.4-3) unstable; urgency=medium
 
