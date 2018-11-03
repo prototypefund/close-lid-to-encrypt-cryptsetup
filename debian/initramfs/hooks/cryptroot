@@ -177,7 +177,9 @@ crypttab_print_entry() {
                 mkdir -pm0700 -- "$DESTDIR/cryptroot/keyfiles"
                 # $CRYPTTAB_NAME can't contain '/' (even after unmangling)
                 keyfile="/cryptroot/keyfiles/$CRYPTTAB_NAME.key"
-                copy_file keyfile "$CRYPTTAB_KEY" "$keyfile"
+                if [ ! -f "$DESTDIR$keyfile" ] && ! copy_file keyfile "$CRYPTTAB_KEY" "$keyfile"; then
+                    cryptsetup_message "WARNING: couldn't copy keyfile $CRYPTTAB_KEY"
+                fi
                 _CRYPTTAB_KEY="/cryptroot/keyfiles/$_CRYPTTAB_NAME.key" # preserve mangled name
                 ;;
             *)
