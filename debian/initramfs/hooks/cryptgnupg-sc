@@ -40,10 +40,18 @@ RV=0
 crypttab_foreach_entry copy_keys
 
 PUBRING="/etc/cryptsetup-initramfs/pubring.gpg"
-if [ -f "$PUBRING" ]; then
-    copy_file pubring "$PUBRING" "/cryptroot/pubring.gpg"
-else
+if [ ! -f "$PUBRING" ]; then
     cryptsetup_message "WARNING: $PUBRING: No such file"
+else
+    [ -d "$DESTDIR/cryptroot/gnupghome" ] || mkdir -pm0700 "$DESTDIR/cryptroot/gnupghome"
+    # let gpg(1) create the keyring on the fly; we're not relying on its
+    # internals since it's the very same binary we're copying to the
+    # initramfs
+    /usr/bin/gpg --no-options --no-autostart --trust-model=always \
+        --quiet --batch --no-tty --logger-file=/dev/null \
+        --homedir="$DESTDIR/cryptroot/gnupghome" --import <"$PUBRING"
+    # make sure not to clutter the initramfs with backup keyrings
+    find "$DESTDIR/cryptroot" -name "*~" -type f -delete
 fi
 
 copy_exec /usr/bin/gpg
