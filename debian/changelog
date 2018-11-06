@@ -1,7 +1,8 @@
-cryptsetup (2:2.0.5-2) UNRELEASED; urgency=medium
+cryptsetup (2:2.0.5-2+openpgpsc1) UNRELEASED; urgency=medium
 
   * debian/initramfs/hooks/*: Skip call to copy_file() when the target already
     exists (as the function return value 1 in the case).
+  * [EXPERIMENTAL] OpenPGP Smartcard support. (Closes: #888916, #903163.)
 
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 04 Nov 2018 00:02:51 +0100
 
