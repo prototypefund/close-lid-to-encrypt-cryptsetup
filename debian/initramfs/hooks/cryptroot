@@ -130,7 +130,7 @@ crypttab_find_and_print_entry() {
     if ! grep -Fxqz -e "$target" -- "$DESTDIR/cryptroot/targets"; then
         printf '%s\0' "$target" >>"$DESTDIR/cryptroot/targets"
         crypttab_find_entry "$target" || return 1
-        crypttab_parse_options        || return 1
+        crypttab_parse_options --missing-path=warn || return 1
         crypttab_print_entry
     fi
 }
@@ -163,10 +163,6 @@ crypttab_print_entry() {
         fi
         # on failure resolve_device() prints a warning and we try our
         # luck with the unchanged _CRYPTTAB_SOURCE value
-    fi
-
-    if [ -n "${CRYPTTAB_OPTION_header+x}" ] && [ ! -f "$CRYPTTAB_OPTION_header" ]; then
-        cryptsetup_message "WARNING: Target $CRYPTTAB_NAME has an invalid header $CRYPTTAB_OPTION_header"
     fi
 
     # if keyscript is set, the "key" is just an argument to the script

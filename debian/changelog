@@ -4,6 +4,10 @@ cryptsetup (2:2.0.5-2) UNRELEASED; urgency=medium
     exists (as the function return value 1 in the case).
   * OpenPGP Smartcard support, based on work by Peter Lebbing and Erik
     Nellessen. (Closes: #888916, #903163.)
+  * Move header presence check to crypttab_parse_options() from
+    unlock_mapping().  Having the presence checks in unlock_mapping() caused
+    dummy password prompts in interactive mode when the LUKS header file was
+    missing.  Regression since 2:2.0.3-2.  (Closes: #914458.)
 
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 04 Nov 2018 00:02:51 +0100
 
