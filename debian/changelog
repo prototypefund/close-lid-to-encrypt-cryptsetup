@@ -1,4 +1,4 @@
-cryptsetup (2:2.0.5-2) UNRELEASED; urgency=medium
+cryptsetup (2:2.0.5-2) unstable; urgency=medium
 
   * debian/initramfs/hooks/*: Skip call to copy_file() when the target already
     exists (as the function return value 1 in the case).
@@ -9,7 +9,7 @@ cryptsetup (2:2.0.5-2) UNRELEASED; urgency=medium
     dummy password prompts in interactive mode when the LUKS header file was
     missing.  Regression since 2:2.0.3-2.  (Closes: #914458.)
 
- -- Guilhem Moulin <guilhem@debian.org>  Sun, 04 Nov 2018 00:02:51 +0100
+ -- Guilhem Moulin <guilhem@debian.org>  Sat, 24 Nov 2018 18:34:42 +0100
 
 cryptsetup (2:2.0.5-1) unstable; urgency=medium
 
