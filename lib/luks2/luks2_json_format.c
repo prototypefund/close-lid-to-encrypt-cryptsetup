@@ -114,6 +114,22 @@ int LUKS2_find_area_gap(struct crypt_device *cd, struct luks2_hdr *hdr,
 	return 0;
 }
 
+int LUKS2_check_metadata_area_size(uint64_t metadata_size)
+{
+	/* see LUKS2_HDR2_OFFSETS */
+	return (metadata_size != 0x004000 &&
+		metadata_size != 0x008000 && metadata_size != 0x010000 &&
+		metadata_size != 0x020000 && metadata_size != 0x040000 &&
+		metadata_size != 0x080000 && metadata_size != 0x100000 &&
+		metadata_size != 0x200000 && metadata_size != 0x400000);
+}
+
+int LUKS2_check_keyslots_area_size(uint64_t keyslots_size)
+{
+	return (MISALIGNED_4K(keyslots_size) ||
+		keyslots_size > LUKS2_MAX_KEYSLOTS_SIZE);
+}
+
 int LUKS2_generate_hdr(
 	struct crypt_device *cd,
 	struct luks2_hdr *hdr,
@@ -242,7 +258,7 @@ int LUKS2_wipe_header_areas(struct crypt_device *cd,
 	length = LUKS2_get_data_offset(hdr) * SECTOR_SIZE;
 	wipe_block = 1024 * 1024;
 
-	if (LUKS2_hdr_validate(hdr->jobj))
+	if (LUKS2_hdr_validate(hdr->jobj, hdr->hdr_size - LUKS2_HDR_BIN_LEN))
 		return -EINVAL;
 
 	/* On detached header wipe at least the first 4k */

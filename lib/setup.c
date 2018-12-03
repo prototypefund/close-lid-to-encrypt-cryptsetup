@@ -1348,6 +1348,7 @@ static int _crypt_format_plain(struct crypt_device *cd,
 			       struct crypt_params_plain *params)
 {
 	unsigned int sector_size = params ? params->sector_size : SECTOR_SIZE;
+	uint64_t dev_size;
 
 	if (!cipher || !cipher_mode) {
 		log_err(cd, _("Invalid plain crypt parameters."));
@@ -1372,6 +1373,15 @@ static int _crypt_format_plain(struct crypt_device *cd,
 	    NOTPOW2(sector_size)) {
 		log_err(cd, _("Unsupported encryption sector size."));
 		return -EINVAL;
+	}
+
+	if (sector_size > SECTOR_SIZE && !device_size(cd->device, &dev_size)) {
+		if (params && params->offset)
+			dev_size -= (params->offset * SECTOR_SIZE);
+		if (dev_size % sector_size) {
+			log_err(cd, _("Device size is not aligned to requested sector size."));
+			return -EINVAL;
+		}
 	}
 
 	if (!(cd->type = strdup(CRYPT_PLAIN)))
@@ -1499,6 +1509,7 @@ static int _crypt_format_luks2(struct crypt_device *cd,
 	unsigned long alignment_offset = 0;
 	unsigned int sector_size = params ? params->sector_size : SECTOR_SIZE;
 	const char *integrity = params ? params->integrity : NULL;
+	uint64_t dev_size;
 
 	cd->u.luks2.hdr.jobj = NULL;
 
@@ -1585,8 +1596,16 @@ static int _crypt_format_luks2(struct crypt_device *cd,
 		goto out;
 	}
 
-	/* FIXME: we have no way how to check AEAD ciphers,
-	 * only length preserving mode or authenc() composed modes */
+	/* FIXME: allow this later also for normal ciphers (check AF_ALG availability. */
+	if (integrity && !integrity_key_size) {
+		r = crypt_cipher_check(cipher, cipher_mode, integrity, volume_key_size);
+		if (r < 0) {
+			log_err(cd, _("Cipher %s-%s (key size %zd bits) is not available."),
+				cipher, cipher_mode, volume_key_size * 8);
+			goto out;
+		}
+	}
+
 	if ((!integrity || integrity_key_size) && !LUKS2_keyslot_cipher_incompatible(cd)) {
 		r = LUKS_check_cipher(cd, volume_key_size - integrity_key_size,
 				      cipher, cipher_mode);
@@ -1603,6 +1622,15 @@ static int _crypt_format_luks2(struct crypt_device *cd,
 			       cd->metadata_device ? 1 : 0);
 	if (r < 0)
 		goto out;
+
+	if (!integrity && sector_size > SECTOR_SIZE && !device_size(crypt_data_device(cd), &dev_size)) {
+		dev_size -= (crypt_get_data_offset(cd) * SECTOR_SIZE);
+		if (dev_size % sector_size) {
+			log_err(cd, _("Device size is not aligned to requested sector size."));
+			r = -EINVAL;
+			goto out;
+		}
+	}
 
 	if (params && (params->label || params->subsystem)) {
 		r = LUKS2_hdr_labels(cd, &cd->u.luks2.hdr,
@@ -2360,7 +2388,7 @@ int crypt_suspend(struct crypt_device *cd,
 	key_desc = crypt_get_device_key_description(name);
 
 	/* we can't simply wipe wrapped keys */
-	if (crypt_cipher_wrapped_key(crypt_get_cipher(cd)))
+	if (crypt_cipher_wrapped_key(crypt_get_cipher(cd), crypt_get_cipher_mode(cd)))
 		r = dm_suspend_device(cd, name);
 	else
 		r = dm_suspend_and_wipe_key(cd, name);
@@ -3348,13 +3376,14 @@ int crypt_deactivate(struct crypt_device *cd, const char *name)
 int crypt_get_active_device(struct crypt_device *cd, const char *name,
 			    struct crypt_active_device *cad)
 {
-	struct crypt_dm_active_device dmd;
+	struct crypt_dm_active_device dmd = {}, dmdi = {};
+	const char *namei = NULL;
 	int r;
 
 	if (!cd || !name || !cad)
 		return -EINVAL;
 
-	r = dm_query_device(cd, name, 0, &dmd);
+	r = dm_query_device(cd, name, DM_ACTIVE_DEVICE, &dmd);
 	if (r < 0)
 		return r;
 
@@ -3362,6 +3391,14 @@ int crypt_get_active_device(struct crypt_device *cd, const char *name,
 	    dmd.target != DM_VERITY &&
 	    dmd.target != DM_INTEGRITY)
 		return -ENOTSUP;
+
+	/* For LUKS2 with integrity we need flags from underlying dm-integrity */
+	if (isLUKS2(cd->type) && crypt_get_integrity_tag_size(cd)) {
+		namei = device_dm_name(dmd.data_device);
+		if (namei && dm_query_device(cd, namei, 0, &dmdi) >= 0)
+			dmd.flags |= dmdi.flags;
+	}
+	device_free(dmd.data_device);
 
 	if (cd && isTCRYPT(cd->type)) {
 		cad->offset	= TCRYPT_get_data_offset(cd, &cd->u.tcrypt.hdr, &cd->u.tcrypt.params);
@@ -3412,7 +3449,8 @@ int crypt_volume_key_get(struct crypt_device *cd,
 		return -EINVAL;
 
 	/* wrapped keys or unbound keys may be exported */
-	if (crypt_fips_mode() && !crypt_cipher_wrapped_key(crypt_get_cipher(cd))) {
+	if (crypt_fips_mode() &&
+	    !crypt_cipher_wrapped_key(crypt_get_cipher(cd), crypt_get_cipher_mode(cd))) {
 		if (!isLUKS2(cd->type) || keyslot == CRYPT_ANY_SLOT ||
 		    !LUKS2_keyslot_for_segment(&cd->u.luks2.hdr, keyslot, CRYPT_DEFAULT_SEGMENT)) {
 			log_err(cd, _("Function not available in FIPS mode."));
