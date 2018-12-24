@@ -79,11 +79,18 @@ becomes
 # <file system> <mount point>   <type>  <options>     <dump>  <pass>
 /dev/mapper/cswap1  none        swap    sw            0       0
 
+ Then, you need to start the cryptsetup swap devices and reactivate swap:
 
- Finally, you need to start the cryptsetup swap devices and reactivate swap:
-
-/etc/init.d/cryptdisks start
+cryptdisks_start cswap1
 swapon -a
+
+ And finally, if /dev/sde9 was previously used as resume device, you should
+disable it (the new swap partition is mapped with a non-persistent key hence
+can't be used for resuming after suspend to disk).  With initramfs-tools 0.130
+and later, this can be done with
+
+echo "RESUME=none" >/etc/initramfs-tools/conf.d/resume
+update-initramfs -u
 
  That's it! You have a crypted swap device. Note that /dev/urandom provides
 only pseudo-random entropy. So if you're paranoid rather use /dev/random as
