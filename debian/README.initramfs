@@ -180,6 +180,11 @@ passphrase(s). A LUKS header backup, or better a backup of the data on the
 derived device may be a good idea. See the Cryptsetup FAQ on how to do this
 right.
 
+Note: The decrypt_derived keyscript won't work when the volume key of the
+device being derived from is offloaded to the kernel keyring service (thus not
+readable by userspace). That behavior is the default for LUKS2 devices (unless
+opened with the '--disable-keyring' option) since Linux 4.10.
+
 Note: If you don't use suspend device support, it's better to use completely
 random keys for your encrypted swap device. See the section '2. Encrypted
 swap partition(s)' in /usr/share/doc/cryptsetup/README.Debian for information
