@@ -8,6 +8,11 @@ cryptsetup (2:2.0.6-2) UNRELEASED; urgency=medium
     won't work with LUKS2 sources.  (The volume key of LUKS2 devices is by
     default offloaded to the kernel keyring service, hence not readable by
     userspace.)  Since 2:2.0.3-5 the keyscript loudly fails on such sources.
+  * decrypt_keyctl keyscript: Always use our askpass binary for password
+    prompt (fail instead of falling back to using stty or `read -s` if askpass
+    is not available).  askpass and decrypt_keyctl are both shipped in our
+    'cryptsetup-run' and 'cryptsetup-udeb' binary packages, and the cryptsetup
+    and askpass binaries are added together to the initramfs image.
 
  -- Guilhem Moulin <guilhem@debian.org>  Mon, 24 Dec 2018 14:29:09 +0100
 
