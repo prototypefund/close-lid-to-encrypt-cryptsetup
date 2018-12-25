@@ -19,9 +19,14 @@ die()
     exit 1
 }
 
-# the keyfile given from crypttab is used as identifier in the keyring
-# including the prefix "cryptkey-"
-ID_="cryptkey-$1"
+if [ -z "${CRYPTTAB_KEY:-}" ] || [ "$CRYPTTAB_KEY" = "none" ]; then
+    # store the passphrase in the key name used by systemd-ask-password
+    ID_="cryptsetup"
+else
+    # the keyfile given from crypttab is used as identifier in the keyring
+    # including the prefix "cryptsetup:"
+    ID_="cryptsetup:$CRYPTTAB_KEY"
+fi
 TIMEOUT_='60'
 ASKPASS_='/lib/cryptsetup/askpass'
 PROMPT_="Caching passphrase for ${CRYPTTAB_NAME}: "

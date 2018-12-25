@@ -69,10 +69,14 @@ set but currently are not used by this keyscript (man 5 crypttab for exact
 description).
 
 Keyscript:
-Keyctl_keyscript uses the Linux kernel keyring facility to securly cache
+decrypt_keyctl uses the Linux kernel keyring facility to securely cache
 passphrases between multiple invocations.
-The keyfile parameter from crypttab is used to find the same passphrase between
-multiple invocations.
+The keyfile parameter from crypttab is used to find the same passphrase
+between multiple invocations.  The term used to described the key in the user
+keyring is "cryptsetup:$CRYPTTAB_KEY", unless "$CRYPTTAB_KEY" is empty
+or has the special value "none", in which case the description is merely
+"cryptsetup" (thus allowing compatibility with other tools like gdm and
+systemd-ask-password(1).)
 
 Currently the cache timeout is 60 seconds and not configurable (please report a
 bug if it is too low for you).

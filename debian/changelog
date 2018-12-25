@@ -13,6 +13,10 @@ cryptsetup (2:2.0.6-2) UNRELEASED; urgency=medium
     is not available).  askpass and decrypt_keyctl are both shipped in our
     'cryptsetup-run' and 'cryptsetup-udeb' binary packages, and the cryptsetup
     and askpass binaries are added together to the initramfs image.
+  * decrypt_keyctl: Document the identifier used in the user keyring:
+    "cryptsetup:$CRYPTTAB_KEY", or merely "cryptsetup" if "$CRYPTTAB_KEY" is
+    empty or "none".  The latter improves compatibility with gdm and
+    systemd-ask-password(1).
 
  -- Guilhem Moulin <guilhem@debian.org>  Mon, 24 Dec 2018 14:29:09 +0100
 
