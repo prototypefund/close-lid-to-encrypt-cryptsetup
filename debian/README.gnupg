@@ -22,7 +22,7 @@ decrypt_gnupg keyscript can be used:
 In order to unlock the encrypted LUKS device automatically during boot process,
 add the following to /etc/crypttab:
 
-cdev1	/dev/<luks_device>	/etc/keys/cryptkey.gpg	luks,keyscript=decrypt_gnupg
+cdev1	/dev/<luks_device>	/etc/keys/cryptkey.gpg	luks,discard,keyscript=decrypt_gnupg
 
 
 decrypting the keyfile at initramfs stage

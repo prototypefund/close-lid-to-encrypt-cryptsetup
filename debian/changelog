@@ -1,5 +1,6 @@
 cryptsetup (2:2.0.6-2) UNRELEASED; urgency=medium
 
+  [ Guilhem Moulin ]
   * Add docs/Keyring.txt and docs/LUKS2-locking.txt to
     /usr/share/doc/cryptsetup-run.
   * debian/README.Debian: Mention that for non-persistent encrypted swap one
@@ -18,7 +19,12 @@ cryptsetup (2:2.0.6-2) UNRELEASED; urgency=medium
     empty or "none".  The latter improves compatibility with gdm and
     systemd-ask-password(1).
 
- -- Guilhem Moulin <guilhem@debian.org>  Mon, 24 Dec 2018 14:29:09 +0100
+  [ Jonas Meurer ]
+  * Update docs about 'discard' option: Mention in manpage, that it's enabled
+    per default by Debian Installer. Give advice to add it to new devices in
+    /etc/crypttab and add it to crypttab example entries in the docs.
+
+ -- Jonas Meurer <jonas@freesources.org>  Thu, 31 Jan 2019 00:26:04 +0100
 
 cryptsetup (2:2.0.6-1) unstable; urgency=medium
 

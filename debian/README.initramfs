@@ -82,7 +82,7 @@ still apply, but since most options can be derived from the information stored
 in the LUKS header on-disk, the line to add to /etc/crypttab should look
 something like this:
 
-  cryptroot /dev/sda2 none luks
+  cryptroot /dev/sda2 none luks,discard
 
 
 6. Exotic key types
@@ -95,7 +95,7 @@ steps necessary to retrieve the key and then prints it to stdout.
 Then add a keyscript=/path/to/your/script.sh to the options (fourth column) in
 the above mentioned /etc/crypttab line, so that it looks something like this:
 
-  cryptroot /dev/sda2 none luks,keyscript=/usr/local/sbin/cryptkey
+  cryptroot /dev/sda2 none luks,discard,keyscript=/usr/local/sbin/cryptkey
 
 Next, regenerate your initramfs image. This will copy the script into the
 initramfs image under the /lib/cryptsetup/keyscripts/ directory.
@@ -149,7 +149,7 @@ below.
 ----------------------------------
 Assume that you have two entries in /etc/crypttab:
 
-cryptroot /dev/sda1 none luks
+cryptroot /dev/sda1 none luks,discard
 cryptswap /dev/sda2 none luks
 
 If cryptswap is used as your suspend/resume device, you'd normally need to
@@ -201,7 +201,7 @@ it is strongly recommended that you use one of the persistent device names from
 /dev/disk/*, e.g. /dev/disk/by-label/myusbkey.
 
 This is an example of a suitable line in cryptsetup:
-cryptroot /dev/sda2 /dev/disk/by-label/myusbkey:/keys/root.key cipher=aes-xts-plain64,size=256,hash=sha1,keyscript=passdev
+cryptroot /dev/sda2 /dev/disk/by-label/myusbkey:/keys/root.key discard,cipher=aes-xts-plain64,size=256,hash=sha1,keyscript=passdev
 
 The above line would cause the boot to pause until /dev/disk/by-label/myusbkey
 appears in the fs, then mount that device and use the file /keys/root.key

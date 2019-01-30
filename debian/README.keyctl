@@ -52,10 +52,10 @@ Layer:
 Crypttab Entries:
 
 <target>    <source>    <keyfile>        <options>
-sda_crypt   /dev/sda2   main_data_raid   luks,keyscript=decrypt_keyctl
-sdb_crypt   /dev/sdb2   main_data_raid   luks,keyscript=decrypt_keyctl
+sda_crypt   /dev/sda2   main_data_raid   luks,discard,keyscript=decrypt_keyctl
+sdb_crypt   /dev/sdb2   main_data_raid   luks,discard,keyscript=decrypt_keyctl
 ...
-sde_crypt   /dev/sde2   main_data_raid   luks,keyscript=decrypt_keyctl
+sde_crypt   /dev/sde2   main_data_raid   luks,discard,keyscript=decrypt_keyctl
 
 
 How does it work
