@@ -52,7 +52,7 @@ Files: lib/base64.c
 Copyright: © 1999-2001, 2004-2006, 2009-2018 Free Software Foundation, Inc.
 License: GPL-2+
 
-Files: lib/crypto_backend/* lib/loopaes/* lib/tcrypt/* lib/verity/* python/*
+Files: lib/crypto_backend/* lib/loopaes/* lib/tcrypt/* lib/verity/*
 Copyright: © 2009-2018 Red Hat, Inc.
            © 2010-2018 Milan Broz <gmazyland@gmail.com>
 License: LGPL-2.1+

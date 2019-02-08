@@ -1,4 +1,14 @@
-cryptsetup (2:2.0.6-2) UNRELEASED; urgency=medium
+cryptsetup (2:2.1.0-1) UNRELEASED; urgency=medium
+
+  * New upstream release.  Highlights include:
+    - The on-disk LUKS format version now defaults to LUKS2 (use `luksFormat
+      --type luks1` to use LUKS1 format). Closes: #919725.
+    - The cryptographic backend used for LUKS header processing is now libssl
+      instead of libgcrypt.
+    - LUKS' default key size is now 512 in XTS mode, half of which is used for
+      block encryption.  XTS mode uses two internal keys, hence the previous
+      default key size (256) caused AES-128 to be used for block encryption,
+      while users were expecting AES-256.
 
   [ Guilhem Moulin ]
   * Add docs/Keyring.txt and docs/LUKS2-locking.txt to

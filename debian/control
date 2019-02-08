@@ -13,14 +13,14 @@ Build-Depends: autoconf,
                docbook-xml,
                docbook-xsl,
                gettext,
-               libargon2-0-dev,
+               libargon2-dev,
                libblkid-dev,
                libdevmapper-dev,
-               libgcrypt20-dev,
                libjson-c-dev,
                libpopt-dev,
                libselinux1-dev,
                libsepol1-dev,
+               libssl-dev,
                libtool,
                pkg-config,
                po-debconf,
@@ -68,8 +68,7 @@ Architecture: all
 Depends: busybox | busybox-static,
          cryptsetup-run (>= ${source:Version}),
          initramfs-tools (>= 0.129) | linux-initramfs-tool,
-         ${misc:Depends},
-         ${shlibs:Depends}
+         ${misc:Depends}
 Recommends: console-setup, kbd
 Breaks: cryptsetup (<< 2:2.0.3-1)
 Replaces: cryptsetup (<< 2:2.0.3-1)
