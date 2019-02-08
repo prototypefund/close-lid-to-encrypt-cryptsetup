@@ -81,6 +81,10 @@
    contain either the string <emphasis>luks</emphasis> respectively
    <emphasis>tcrypt</emphasis> or the <emphasis>cipher</emphasis>,
    <emphasis>hash</emphasis> and <emphasis>size</emphasis> options.
+   Some options can be changed on active devices using
+   <command>cryptsetup refresh [&lt;options&gt;] &lt;name&gt;</command>.
+   Moreover some options can be permanently written to the metada of LUKS2
+   headers using the <command>--persistent</command> option flag.
   </simpara>
   <simpara>
    Options are in the format: <emphasis>key</emphasis>=<emphasis>value</emphasis>

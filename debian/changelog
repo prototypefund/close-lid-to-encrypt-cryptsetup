@@ -29,6 +29,8 @@ cryptsetup (2:2.1.0-1) UNRELEASED; urgency=medium
     empty or "none".  The latter improves compatibility with gdm and
     systemd-ask-password(1).
   * debian/*: run wrap-and-sort(1).
+  * debian/doc/crypttab.xml: mention `cryptsetup refresh` and the `--persistent`
+    option flag.
 
   [ Jonas Meurer ]
   * Update docs about 'discard' option: Mention in manpage, that it's enabled
