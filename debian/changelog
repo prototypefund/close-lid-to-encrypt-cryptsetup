@@ -31,6 +31,7 @@ cryptsetup (2:2.1.0-1) UNRELEASED; urgency=medium
   * debian/*: run wrap-and-sort(1).
   * debian/doc/crypttab.xml: mention `cryptsetup refresh` and the `--persistent`
     option flag.
+  * debian/control: Bump Standards-Version to 4.3.0 (no changes necessary).
 
   [ Jonas Meurer ]
   * Update docs about 'discard' option: Mention in manpage, that it's enabled
