@@ -1,4 +1,4 @@
-cryptsetup (2:2.1.0-1) UNRELEASED; urgency=medium
+cryptsetup (2:2.1.0-1) unstable; urgency=medium
 
   * New upstream release.  Highlights include:
     - The on-disk LUKS format version now defaults to LUKS2 (use `luksFormat
@@ -38,7 +38,7 @@ cryptsetup (2:2.1.0-1) UNRELEASED; urgency=medium
     per default by Debian Installer. Give advice to add it to new devices in
     /etc/crypttab and add it to crypttab example entries in the docs.
 
- -- Jonas Meurer <jonas@freesources.org>  Thu, 31 Jan 2019 00:26:04 +0100
+ -- Guilhem Moulin <guilhem@debian.org>  Sat, 09 Feb 2019 00:40:17 +0100
 
 cryptsetup (2:2.0.6-1) unstable; urgency=medium
 
