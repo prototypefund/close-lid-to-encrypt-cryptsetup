@@ -183,7 +183,9 @@ right.
 Note: The decrypt_derived keyscript won't work when the volume key of the
 device being derived from is offloaded to the kernel keyring service (thus not
 readable by userspace). That behavior is the default for LUKS2 devices (unless
-opened with the '--disable-keyring' option) since Linux 4.10.
+opened with the '--disable-keyring' option) since Linux 4.10. For such devices,
+an alternative is to use the same passphrase and unlock the source device using
+the decrypt_keyctl keyscript.
 
 Note: If you don't use suspend device support, it's better to use completely
 random keys for your encrypted swap device. See the section '2. Encrypted
