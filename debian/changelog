@@ -2797,4 +2797,3 @@ cryptsetup-luks (0.992-1) unstable; urgency=low
   * "integrated LUKS" support (very messy hack)
 
  -- Michael Gebetsroither <michael.geb@gmx.at>  Thu, 10 Feb 2005 18:16:21 +0100
-

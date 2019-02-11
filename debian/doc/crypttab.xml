@@ -456,7 +456,7 @@
      <simpara>
       The executable at the indicated path is executed with the value of the
       <emphasis>third field</emphasis> as only argument. The keyscript output
-      is passed to cryptsetup as decyption key. 
+      is passed to cryptsetup as decyption key.
       When used in initramfs, the executable either needs to be self-contained
       (i.e. does'nt rely on any external program which is not present in the
       initramfs environment) or the dependencies have to added to the initramfs
