@@ -1,3 +1,14 @@
+cryptsetup (2:2.2.0~rc0-1) experimental; urgency=low
+
+  * New /testing/ upstream release 2.2.0 RC0.  Highlights include:
+    - New LUKS2 online reencryption extension, allowing reencryption of
+      mounted LUKS2 devices.
+    - Optional global serialization lock for memory hard PBKDF, to workaround
+      situations when multiple devices are unlocked in parallel, possibly
+      exhausting memory and triggering the OOM killer.  (Cf. #924560.)
+
+ -- Guilhem Moulin <guilhem@debian.org>  Mon, 06 May 2019 12:02:54 +0200
+
 cryptsetup (2:2.1.0-3) unstable; urgency=medium
 
   * d/scripts/decrypt_opensc: Fix standard output poisoning.  Thanks to Nils
