@@ -1,9 +1,9 @@
 AC_PREREQ([2.67])
-AC_INIT([cryptsetup],[2.1.0])
+AC_INIT([cryptsetup],[2.2.0-rc0])
 
 dnl library version from <major>.<minor>.<release>[-<suffix>]
 LIBCRYPTSETUP_VERSION=$(echo $PACKAGE_VERSION | cut -f1 -d-)
-LIBCRYPTSETUP_VERSION_INFO=16:0:4
+LIBCRYPTSETUP_VERSION_INFO=17:0:5
 
 AM_SILENT_RULES([yes])
 AC_CONFIG_SRCDIR(src/cryptsetup.c)
@@ -209,6 +209,8 @@ AC_DEFUN([CONFIGURE_GCRYPT], [
 		NO_FIPS([])
 	fi
 
+	AC_CHECK_DECLS([GCRY_CIPHER_MODE_XTS], [], [], [#include <gcrypt.h>])
+
 	if test "x$enable_static_cryptsetup" = "xyes"; then
 		saved_LIBS=$LIBS
 		LIBS="$saved_LIBS $LIBGCRYPT_LIBS -static"
@@ -359,6 +361,7 @@ LIBS=$saved_LIBS
 dnl Check for JSON-C used in LUKS2
 PKG_CHECK_MODULES([JSON_C], [json-c])
 AC_CHECK_DECLS([json_object_object_add_ex], [], [], [#include <json-c/json.h>])
+AC_CHECK_DECLS([json_object_deep_copy], [], [], [#include <json-c/json.h>])
 
 dnl Crypto backend configuration.
 AC_ARG_WITH([crypto_backend],

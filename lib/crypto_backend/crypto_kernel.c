@@ -27,7 +27,7 @@
 #include <sys/socket.h>
 #include <sys/utsname.h>
 #include <linux/if_alg.h>
-#include "crypto_backend.h"
+#include "crypto_backend_internal.h"
 
 /* FIXME: remove later */
 #ifndef AF_ALG
@@ -75,6 +75,10 @@ struct crypt_hmac {
 	int tfmfd;
 	int opfd;
 	int hash_len;
+};
+
+struct crypt_cipher {
+	struct crypt_cipher_kernel ck;
 };
 
 static int crypt_kernel_socket_init(struct sockaddr_alg *sa, int *tfmfd, int *opfd,
@@ -341,4 +345,50 @@ int crypt_pbkdf(const char *kdf, const char *hash,
 	}
 
 	return -EINVAL;
+}
+
+/* Block ciphers */
+int crypt_cipher_init(struct crypt_cipher **ctx, const char *name,
+		    const char *mode, const void *key, size_t key_length)
+{
+	struct crypt_cipher *h;
+	int r;
+
+	h = malloc(sizeof(*h));
+	if (!h)
+		return -ENOMEM;
+
+	r = crypt_cipher_init_kernel(&h->ck, name, mode, key, key_length);
+	if (r < 0) {
+		free(h);
+		return r;
+	}
+
+	*ctx = h;
+	return 0;
+}
+
+void crypt_cipher_destroy(struct crypt_cipher *ctx)
+{
+	crypt_cipher_destroy_kernel(&ctx->ck);
+	free(ctx);
+}
+
+int crypt_cipher_encrypt(struct crypt_cipher *ctx,
+			 const char *in, char *out, size_t length,
+			 const char *iv, size_t iv_length)
+{
+	return crypt_cipher_encrypt_kernel(&ctx->ck, in, out, length, iv, iv_length);
+}
+
+int crypt_cipher_decrypt(struct crypt_cipher *ctx,
+			 const char *in, char *out, size_t length,
+			 const char *iv, size_t iv_length)
+{
+	return crypt_cipher_decrypt_kernel(&ctx->ck, in, out, length, iv, iv_length);
+}
+
+bool crypt_cipher_kernel_only(struct crypt_cipher *ctx)
+{
+	return true;
 }

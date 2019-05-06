@@ -116,6 +116,16 @@ typedef int32_t key_serial_t;
 #define PASS7 "bbb"
 #define PASS8 "iii"
 
+/* Allow to run without config.h */
+#ifndef DEFAULT_LUKS1_HASH
+  #define DEFAULT_LUKS1_HASH "sha256"
+  #define DEFAULT_LUKS1_ITER_TIME 2000
+  #define DEFAULT_LUKS2_ITER_TIME 2000
+  #define DEFAULT_LUKS2_MEMORY_KB 1048576
+  #define DEFAULT_LUKS2_PARALLEL_THREADS 4
+  #define DEFAULT_LUKS2_PBKDF "argon2i"
+#endif
+
 static int _fips_mode = 0;
 
 static char *DEVICE_1 = NULL;
@@ -221,27 +231,29 @@ static void _remove_keyfiles(void)
 #define DM_RETRY ""
 #endif
 
+#define DM_NOSTDERR " 2>/dev/null"
+
 static void _cleanup_dmdevices(void)
 {
 	struct stat st;
 
 	if (!stat(DMDIR H_DEVICE, &st))
-		_system("dmsetup remove " DM_RETRY H_DEVICE, 0);
+		_system("dmsetup remove " DM_RETRY H_DEVICE DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR H_DEVICE_WRONG, &st))
-		_system("dmsetup remove " DM_RETRY H_DEVICE_WRONG, 0);
+		_system("dmsetup remove " DM_RETRY H_DEVICE_WRONG DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR L_DEVICE_0S, &st))
-		_system("dmsetup remove " DM_RETRY L_DEVICE_0S, 0);
+		_system("dmsetup remove " DM_RETRY L_DEVICE_0S DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR L_DEVICE_1S, &st))
-		_system("dmsetup remove " DM_RETRY L_DEVICE_1S, 0);
+		_system("dmsetup remove " DM_RETRY L_DEVICE_1S DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR L_DEVICE_WRONG, &st))
-		_system("dmsetup remove " DM_RETRY L_DEVICE_WRONG, 0);
+		_system("dmsetup remove " DM_RETRY L_DEVICE_WRONG DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR L_DEVICE_OK, &st))
-		_system("dmsetup remove " DM_RETRY L_DEVICE_OK, 0);
+		_system("dmsetup remove " DM_RETRY L_DEVICE_OK DM_NOSTDERR, 0);
 
 	t_dev_offset = 0;
 }
@@ -253,16 +265,16 @@ static void _cleanup(void)
 	//_system("udevadm settle", 0);
 
 	if (!stat(DMDIR CDEVICE_1, &st))
-		_system("dmsetup remove " CDEVICE_1, 0);
+		_system("dmsetup remove " CDEVICE_1 DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR CDEVICE_2, &st))
-		_system("dmsetup remove " CDEVICE_2, 0);
+		_system("dmsetup remove " CDEVICE_2 DM_NOSTDERR, 0);
 
 	if (!stat(DEVICE_EMPTY, &st))
-		_system("dmsetup remove " DEVICE_EMPTY_name, 0);
+		_system("dmsetup remove " DEVICE_EMPTY_name DM_NOSTDERR, 0);
 
 	if (!stat(DEVICE_ERROR, &st))
-		_system("dmsetup remove " DEVICE_ERROR_name, 0);
+		_system("dmsetup remove " DEVICE_ERROR_name DM_NOSTDERR, 0);
 
 	_cleanup_dmdevices();
 
@@ -914,6 +926,25 @@ static void AddDeviceLuks2(void)
 	FAIL_(crypt_activate_by_volume_key(cd, CDEVICE_1, key3, key_size, 0), "VK doesn't match any digest assigned to segment 0");
 	crypt_free(cd);
 
+	/*
+	 * Check regression in getting keyslot encryption parameters when
+	 * volume key size is unknown (no active keyslots).
+	 */
+	if (!_fips_mode) {
+		OK_(crypt_init(&cd, DMDIR L_DEVICE_1S));
+		crypt_set_iteration_time(cd, 1);
+		OK_(crypt_format(cd, CRYPT_LUKS2, cipher, cipher_mode, NULL, key, key_size, NULL));
+		EQ_(crypt_keyslot_add_by_volume_key(cd, 0, NULL, key_size, PASSPHRASE, strlen(PASSPHRASE)), 0);
+		/* drop context copy of volume key */
+		crypt_free(cd);
+		OK_(crypt_init(&cd, DMDIR L_DEVICE_1S));
+		OK_(crypt_load(cd, CRYPT_LUKS, NULL));
+		EQ_(crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key, &key_size, PASSPHRASE, strlen(PASSPHRASE)), 0);
+		OK_(crypt_keyslot_destroy(cd, 0));
+		EQ_(crypt_keyslot_add_by_volume_key(cd, 0, key, key_size, PASSPHRASE, strlen(PASSPHRASE)), 0);
+		crypt_free(cd);
+	}
+
 	_cleanup_dmdevices();
 }
 
@@ -1282,8 +1313,8 @@ static void Luks2HeaderBackup(void)
 
 	// exercise luksOpen using backup header on block device
 	fd = loop_attach(&DEVICE_3, BACKUP_FILE, 0, 0, &ro);
+	NOTFAIL_(fd, "Bad loop device.");
 	close(fd);
-	OK_(fd < 0);
 	OK_(crypt_init(&cd, DEVICE_3));
 	OK_(crypt_load(cd, CRYPT_LUKS2, NULL));
 	OK_(crypt_set_data_device(cd, DMDIR L_DEVICE_OK));
@@ -1484,11 +1515,13 @@ static void TokenActivationByKeyring(void)
 	};
 	uint64_t r_payload_offset;
 
-	kid = add_key("user", KEY_DESC_TEST0, PASSPHRASE, strlen(PASSPHRASE), KEY_SPEC_THREAD_KEYRING);
-	if (kid < 0) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
+	if (!t_dm_crypt_keyring_support()) {
+		printf("WARNING: Kernel keyring not supported, skipping test.\n");
+		return;
 	}
+
+	kid = add_key("user", KEY_DESC_TEST0, PASSPHRASE, strlen(PASSPHRASE), KEY_SPEC_THREAD_KEYRING);
+	NOTFAIL_(kid, "Test or kernel keyring are broken.");
 
 	OK_(get_luks2_offsets(1, 0, 0, NULL, &r_payload_offset));
 	OK_(create_dmdevice_over_loop(L_DEVICE_1S, r_payload_offset + 1));
@@ -1510,16 +1543,10 @@ static void TokenActivationByKeyring(void)
 	OK_(crypt_deactivate(cd, CDEVICE_1));
 	crypt_free(cd);
 
-	if (keyctl_unlink(kid, KEY_SPEC_THREAD_KEYRING)) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
-	}
+	NOTFAIL_(keyctl_unlink(kid, KEY_SPEC_THREAD_KEYRING), "Test or kernel keyring are broken.");
 
 	kid = add_key("user", KEY_DESC_TEST0, PASSPHRASE, strlen(PASSPHRASE), KEY_SPEC_PROCESS_KEYRING);
-	if (kid < 0) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
-	}
+	NOTFAIL_(kid, "Test or kernel keyring are broken.");
 
 	// add token 1 with process keyring key
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_1S));
@@ -1537,23 +1564,14 @@ static void TokenActivationByKeyring(void)
 	OK_(crypt_deactivate(cd, CDEVICE_1));
 	crypt_free(cd);
 
-	if (keyctl_unlink(kid, KEY_SPEC_PROCESS_KEYRING)) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
-	}
+	NOTFAIL_(keyctl_unlink(kid, KEY_SPEC_PROCESS_KEYRING), "Test or kernel keyring are broken.");
 
 	// create two tokens and let the cryptsetup unlock the volume with the valid one
 	kid = add_key("user", KEY_DESC_TEST0, PASSPHRASE, strlen(PASSPHRASE), KEY_SPEC_THREAD_KEYRING);
-	if (kid < 0) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
-	}
+	NOTFAIL_(kid, "Test or kernel keyring are broken.");
 
 	kid1 = add_key("user", KEY_DESC_TEST1, PASSPHRASE1, strlen(PASSPHRASE1), KEY_SPEC_THREAD_KEYRING);
-	if (kid1 < 0) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
-	}
+	NOTFAIL_(kid1, "Test or kernel keyring are broken.");
 
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_1S));
 	OK_(crypt_load(cd, CRYPT_LUKS2, NULL));
@@ -1575,10 +1593,7 @@ static void TokenActivationByKeyring(void)
 	OK_(crypt_deactivate(cd, CDEVICE_1));
 	crypt_free(cd);
 
-	if (keyctl_unlink(kid, KEY_SPEC_THREAD_KEYRING)) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
-	}
+	NOTFAIL_(keyctl_unlink(kid, KEY_SPEC_THREAD_KEYRING), "Test or kernel keyring are broken.");
 
 	// activate by any token with token 0 having absent pass from keyring
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_1S));
@@ -1588,10 +1603,7 @@ static void TokenActivationByKeyring(void)
 	crypt_free(cd);
 
 	kid = add_key("user", KEY_DESC_TEST0, PASSPHRASE, strlen(PASSPHRASE), KEY_SPEC_THREAD_KEYRING);
-	if (kid < 0) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
-	}
+	NOTFAIL_(kid, "Test or kernel keyring are broken.");
 
 	// replace pass for keyslot 0 making token 0 invalid
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_1S));
@@ -1622,16 +1634,10 @@ static void TokenActivationByKeyring(void)
 	EQ_(crypt_token_assign_keyslot(cd, 2, 1), 2);
 	crypt_free(cd);
 
-	if (keyctl_unlink(kid, KEY_SPEC_THREAD_KEYRING)) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
-	}
+	NOTFAIL_(keyctl_unlink(kid, KEY_SPEC_THREAD_KEYRING), "Test or kernel keyring are broken.");
 
 	kid1 = add_key("user", KEY_DESC_TEST1, PASSPHRASE1, strlen(PASSPHRASE1), KEY_SPEC_THREAD_KEYRING);
-	if (kid1 < 0) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
-	}
+	NOTFAIL_(kid1, "Test or kernel keyring are broken.");
 
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_1S));
 	OK_(crypt_load(cd, CRYPT_LUKS2, NULL));
@@ -2581,6 +2587,18 @@ static void Luks2KeyslotAdd(void)
 	const char *mk_hex2 = "bb21158c733229347bd4e681891e213d94c685be6a5b84818afe7a78a6de7a1e";
 	size_t key_ret_len, key_size = strlen(mk_hex) / 2;
 	uint64_t r_payload_offset;
+	const struct crypt_pbkdf_type argon2kdf = {
+		.type = "argon2i",
+		.hash = "sha256",
+		.iterations = 4,
+		.max_memory_kb = 32,
+		.parallel_threads = 1,
+		.flags = CRYPT_PBKDF_NO_BENCHMARK,
+	};
+	struct crypt_params_luks2 params2 = {
+		.pbkdf = &argon2kdf,
+		.sector_size = SECTOR_SIZE
+	};
 
 	crypt_decode_key(key, mk_hex, key_size);
 	crypt_decode_key(key2, mk_hex2, key_size);
@@ -2590,8 +2608,7 @@ static void Luks2KeyslotAdd(void)
 
 	/* test crypt_keyslot_add_by_key */
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_OK));
-	crypt_set_iteration_time(cd, 1);
-	OK_(crypt_format(cd, CRYPT_LUKS2, cipher, cipher_mode, NULL, key, key_size, NULL));
+	OK_(crypt_format(cd, CRYPT_LUKS2, cipher, cipher_mode, NULL, key, key_size, &params2));
 	EQ_(crypt_keyslot_add_by_key(cd, 1, key2, key_size, PASSPHRASE1, strlen(PASSPHRASE1), CRYPT_VOLUME_KEY_NO_SEGMENT), 1);
 	EQ_(crypt_keyslot_add_by_volume_key(cd, 0, key, key_size, PASSPHRASE, strlen(PASSPHRASE)), 0);
 	EQ_(crypt_keyslot_status(cd, 0), CRYPT_SLOT_ACTIVE_LAST);
@@ -2646,6 +2663,45 @@ static void Luks2KeyslotAdd(void)
 	EQ_(crypt_activate_by_passphrase(cd, CDEVICE_1, 5, PASSPHRASE1, strlen(PASSPHRASE1), 0), 5);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
 	EQ_(crypt_activate_by_passphrase(cd, CDEVICE_1, 6, PASSPHRASE1, strlen(PASSPHRASE1), 0), 6);
+	OK_(crypt_deactivate(cd, CDEVICE_1));
+
+	crypt_free(cd);
+
+	OK_(crypt_init(&cd, DMDIR L_DEVICE_OK));
+	OK_(crypt_format(cd, CRYPT_LUKS2, cipher, cipher_mode, NULL, key, key_size, &params2));
+	/* keyslot 0, volume key, digest 0 */
+	EQ_(crypt_keyslot_add_by_key(cd, 0, key, key_size, PASSPHRASE, strlen(PASSPHRASE), 0), 0);
+	 /* keyslot 1, unbound key, digest 1 */
+	EQ_(crypt_keyslot_add_by_key(cd, 1, key2, key_size, PASSPHRASE1, strlen(PASSPHRASE1), CRYPT_VOLUME_KEY_NO_SEGMENT), 1);
+	 /* keyslot 2, unbound key, digest 1 */
+	EQ_(crypt_keyslot_add_by_key(cd, 2, key2, key_size, PASSPHRASE1, strlen(PASSPHRASE1), CRYPT_VOLUME_KEY_NO_SEGMENT | CRYPT_VOLUME_KEY_DIGEST_REUSE), 2);
+	 /* keyslot 3, unbound key, digest 2 */
+	EQ_(crypt_keyslot_add_by_key(cd, 3, key2, key_size - 1, PASSPHRASE1, strlen(PASSPHRASE1), CRYPT_VOLUME_KEY_NO_SEGMENT | CRYPT_VOLUME_KEY_DIGEST_REUSE), 3);
+	 /* keyslot 4, unbound key, digest 1 */
+	EQ_(crypt_keyslot_add_by_key(cd, CRYPT_ANY_SLOT, key2, key_size, PASSPHRASE1, strlen(PASSPHRASE1), CRYPT_VOLUME_KEY_NO_SEGMENT | CRYPT_VOLUME_KEY_DIGEST_REUSE), 4);
+	FAIL_(crypt_keyslot_add_by_key(cd, CRYPT_ANY_SLOT, key, key_size, PASSPHRASE1, strlen(PASSPHRASE1), CRYPT_VOLUME_KEY_NO_SEGMENT | CRYPT_VOLUME_KEY_SET), "Illegal");
+	FAIL_(crypt_keyslot_add_by_key(cd, CRYPT_ANY_SLOT, key, key_size, PASSPHRASE1, strlen(PASSPHRASE1), CRYPT_VOLUME_KEY_NO_SEGMENT | CRYPT_VOLUME_KEY_SET | CRYPT_VOLUME_KEY_DIGEST_REUSE), "Illegal");
+	/* Such key doesn't exist, nothing to reuse */
+	FAIL_(crypt_keyslot_add_by_key(cd, CRYPT_ANY_SLOT, key2, key_size - 2, PASSPHRASE1, strlen(PASSPHRASE1), CRYPT_VOLUME_KEY_DIGEST_REUSE), "Key digest doesn't match any existing.");
+	/* Keyslot 5, volume key, digest 0 */
+	EQ_(crypt_keyslot_add_by_key(cd, 5, key, key_size, PASSPHRASE1, strlen(PASSPHRASE1), CRYPT_VOLUME_KEY_DIGEST_REUSE), 5);
+
+	OK_(crypt_activate_by_volume_key(cd, NULL, key, key_size, 0));
+	EQ_(crypt_keyslot_add_by_key(cd, 1, NULL, key_size, PASSPHRASE1, strlen(PASSPHRASE1), CRYPT_VOLUME_KEY_SET), 1);
+	OK_(crypt_activate_by_volume_key(cd, NULL, key2, key_size, 0));
+	FAIL_(crypt_activate_by_volume_key(cd, NULL, key, key_size, 0), "Not a volume key");
+	EQ_(crypt_activate_by_passphrase(cd, CDEVICE_1, 1, PASSPHRASE1, strlen(PASSPHRASE1), 0), 1);
+	OK_(crypt_deactivate(cd, CDEVICE_1));
+	EQ_(crypt_activate_by_passphrase(cd, CDEVICE_1, 2, PASSPHRASE1, strlen(PASSPHRASE1), 0), 2);
+	OK_(crypt_deactivate(cd, CDEVICE_1));
+	FAIL_(crypt_activate_by_passphrase(cd, CDEVICE_1, 0, PASSPHRASE, strlen(PASSPHRASE), 0), "No volume key keyslot");
+
+	/* TODO: key is unusable with aes-xts */
+	// FAIL_(crypt_keyslot_add_by_key(cd, 3, NULL, 0, PASSPHRASE1, strlen(PASSPHRASE1), CRYPT_VOLUME_KEY_SET), "Unusable key with segment cipher");
+
+	EQ_(crypt_keyslot_add_by_key(cd, 5, NULL, 0, PASSPHRASE1, strlen(PASSPHRASE1), CRYPT_VOLUME_KEY_SET), 5);
+	FAIL_(crypt_activate_by_volume_key(cd, NULL, key2, key_size, 0), "Not a volume key");
+	EQ_(crypt_activate_by_passphrase(cd, CDEVICE_1, 5, PASSPHRASE1, strlen(PASSPHRASE1), 0), 5);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
 
 	crypt_free(cd);
@@ -2789,12 +2845,15 @@ static void Luks2ActivateByKeyring(void)
 	const char *cipher = "aes";
 	const char *cipher_mode = "xts-plain64";
 
-	kid = add_key("user", KEY_DESC_TEST0, PASSPHRASE, strlen(PASSPHRASE), KEY_SPEC_THREAD_KEYRING);
-	kid1 = add_key("user", KEY_DESC_TEST1, PASSPHRASE1, strlen(PASSPHRASE1), KEY_SPEC_THREAD_KEYRING);
-	if (kid < 0 || kid1 < 0) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
+	if (!t_dm_crypt_keyring_support()) {
+		printf("WARNING: Kernel keyring not supported, skipping test.\n");
+		return;
 	}
+
+	kid = add_key("user", KEY_DESC_TEST0, PASSPHRASE, strlen(PASSPHRASE), KEY_SPEC_THREAD_KEYRING);
+	NOTFAIL_(kid, "Test or kernel keyring are broken.");
+	kid1 = add_key("user", KEY_DESC_TEST1, PASSPHRASE1, strlen(PASSPHRASE1), KEY_SPEC_THREAD_KEYRING);
+	NOTFAIL_(kid1, "Test or kernel keyring are broken.");
 
 	OK_(get_luks2_offsets(1, 0, 0, NULL, &r_payload_offset));
 	OK_(create_dmdevice_over_loop(L_DEVICE_OK, r_payload_offset + 1));
@@ -2830,15 +2889,8 @@ static void Luks2ActivateByKeyring(void)
 	FAIL_(crypt_activate_by_keyring(cd, NULL, KEY_DESC_TEST1, 0, 0), "Failed to unclock keyslot");
 	crypt_free(cd);
 
-	if (keyctl_unlink(kid, KEY_SPEC_THREAD_KEYRING)) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
-	}
-
-	if (keyctl_unlink(kid1, KEY_SPEC_THREAD_KEYRING)) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
-	}
+	NOTFAIL_(keyctl_unlink(kid, KEY_SPEC_THREAD_KEYRING), "Test or kernel keyring are broken.");
+	NOTFAIL_(keyctl_unlink(kid1, KEY_SPEC_THREAD_KEYRING), "Test or kernel keyring are broken.");
 
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_OK));
 	OK_(crypt_load(cd, CRYPT_LUKS2, NULL));
@@ -2993,17 +3045,16 @@ static void Luks2Requirements(void)
 	OK_(crypt_activate_by_volume_key(cd, NULL, key, key_size, t_dm_crypt_keyring_support() ? CRYPT_ACTIVATE_KEYRING_KEY : 0));
 
 #ifdef KERNEL_KEYRING
-	kid = add_key("user", KEY_DESC_TEST0, "aaa", 3, KEY_SPEC_THREAD_KEYRING);
-	if (kid < 0) {
-		printf("Test or kernel keyring are broken.\n");
-		exit(1);
-	}
+	if (t_dm_crypt_keyring_support()) {
+		kid = add_key("user", KEY_DESC_TEST0, "aaa", 3, KEY_SPEC_THREAD_KEYRING);
+		NOTFAIL_(kid, "Test or kernel keyring are broken.");
 
-	/* crypt_activate_by_keyring (restricted for activation only) */
-	FAIL_((r = crypt_activate_by_keyring(cd, CDEVICE_1, KEY_DESC_TEST0, 0, 0)), "Unmet requirements detected");
-	EQ_(r, -ETXTBSY);
-	OK_(crypt_activate_by_keyring(cd, NULL, KEY_DESC_TEST0, 0, 0));
-	OK_(crypt_activate_by_keyring(cd, NULL, KEY_DESC_TEST0, 0, t_dm_crypt_keyring_support() ? CRYPT_ACTIVATE_KEYRING_KEY : 0));
+		/* crypt_activate_by_keyring (restricted for activation only) */
+		FAIL_((r = crypt_activate_by_keyring(cd, CDEVICE_1, KEY_DESC_TEST0, 0, 0)), "Unmet requirements detected");
+		EQ_(r, t_dm_crypt_keyring_support() ? -ETXTBSY : -EINVAL);
+		OK_(crypt_activate_by_keyring(cd, NULL, KEY_DESC_TEST0, 0, 0));
+		OK_(crypt_activate_by_keyring(cd, NULL, KEY_DESC_TEST0, 0, CRYPT_ACTIVATE_KEYRING_KEY));
+	}
 #endif
 
 	/* crypt_volume_key_verify (unrestricted) */
@@ -3087,10 +3138,12 @@ static void Luks2Requirements(void)
 
 	/* crypt_activate_by_token (restricted for activation only) */
 #ifdef KERNEL_KEYRING
-	FAIL_((r = crypt_activate_by_token(cd, CDEVICE_1, 1, NULL, 0)), ""); // supposed to be silent
-	EQ_(r, -ETXTBSY);
-	OK_(crypt_activate_by_token(cd, NULL, 1, NULL, 0));
-	OK_(crypt_activate_by_token(cd, NULL, 1, NULL, t_dm_crypt_keyring_support() ? CRYPT_ACTIVATE_KEYRING_KEY : 0));
+	if (t_dm_crypt_keyring_support()) {
+		FAIL_((r = crypt_activate_by_token(cd, CDEVICE_1, 1, NULL, 0)), ""); // supposed to be silent
+		EQ_(r, -ETXTBSY);
+		OK_(crypt_activate_by_token(cd, NULL, 1, NULL, 0));
+		OK_(crypt_activate_by_token(cd, NULL, 1, NULL, CRYPT_ACTIVATE_KEYRING_KEY));
+	}
 #endif
 	OK_(get_luks2_offsets(1, 8192, 0, NULL, &r_payload_offset));
 	OK_(create_dmdevice_over_loop(L_DEVICE_OK, r_payload_offset + 2));
@@ -3506,7 +3559,12 @@ int main(int argc, char *argv[])
 		printf("You must be root to run this test.\n");
 		exit(77);
 	}
-
+#ifndef NO_CRYPTSETUP_PATH
+	if (getenv("CRYPTSETUP_PATH")) {
+		printf("Cannot run this test with CRYPTSETUP_PATH set.\n");
+		exit(77);
+	}
+#endif
 	for (i = 1; i < argc; i++) {
 		if (!strcmp("-v", argv[i]) || !strcmp("--verbose", argv[i]))
 			_verbose = 1;

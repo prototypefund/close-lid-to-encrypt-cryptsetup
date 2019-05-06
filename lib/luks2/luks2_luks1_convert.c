@@ -24,6 +24,14 @@
 #include "../luks1/luks.h"
 #include "../luks1/af.h"
 
+int LUKS2_check_cipher(struct crypt_device *cd,
+		      size_t keylength,
+		      const char *cipher,
+		      const char *cipher_mode)
+{
+	return LUKS_check_cipher(cd, keylength, cipher, cipher_mode);
+}
+
 static int json_luks1_keyslot(const struct luks_phdr *hdr_v1, int keyslot, struct json_object **keyslot_object)
 {
 	char *base64_str, cipher[LUKS_CIPHERNAME_L+LUKS_CIPHERMODE_L];
@@ -200,7 +208,7 @@ static int json_luks1_segments(const struct luks_phdr *hdr_v1, struct json_objec
 		json_object_put(segments_obj);
 		return r;
 	}
-	json_object_object_add_by_uint(segments_obj, CRYPT_DEFAULT_SEGMENT, field);
+	json_object_object_add_by_uint(segments_obj, 0, field);
 
 	*segments_object = segments_obj;
 	return 0;
@@ -664,6 +672,11 @@ int LUKS2_luks2_to_luks1(struct crypt_device *cd, struct luks2_hdr *hdr2, struct
 	jobj_segment = LUKS2_get_segment_jobj(hdr2, CRYPT_DEFAULT_SEGMENT);
 	if (!jobj_segment)
 		return -EINVAL;
+
+	if (json_segment_get_sector_size(jobj_segment) != SECTOR_SIZE) {
+		log_err(cd, _("Cannot convert to LUKS1 format - default segment encryption sector size is not 512 bytes."));
+		return -EINVAL;
+	}
 
 	json_object_object_get_ex(hdr2->jobj, "digests", &jobj1);
 	if (!json_object_object_get_ex(jobj_digest, "type", &jobj2) ||

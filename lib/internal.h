@@ -40,6 +40,7 @@
 #include "utils_keyring.h"
 #include "utils_io.h"
 #include "crypto_backend.h"
+#include "utils_storage_wrappers.h"
 
 #include "libcryptsetup.h"
 
@@ -73,10 +74,13 @@
 	} while (0)
 
 struct crypt_device;
+struct luks2_reenc_context;
 
 struct volume_key {
+	int id;
 	size_t keylength;
 	const char *key_description;
+	struct volume_key *next;
 	char key[];
 };
 
@@ -84,6 +88,11 @@ struct volume_key *crypt_alloc_volume_key(size_t keylength, const char *key);
 struct volume_key *crypt_generate_volume_key(struct crypt_device *cd, size_t keylength);
 void crypt_free_volume_key(struct volume_key *vk);
 int crypt_volume_key_set_description(struct volume_key *key, const char *key_description);
+void crypt_volume_key_set_id(struct volume_key *vk, int id);
+int crypt_volume_key_get_id(const struct volume_key *vk);
+void crypt_volume_key_add_next(struct volume_key **vks, struct volume_key *vk);
+struct volume_key *crypt_volume_key_next(struct volume_key *vk);
+struct volume_key *crypt_volume_key_by_id(struct volume_key *vk, int id);
 
 struct crypt_pbkdf_type *crypt_get_pbkdf(struct crypt_device *cd);
 int init_pbkdf_type(struct crypt_device *cd,
@@ -113,6 +122,7 @@ size_t device_block_size(struct crypt_device *cd, struct device *device);
 int device_read_ahead(struct device *device, uint32_t *read_ahead);
 int device_size(struct device *device, uint64_t *size);
 int device_open(struct crypt_device *cd, struct device *device, int flags);
+int device_open_excl(struct crypt_device *cd, struct device *device, int flags);
 void device_disable_direct_io(struct device *device);
 int device_is_identical(struct device *device1, struct device *device2);
 int device_is_rotational(struct device *device);
@@ -129,6 +139,7 @@ int device_read_lock(struct crypt_device *cd, struct device *device);
 int device_write_lock(struct crypt_device *cd, struct device *device);
 void device_read_unlock(struct crypt_device *cd, struct device *device);
 void device_write_unlock(struct crypt_device *cd, struct device *device);
+bool device_is_locked(struct device *device);
 
 enum devcheck { DEV_OK = 0, DEV_EXCL = 1 };
 int device_check_access(struct crypt_device *cd,
@@ -199,6 +210,11 @@ int PLAIN_activate(struct crypt_device *cd,
 		     uint32_t flags);
 
 void *crypt_get_hdr(struct crypt_device *cd, const char *type);
+void crypt_set_reenc_context(struct crypt_device *cd, struct luks2_reenc_context *rh);
+struct luks2_reenc_context *crypt_get_reenc_context(struct crypt_device *cd);
+
+int onlyLUKS2(struct crypt_device *cd);
+int onlyLUKS2mask(struct crypt_device *cd, uint32_t mask);
 
 int crypt_wipe_device(struct crypt_device *cd,
 	struct device *device,
@@ -218,7 +234,8 @@ int crypt_key_in_keyring(struct crypt_device *cd);
 void crypt_set_key_in_keyring(struct crypt_device *cd, unsigned key_in_keyring);
 int crypt_volume_key_load_in_keyring(struct crypt_device *cd, struct volume_key *vk);
 int crypt_use_keyring_for_vk(struct crypt_device *cd);
-void crypt_drop_keyring_key(struct crypt_device *cd, const char *key_description);
+void crypt_drop_keyring_key_by_description(struct crypt_device *cd, const char *key_description, key_type_t ktype);
+void crypt_drop_keyring_key(struct crypt_device *cd, struct volume_key *vks);
 
 static inline uint64_t version(uint16_t major, uint16_t minor, uint16_t patch, uint16_t release)
 {
@@ -226,5 +243,8 @@ static inline uint64_t version(uint16_t major, uint16_t minor, uint16_t patch, u
 }
 
 int kernel_version(uint64_t *kversion);
+
+int crypt_serialize_lock(struct crypt_device *cd);
+void crypt_serialize_unlock(struct crypt_device *cd);
 
 #endif /* INTERNAL_H */

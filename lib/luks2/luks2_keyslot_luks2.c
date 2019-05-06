@@ -28,6 +28,9 @@
 #define LUKS_SLOT_ITERATIONS_MIN 1000
 #define LUKS_STRIPES 4000
 
+/* Serialize memory-hard keyslot access: opttional workaround for parallel processing */
+#define MIN_MEMORY_FOR_SERIALIZE_LOCK_KB 32*1024 /* 32MB */
+
 static int luks2_encrypt_to_storage(char *src, size_t srcLength,
 	const char *cipher, const char *cipher_mode,
 	struct volume_key *vk, unsigned int sector,
@@ -52,14 +55,14 @@ static int luks2_encrypt_to_storage(char *src, size_t srcLength,
 		return -EINVAL;
 
 	/* Encrypt buffer */
-	r = crypt_storage_init(&s, 0, cipher, cipher_mode, vk->key, vk->keylength);
+	r = crypt_storage_init(&s, SECTOR_SIZE, cipher, cipher_mode, vk->key, vk->keylength);
 	if (r) {
 		log_dbg(cd, "Userspace crypto wrapper cannot use %s-%s (%d).",
 			cipher, cipher_mode, r);
 		return r;
 	}
 
-	r = crypt_storage_encrypt(s, 0, srcLength / SECTOR_SIZE, src);
+	r = crypt_storage_encrypt(s, 0, srcLength, src);
 	crypt_storage_destroy(s);
 	if (r)
 		return r;
@@ -116,7 +119,7 @@ static int luks2_decrypt_from_storage(char *dst, size_t dstLength,
 	if (MISALIGNED_512(dstLength))
 		return -EINVAL;
 
-	r = crypt_storage_init(&s, 0, cipher, cipher_mode, vk->key, vk->keylength);
+	r = crypt_storage_init(&s, SECTOR_SIZE, cipher, cipher_mode, vk->key, vk->keylength);
 	if (r) {
 		log_dbg(cd, "Userspace crypto wrapper cannot use %s-%s (%d).",
 			cipher, cipher_mode, r);
@@ -147,7 +150,7 @@ static int luks2_decrypt_from_storage(char *dst, size_t dstLength,
 
 	/* Decrypt buffer */
 	if (!r)
-		r = crypt_storage_decrypt(s, 0, dstLength / SECTOR_SIZE, dst);
+		r = crypt_storage_decrypt(s, 0, dstLength, dst);
 	else
 		log_err(cd, _("IO error while decrypting keyslot."));
 
@@ -312,6 +315,7 @@ static int luks2_keyslot_get_key(struct crypt_device *cd,
 	json_object *jobj2, *jobj_af, *jobj_area;
 	uint64_t area_offset;
 	size_t keyslot_key_len;
+	bool try_serialize_lock = false;
 	int r;
 
 	if (!json_object_object_get_ex(jobj_keyslot, "af", &jobj_af) ||
@@ -340,6 +344,13 @@ static int luks2_keyslot_get_key(struct crypt_device *cd,
 	keyslot_key_len = json_object_get_int(jobj2);
 
 	/*
+	 * If requested, serialize unlocking for memory-hard KDF. Usually NOOP.
+	 */
+	if (pbkdf.max_memory_kb > MIN_MEMORY_FOR_SERIALIZE_LOCK_KB)
+		try_serialize_lock = true;
+	if (try_serialize_lock && crypt_serialize_lock(cd))
+		return -EINVAL;
+	/*
 	 * Allocate derived key storage space.
 	 */
 	derived_key = crypt_alloc_volume_key(keyslot_key_len, NULL);
@@ -360,6 +371,9 @@ static int luks2_keyslot_get_key(struct crypt_device *cd,
 			derived_key->key, derived_key->keylength,
 			pbkdf.iterations, pbkdf.max_memory_kb,
 			pbkdf.parallel_threads);
+
+	if (try_serialize_lock)
+		crypt_serialize_unlock(cd);
 
 	if (r == 0) {
 		log_dbg(cd, "Reading keyslot area [0x%04x].", (unsigned)area_offset);
@@ -466,7 +480,7 @@ static int luks2_keyslot_alloc(struct crypt_device *cd,
 		return -EINVAL;
 
 	if (keyslot == CRYPT_ANY_SLOT)
-		keyslot = LUKS2_keyslot_find_empty(hdr, "luks2");
+		keyslot = LUKS2_keyslot_find_empty(hdr);
 
 	if (keyslot < 0 || keyslot >= LUKS2_KEYSLOTS_MAX)
 		return -ENOMEM;
@@ -480,8 +494,10 @@ static int luks2_keyslot_alloc(struct crypt_device *cd,
 		return -EINVAL;
 
 	r = LUKS2_find_area_gap(cd, hdr, volume_key_len, &area_offset, &area_length);
-	if (r < 0)
+	if (r < 0) {
+		log_err(cd, _("No space for new keyslot."));
 		return r;
+	}
 
 	jobj_keyslot = json_object_new_object();
 	json_object_object_add(jobj_keyslot, "type", json_object_new_string("luks2"));
@@ -563,17 +579,21 @@ static int luks2_keyslot_store(struct crypt_device *cd,
 	if (!jobj_keyslot)
 		return -EINVAL;
 
+	if ((r = device_write_lock(cd, crypt_metadata_device(cd)))) {
+		log_err(cd, _("Failed to acquire write lock on device %s."),
+			device_path(crypt_metadata_device(cd)));
+		return r;
+	}
+
 	r = luks2_keyslot_set_key(cd, jobj_keyslot,
 				  password, password_len,
 				  volume_key, volume_key_len);
-	if (r < 0)
-		return r;
+	if (!r)
+		r = LUKS2_hdr_write(cd, hdr);
 
-	r = LUKS2_hdr_write(cd, hdr);
-	if (r < 0)
-		return r;
+	device_write_unlock(cd, crypt_metadata_device(cd));
 
-	return keyslot;
+	return r < 0 ? r : keyslot;
 }
 
 static int luks2_keyslot_wipe(struct crypt_device *cd, int keyslot)

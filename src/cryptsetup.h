@@ -103,6 +103,7 @@ void tools_clear_line(void);
 void tools_time_progress(uint64_t device_size, uint64_t bytes,
 			 struct timeval *start_time, struct timeval *end_time);
 int tools_wipe_progress(uint64_t size, uint64_t offset, void *usrptr);
+int tools_reencrypt_progress(uint64_t size, uint64_t offset, void *usrptr);
 
 int tools_read_mk(const char *file, char **key, int keysize);
 int tools_write_mk(const char *file, const char *key, int keysize);
@@ -112,6 +113,9 @@ int tools_write_json_file(struct crypt_device *cd, const char *file, const char 
 
 int tools_detect_signatures(const char *device, int ignore_luks, size_t *count);
 int tools_wipe_all_signatures(const char *path);
+
+int tools_lookup_crypt_device(struct crypt_device *cd, const char *type,
+		const char *data_device_path, char *name, size_t name_length);
 
 /* Log */
 #define log_dbg(x...) clogger(NULL, CRYPT_LOG_DEBUG, __FILE__, __LINE__, x)

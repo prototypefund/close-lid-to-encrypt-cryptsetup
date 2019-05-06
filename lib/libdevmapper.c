@@ -31,6 +31,9 @@
 #include <linux/fs.h>
 #include <uuid/uuid.h>
 #include <sys/stat.h>
+#ifdef HAVE_SYS_SYSMACROS_H
+# include <sys/sysmacros.h>     /* for major, minor */
+#endif
 
 #include "internal.h"
 
@@ -43,6 +46,7 @@
 #define DM_VERITY_TARGET	"verity"
 #define DM_INTEGRITY_TARGET	"integrity"
 #define DM_LINEAR_TARGET	"linear"
+#define DM_ERROR_TARGET         "error"
 #define RETRY_COUNT		5
 
 /* Set if DM target versions were probed */
@@ -222,9 +226,10 @@ static int _dm_check_versions(struct crypt_device *cd, dm_target_type target_typ
 	unsigned dm_maj, dm_min, dm_patch;
 	int r = 0;
 
-	if (((target_type == DM_CRYPT || target_type == DM_LINEAR) && _dm_crypt_checked) ||
+	if ((target_type == DM_CRYPT	 && _dm_crypt_checked) ||
 	    (target_type == DM_VERITY    && _dm_verity_checked) ||
 	    (target_type == DM_INTEGRITY && _dm_integrity_checked) ||
+	    (target_type == DM_LINEAR) ||
 	    (_dm_crypt_checked && _dm_verity_checked && _dm_integrity_checked))
 		return 1;
 
@@ -296,9 +301,10 @@ int dm_flags(struct crypt_device *cd, dm_target_type target, uint32_t *flags)
 	    _dm_crypt_checked && _dm_verity_checked && _dm_integrity_checked)
 		return 0;
 
-	if (((target == DM_CRYPT || target == DM_LINEAR) && _dm_crypt_checked) ||
+	if ((target == DM_CRYPT	    && _dm_crypt_checked) ||
 	    (target == DM_VERITY    && _dm_verity_checked) ||
-	    (target == DM_INTEGRITY && _dm_integrity_checked))
+	    (target == DM_INTEGRITY && _dm_integrity_checked) ||
+	    (target == DM_LINEAR)) /* nothing to check with linear */
 		return 0;
 
 	return -ENODEV;
@@ -894,7 +900,7 @@ out:
 	return r;
 }
 
-static int _dm_simple(int task, const char *name)
+static int _dm_simple(int task, const char *name, uint32_t dmflags)
 {
 	int r = 0;
 	struct dm_task *dmt;
@@ -903,6 +909,14 @@ static int _dm_simple(int task, const char *name)
 		return 0;
 
 	if (name && !dm_task_set_name(dmt, name))
+		goto out;
+
+	if (task == DM_DEVICE_SUSPEND &&
+	    (dmflags & DM_SUSPEND_SKIP_LOCKFS) && !dm_task_skip_lockfs(dmt))
+		goto out;
+
+	if (task == DM_DEVICE_SUSPEND &&
+	    (dmflags & DM_SUSPEND_NOFLUSH) && !dm_task_no_flush(dmt))
 		goto out;
 
 	r = dm_task_run(dmt);
@@ -937,7 +951,7 @@ static int _error_device(const char *name, size_t size)
 		goto error;
 
 	if (_dm_resume_device(name, 0)) {
-		_dm_simple(DM_DEVICE_CLEAR, name);
+		_dm_simple(DM_DEVICE_CLEAR, name, 0);
 		goto error;
 	}
 
@@ -959,7 +973,7 @@ int dm_error_device(struct crypt_device *cd, const char *name)
 	if (dm_init_context(cd, DM_UNKNOWN))
 		return -ENOTSUP;
 
-	if (dm_query_device(cd, name, 0, &dmd) && _error_device(name, dmd.size))
+	if ((dm_query_device(cd, name, 0, &dmd) >= 0) && _error_device(name, dmd.size))
 		r = 0;
 	else
 		r = -EINVAL;
@@ -981,7 +995,7 @@ int dm_clear_device(struct crypt_device *cd, const char *name)
 	if (dm_init_context(cd, DM_UNKNOWN))
 		return -ENOTSUP;
 
-	if (_dm_simple(DM_DEVICE_CLEAR, name))
+	if (_dm_simple(DM_DEVICE_CLEAR, name, 0))
 		r = 0;
 	else
 		r = -EINVAL;
@@ -1259,20 +1273,26 @@ out:
 	return r;
 }
 
-static int _dm_resume_device(const char *name, uint32_t flags)
+static int _dm_resume_device(const char *name, uint32_t dmflags)
 {
 	struct dm_task *dmt;
 	int r = -EINVAL;
 	uint32_t cookie = 0;
 	uint16_t udev_flags = DM_UDEV_DISABLE_LIBRARY_FALLBACK;
 
-	if (flags & CRYPT_ACTIVATE_PRIVATE)
+	if (dmflags & DM_RESUME_PRIVATE)
 		udev_flags |= CRYPT_TEMP_UDEV_FLAGS;
 
 	if (!(dmt = dm_task_create(DM_DEVICE_RESUME)))
 		return r;
 
 	if (!dm_task_set_name(dmt, name))
+		goto out;
+
+	if ((dmflags & DM_SUSPEND_SKIP_LOCKFS) && !dm_task_skip_lockfs(dmt))
+		goto out;
+
+	if ((dmflags & DM_SUSPEND_NOFLUSH) && !dm_task_no_flush(dmt))
 		goto out;
 
 	if (_dm_use_udev() && !_dm_task_set_cookie(dmt, &cookie, udev_flags))
@@ -1378,9 +1398,11 @@ static void _dm_target_free_query_path(struct crypt_device *cd, struct dm_target
 		free(CONST_CAST(void*)tgt->u.verity.root_hash);
 		/* fall through */
 	case DM_LINEAR:
+		/* fall through */
+	case DM_ERROR:
 		break;
 	default:
-		log_err(NULL, "Unknown dm target type.");
+		log_err(cd, _("Unknown dm target type."));
 		return;
 	}
 
@@ -1512,7 +1534,7 @@ out:
 }
 
 int dm_reload_device(struct crypt_device *cd, const char *name,
-		     struct crypt_dm_active_device *dmd, unsigned resume)
+		     struct crypt_dm_active_device *dmd, uint32_t dmflags, unsigned resume)
 {
 	int r;
 	uint32_t dmt_flags;
@@ -1538,7 +1560,7 @@ int dm_reload_device(struct crypt_device *cd, const char *name,
 	}
 
 	if (!r && resume)
-		r = _dm_resume_device(name, dmd->flags);
+		r = _dm_resume_device(name, dmflags | act2dmflags(dmd->flags));
 
 	dm_exit_context();
 	return r;
@@ -1585,7 +1607,8 @@ static int dm_status_dmi(const char *name, struct dm_info *dmi,
 	if (!target && (strcmp(target_type, DM_CRYPT_TARGET) &&
 			strcmp(target_type, DM_VERITY_TARGET) &&
 			strcmp(target_type, DM_INTEGRITY_TARGET) &&
-			strcmp(target_type, DM_LINEAR_TARGET)))
+			strcmp(target_type, DM_LINEAR_TARGET) &&
+			strcmp(target_type, DM_ERROR_TARGET)))
 		goto out;
 	r = 0;
 out:
@@ -2313,6 +2336,14 @@ err:
 	return r;
 }
 
+static int _dm_target_query_error(struct crypt_device *cd, struct dm_target *tgt)
+{
+	tgt->type = DM_ERROR;
+	tgt->direction = TARGET_QUERY;
+
+	return 0;
+}
+
 /*
  * on error retval has to be negative
  *
@@ -2332,6 +2363,8 @@ static int dm_target_query(struct crypt_device *cd, struct dm_target *tgt, const
 		r = _dm_target_query_integrity(cd, get_flags, params, tgt, act_flags);
 	else if (!strcmp(target_type, DM_LINEAR_TARGET))
 		r = _dm_target_query_linear(cd, tgt, get_flags, params);
+	else if (!strcmp(target_type, DM_ERROR_TARGET))
+		r = _dm_target_query_error(cd, tgt);
 
 	if (!r) {
 		tgt->offset = *start;
@@ -2341,7 +2374,7 @@ static int dm_target_query(struct crypt_device *cd, struct dm_target *tgt, const
 	return r;
 }
 
-int dm_query_device(struct crypt_device *cd, const char *name,
+static int _dm_query_device(struct crypt_device *cd, const char *name,
 		    uint32_t get_flags, struct crypt_dm_active_device *dmd)
 {
 	struct dm_target *t;
@@ -2353,17 +2386,10 @@ int dm_query_device(struct crypt_device *cd, const char *name,
 	void *next = NULL;
 	int r = -EINVAL;
 
-	if (dm_init_context(cd, DM_UNKNOWN))
-		return -ENOTSUP;
-	if (!dmd)
-		return -EINVAL;
-
 	t = &dmd->segment;
 
-	memset(dmd, 0, sizeof(*dmd));
-
 	if (!(dmt = dm_task_create(DM_DEVICE_TABLE)))
-		goto out;
+		return r;
 	if (!dm_task_secure_data(dmt))
 		goto out;
 	if (!dm_task_set_name(dmt, name))
@@ -2443,6 +2469,136 @@ out:
 	if (r < 0)
 		dm_targets_free(cd, dmd);
 
+	return r;
+}
+
+int dm_query_device(struct crypt_device *cd, const char *name,
+		    uint32_t get_flags, struct crypt_dm_active_device *dmd)
+{
+	int r;
+
+	if (!dmd)
+		return -EINVAL;
+
+	memset(dmd, 0, sizeof(*dmd));
+
+	if (dm_init_context(cd, DM_UNKNOWN))
+		return -ENOTSUP;
+
+	r = _dm_query_device(cd, name, get_flags, dmd);
+
+	dm_exit_context();
+	return r;
+}
+
+static bool name_in_list(char **names, const char *name)
+{
+	while (*names) {
+		if (!strcmp(*names++, name))
+			return true;
+	}
+
+	return false;
+}
+
+static int _process_deps(struct crypt_device *cd, const char *prefix, struct dm_deps *deps, char **names, size_t names_offset, size_t names_length)
+{
+	struct crypt_dm_active_device dmd;
+	char dmname[PATH_MAX];
+	unsigned i;
+	int r, major, minor, count = 0;
+
+	if (!prefix || !deps)
+		return -EINVAL;
+
+	for (i = 0; i < deps->count; i++) {
+		major = major(deps->device[i]);
+		if (!dm_is_dm_major(major))
+			continue;
+
+		minor = minor(deps->device[i]);
+		if (!dm_device_get_name(major, minor, 0, dmname, PATH_MAX))
+			return -EINVAL;
+
+		memset(&dmd, 0, sizeof(dmd));
+		r = _dm_query_device(cd, dmname, DM_ACTIVE_UUID, &dmd);
+		if (r < 0)
+			continue;
+
+		if (!dmd.uuid ||
+		    strncmp(prefix, dmd.uuid, strlen(prefix)) ||
+		    name_in_list(names, dmname))
+			*dmname = '\0';
+
+		dm_targets_free(cd, &dmd);
+		free(CONST_CAST(void*)dmd.uuid);
+
+		if ((size_t)count >= (names_length - names_offset))
+			return -ENOMEM;
+
+		if (*dmname && !(names[names_offset + count++] = strdup(dmname)))
+			return -ENOMEM;
+	}
+
+	return count;
+}
+
+int dm_device_deps(struct crypt_device *cd, const char *name, const char *prefix, char **names, size_t names_length)
+{
+	struct dm_task *dmt;
+	struct dm_info dmi;
+	struct dm_deps *deps;
+	int r = -EINVAL;
+	size_t i, last = 0, offset = 0;
+
+	if (!name || !names_length || !names)
+		return -EINVAL;
+
+	if (dm_init_context(cd, DM_UNKNOWN))
+		return -ENOTSUP;
+
+	while (name) {
+		if (!(dmt = dm_task_create(DM_DEVICE_DEPS)))
+			goto out;
+		if (!dm_task_set_name(dmt, name))
+			goto out;
+
+		r = -ENODEV;
+		if (!dm_task_run(dmt))
+			goto out;
+
+		r = -EINVAL;
+		if (!dm_task_get_info(dmt, &dmi))
+			goto out;
+		if (!(deps = dm_task_get_deps(dmt)))
+			goto out;
+
+		r = -ENODEV;
+		if (!dmi.exists)
+			goto out;
+
+		r = _process_deps(cd, prefix, deps, names, offset, names_length - 1);
+		if (r < 0)
+			goto out;
+
+		dm_task_destroy(dmt);
+		dmt = NULL;
+
+		offset += r;
+		name = names[last++];
+	}
+
+	r = 0;
+out:
+	if (r < 0) {
+		for (i = 0; i < names_length - 1; i++)
+			free(names[i]);
+		*names = NULL;
+	}
+
+	if (dmt)
+		dm_task_destroy(dmt);
+
 	dm_exit_context();
 	return r;
 }
@@ -2473,61 +2629,48 @@ out:
 	return r;
 }
 
-int dm_suspend_device(struct crypt_device *cd, const char *name)
-{
-	int r;
-
-	if (dm_init_context(cd, DM_UNKNOWN))
-		return -ENOTSUP;
-
-	if (!_dm_simple(DM_DEVICE_SUSPEND, name))
-		r = -EINVAL;
-	else
-		r = 0;
-
-	dm_exit_context();
-
-	return r;
-}
-
-int dm_suspend_and_wipe_key(struct crypt_device *cd, const char *name)
+int dm_suspend_device(struct crypt_device *cd, const char *name, uint32_t dmflags)
 {
 	uint32_t dmt_flags;
 	int r = -ENOTSUP;
 
-	if (dm_init_context(cd, DM_CRYPT))
-		return -ENOTSUP;
+	if (dm_init_context(cd, DM_UNKNOWN))
+		return r;
 
-	if (dm_flags(cd, DM_CRYPT, &dmt_flags))
-		goto out;
+	if (dmflags & DM_SUSPEND_WIPE_KEY) {
+		if (dm_flags(cd, DM_CRYPT, &dmt_flags))
+			goto out;
 
-	if (!(dmt_flags & DM_KEY_WIPE_SUPPORTED))
-		goto out;
-
-	if (!_dm_simple(DM_DEVICE_SUSPEND, name)) {
-		r = -EINVAL;
-		goto out;
+		if (!(dmt_flags & DM_KEY_WIPE_SUPPORTED))
+			goto out;
 	}
 
-	if (!_dm_message(name, "key wipe")) {
-		_dm_resume_device(name, 0);
-		r = -EINVAL;
+	r = -EINVAL;
+
+	if (!_dm_simple(DM_DEVICE_SUSPEND, name, dmflags))
 		goto out;
+
+	if (dmflags & DM_SUSPEND_WIPE_KEY) {
+		if (!_dm_message(name, "key wipe")) {
+			_dm_resume_device(name, 0);
+			goto out;
+		}
 	}
+
 	r = 0;
 out:
 	dm_exit_context();
 	return r;
 }
 
-int dm_resume_device(struct crypt_device *cd, const char *name, uint32_t flags)
+int dm_resume_device(struct crypt_device *cd, const char *name, uint32_t dmflags)
 {
 	int r;
 
 	if (dm_init_context(cd, DM_UNKNOWN))
 		return -ENOTSUP;
 
-	r = _dm_resume_device(name, flags);
+	r = _dm_resume_device(name, dmflags);
 
 	dm_exit_context();
 
@@ -2582,7 +2725,7 @@ const char *dm_get_dir(void)
 	return dm_dir();
 }
 
-int dm_is_dm_device(int major, int minor)
+int dm_is_dm_device(int major)
 {
 	return dm_is_dm_major((uint32_t)major);
 }
@@ -2614,6 +2757,7 @@ int dm_crypt_target_set(struct dm_target *tgt, size_t seg_offset, size_t seg_siz
 	tgt->data_device = data_device;
 
 	tgt->type = DM_CRYPT;
+	tgt->direction = TARGET_SET;
 	tgt->u.crypt.vk = vk;
 	tgt->offset = seg_offset;
 	tgt->size = seg_size;
