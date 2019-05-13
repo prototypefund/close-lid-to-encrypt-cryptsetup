@@ -51,6 +51,9 @@ Description: disk encryption support - startup scripts
  automatically configuring encrypted devices at boot time via the config
  file /etc/crypttab. Additional features are cryptoroot support through
  initramfs-tools and several supported ways to read a passphrase or key.
+ .
+ This package provides the cryptdisk_start and stop wrappers and
+ luksformat.
 
 Package: cryptsetup-bin
 Architecture: linux-any
@@ -61,7 +64,8 @@ Description: disk encryption support - command line tools
  device mapper target dm-crypt. It features integrated Linux Unified Key
  Setup (LUKS) support.
  .
- This package provides cryptsetup, cryptsetup-reencrypt and luksformat.
+ This package provides cryptsetup, cryptsetup-reencrypt, integritysetup
+ and veritysetup.
 
 Package: cryptsetup-initramfs
 Architecture: all
