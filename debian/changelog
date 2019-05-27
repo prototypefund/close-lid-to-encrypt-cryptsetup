@@ -1,3 +1,17 @@
+cryptsetup (2:2.1.0-4) UNRELEASED; urgency=high
+
+  * d/initramfs/hooks/cryptroot: Always add userspace crypto module
+    ('algif_skcipher' kernel module) to the initramfs.  This module is
+    required for required for opening LUKS2 devices, and since 2:2.0.2-2 it's
+    added to large initramfs (i.e., when the MODULES variable isn't set to
+    "dep").  It's now added regardless of the value of $MODULES, as 1/ LUKS2
+    is the default LUKS header format version; and 2/ we can't check at
+    initramfs generation time whether there are LUKS2 devices to be opened at
+    early boot stage (detached headers might not be present then).
+    Closes: #929616.
+
+ -- Guilhem Moulin <guilhem@debian.org>  Mon, 27 May 2019 14:36:24 +0200
+
 cryptsetup (2:2.1.0-3) unstable; urgency=medium
 
   * d/scripts/decrypt_opensc: Fix standard output poisoning.  Thanks to Nils
