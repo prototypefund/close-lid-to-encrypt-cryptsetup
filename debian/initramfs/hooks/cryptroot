@@ -442,7 +442,7 @@ else
     fi
 
     # add userspace crypto module (only required for opening LUKS2 devices
-    # we add the module unconditionally as it's the default format
+    # we add the module unconditionally as it's the default format)
     CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }algif_skcipher"
 
     if [ "$MODULES" = most ]; then
