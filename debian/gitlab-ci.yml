@@ -1,6 +1,45 @@
 include:
- - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/salsa-ci.yml
- - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/pipeline-jobs.yml
+  - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/salsa-ci.yml
+  - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/pipeline-jobs.yml
 
 variables:
- RELEASE: 'unstable'
+  RELEASE: 'unstable'
+
+# Disable the reprotest job for now. It fails because reprotest builds as root,
+# which triggers extra tests. Some of them require modprobe, which is missing
+# on the Salsa runners. See https://salsa.debian.org/salsa/support/issues/149
+# for more context
+reprotest:
+  extends: .test-reprotest
+  only:
+    refs:
+      - nonexistent_ref_d41d8cd98f00b204e9800998ecf8427e
+
+# Add a deploy stage for pages
+stages:
+  - build
+  - test
+  - deploy
+
+pages:
+  image: debian:9
+  script:
+    - apt update
+    - apt -y install pandoc
+    - mkdir public
+    - cp debian/doc/pandoc/pandoc.css public/
+    - ${PANDOC} -T "Debian Cryptsetup docs" -o public/index.html
+          debian/doc/pandoc/index.md
+    - for readme in Debian gnupg gnupg-sc initramfs keyctl opensc; do ${PANDOC}
+          --toc -T "Debian Cryptsetup docs" -o public/README.$readme.html
+          debian/README.$readme; done
+  stage: deploy
+  artifacts:
+    paths:
+      - public
+  only:
+    # only run on git tags (which should be equivalent to new package releases)
+    variables:
+      - $CI_COMMIT_TAG
+  variables:
+    PANDOC: 'pandoc -s -c pandoc.css -f markdown -t html'

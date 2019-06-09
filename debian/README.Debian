@@ -4,17 +4,17 @@ Cryptsetup for Debian
 Table of Contents
 -----------------
 
-  1. Introduction into Cryptsetup for Debian
-  2. Encrypted swap partition(s)
-  3. Insecure mode/owner for keys
-  4. Cryptsetup and udev
-  5. Useful keyscripts: askpass and passdev
-  6. The `check` option
-  7. Cryptsetup and Splashy
-  8. Remotely unlock encrypted rootfs
-  9. Backup the LUKS header
- 10. Changing the boot order of cryptdisks init scripts
- 11. Credits
+*  1. Introduction into Cryptsetup for Debian
+*  2. Encrypted swap partition(s)
+*  3. Insecure mode/owner for keys
+*  4. Cryptsetup and udev
+*  5. Useful keyscripts: askpass and passdev
+*  6. The `check` option
+*  7. Cryptsetup and Splashy
+*  8. Remotely unlock encrypted rootfs
+*  9. Backup the LUKS header
+* 10. Changing the boot order of cryptdisks init scripts
+* 11. Credits
 
 
 1. Introduction into Cryptsetup for Debian
