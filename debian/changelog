@@ -1,11 +1,3 @@
-cryptsetup (2:2.1.0-5) UNRELEASED; urgency=medium
-
-  * debian/control: Add 'Multi-Arch: foreign' tags to 'cryptsetup-bin' and
-    'crytsetup-run', as binaries from these packages are architecture
-    independent.  (Closes: #930115)
-
- -- Guilhem Moulin <guilhem@debian.org>  Fri, 07 Jun 2019 15:26:23 +0200
-
 cryptsetup (2:2.1.0-4) unstable; urgency=medium
 
   [Guilhem Moulin]

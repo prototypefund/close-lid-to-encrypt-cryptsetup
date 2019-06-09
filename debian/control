@@ -33,7 +33,6 @@ Vcs-Git: https://salsa.debian.org/cryptsetup-team/cryptsetup.git
 
 Package: cryptsetup-run
 Architecture: linux-any
-Multi-Arch: foreign
 Depends: cryptsetup-bin (>= 2:1.6.0),
          dmsetup,
          ${misc:Depends},
@@ -58,7 +57,6 @@ Description: disk encryption support - startup scripts
 
 Package: cryptsetup-bin
 Architecture: linux-any
-Multi-Arch: foreign
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: disk encryption support - command line tools
  Cryptsetup provides an interface for configuring encryption on block
