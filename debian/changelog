@@ -2,8 +2,9 @@ cryptsetup (2:2.1.0-5) UNRELEASED; urgency=medium
 
   [ Jonas Meurer ]
   * debian/README.*: Fix markdown formatting issues
+  * Copy https://wiki.debian.org/CryptsetupDebug to debian/README.debug
 
- -- Jonas Meurer <jonas@freesources.org>  Sun, 09 Jun 2019 16:09:55 +0200
+ -- Jonas Meurer <jonas@freesources.org>  Sun, 09 Jun 2019 19:20:09 +0200
 
 cryptsetup (2:2.1.0-4) unstable; urgency=medium
 

@@ -2,6 +2,7 @@ Cryptsetup for Debian
 =====================
 
 * [Debian Cryptsetup README](README.Debian.html)
+* [Debian Cryptsetup Debugging README](README.debug.html)
 * [Cryptsetup Initramfs intregration README](README.initramfs.html)
 * [Cryptsetup GnuPG keyscript README](README.gnupg.html)
 * [Cryptsetup GnuPG smartcard keyscript README](README.gnupg-sc.html)

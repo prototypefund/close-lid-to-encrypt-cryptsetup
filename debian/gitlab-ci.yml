@@ -30,9 +30,9 @@ pages:
     - cp debian/doc/pandoc/pandoc.css public/
     - ${PANDOC} -T "Debian Cryptsetup docs" -o public/index.html
           debian/doc/pandoc/index.md
-    - for readme in Debian gnupg gnupg-sc initramfs keyctl opensc; do ${PANDOC}
-          --toc -T "Debian Cryptsetup docs" -o public/README.$readme.html
-          debian/README.$readme; done
+    - for readme in Debian debug gnupg gnupg-sc initramfs keyctl opensc; do
+          ${PANDOC} --toc -T "Debian Cryptsetup docs"
+          -o public/README.$readme.html debian/README.$readme; done
   stage: deploy
   artifacts:
     paths:
