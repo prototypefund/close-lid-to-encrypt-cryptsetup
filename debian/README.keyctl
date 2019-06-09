@@ -43,6 +43,7 @@ Best shown by example:
 * Linux software raid5
 
 Layer:
+
       sda             sdb            sdc ... sde
     +-----------+   +-----------+
     | LUKS      |   | LUKS      |
