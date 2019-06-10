@@ -286,11 +286,12 @@ boot process, you need to change the boot process on your own. In some cases
 it might be enough to change the LSB dependency headers at initscripts, see
 `/etc/init.d/README` for more information about that. For more complex setups,
 more intrusive changes are required. For example, adding a third cryptdisks
-init script might help. See the log of bugreport #576646[1] and discussion
-on debian-devel[2] for further information.
+init script might help. See the log of bugreport
+[#576646](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=576646 and
+[discussion on
+debian-devel](https://lists.debian.org/debian-devel/2010/06/msg00021.html)
+for further information.
 
-[1] https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=576646
-[2] https://lists.debian.org/debian-devel/2010/06/msg00021.html
 
 
 11. Unlocking LUKS devices from GRUB
@@ -308,8 +309,7 @@ Neither Jessie nor Stretch's installer supports that feature, and users
 already had to implement various work-around to enable it.  Existing
 work-arounds won't work anymore with LUKS2.  Integration between LUKS
 and GRUB is currently documented at
-
-    https://cryptsetup-team.pages.debian.net/cryptsetup/encrypted-boot.html
+[https://cryptsetup-team.pages.debian.net/cryptsetup/encrypted-boot.html].
 
 including recipe to enable the feature starting from the usual
 "encrypted LVM" partitioning method of the Debian Installer, both
