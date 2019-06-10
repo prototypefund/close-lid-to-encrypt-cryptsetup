@@ -60,7 +60,7 @@ custom sector size, persistent flags, unattended unlocking via kernel
 keyring tokens, etc.
 
 Furthermore every command in this sub-section can be run in the main
-system, no need to run anything from a live CD or an initramfs shell.
+system, no need to reboot into a live CD or an initramfs shell.
 
 Before copying content of the `/boot` directory, remount it read-only to
 make sure data is not modified while it's being copied:
@@ -167,14 +167,17 @@ Check the LUKS format version on the root device (assumed to be
 Here the LUKS format version is 2, so the device needs to be converted
 to LUKS _version 1_ to be able to unlock from GRUB.  Unlike the remaining
 of this document, the conversion can't be done on an open device, so
-you'll need to use a live CD, or append `break` to the kernel
-command-line to break to an initramfs shell.
+you'll need reboot into a live CD or an [initramfs shell].  (The
+`(initramfs)` prompt strings in this sub-section indicates commands that
+are executed from an initramfs shell.)
+
+[initramfs shell]: https://wiki.debian.org/InitramfsDebug#Rescue_shell_.28also_known_as_initramfs_shell.29
 
 Run `cryptsetup convert --type luks1 DEVICE` to downgrade.  However if
 the device was created with the default parameters the in-place
 conversion will fail:
 
-    root@debian:~$ cryptsetup convert --type luks1 /dev/sda3
+    (initramfs) cryptsetup convert --type luks1 /dev/sda3
 
     WARNING!
     ========
@@ -187,7 +190,7 @@ conversion will fail:
 This is because its first key slot uses Argon2 as Password-Based Key
 Derivation Function (PBKDF) algorithm:
 
-    root@debian:~$ cryptsetup luksDump /dev/sda3 | grep PBKDF:
+    (initramfs) cryptsetup luksDump /dev/sda3 | grep PBKDF:
             PBKDF:      argon2i
 
 Argon2 is a memory-hard function that was selected as the winner of the
@@ -195,7 +198,7 @@ Password-Hashing Competition; LUKS2 devices use it by default, but
 LUKS1's only supported PBKDF algorithm is PKBDF2.  Hence the key slot
 has to be converted to PKBDF2 prior to LUKS format version downgrade.
 
-    root@debian:~$ cryptsetup luksChangeKey --key-slot 0 --pbkdf pbkdf2 /dev/sda3
+    (initramfs) cryptsetup luksChangeKey --key-slot 0 --pbkdf pbkdf2 /dev/sda3
     Enter passphrase to be changed:
     Enter new passphrase:
     Verify passphrase:
@@ -204,9 +207,9 @@ has to be converted to PKBDF2 prior to LUKS format version downgrade.
 all keyslots use the PBKDF2 algorithm, the device shouldn't have any
 remaining LUKS2-only features, and can be converted to LUKS1.
 
-    root@debian:~$ cryptsetup luksDump /dev/sda3 | grep PBKDF:
+    (initramfs) cryptsetup luksDump /dev/sda3 | grep PBKDF:
             PBKDF:      pbkdf2
-    root@debian:~$ cryptsetup convert --type luks1 /dev/sda3
+    (initramfs) cryptsetup convert --type luks1 /dev/sda3
 
     WARNING!
     ========
@@ -214,13 +217,14 @@ remaining LUKS2-only features, and can be converted to LUKS1.
 
 
     Are you sure? (Type uppercase yes): YES
-    root@debian:~$ cryptsetup luksDump /dev/sda3 | grep -A1 ^LUKS
+    (initramfs) cryptsetup luksDump /dev/sda3 | grep -A1 ^LUKS
     LUKS header information
 
 ### Moving `/boot` to the root file system ###
 
-(The moving itself can be done from the normal system, no need to use a
-live CD or an initramfs shell.)
+(The moving operation can be done from the normal system.  No need to
+reboot into a live CD or an initramfs shell if the root file system
+resides in a LUK1 device.)
 
 To ensure data is not modified while it's being copied, remount `/boot`
 read-only:
