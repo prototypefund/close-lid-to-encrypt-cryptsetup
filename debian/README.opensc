@@ -64,7 +64,7 @@ step is only necessary if your reader uses pcscd (for example the
 Gemalto PC Card readers).
 
 To do this, download the ccid and pcsc-lite packages from
-[https://pcsc-lite.alioth.debian.org/].
+https://pcsc-lite.alioth.debian.org/
 
 Install the libusb header files, extract the tarballs and build pcscd
 with the following commands:

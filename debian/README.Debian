@@ -286,12 +286,11 @@ boot process, you need to change the boot process on your own. In some cases
 it might be enough to change the LSB dependency headers at initscripts, see
 `/etc/init.d/README` for more information about that. For more complex setups,
 more intrusive changes are required. For example, adding a third cryptdisks
-init script might help. See the log of bugreport
-[#576646](https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=576646 and
-[discussion on
-debian-devel](https://lists.debian.org/debian-devel/2010/06/msg00021.html)
-for further information.
+init script might help. See the log of bugreport [#576646] and [discussion on
+debian-devel] for further information.
 
+[#576646]: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=576646
+[discussion on debian-devel]: https://lists.debian.org/debian-devel/2010/06/msg00021.html
 
 
 11. Unlocking LUKS devices from GRUB
