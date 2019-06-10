@@ -1,6 +1,4 @@
 % Full disk encryption, including `/boot`: Unlocking LUKS devices from GRUB
-% Guilhem Moulin
-% Mon, 09 Jun 2019 16:35:20 +0200
 
 Introduction
 ============
@@ -350,3 +348,5 @@ single passphrase prompt.
 [`crypttab`(5)]: https://manpages.debian.org/crypttab.5.en.html
 [`fstab`(5)]: https://manpages.debian.org/fstab.5.en.html
 [`initramfs.conf`(5)]: https://manpages.debian.org/initramfs.conf.5.en.html
+
+ -- Guilhem Moulin <guilhem@debian.org>, Mon, 09 Jun 2019 16:35:20 +0200
