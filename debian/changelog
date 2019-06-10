@@ -4,6 +4,10 @@ cryptsetup (2:2.1.0-5) UNRELEASED; urgency=medium
   * debian/README.*: Fix markdown formatting issues
   * Copy https://wiki.debian.org/CryptsetupDebug to debian/README.debug
 
+  [ Guilhem Moulin ]
+  * New README section "Unlocking LUKS devices from GRUB", pointing to
+    https://cryptsetup-team.pages.debian.net/cryptsetup/encrypted-boot.html .
+
  -- Jonas Meurer <jonas@freesources.org>  Sun, 09 Jun 2019 19:20:09 +0200
 
 cryptsetup (2:2.1.0-4) unstable; urgency=medium
