@@ -308,7 +308,7 @@ Neither Jessie nor Stretch's installer supports that feature, and users
 already had to implement various work-around to enable it.  Existing
 work-arounds won't work anymore with LUKS2.  Integration between LUKS
 and GRUB is currently documented at
-[https://cryptsetup-team.pages.debian.net/cryptsetup/encrypted-boot.html].
+https://cryptsetup-team.pages.debian.net/cryptsetup/encrypted-boot.html
 
 including recipe to enable the feature starting from the usual
 "encrypted LVM" partitioning method of the Debian Installer, both
