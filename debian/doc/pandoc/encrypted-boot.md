@@ -325,9 +325,7 @@ In `/etc/cryptsetup-initramfs/conf-hook`, set `KEYFILE_PATTERN` to a
     root@debian:~$ echo "KEYFILE_PATTERN=\"/etc/keys/*.key\"" >>/etc/cryptsetup-initramfs/conf-hook
 
 In `/etc/initramfs-tools/initramfs.conf`, set `UMASK` to a restrictive
-value to avoid leaking key material.
-See [`initramfs.conf`(5)](https://manpages.debian.org/initramfs.conf.5.en.html)
-for details.
+value to avoid leaking key material. See [`initramfs.conf`(5)] for details.
 
     root@debian:~$ echo UMASK=0077 >>/etc/initramfs-tools/initramfs.conf
 
@@ -350,3 +348,4 @@ single passphrase prompt.
 [`cryptsetup`(8)]: https://manpages.debian.org/cryptsetup.8.en.html
 [`crypttab`(5)]: https://manpages.debian.org/crypttab.5.en.html
 [`fstab`(5)]: https://manpages.debian.org/fstab.5.en.html
+[`initramfs.conf`(5)]: https://manpages.debian.org/initramfs.conf.5.en.html
