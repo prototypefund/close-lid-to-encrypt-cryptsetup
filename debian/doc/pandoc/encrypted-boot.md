@@ -13,8 +13,8 @@ Since not all bootloaders are able to unlock _LUKS_ devices, a plaintext
 
 Since Jessie GRUB2 has been able to unlock LUKS devices with a new
 [`cryptomount`](https://www.gnu.org/software/grub/manual/grub/html_node/cryptomount.html)
-command, hence enabling encryption of the `/boot` partition as well. (As
-unlocking happens before booting the kernel, that feature is not
+command, hence enabling encryption of the `/boot` partition as well.
+(As unlocking happens before booting the kernel, that feature is not
 compatible with remote unlocking.)
 
 Enabling unlocking LUKS devices from GRUB [isn't exposed to the d-i
@@ -325,7 +325,8 @@ In `/etc/cryptsetup-initramfs/conf-hook`, set `KEYFILE_PATTERN` to a
     root@debian:~$ echo "KEYFILE_PATTERN=\"/etc/keys/*.key\"" >>/etc/cryptsetup-initramfs/conf-hook
 
 In `/etc/initramfs-tools/initramfs.conf`, set `UMASK` to a restrictive
-value to avoid leaking key material. See [`initramfs.conf`(5)] for details.
+value to avoid leaking key material.  See [`initramfs.conf`(5)] for
+details.
 
     root@debian:~$ echo UMASK=0077 >>/etc/initramfs-tools/initramfs.conf
 
