@@ -5,8 +5,8 @@ cryptsetup (2:2.1.0-5) UNRELEASED; urgency=medium
   * Copy https://wiki.debian.org/CryptsetupDebug to debian/README.debug
 
   [ Guilhem Moulin ]
-  * New README section "Unlocking LUKS devices from GRUB", pointing to
-    https://cryptsetup-team.pages.debian.net/cryptsetup/encrypted-boot.html .
+  * d/README.Debian: New section "Unlocking LUKS devices from GRUB" pointing
+    to https://cryptsetup-team.pages.debian.net/cryptsetup/encrypted-boot.html .
 
  -- Jonas Meurer <jonas@freesources.org>  Sun, 09 Jun 2019 19:20:09 +0200
 
