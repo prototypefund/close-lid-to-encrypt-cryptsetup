@@ -17,14 +17,15 @@ compatible with remote unlocking.)
 
 Enabling unlocking LUKS devices from GRUB [isn't exposed to the d-i
 interface](https://bugs.debian.org/814798) (as of Buster), hence people
-have rolled out custom work-arounds.  But since the Buster release
-[`cryptsetup`(8)] defaults to a new [LUKS header format
-version](https://gitlab.com/cryptsetup/LUKS2-docs), which as of 2.04
-GRUB does not support.  (There a [ticket
-open](https://savannah.gnu.org/bugs/?55093) in GRUB's upstream bug
-tracker.)  _Hence the old custom work-around won't work anymore_.  Until
-LUKS _version 2_ support is added to GRUB2, the devices holding `/boot`
-need to be in _LUKS version 1_ to be unlocked from the boot loader.
+have come up with various custom work-arounds.  But since the Buster
+release [`cryptsetup`(8)] defaults to a new [LUKS header format
+version](https://gitlab.com/cryptsetup/LUKS2-docs), which isn't
+supported by GRUB as of 2.04.
+(There is a [ticket open](https://savannah.gnu.org/bugs/?55093) in
+GRUB's upstream bug tracker.)  _Hence the old custom work-around won't
+work anymore_.  Until LUKS _version 2_ support is added to GRUB2, the
+devices holding `/boot` need to be in _LUKS version 1_ to be unlocked
+from the boot loader.
 
 This document describes a generic way to unlock LUKS devices from GRUB
 for Debian Buster.
@@ -127,7 +128,7 @@ to the new (and now encrypted) file system.
     root@debian:~$ tar -C /boot -xf /tmp/boot.tar
 
 You can skip the next sub-section and go directly to [Enabling
-cryptomount in GRUB2].
+`cryptomount` in GRUB2].
 
 
 Moving `/boot` to the root file system
@@ -243,10 +244,10 @@ directory with data from the plaintext partition.
     #UUID=c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /boot           ext2    defaults        0       2
 
 
-Enabling cryptomount in GRUB2
-=============================
+Enabling `cryptomount` in GRUB2
+===============================
 
-Enable the `cryptodisk` feature and update GRUB:
+Enable the feature and update the GRUB image:
 
     root@debian:~$ echo "GRUB_ENABLE_CRYPTODISK=y" >>/etc/default/grub
     root@debian:~$ echo "GRUB_PRELOAD_MODULES=\"luks cryptodisk\"" >>/etc/default/grub
@@ -254,7 +255,7 @@ Enable the `cryptodisk` feature and update GRUB:
     root@debian:~$ grub-install /dev/sda
 
 If everything went well, `/boot/grub/grub.cfg` should contain `insmod
-cryptodisk` (and `insmod lvm` if `/boot` is on a Logical Volume).
+cryptodisk` (and also `insmod lvm` if `/boot` is on a Logical Volume).
 
 
 Avoiding the extra password prompt
