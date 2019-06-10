@@ -13,6 +13,7 @@ Build-Depends: autoconf,
                docbook-xml,
                docbook-xsl,
                gettext,
+               jq,
                libargon2-dev,
                libblkid-dev,
                libdevmapper-dev,
@@ -25,7 +26,8 @@ Build-Depends: autoconf,
                pkg-config,
                po-debconf,
                uuid-dev,
-               xsltproc
+               xsltproc,
+               xxd
 Standards-Version: 4.3.0
 Homepage: https://gitlab.com/cryptsetup/cryptsetup
 Vcs-Browser: https://salsa.debian.org/cryptsetup-team/cryptsetup

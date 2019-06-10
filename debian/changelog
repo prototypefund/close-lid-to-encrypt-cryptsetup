@@ -1,8 +1,12 @@
 cryptsetup (2:2.1.0-6) UNRELEASED; urgency=medium
 
-  * debian/control: Add 'Multi-Arch: foreign' tags to 'cryptsetup-bin' and
-    'crytsetup-run', as binaries from these packages are architecture
-    independent.  (Closes: #930115)
+  * debian/control:
+    + Add 'Multi-Arch: foreign' tags to 'cryptsetup-bin' and 'crytsetup-run',
+      as binaries from these packages are architecture independent.
+      (Closes: #930115)
+    + Add 'Build-Depends: jq, xxd' as the jq(1) and xxd(1) executables are
+      required for some upstream tests (skipped if the executables are not
+      found in $PATH).
 
  -- Guilhem Moulin <guilhem@debian.org>  Fri, 07 Jun 2019 15:26:23 +0200
 
