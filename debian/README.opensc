@@ -91,7 +91,7 @@ package. Replace everything after line 45 in
     for dir in etc/opensc usr/local/pcsc var/run tmp ; do
             if [ ! -d ${DESTDIR}/${dir} ] ; then mkdir -p ${DESTDIR}/${dir} ; fi
     done
-    
+
     # Install pcscd daemon, drivers, conf file, and include libgcc as
     # well since
     # pcscd utilizes pthread_cancel

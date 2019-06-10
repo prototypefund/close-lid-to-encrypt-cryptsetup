@@ -288,7 +288,7 @@ more intrusive changes are required. For example, adding a third cryptdisks
 init script might help. See the log of bugreport #576646[1] and discussion
 on debian-devel[2] for further information.
 
-[1] https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=576646  
+[1] https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=576646
 [2] https://lists.debian.org/debian-devel/2010/06/msg00021.html
 
 

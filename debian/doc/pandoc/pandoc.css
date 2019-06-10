@@ -7,7 +7,7 @@ body {
     color: black;
     font-size: 100%;
     line-height: 140%;
-    color: #333; 
+    color: #333;
 }
 
 pre {
@@ -21,9 +21,9 @@ code {
     font-family: monospace;
 }
 
-h1 a, h2 a, h3 a, h4 a, h5 a { 
+h1 a, h2 a, h3 a, h4 a, h5 a {
     text-decoration: none;
-    color: #7a5ada; 
+    color: #7a5ada;
 }
 h1, h2, h3, h4, h5 {
     font-family: sans-serif;

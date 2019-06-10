@@ -22,7 +22,7 @@ following steps are required:
 
   In grub, this can be done interactively from the grub boot menu: `<E>` to
   edit, and `<Ctrl>+<X>` to boot once you've edited the kernel line.
- 
+
   See https://help.ubuntu.com/community/Grub2/Troubleshooting#Editing_the_GRUB_2_Menu_During_Boot
   for details.
 

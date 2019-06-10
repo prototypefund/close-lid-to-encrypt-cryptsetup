@@ -94,8 +94,8 @@ in the command below, as Buster's [`cryptsetup`(8)] defaults to LUKS2):
     This will overwrite data on /dev/sda1 irrevocably.
 
     Are you sure? (Type uppercase yes): YES
-    Enter passphrase for /dev/sda1: 
-    Verify passphrase: 
+    Enter passphrase for /dev/sda1:
+    Verify passphrase:
 
 Add a corresponding entry to [`crypttab`(5)] with mapped device name
 `boot_crypt`, and open it afterwards:
@@ -112,7 +112,7 @@ for `/boot` is specified by its UUID in the [`fstab`(5)] -- which the
 Debian Installer does by default -- reusing the old UUID avoids editing
 the file.
 
-    root@debian:~$ grep /boot /etc/fstab 
+    root@debian:~$ grep /boot /etc/fstab
     # /boot was on /dev/sda1 during installation
     UUID=c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /boot           ext2    defaults        0       2
     root@debian:~$ mkfs.ext2 -m0 -U c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /dev/mapper/boot_crypt
@@ -126,7 +126,7 @@ to the new (and now encrypted) file system.
 
     root@debian:~$ mount -v /boot
     mount: /dev/mapper/boot_crypt mounted on /boot.
-    root@debian:~$ tar -C /boot -xf /tmp/boot.tar 
+    root@debian:~$ tar -C /boot -xf /tmp/boot.tar
 
 You can skip the next sub-section and go directly to [Enabling
 cryptomount in GRUB2].
@@ -176,12 +176,12 @@ the device was created with the default parameters the in-place
 conversion will fail:
 
     root@debian:~$ cryptsetup convert --type luks1 /dev/sda3
-    
+
     WARNING!
     ========
     This operation will convert /dev/sda3 to LUKS1 format.
-    
-    
+
+
     Are you sure? (Type uppercase yes): YES
     Cannot convert to LUKS1 format - keyslot 0 is not LUKS1 compatible.
 
@@ -198,8 +198,8 @@ has to be converted to PKBDF2 prior to LUKS format version downgrade.
 
     root@debian:~$ cryptsetup luksChangeKey --key-slot 0 --pbkdf pbkdf2 /dev/sda3
     Enter passphrase to be changed:
-    Enter new passphrase: 
-    Verify passphrase: 
+    Enter new passphrase:
+    Verify passphrase:
 
 (You can reuse the existing passphrase in the above prompts.)  Now that
 all keyslots use the PBKDF2 algorithm, the device shouldn't have any
@@ -208,12 +208,12 @@ remaining LUKS2-only features, and can be converted to LUKS1.
     root@debian:~$ cryptsetup luksDump /dev/sda3 | grep PBKDF:
             PBKDF:      pbkdf2
     root@debian:~$ cryptsetup convert --type luks1 /dev/sda3
-    
+
     WARNING!
     ========
     This operation will convert /dev/sda3 to LUKS1 format.
-    
-    
+
+
     Are you sure? (Type uppercase yes): YES
     root@debian:~$ cryptsetup luksDump /dev/sda3 | grep -A1 ^LUKS
     LUKS header information
@@ -240,7 +240,7 @@ Comment out the fstab(5) entry for the `/boot` mountpoint, otherwise
 at reboot `init`(1) will mount it hence shadow data in the new `/boot`
 directory with data from the plaintext partition.
 
-    root@debian:~$ grep /boot /etc/fstab 
+    root@debian:~$ grep /boot /etc/fstab
     ## /boot was on /dev/sda1 during installation
     #UUID=c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /boot           ext2    defaults        0       2
 
@@ -295,7 +295,7 @@ the size of the volume key) inside a new file:
 Now create a new key slot with that key file:
 
     root@debian:~$ cryptsetup luksAddKey /dev/sda3 /etc/keys/root.key
-    Enter any existing passphrase: 
+    Enter any existing passphrase:
 
     root@debian:~$ cryptsetup luksDump /dev/sda3 | grep "^Key Slot"
     Key Slot 0: ENABLED
@@ -310,7 +310,7 @@ Now create a new key slot with that key file:
 Edit the [`crypttab`(5)] and set the third column to the key file path for
 the root device entry:
 
-    root@debian:~$ cat /etc/crypttab 
+    root@debian:~$ cat /etc/crypttab
     root_crypt UUID=… /etc/keys/root.key luks,discard,key-slot=1
 
 (The unlock logic normally runs the PBKDF algorithm through each keyslot
