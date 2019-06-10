@@ -24,7 +24,7 @@ Table of Contents
  Cryptsetup is a command-line interface for configuring encrypted block
 devices via dm-crypt, a kernel device-mapper target. For documentation about
 the cryptsetup tool, see manpage of cryptsetup(8) and the frequently asked
-questions at `/usr/share/doc/cryptsetup/FAQ.gz`.
+questions at `/usr/share/doc/cryptsetup-run/FAQ.gz`.
 
  The Debian cryptsetup package provides the initscript `/etc/init.d/cryptdisks`
 and a configuration file `/etc/crypttab` for automatically configuring encrypted
@@ -42,7 +42,7 @@ which will install the system and setup cryptsetup and initramfs-tools.
 
  For instructions about how to encrypt your root filesystem and integrate
 cryptsetup into initramfs on a running system, see
-`/usr/share/doc/cryptsetup/README.initramfs.gz`.
+`/usr/share/doc/cryptsetup-initramfs/README.initramfs.gz`.
 
 
 2. Encrypted swap partition(s)
@@ -143,7 +143,7 @@ case, so that it runs asynchronously.
 configured in `/etc/crypttab` in order to provide the key required to unlock
 the device. The shipped keyscripts are located at `/lib/cryptsetup/scripts`.
 
- Some keyscripts have an own README file at `/usr/share/doc/cryptsetup/`.
+ Some keyscripts have an own README file at `/usr/share/doc/cryptsetup-run/`.
 
  Two special keyscripts, worth being mentioned here, are askpass and passdev.
 
@@ -154,7 +154,7 @@ passphrase, and prints the result to stdout. The syntax is:
     /lib/cryptsetup/askpass PROMPT
 
  Passdev will wait for a given device to appear, mount it read-only, read the
-key, and unmount the device. See `/usr/share/doc/cryptsetup/README.initramfs.gz`
+key, and unmount the device. See `/usr/share/doc/cryptsetup-initramfs/README.initramfs.gz`
 for more information about passdev.
 
 
@@ -234,7 +234,7 @@ users poking around:
 -------------------------
 
  WARNING: This information might be outdated. Please read the cryptsetup FAQ
-at `/usr/share/doc/cryptsetup/FAQ.gz` for up-to-date information on how to
+at `/usr/share/doc/cryptsetup-run/FAQ.gz` for up-to-date information on how to
 backup the LUKS header.
 
  The LUKS header is located at the beginning of every LUKS encrypted device.

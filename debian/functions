@@ -118,7 +118,7 @@ crypttab_parse_options() {
         for o in $options; do
             if [ "$quiet" = "n" ] && eval [ -z "\${CRYPTTAB_OPTION_$o+x}" ]; then
                 cryptsetup_message "WARNING: Option '$o' missing in crypttab for plain dm-crypt" \
-                    "mapping $CRYPTTAB_NAME. Please read /usr/share/doc/cryptsetup/README.initramfs and" \
+                    "mapping $CRYPTTAB_NAME. Please read /usr/share/doc/cryptsetup-initramfs/README.initramfs.gz and" \
                     "add the correct '$o' option to your crypttab(5)."
             fi
         done
@@ -361,7 +361,7 @@ crypttab_key_check() {
     local mode="$(stat -L -c"%04a" -- "$CRYPTTAB_KEY")"
     if [ $(stat -L -c"%u" -- "$CRYPTTAB_KEY") -ne 0 ] || [ "${mode%00}" = "$mode" ]; then
         cryptsetup_message "WARNING: $CRYPTTAB_NAME: key file $CRYPTTAB_KEY has" \
-            "insecure ownership, see /usr/share/doc/cryptsetup/README.Debian."
+            "insecure ownership, see /usr/share/doc/cryptsetup-run/README.Debian.gz."
     fi
 }
 
