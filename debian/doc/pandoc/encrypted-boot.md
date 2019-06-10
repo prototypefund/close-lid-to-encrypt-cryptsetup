@@ -11,7 +11,7 @@ the Debian Installer does this in its “encrypted LVM” partitioning method.
 Since not all bootloaders are able to unlock _LUKS_ devices, a plaintext
 `/boot` is the only solution that works for all of them.
 
-Since Wheezy GRUB2 has been able to unlock LUKS devices with a new
+Since Jessie GRUB2 has been able to unlock LUKS devices with a new
 [`cryptomount`](https://www.gnu.org/software/grub/manual/grub/html_node/cryptomount.html)
 command, hence enabling encryption of the `/boot` partition as well. (As
 unlocking happens before booting the kernel, that feature is not
