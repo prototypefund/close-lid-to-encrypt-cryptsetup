@@ -335,12 +335,12 @@ userspace.
     for the root device entry.
 
         root@debian:~$ cat /etc/crypttab
-        root_crypt UUID=… /etc/keys/root.key luks,discard,keyslot=1
+        root_crypt UUID=… /etc/keys/root.key luks,discard,key-slot=1
 
     The unlock logic normally runs the PBKDF algorithm through each key
     slot sequentially until a match is found.  Since the key file is
     explicitly targeting the second key slot, its index is specified with
-    `keyslot=1` in the [`crypttab`(5)] to save useless expensive PBKDF
+    `key-slot=1` in the [`crypttab`(5)] to save useless expensive PBKDF
     computations and *reduce boot time*.
 
  4. In `/etc/cryptsetup-initramfs/conf-hook`, set `KEYFILE_PATTERN` to a
