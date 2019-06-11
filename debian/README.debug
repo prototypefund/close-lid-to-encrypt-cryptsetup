@@ -61,7 +61,8 @@ Useful commands to gather information from initramfs rescue shell:
 
 * Display cryptroot configuration and list loaded kernel modules:
 
-      cat /conf/conf.d/cryptroot
+      cat /cryptroot/crypttab
+      lsmod
 
 * Gather information about the available block devices:
 
