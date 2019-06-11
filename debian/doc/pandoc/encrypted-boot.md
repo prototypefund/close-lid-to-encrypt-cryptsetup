@@ -6,7 +6,7 @@ Introduction
 So called “full disk encryption” is often a misnomer, because there is
 typically a separate plaintext partition holding `/boot`.  For instance
 the Debian Installer does this in its “encrypted LVM” partitioning method.
-Since not all bootloaders are able to unlock _LUKS_ devices, a plaintext
+Since not all bootloaders are able to unlock LUKS devices, a plaintext
 `/boot` is the only solution that works for all of them.
 
 Since Jessie GRUB2 has been able to unlock LUKS devices with a new
@@ -17,15 +17,14 @@ compatible with remote unlocking.)
 
 Enabling unlocking LUKS devices from GRUB [isn't exposed to the d-i
 interface](https://bugs.debian.org/814798) (as of Buster), hence people
-have come up with various custom work-arounds.  But since the Buster
+have come up with various custom workarounds.  But since the Buster
 release [`cryptsetup`(8)] defaults to a new [LUKS header format
 version](https://gitlab.com/cryptsetup/LUKS2-docs), which isn't
-supported by GRUB as of 2.04.
-(There is a [ticket open](https://savannah.gnu.org/bugs/?55093) in
-GRUB's upstream bug tracker.)  _Hence the old custom work-around won't
-work anymore_.  Until LUKS _version 2_ support is added to GRUB2, the
-devices holding `/boot` need to be in _LUKS version 1_ to be unlocked
-from the boot loader.
+supported by GRUB as of 2.04.  **Hence the pre-Buster workarounds won't
+work anymore with Buster**.  Until LUKS *version 2* support is [added to
+GRUB2](https://savannah.gnu.org/bugs/?55093), the device(s) holding
+`/boot` needs to be in *LUKS format version 1* to be unlocked from the
+boot loader.
 
 This document describes a generic way to unlock LUKS devices from GRUB
 for Debian Buster.
@@ -38,8 +37,8 @@ There are two alternatives here:
 
   * Either format an existing `/boot` partition to LUKS1; or
   * Move `/boot` to the root file system.  The root device(s) needs to
-    use LUKS version 1, but existing LUKS2 devices can be converted
-    (in-place) to LUKS1 if desired.
+    use LUKS version 1, but existing LUKS2 devices can be *converted*
+    (in-place) to LUKS1.
 
 These two alternatives are described in the two following sub-sections.
 
@@ -48,19 +47,20 @@ Formatting the existing `/boot` partition to LUKS1
 --------------------------------------------------
 
 Since the installer creates a separate (cleartext) `/boot` partition by
-default in its “encrypted LVM” partitioning method, the simplest solution
-is arguably to re-format it as LUKS1.
+default in its “encrypted LVM” partitioning method, the simplest
+solution is arguably to re-format it as LUKS1, especially if the root
+device is in LUKS2 format.
 
 That way other partitions, including the one holding the root file
-system, can remain in LUKS2 format and benefit from the stronger
-security guaranties of the newer version: more secure (memory-hard) Key
-Derivation Function, backup header, ability to offload the volume key
-offload to the kernel keyring (thus preventing access from userspace),
-custom sector size, persistent flags, unattended unlocking via kernel
-keyring tokens, etc.
+system, can remain in LUKS2 format and benefit from the *stronger
+security guaranties* and *convenience features* of the newer version:
+more secure (memory-hard) Key Derivation Function, backup header,
+ability to offload the volume key to the kernel keyring (thus preventing
+access from userspace), custom sector size, persistent flags, unattended
+unlocking via kernel keyring tokens, etc.
 
-Furthermore every command in this sub-section can be run in the main
-system, no need to reboot into a live CD or an initramfs shell.
+Furthermore every command in this sub-section can be run from the main
+system: no need to reboot into a live CD or an initramfs shell.
 
 Before copying content of the `/boot` directory, remount it read-only to
 make sure data is not modified while it's being copied:
@@ -83,8 +83,9 @@ Optionally, wipe out the underlying block device (assumed to be
     243+0 records out
     254803968 bytes (255 MB, 243 MiB) copied, 1.70967 s, 149 MB/s
 
-Format the underlying block device to LUKS1 (note the `--type luks1`
-in the command below, as Buster's [`cryptsetup`(8)] defaults to LUKS2):
+Format the underlying block device to LUKS1 (note the `--type luks1` in
+the command below, as Buster's [`cryptsetup`(8)] defaults to LUKS2 for
+`luksFormat`):
 
     root@debian:~$ cryptsetup luksFormat --type luks1 /dev/sda1
 
@@ -125,35 +126,37 @@ to the new (and now encrypted) file system.
 
     root@debian:~$ mount -v /boot
     mount: /dev/mapper/boot_crypt mounted on /boot.
-    root@debian:~$ tar -C /boot -xf /tmp/boot.tar
+    root@debian:~$ tar -C /boot --acls --xattrs -xf /tmp/boot.tar
 
 You can skip the next sub-section and go directly to [Enabling
-`cryptomount` in GRUB2].
+`cryptomount` in GRUB2].  Note that `init`(1) needs to unlock the
+`/boot` partition again during the boot process.  See [Avoiding the
+extra password prompt] for details and a proposed workaround.
 
 
 Moving `/boot` to the root file system
 --------------------------------------
 
-The [above sub-section][Formatting the existing `/boot` partition to LUKS1]
+The [previous sub-section][Formatting the existing `/boot` partition to LUKS1]
 described how to to re-format the `/boot` partition as LUKS1.
 Alternatively, it can be moved to the root file system, assuming the
 latter is not held by any LUKS2 device.  (As shown below, LUKS2 devices
 created with default parameters can be “downgraded” to LUKS1.)
 
 The advantage of this method is that the original `/boot` partition can
-be preserved and used in case of disaster recovery (if for some reason
+be preserved and used in case of *disaster recovery* (if for some reason
 the GRUB image is lacking the `cryptodisk` module and the original
-plaintext `/boot` partition is lost, you'd need to boot from a live CD
-to recover).  Moreover increasing the number of partitions increases
-usage pattern visibility: a separate `/boot` partitions, although
+plaintext `/boot` partition is lost, you'd need to reboot into a live CD
+to recover).  Moreover increasing the number of partitions *increases
+usage pattern visibility*: a separate `/boot` partitions, although
 encrypted, will likely leak the fact that a kernel update took place to
-an attacker with access to pre- and post-update snapshots.
+an attacker with access to both pre- and post-update snapshots.
 
 On the other hand, the inconvenient of that method is that the root file
-system can't benefit from the nice LUKS2 improvements over LUKS1, as
-listed above.  Another minor inconvenient is that space occupied by the
-former `/boot` partition (typically 250MiB) becomes unused and can't
-easily be reclaimed by the root file system.
+system can't benefit from the nice LUKS2 improvements over LUKS1, some
+of which were listed above.  Another minor inconvenient is that space
+occupied by the former `/boot` partition (typically 250MiB) becomes
+unused and can't easily be reclaimed by the root file system.
 
 ### Downgrading LUKS2 to LUKS1 ###
 
@@ -164,17 +167,17 @@ Check the LUKS format version on the root device (assumed to be
     LUKS header information
     Version:        2
 
-Here the LUKS format version is 2, so the device needs to be converted
-to LUKS _version 1_ to be able to unlock from GRUB.  Unlike the remaining
-of this document, the conversion can't be done on an open device, so
-you'll need reboot into a live CD or an [initramfs shell].  (The
-`(initramfs)` prompt strings in this sub-section indicates commands that
-are executed from an initramfs shell.)
+Here the LUKS format version is 2, so the device needs to be *converted*
+to LUKS *version 1* to be able to unlock from GRUB.  Unlike the rest of
+this document, conversion can't be done on an open device, so you'll
+need reboot into a live CD or an [initramfs shell].  (The `(initramfs)`
+prompt strings in this sub-section indicates commands that are executed
+from an initramfs shell.)
 
 [initramfs shell]: https://wiki.debian.org/InitramfsDebug#Rescue_shell_.28also_known_as_initramfs_shell.29
 
 Run `cryptsetup convert --type luks1 DEVICE` to downgrade.  However if
-the device was created with the default parameters the in-place
+the device was created with the default parameters then in-place
 conversion will fail:
 
     (initramfs) cryptsetup convert --type luks1 /dev/sda3
@@ -190,13 +193,14 @@ conversion will fail:
 This is because its first key slot uses Argon2 as Password-Based Key
 Derivation Function (PBKDF) algorithm:
 
-    (initramfs) cryptsetup luksDump /dev/sda3 | grep PBKDF:
+    (initramfs) cryptsetup luksDump /dev/sda3 | grep "PBKDF:"
             PBKDF:      argon2i
 
-Argon2 is a memory-hard function that was selected as the winner of the
-Password-Hashing Competition; LUKS2 devices use it by default, but
-LUKS1's only supported PBKDF algorithm is PKBDF2.  Hence the key slot
-has to be converted to PKBDF2 prior to LUKS format version downgrade.
+Argon2 is a *memory-hard* function that was selected as the winner of
+the Password-Hashing Competition; LUKS2 devices use it by default for
+key slots, but LUKS1's only supported PBKDF algorithm is PBKDF2.  Hence
+the key slot has to be converted to PBKDF2 prior to LUKS format version
+downgrade.
 
     (initramfs) cryptsetup luksChangeKey --key-slot 0 --pbkdf pbkdf2 /dev/sda3
     Enter passphrase to be changed:
@@ -204,10 +208,10 @@ has to be converted to PKBDF2 prior to LUKS format version downgrade.
     Verify passphrase:
 
 (You can reuse the existing passphrase in the above prompts.)  Now that
-all keyslots use the PBKDF2 algorithm, the device shouldn't have any
-remaining LUKS2-only features, and can be converted to LUKS1.
+all key slots use the PBKDF2 algorithm, the device shouldn't have any
+LUKS2-only features left, and can be converted to LUKS1.
 
-    (initramfs) cryptsetup luksDump /dev/sda3 | grep PBKDF:
+    (initramfs) cryptsetup luksDump /dev/sda3 | grep "PBKDF:"
             PBKDF:      pbkdf2
     (initramfs) cryptsetup convert --type luks1 /dev/sda3
 
@@ -239,9 +243,9 @@ the old `/boot` mountpoint with the new directory.
     root@debian:~$ rmdir /boot
     root@debian:~$ mv -T /boot.tmp /boot
 
-Comment out the fstab(5) entry for the `/boot` mountpoint, otherwise
-at reboot `init`(1) will mount it hence shadow data in the new `/boot`
-directory with data from the plaintext partition.
+Comment out the [`fstab`(5)] entry for the `/boot` mountpoint: otherwise
+at reboot `init`(1) will mount it and therefore shadow data in the new
+`/boot` directory with data from the old plaintext partition.
 
     root@debian:~$ grep /boot /etc/fstab
     ## /boot was on /dev/sda1 during installation
@@ -266,24 +270,25 @@ Avoiding the extra password prompt
 ==================================
 
 The device holding the kernel (and the initramfs image) is unlocked by
-GRUB, but the root device needs to be unlocked again at initramfs stage,
-regardless whether it's the same device or not.  This is because GRUB
-boots with the given `vmlinuz` and initramfs images, but there currently
-is no way to securely pass cryptographic material (or Device Mapper
-information) to the kernel.  Hence the Device Mapper table is initially
-empty at initramfs stage; in other words, all devices are locked, and
-the root device needs to be unlocked again.
+GRUB, but the root device needs to be *unlocked again* at initramfs
+stage, regardless whether it's the same device or not.  This is because
+GRUB boots with the given `vmlinuz` and initramfs images, but there is
+currently no way to securely pass cryptographic material (or Device
+Mapper information) to the kernel.  Hence the Device Mapper table is
+initially empty at initramfs stage; in other words, all devices are
+locked, and the root device needs to be unlocked again.
 
-To avoid extra passphrase prompts at initramfs stage, a work around is
-to unlock via key files stored into the initramfs image.  Since the
-initramfs image itself now resides on an encrypted device, this still
-provides protection for data at rest.  With LUKS1 the volume key can
-already be found by userspace in the Device Mapper table, so including
-key files to the initramfs image -- created with restrictive permissions --
-doesn't change the threat model.  (However for LUKS2 the volume key is
-offloaded to the kernel keyring by default, thus no longer accessible to
-userspace, and having keyfiles readable by root slightly changes the
-threat model.)
+To avoid extra passphrase prompts at initramfs stage, a workaround is
+to *unlock via key files stored into the initramfs image*.  Since the
+initramfs image now resides on an encrypted device, this still provides
+protection for data at rest.  After all for LUK1 the volume key can
+already be found by userspace in the Device Mapper table, so one could
+argue that including key files to the initramfs image -- created with
+restrictive permissions -- doesn't change the threat model for LUKS1
+devices.  Please note however that for LUKS2 the volume key is normally
+*offloaded to the kernel keyring* (hence no longer readable by
+userspace), while key files lying on disk are of course readable by
+userspace.
 
 To enable unlocking via key files for the root file system, first
 generate the shared secret (here with 512 bits of entropy as it's also
@@ -314,13 +319,13 @@ Edit the [`crypttab`(5)] and set the third column to the key file path for
 the root device entry:
 
     root@debian:~$ cat /etc/crypttab
-    root_crypt UUID=… /etc/keys/root.key luks,discard,key-slot=1
+    root_crypt UUID=… /etc/keys/root.key luks,discard,keyslot=1
 
-(The unlock logic normally runs the PBKDF algorithm through each keyslot
+(The unlock logic normally runs the PBKDF algorithm through each key slot
 sequentially until a match is found.  Since the key file is explicitly
-targeting the second key slot, its index can be specified with
-`key-slot=1` in the [`crypttab`(5)] to save some expensive PBKDF
-computations and reduce boot time.)
+targeting the second key slot, its index is specified with `keyslot=1`
+in the [`crypttab`(5)] to save some expensive PBKDF computations and
+*reduce boot time*.)
 
 In `/etc/cryptsetup-initramfs/conf-hook`, set `KEYFILE_PATTERN` to a
 `glob`(7) expanding to the key files to include to the initramfs image.
@@ -333,8 +338,8 @@ details.
 
     root@debian:~$ echo UMASK=0077 >>/etc/initramfs-tools/initramfs.conf
 
-Finally re-generate the initramfs image, and double-check that it has
-restrictive permissions and includes the key.
+Finally re-generate the initramfs image, and double-check that it 1/ has
+restrictive permissions; and 2/ includes the key.
 
     root@debian:~$ update-initramfs -u
     update-initramfs: Generating /boot/initrd.img-4.19.0-4-amd64
@@ -344,7 +349,7 @@ restrictive permissions and includes the key.
     cryptroot/keyfiles/root_crypt.key
 
 (`cryptsetup-initramfs` normalises and renames key files inside the
-initramfs, hence the new keyfile name.)
+initramfs, hence the new file name.)
 
 Should be safe to reboot now :-)  If all went well you should see a
 single passphrase prompt.
