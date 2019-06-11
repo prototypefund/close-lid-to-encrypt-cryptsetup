@@ -50,4 +50,4 @@ pages:
     #variables:
     #  - $CI_COMMIT_TAG
   variables:
-    PANDOC: 'pandoc -s -c pandoc.css -f markdown -t html'
+    PANDOC: 'pandoc -sS -c pandoc.css -f markdown -t html'

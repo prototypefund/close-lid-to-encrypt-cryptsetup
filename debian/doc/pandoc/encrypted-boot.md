@@ -62,71 +62,71 @@ unlocking via kernel keyring tokens, etc.
 Furthermore every command in this sub-section can be run from the main
 system: no need to reboot into a live CD or an initramfs shell.
 
-1. Before copying content of the `/boot` directory, remount it read-only to
-   make sure data is not modified while it's being copied.
+ 1. Before copying content of the `/boot` directory, remount it read-only
+    to make sure data is not modified while it's being copied.
 
-       root@debian:~$ mount -oremount,ro /boot
+        root@debian:~$ mount -oremount,ro /boot
 
-2. Archive the directory elsewhere (on another device), and unmount it
-   afterwards.
+ 2. Archive the directory elsewhere (on another device), and unmount it
+    afterwards.
 
-       root@debian:~$ install -m0600 /dev/null /tmp/boot.tar
-       root@debian:~$ tar -C /boot --acls --xattrs -cf /tmp/boot.tar .
-       root@debian:~$ umount /boot
+        root@debian:~$ install -m0600 /dev/null /tmp/boot.tar
+        root@debian:~$ tar -C /boot --acls --xattrs -cf /tmp/boot.tar .
+        root@debian:~$ umount /boot
 
-3. Optionally, wipe out the underlying block device (assumed to be
-   `/dev/sda1` in the rest of this sub-section).
+ 3. Optionally, wipe out the underlying block device (assumed to be
+    `/dev/sda1` in the rest of this sub-section).
 
-       root@debian:~$ dd if=/dev/urandom of=/dev/sda1 bs=1M
-       dd: error writing '/dev/sda1': No space left on device
-       244+0 records in
-       243+0 records out
-       254803968 bytes (255 MB, 243 MiB) copied, 1.70967 s, 149 MB/s
+        root@debian:~$ dd if=/dev/urandom of=/dev/sda1 bs=1M
+        dd: error writing '/dev/sda1': No space left on device
+        244+0 records in
+        243+0 records out
+        254803968 bytes (255 MB, 243 MiB) copied, 1.70967 s, 149 MB/s
 
-4. Format the underlying block device to LUKS1.  (Note the `--type luks1`
-   in the command below, as Buster's [`cryptsetup`(8)] defaults to LUKS
-   version 2 for `luksFormat`.)
+ 4. Format the underlying block device to LUKS1.  (Note the `--type luks1`
+    in the command below, as Buster's [`cryptsetup`(8)] defaults to LUKS
+    version 2 for `luksFormat`.)
 
-       root@debian:~$ cryptsetup luksFormat --type luks1 /dev/sda1
+        root@debian:~$ cryptsetup luksFormat --type luks1 /dev/sda1
 
-       WARNING!
-       ========
-       This will overwrite data on /dev/sda1 irrevocably.
+        WARNING!
+        ========
+        This will overwrite data on /dev/sda1 irrevocably.
 
-       Are you sure? (Type uppercase yes): YES
-       Enter passphrase for /dev/sda1:
-       Verify passphrase:
+        Are you sure? (Type uppercase yes): YES
+        Enter passphrase for /dev/sda1:
+        Verify passphrase:
 
-5. Add a corresponding entry to [`crypttab`(5)] with mapped device name
-   `boot_crypt`, and open it afterwards.
+ 5. Add a corresponding entry to [`crypttab`(5)] with mapped device name
+    `boot_crypt`, and open it afterwards.
 
-       root@debian:~$ uuid="$(blkid -o value -s UUID /dev/sda1)"
-       root@debian:~$ echo "boot_crypt UUID=$uuid none luks" | tee -a /etc/crypttab
-       root@debian:~$ cryptdisks_start boot_crypt
-       Starting crypto disk...boot_crypt (starting)...
-       Please unlock disk boot_crypt:  ********
-       boot_crypt (started)...done.
+        root@debian:~$ uuid="$(blkid -o value -s UUID /dev/sda1)"
+        root@debian:~$ echo "boot_crypt UUID=$uuid none luks" | tee -a /etc/crypttab
+        root@debian:~$ cryptdisks_start boot_crypt
+        Starting crypto disk...boot_crypt (starting)...
+        Please unlock disk boot_crypt:  ********
+        boot_crypt (started)...done.
 
-6. Create a file system on the mapped device.  Assuming source device
-   for `/boot` is specified by its UUID in the [`fstab`(5)] -- which the
-   Debian Installer does by default -- reusing the old UUID avoids
-   editing the file.
+ 6. Create a file system on the mapped device.  Assuming source device for
+    `/boot` is specified by its UUID in the [`fstab`(5)] -- which the
+    Debian Installer does by default -- reusing the old UUID avoids
+    editing the file.
 
-       root@debian:~$ grep /boot /etc/fstab
-       # /boot was on /dev/sda1 during installation
-       UUID=c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /boot           ext2    defaults        0       2
-       root@debian:~$ mkfs.ext2 -m0 -U c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /dev/mapper/boot_crypt
-       mke2fs 1.44.5 (15-Dec-2018)
-       Creating filesystem with 246784 1k blocks and 61752 inodes
-       Filesystem UUID: c104749f-a0fa-406c-9e9a-3fc01f8e2f78
-       […]
+        root@debian:~$ grep /boot /etc/fstab
+        # /boot was on /dev/sda1 during installation
+        UUID=c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /boot           ext2    defaults        0       2
+        root@debian:~$ mkfs.ext2 -m0 -U c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /dev/mapper/boot_crypt
+        mke2fs 1.44.5 (15-Dec-2018)
+        Creating filesystem with 246784 1k blocks and 61752 inodes
+        Filesystem UUID: c104749f-a0fa-406c-9e9a-3fc01f8e2f78
+        […]
 
-7. Finally, mount `/boot` again from [`fstab`(5)], and copy the saved tarball
-   to the new (and now encrypted) file system.
+ 7. Finally, mount `/boot` again from [`fstab`(5)], and copy the saved
+    tarball to the new (and now encrypted) file system.
 
-       root@debian:~$ mount -v /boot
-       mount: /dev/mapper/boot_crypt mounted on /boot.
-       root@debian:~$ tar -C /boot --acls --xattrs -xf /tmp/boot.tar
+        root@debian:~$ mount -v /boot
+        mount: /dev/mapper/boot_crypt mounted on /boot.
+        root@debian:~$ tar -C /boot --acls --xattrs -xf /tmp/boot.tar
 
 You can skip the next sub-section and go directly to [Enabling
 `cryptomount` in GRUB2].  Note that `init`(1) needs to unlock the
@@ -230,26 +230,27 @@ LUKS2-only features left, and can be converted to LUKS1.
 reboot into a live CD or an initramfs shell if the root file system
 resides in a LUK1 device.)
 
-1. To ensure data is not modified while it's being copied, remount
-   `/boot` read-only.
+ 1. To ensure data is not modified while it's being copied, remount
+    `/boot` read-only.
 
-       root@debian:~$ mount -oremount,ro /boot
+        root@debian:~$ mount -oremount,ro /boot
 
-2. Recursively copy the directory to the root file system, and replace
-   the old `/boot` mountpoint with the new directory.
+ 2. Recursively copy the directory to the root file system, and replace
+    the old `/boot` mountpoint with the new directory.
 
-       root@debian:~$ cp -aT /boot /boot.tmp
-       root@debian:~$ umount /boot
-       root@debian:~$ rmdir /boot
-       root@debian:~$ mv -T /boot.tmp /boot
+        root@debian:~$ cp -aT /boot /boot.tmp
+        root@debian:~$ umount /boot
+        root@debian:~$ rmdir /boot
+        root@debian:~$ mv -T /boot.tmp /boot
 
-3. Comment out the [`fstab`(5)] entry for the `/boot` mountpoint.  Otherwise
-   at reboot `init`(1) will mount it and therefore shadow data in the new
-   `/boot` directory with data from the old plaintext partition.
+ 3. Comment out the [`fstab`(5)] entry for the `/boot` mountpoint.
+    Otherwise at reboot `init`(1) will mount it and therefore shadow data
+    in the new `/boot` directory with data from the old plaintext
+    partition.
 
-       root@debian:~$ grep /boot /etc/fstab
-       ## /boot was on /dev/sda1 during installation
-       #UUID=c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /boot           ext2    defaults        0       2
+        root@debian:~$ grep /boot /etc/fstab
+        ## /boot was on /dev/sda1 during installation
+        #UUID=c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /boot           ext2    defaults        0       2
 
 
 Enabling `cryptomount` in GRUB2
@@ -290,66 +291,66 @@ devices.  Please note however that for LUKS2 the volume key is normally
 userspace), while key files lying on disk are of course readable by
 userspace.
 
-1. Generate the shared secret (here with 512 bits of entropy as it's
-   also the size of the volume key) inside a new file.
+ 1. Generate the shared secret (here with 512 bits of entropy as it's also
+    the size of the volume key) inside a new file.
 
-       root@debian:~$ mkdir -m0700 /etc/keys
-       root@debian:~$ ( umask 0077 && dd if=/dev/urandom bs=1 count=64 of=/etc/keys/root.key )
-       64+0 records in
-       64+0 records out
-       64 bytes copied, 0.000698363 s, 91.6 kB/s
+        root@debian:~$ mkdir -m0700 /etc/keys
+        root@debian:~$ ( umask 0077 && dd if=/dev/urandom bs=1 count=64 of=/etc/keys/root.key )
+        64+0 records in
+        64+0 records out
+        64 bytes copied, 0.000698363 s, 91.6 kB/s
 
-2. Create a new key slot with that key file.
+ 2. Create a new key slot with that key file.
 
-       root@debian:~$ cryptsetup luksAddKey /dev/sda3 /etc/keys/root.key
-       Enter any existing passphrase:
+        root@debian:~$ cryptsetup luksAddKey /dev/sda3 /etc/keys/root.key
+        Enter any existing passphrase:
 
-       root@debian:~$ cryptsetup luksDump /dev/sda3 | grep "^Key Slot"
-       Key Slot 0: ENABLED
-       Key Slot 1: ENABLED
-       Key Slot 2: DISABLED
-       Key Slot 3: DISABLED
-       Key Slot 4: DISABLED
-       Key Slot 5: DISABLED
-       Key Slot 6: DISABLED
-       Key Slot 7: DISABLED
+        root@debian:~$ cryptsetup luksDump /dev/sda3 | grep "^Key Slot"
+        Key Slot 0: ENABLED
+        Key Slot 1: ENABLED
+        Key Slot 2: DISABLED
+        Key Slot 3: DISABLED
+        Key Slot 4: DISABLED
+        Key Slot 5: DISABLED
+        Key Slot 6: DISABLED
+        Key Slot 7: DISABLED
 
-3. Edit the [`crypttab`(5)] and set the third column to the key file
-   path for the root device entry.
+ 3. Edit the [`crypttab`(5)] and set the third column to the key file path
+    for the root device entry.
 
-       root@debian:~$ cat /etc/crypttab
-       root_crypt UUID=… /etc/keys/root.key luks,discard,keyslot=1
+        root@debian:~$ cat /etc/crypttab
+        root_crypt UUID=… /etc/keys/root.key luks,discard,keyslot=1
 
-   The unlock logic normally runs the PBKDF algorithm through each key
-   slot sequentially until a match is found.  Since the key file is
-   explicitly targeting the second key slot, its index is specified with
-   `keyslot=1` in the [`crypttab`(5)] to save useless expensive PBKDF
-   computations and *reduce boot time*.
+    The unlock logic normally runs the PBKDF algorithm through each key
+    slot sequentially until a match is found.  Since the key file is
+    explicitly targeting the second key slot, its index is specified with
+    `keyslot=1` in the [`crypttab`(5)] to save useless expensive PBKDF
+    computations and *reduce boot time*.
 
-4. In `/etc/cryptsetup-initramfs/conf-hook`, set `KEYFILE_PATTERN` to a
-   `glob`(7) expanding to the key path names to include to the initramfs
-   image.
+ 4. In `/etc/cryptsetup-initramfs/conf-hook`, set `KEYFILE_PATTERN` to a
+    `glob`(7) expanding to the key path names to include to the initramfs
+    image.
 
-       root@debian:~$ echo "KEYFILE_PATTERN=\"/etc/keys/*.key\"" >>/etc/cryptsetup-initramfs/conf-hook
+        root@debian:~$ echo "KEYFILE_PATTERN=\"/etc/keys/*.key\"" >>/etc/cryptsetup-initramfs/conf-hook
 
-5. In `/etc/initramfs-tools/initramfs.conf`, set `UMASK` to a
-   restrictive value to avoid leaking key material.  See
-   [`initramfs.conf`(5)] for details.
+ 5. In `/etc/initramfs-tools/initramfs.conf`, set `UMASK` to a restrictive
+    value to avoid leaking key material.  See [`initramfs.conf`(5)] for
+    details.
 
-       root@debian:~$ echo UMASK=0077 >>/etc/initramfs-tools/initramfs.conf
+        root@debian:~$ echo UMASK=0077 >>/etc/initramfs-tools/initramfs.conf
 
-6. Finally re-generate the initramfs image, and double-check that it 1/ has
-   restrictive permissions; and 2/ includes the key.
+ 6. Finally re-generate the initramfs image, and double-check that it
+    1/ has restrictive permissions; and 2/ includes the key.
 
-       root@debian:~$ update-initramfs -u
-       update-initramfs: Generating /boot/initrd.img-4.19.0-4-amd64
-       root@debian:~$ stat -L -c "%A  %n" /initrd.img
-       -rw-------  /initrd.img
-       root@debian:~$ lsinitramfs /initrd.img | grep "^cryptroot/keyfiles/"
-       cryptroot/keyfiles/root_crypt.key
+        root@debian:~$ update-initramfs -u
+        update-initramfs: Generating /boot/initrd.img-4.19.0-4-amd64
+        root@debian:~$ stat -L -c "%A  %n" /initrd.img
+        -rw-------  /initrd.img
+        root@debian:~$ lsinitramfs /initrd.img | grep "^cryptroot/keyfiles/"
+        cryptroot/keyfiles/root_crypt.key
 
-   (`cryptsetup-initramfs` normalises and renames key files inside the
-   initramfs, hence the new file name.)
+    (`cryptsetup-initramfs` normalises and renames key files inside the
+    initramfs, hence the new file name.)
 
 Should be safe to reboot now :-)  If all went well you should see a
 single passphrase prompt.

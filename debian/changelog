@@ -9,6 +9,8 @@ cryptsetup (2:2.1.0-6) UNRELEASED; urgency=medium
       found in $PATH).
    * debian/*: Fix path names for /usr/share/doc/cryptsetup*/**.
      (Closes: #904916).
+   * debian/doc/pandoc/encrypted-boot.md: Minor refactoring.
+   * debian/gitlab-ci.yml: Adapt pandoc flags to Debian 9 (pass '-S').
 
  -- Guilhem Moulin <guilhem@debian.org>  Fri, 07 Jun 2019 15:26:23 +0200
 
