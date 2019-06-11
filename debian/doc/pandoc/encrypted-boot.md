@@ -21,7 +21,7 @@ have come up with various custom workarounds.  But since the Buster
 release [`cryptsetup`(8)] defaults to a new [LUKS header format
 version](https://gitlab.com/cryptsetup/LUKS2-docs), which isn't
 supported by GRUB as of 2.04.  **Hence the pre-Buster workarounds won't
-work anymore with Buster**.  Until LUKS *version 2* support is [added to
+work anymore**.  Until LUKS *version 2* support is [added to
 GRUB2](https://savannah.gnu.org/bugs/?55093), the device(s) holding
 `/boot` needs to be in *LUKS format version 1* to be unlocked from the
 boot loader.
