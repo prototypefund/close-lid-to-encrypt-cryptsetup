@@ -71,7 +71,9 @@ system: no need to reboot into a live CD or an initramfs shell.
     afterwards.
 
         root@debian:~$ install -m0600 /dev/null /tmp/boot.tar
+    <!-- -->
         root@debian:~$ tar -C /boot --acls --xattrs -cf /tmp/boot.tar .
+    <!-- -->
         root@debian:~$ umount /boot
 
  3. Optionally, wipe out the underlying block device (assumed to be
@@ -101,7 +103,9 @@ system: no need to reboot into a live CD or an initramfs shell.
     `boot_crypt`, and open it afterwards.
 
         root@debian:~$ uuid="$(blkid -o value -s UUID /dev/sda1)"
+    <!-- -->
         root@debian:~$ echo "boot_crypt UUID=$uuid none luks" | tee -a /etc/crypttab
+    <!-- -->
         root@debian:~$ cryptdisks_start boot_crypt
         Starting crypto disk...boot_crypt (starting)...
         Please unlock disk boot_crypt:  ********
@@ -115,6 +119,7 @@ system: no need to reboot into a live CD or an initramfs shell.
         root@debian:~$ grep /boot /etc/fstab
         # /boot was on /dev/sda1 during installation
         UUID=c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /boot           ext2    defaults        0       2
+    <!-- -->
         root@debian:~$ mkfs.ext2 -m0 -U c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /dev/mapper/boot_crypt
         mke2fs 1.44.5 (15-Dec-2018)
         Creating filesystem with 246784 1k blocks and 61752 inodes
@@ -126,6 +131,7 @@ system: no need to reboot into a live CD or an initramfs shell.
 
         root@debian:~$ mount -v /boot
         mount: /dev/mapper/boot_crypt mounted on /boot.
+    <!-- -->
         root@debian:~$ tar -C /boot --acls --xattrs -xf /tmp/boot.tar
 
 You can skip the next sub-section and go directly to [Enabling
@@ -213,6 +219,7 @@ LUKS2-only features left, and can be converted to LUKS1.
 
     (initramfs) cryptsetup luksDump /dev/sda3 | grep "PBKDF:"
             PBKDF:      pbkdf2
+<!-- -->
     (initramfs) cryptsetup convert --type luks1 /dev/sda3
 
     WARNING!
@@ -221,6 +228,7 @@ LUKS2-only features left, and can be converted to LUKS1.
 
 
     Are you sure? (Type uppercase yes): YES
+<!-- -->
     (initramfs) cryptsetup luksDump /dev/sda3 | grep -A1 ^LUKS
     LUKS header information
 
@@ -238,9 +246,13 @@ resides in a LUK1 device.)
  2. Recursively copy the directory to the root file system, and replace
     the old `/boot` mountpoint with the new directory.
 
+    <!-- -->
         root@debian:~$ cp -aT /boot /boot.tmp
+    <!-- -->
         root@debian:~$ umount /boot
+    <!-- -->
         root@debian:~$ rmdir /boot
+    <!-- -->
         root@debian:~$ mv -T /boot.tmp /boot
 
  3. Comment out the [`fstab`(5)] entry for the `/boot` mountpoint.
@@ -259,8 +271,11 @@ Enabling `cryptomount` in GRUB2
 Enable the feature and update the GRUB image:
 
     root@debian:~$ echo "GRUB_ENABLE_CRYPTODISK=y" >>/etc/default/grub
+<!-- -->
     root@debian:~$ echo "GRUB_PRELOAD_MODULES=\"luks cryptodisk\"" >>/etc/default/grub
+<!-- -->
     root@debian:~$ update-grub
+<!-- -->
     root@debian:~$ grub-install /dev/sda
 
 If everything went well, `/boot/grub/grub.cfg` should contain `insmod
@@ -295,6 +310,7 @@ userspace.
     the size of the volume key) inside a new file.
 
         root@debian:~$ mkdir -m0700 /etc/keys
+    <!-- -->
         root@debian:~$ ( umask 0077 && dd if=/dev/urandom bs=1 count=64 of=/etc/keys/root.key )
         64+0 records in
         64+0 records out
@@ -304,7 +320,7 @@ userspace.
 
         root@debian:~$ cryptsetup luksAddKey /dev/sda3 /etc/keys/root.key
         Enter any existing passphrase:
-
+    <!-- -->
         root@debian:~$ cryptsetup luksDump /dev/sda3 | grep "^Key Slot"
         Key Slot 0: ENABLED
         Key Slot 1: ENABLED
@@ -344,8 +360,10 @@ userspace.
 
         root@debian:~$ update-initramfs -u
         update-initramfs: Generating /boot/initrd.img-4.19.0-4-amd64
+    <!-- -->
         root@debian:~$ stat -L -c "%A  %n" /initrd.img
         -rw-------  /initrd.img
+    <!-- -->
         root@debian:~$ lsinitramfs /initrd.img | grep "^cryptroot/keyfiles/"
         cryptroot/keyfiles/root_crypt.key
 
