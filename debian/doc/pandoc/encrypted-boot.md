@@ -151,9 +151,9 @@ an attacker with access to pre- and post-update snapshots.
 
 On the other hand, the inconvenient of that method is that the root file
 system can't benefit from the nice LUKS2 improvements over LUKS1, as
-listed above.  Another minor inconvenient is that space that was
-occupied by the former `/boot` partition becomes unused and can't easily
-be reclaimed by the root file system.
+listed above.  Another minor inconvenient is that space occupied by the
+former `/boot` partition (typically 250MiB) becomes unused and can't
+easily be reclaimed by the root file system.
 
 ### Downgrading LUKS2 to LUKS1 ###
 
