@@ -157,9 +157,9 @@ be preserved and used in case of *disaster recovery* (if for some reason
 the GRUB image is lacking the `cryptodisk` module and the original
 plaintext `/boot` partition is lost, you'd need to reboot into a live CD
 to recover).  Moreover increasing the number of partitions *increases
-usage pattern visibility*: a separate `/boot` partitions, although
-encrypted, will likely leak the fact that a kernel update took place to
-an attacker with access to both pre- and post-update snapshots.
+usage pattern visibility*: a separate `/boot` partition, even encrypted,
+will likely leak the fact that a kernel update took place to an attacker
+with access to both pre- and post-update snapshots.
 
 On the other hand, the inconvenient of that method is that the root file
 system can't benefit from the nice LUKS2 improvements over LUKS1, some
