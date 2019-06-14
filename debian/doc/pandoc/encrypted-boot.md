@@ -161,10 +161,10 @@ usage pattern visibility*: a separate `/boot` partition, even encrypted,
 will likely leak the fact that a kernel update took place to an attacker
 with access to both pre- and post-update snapshots.
 
-On the other hand, the inconvenient of that method is that the root file
+On the other hand, the downside of that method is that the root file
 system can't benefit from the nice LUKS2 improvements over LUKS1, some
-of which were listed above.  Another minor inconvenient is that space
-occupied by the former `/boot` partition (typically 250MiB) becomes
+of which were listed above.  Another (minor) downside is that space
+occupied by the former `/boot` partition (typically 256MiB) becomes
 unused and can't easily be reclaimed by the root file system.
 
 ### Downgrading LUKS2 to LUKS1 ###
@@ -381,4 +381,4 @@ single passphrase prompt.
 [`fstab`(5)]: https://manpages.debian.org/fstab.5.en.html
 [`initramfs.conf`(5)]: https://manpages.debian.org/initramfs.conf.5.en.html
 
- -- Guilhem Moulin <guilhem@debian.org>, Mon, 09 Jun 2019 16:35:20 +0200
+ -- Guilhem Moulin <guilhem@debian.org>, Sun, 09 Jun 2019 16:35:20 +0200
