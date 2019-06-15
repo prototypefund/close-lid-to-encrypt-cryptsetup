@@ -24,8 +24,7 @@ TESTS += verity-compat-test
 endif
 
 if REENCRYPT
-TESTS += reencryption-compat-test reencryption-compat-test2
-
+TESTS += reencryption-compat-test reencryption-compat-test2 luks2-reencryption-test
 endif
 
 if INTEGRITYSETUP
@@ -56,6 +55,7 @@ EXTRA_DIST = compatimage.img.xz compatv10image.img.xz \
 	align-test2 verity-compat-test \
 	reencryption-compat-test \
 	reencryption-compat-test2 \
+	luks2-reencryption-test \
 	tcrypt-compat-test \
 	luks1-compat-test \
 	luks2-validation-test generators \
@@ -66,7 +66,8 @@ EXTRA_DIST = compatimage.img.xz compatv10image.img.xz \
 	integrity-compat-test \
 	cryptsetup-valg-supps valg.sh valg-api.sh \
 	blockwise-compat \
-	blkid-luks2-pv.img.xz
+	blkid-luks2-pv.img.xz \
+	Makefile.localtest
 
 CLEANFILES = cryptsetup-tst* valglog* *-fail-*.log
 clean-local:

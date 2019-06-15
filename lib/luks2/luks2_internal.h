@@ -44,7 +44,7 @@
 int LUKS2_disk_hdr_read(struct crypt_device *cd, struct luks2_hdr *hdr,
 			struct device *device, int do_recovery, int do_blkprobe);
 int LUKS2_disk_hdr_write(struct crypt_device *cd, struct luks2_hdr *hdr,
-			 struct device *device);
+			 struct device *device, bool seqid_check);
 
 /*
  * JSON struct access helpers
@@ -54,6 +54,7 @@ json_object *LUKS2_get_token_jobj(struct luks2_hdr *hdr, int token);
 json_object *LUKS2_get_digest_jobj(struct luks2_hdr *hdr, int digest);
 json_object *LUKS2_get_segment_jobj(struct luks2_hdr *hdr, int segment);
 json_object *LUKS2_get_tokens_jobj(struct luks2_hdr *hdr);
+json_object *LUKS2_get_segments_jobj(struct luks2_hdr *hdr);
 
 void hexprint_base64(struct crypt_device *cd, json_object *jobj,
 		     const char *sep, const char *line_sep);
@@ -63,8 +64,10 @@ json_object *parse_json_len(struct crypt_device *cd, const char *json_area,
 uint64_t json_object_get_uint64(json_object *jobj);
 uint32_t json_object_get_uint32(json_object *jobj);
 json_object *json_object_new_uint64(uint64_t value);
+
 int json_object_object_add_by_uint(json_object *jobj, unsigned key, json_object *jobj_val);
 void json_object_object_del_by_uint(json_object *jobj, unsigned key);
+int json_object_copy(json_object *jobj_src, json_object **jobj_dst);
 
 void JSON_DBG(struct crypt_device *cd, json_object *jobj, const char *desc);
 
@@ -73,6 +76,7 @@ void JSON_DBG(struct crypt_device *cd, json_object *jobj, const char *desc);
  */
 
 /* validation helper */
+json_bool validate_json_uint32(json_object *jobj);
 json_object *json_contains(struct crypt_device *cd, json_object *jobj, const char *name,
 			   const char *section, const char *key, json_type type);
 
@@ -141,6 +145,12 @@ typedef struct  {
 	keyslot_repair_func repair;
 } keyslot_handler;
 
+/* can not fit prototype alloc function */
+int reenc_keyslot_alloc(struct crypt_device *cd,
+	struct luks2_hdr *hdr,
+	int keyslot,
+	const struct crypt_params_reencrypt *params);
+
 /**
  * LUKS2 digest handlers (EXPERIMENTAL)
  */
@@ -178,5 +188,11 @@ int token_keyring_get(json_object *, void *);
 
 int LUKS2_find_area_gap(struct crypt_device *cd, struct luks2_hdr *hdr,
 			size_t keylength, uint64_t *area_offset, uint64_t *area_length);
+int LUKS2_find_area_max_gap(struct crypt_device *cd, struct luks2_hdr *hdr,
+			    uint64_t *area_offset, uint64_t *area_length);
 
+int LUKS2_check_cipher(struct crypt_device *cd,
+		      size_t keylength,
+		      const char *cipher,
+		      const char *cipher_mode);
 #endif

@@ -60,7 +60,7 @@ static int LUKS_endec_template(char *src, size_t srcLength,
 	struct crypt_dm_active_device dmd = {
 		.flags = CRYPT_ACTIVATE_PRIVATE,
 	};
-	int r, devfd = -1;
+	int r, devfd = -1, remove_dev = 0;
 	size_t bsize, keyslot_alignment, alignment;
 
 	log_dbg(ctx, "Using dmcrypt to access keyslot area.");
@@ -114,6 +114,7 @@ static int LUKS_endec_template(char *src, size_t srcLength,
 		r = -EIO;
 		goto out;
 	}
+	remove_dev = 1;
 
 	devfd = open(path, mode | O_DIRECT | O_SYNC);
 	if (devfd == -1) {
@@ -132,7 +133,8 @@ static int LUKS_endec_template(char *src, size_t srcLength,
 	dm_targets_free(ctx, &dmd);
 	if (devfd != -1)
 		close(devfd);
-	dm_remove_device(ctx, name, CRYPT_DEACTIVATE_FORCE);
+	if (remove_dev)
+		dm_remove_device(ctx, name, CRYPT_DEACTIVATE_FORCE);
 	return r;
 }
 
@@ -143,17 +145,16 @@ int LUKS_encrypt_to_storage(char *src, size_t srcLength,
 			    unsigned int sector,
 			    struct crypt_device *ctx)
 {
-
 	struct device *device = crypt_metadata_device(ctx);
 	struct crypt_storage *s;
-	int devfd = -1, r = 0;
+	int devfd, r = 0;
 
 	/* Only whole sector writes supported */
 	if (MISALIGNED_512(srcLength))
 		return -EINVAL;
 
 	/* Encrypt buffer */
-	r = crypt_storage_init(&s, 0, cipher, cipher_mode, vk->key, vk->keylength);
+	r = crypt_storage_init(&s, SECTOR_SIZE, cipher, cipher_mode, vk->key, vk->keylength);
 
 	if (r)
 		log_dbg(ctx, "Userspace crypto wrapper cannot use %s-%s (%d).",
@@ -172,7 +173,7 @@ int LUKS_encrypt_to_storage(char *src, size_t srcLength,
 
 	log_dbg(ctx, "Using userspace crypto wrapper to access keyslot area.");
 
-	r = crypt_storage_encrypt(s, 0, srcLength / SECTOR_SIZE, src);
+	r = crypt_storage_encrypt(s, 0, srcLength, src);
 	crypt_storage_destroy(s);
 
 	if (r)
@@ -181,7 +182,10 @@ int LUKS_encrypt_to_storage(char *src, size_t srcLength,
 	r = -EIO;
 
 	/* Write buffer to device */
-	devfd = device_open(ctx, device, O_RDWR);
+	if (device_is_locked(device))
+		devfd = device_open_locked(ctx, device, O_RDWR);
+	else
+		devfd = device_open(ctx, device, O_RDWR);
 	if (devfd < 0)
 		goto out;
 
@@ -192,10 +196,7 @@ int LUKS_encrypt_to_storage(char *src, size_t srcLength,
 
 	r = 0;
 out:
-	if (devfd >= 0) {
-		device_sync(ctx, device, devfd);
-		close(devfd);
-	}
+	device_sync(ctx, device);
 	if (r)
 		log_err(ctx, _("IO error while encrypting keyslot."));
 
@@ -212,13 +213,13 @@ int LUKS_decrypt_from_storage(char *dst, size_t dstLength,
 	struct device *device = crypt_metadata_device(ctx);
 	struct crypt_storage *s;
 	struct stat st;
-	int devfd = -1, r = 0;
+	int devfd, r = 0;
 
 	/* Only whole sector reads supported */
 	if (MISALIGNED_512(dstLength))
 		return -EINVAL;
 
-	r = crypt_storage_init(&s, 0, cipher, cipher_mode, vk->key, vk->keylength);
+	r = crypt_storage_init(&s, SECTOR_SIZE, cipher, cipher_mode, vk->key, vk->keylength);
 
 	if (r)
 		log_dbg(ctx, "Userspace crypto wrapper cannot use %s-%s (%d).",
@@ -238,7 +239,10 @@ int LUKS_decrypt_from_storage(char *dst, size_t dstLength,
 	log_dbg(ctx, "Using userspace crypto wrapper to access keyslot area.");
 
 	/* Read buffer from device */
-	devfd = device_open(ctx, device, O_RDONLY);
+	if (device_is_locked(device))
+		devfd = device_open_locked(ctx, device, O_RDONLY);
+	else
+		devfd = device_open(ctx, device, O_RDONLY);
 	if (devfd < 0) {
 		log_err(ctx, _("Cannot open device %s."), device_path(device));
 		crypt_storage_destroy(s);
@@ -253,15 +257,12 @@ int LUKS_decrypt_from_storage(char *dst, size_t dstLength,
 		else
 			log_err(ctx, _("IO error while decrypting keyslot."));
 
-		close(devfd);
 		crypt_storage_destroy(s);
 		return -EIO;
 	}
 
-	close(devfd);
-
 	/* Decrypt buffer */
-	r = crypt_storage_decrypt(s, 0, dstLength / SECTOR_SIZE, dst);
+	r = crypt_storage_decrypt(s, 0, dstLength, dst);
 	crypt_storage_destroy(s);
 
 	return r;

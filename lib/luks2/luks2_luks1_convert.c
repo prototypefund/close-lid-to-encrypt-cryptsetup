@@ -24,6 +24,14 @@
 #include "../luks1/luks.h"
 #include "../luks1/af.h"
 
+int LUKS2_check_cipher(struct crypt_device *cd,
+		      size_t keylength,
+		      const char *cipher,
+		      const char *cipher_mode)
+{
+	return LUKS_check_cipher(cd, keylength, cipher, cipher_mode);
+}
+
 static int json_luks1_keyslot(const struct luks_phdr *hdr_v1, int keyslot, struct json_object **keyslot_object)
 {
 	char *base64_str, cipher[LUKS_CIPHERNAME_L+LUKS_CIPHERMODE_L];
@@ -200,7 +208,7 @@ static int json_luks1_segments(const struct luks_phdr *hdr_v1, struct json_objec
 		json_object_put(segments_obj);
 		return r;
 	}
-	json_object_object_add_by_uint(segments_obj, CRYPT_DEFAULT_SEGMENT, field);
+	json_object_object_add_by_uint(segments_obj, 0, field);
 
 	*segments_object = segments_obj;
 	return 0;
@@ -419,9 +427,9 @@ static void move_keyslot_offset(json_object *jobj, int offset_add)
 static int move_keyslot_areas(struct crypt_device *cd, off_t offset_from,
 			      off_t offset_to, size_t buf_size)
 {
+	int devfd, r = -EIO;
 	struct device *device = crypt_metadata_device(cd);
 	void *buf = NULL;
-	int r = -EIO, devfd = -1;
 
 	log_dbg(cd, "Moving keyslot areas of size %zu from %jd to %jd.",
 		buf_size, (intmax_t)offset_from, (intmax_t)offset_to);
@@ -430,7 +438,7 @@ static int move_keyslot_areas(struct crypt_device *cd, off_t offset_from,
 		return -ENOMEM;
 
 	devfd = device_open(cd, device, O_RDWR);
-	if (devfd == -1) {
+	if (devfd < 0) {
 		free(buf);
 		return -EIO;
 	}
@@ -457,8 +465,7 @@ static int move_keyslot_areas(struct crypt_device *cd, off_t offset_from,
 
 	r = 0;
 out:
-	device_sync(cd, device, devfd);
-	close(devfd);
+	device_sync(cd, device);
 	crypt_memzero(buf, buf_size);
 	free(buf);
 
@@ -479,16 +486,16 @@ static int luks_header_in_use(struct crypt_device *cd)
 /* Check if there is a luksmeta area (foreign metadata created by the luksmeta package) */
 static int luksmeta_header_present(struct crypt_device *cd, off_t luks1_size)
 {
+	int devfd, r = 0;
 	static const uint8_t LM_MAGIC[] = { 'L', 'U', 'K', 'S', 'M', 'E', 'T', 'A' };
 	struct device *device = crypt_metadata_device(cd);
 	void *buf = NULL;
-	int devfd, r = 0;
 
 	if (posix_memalign(&buf, crypt_getpagesize(), sizeof(LM_MAGIC)))
 		return -ENOMEM;
 
 	devfd = device_open(cd, device, O_RDONLY);
-	if (devfd == -1) {
+	if (devfd < 0) {
 		free(buf);
 		return -EIO;
 	}
@@ -501,7 +508,6 @@ static int luksmeta_header_present(struct crypt_device *cd, off_t luks1_size)
 			r = -EBUSY;
 	}
 
-	close(devfd);
 	free(buf);
 	return r;
 }
@@ -664,6 +670,11 @@ int LUKS2_luks2_to_luks1(struct crypt_device *cd, struct luks2_hdr *hdr2, struct
 	jobj_segment = LUKS2_get_segment_jobj(hdr2, CRYPT_DEFAULT_SEGMENT);
 	if (!jobj_segment)
 		return -EINVAL;
+
+	if (json_segment_get_sector_size(jobj_segment) != SECTOR_SIZE) {
+		log_err(cd, _("Cannot convert to LUKS1 format - default segment encryption sector size is not 512 bytes."));
+		return -EINVAL;
+	}
 
 	json_object_object_get_ex(hdr2->jobj, "digests", &jobj1);
 	if (!json_object_object_get_ex(jobj_digest, "type", &jobj2) ||

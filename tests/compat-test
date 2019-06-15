@@ -1,7 +1,8 @@
 #!/bin/bash
 
 PS4='$LINENO:'
-CRYPTSETUP=../cryptsetup
+[ -z "$CRYPTSETUP_PATH" ] && CRYPTSETUP_PATH=".."
+CRYPTSETUP=$CRYPTSETUP_PATH/cryptsetup
 
 CRYPTSETUP_VALGRIND=../.libs/cryptsetup
 CRYPTSETUP_LIB_VALGRIND=../.libs
@@ -200,9 +201,9 @@ echo $PWD0 | $CRYPTSETUP luksRemoveKey $IMG || fail
 echo $PWD2 | $CRYPTSETUP luksRemoveKey $IMG || fail
 # check if keys were deleted
 echo $PWD0 | $CRYPTSETUP luksOpen $IMG --test-passphrase 2>/dev/null && fail
-[ $? -ne 2 ] && fail "luksOpen should return EPERM exit code"
+[ $? -ne 1 ] && fail "luksOpen should return ENOENT exit code"
 echo $PWD2 | $CRYPTSETUP luksOpen $IMG --test-passphrase 2>/dev/null && fail
-[ $? -ne 2 ] && fail "luksOpen should return EPERM exit code"
+[ $? -ne 1 ] && fail "luksOpen should return ENOENT exit code"
 echo "[6] kill slot"
 # format new luks device with active keys PWD1, PWD2
 echo $PWD1 | $CRYPTSETUP -q luksFormat --type luks1 $IMG $FAST_PBKDF_OPT || fail
@@ -652,7 +653,7 @@ prepare "[27] luksOpen with specified key slot number" wipe
 # first, let's try passphrase option
 echo $PWD3 | $CRYPTSETUP luksFormat --type luks1 $FAST_PBKDF_OPT -S 5 $LOOPDEV || fail
 check $LUKS_HEADER $KEY_SLOT5 $KEY_MATERIAL5
-echo $PWD3 | $CRYPTSETUP luksOpen -S 4 $LOOPDEV $DEV_NAME && fail
+echo $PWD3 | $CRYPTSETUP luksOpen -S 4 $LOOPDEV $DEV_NAME 2>/dev/null && fail
 [ -b /dev/mapper/$DEV_NAME ] && fail
 echo $PWD3 | $CRYPTSETUP luksOpen -S 5 $LOOPDEV $DEV_NAME || fail
 check_exists
@@ -687,6 +688,7 @@ echo $PWD1 | $CRYPTSETUP -q luksFormat --type luks1 $FAST_PBKDF_OPT $LOOPDEV --h
 echo $PWD1 | $CRYPTSETUP -q luksFormat --type luks1 $FAST_PBKDF_OPT $LOOPDEV --header $HEADER_IMG --offset 80000 >/dev/null 2>&1 || fail
 echo $PWD1 | $CRYPTSETUP -q luksFormat --type luks1 $FAST_PBKDF_OPT $LOOPDEV --header $HEADER_IMG --offset 8192 || fail
 echo $PWD1 | $CRYPTSETUP -q luksFormat --type luks1 $FAST_PBKDF_OPT $LOOPDEV --header $HEADER_IMG --offset 0 || fail
+echo $PWD1 | $CRYPTSETUP luksOpen $LOOPDEV-missing --header $HEADER_IMG $DEV_NAME 2>/dev/null && fail
 echo $PWD1 | $CRYPTSETUP luksOpen $LOOPDEV --header $HEADER_IMG $DEV_NAME || fail
 $CRYPTSETUP -q resize  $DEV_NAME --size 100 --header $HEADER_IMG || fail
 $CRYPTSETUP -q status  $DEV_NAME --header $HEADER_IMG | grep "size:" | grep -q "100 sectors" || fail
@@ -848,7 +850,7 @@ eval spawn $CRYPTSETUP luksOpen -v $LOOPDEV -T 1 --test-passphrase
 expect timeout abort "Enter passphrase for $LOOPDEV:"
 sleep 0.1
 send "$PWD0\n"
-expect timeout abort "No key available with this passphrase."
+expect timeout abort "No usable keyslot is available."
 expect timeout abort eof
 exit
 EOF

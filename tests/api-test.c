@@ -143,27 +143,29 @@ static void _remove_keyfiles(void)
 #define DM_RETRY ""
 #endif
 
+#define DM_NOSTDERR " 2>/dev/null"
+
 static void _cleanup_dmdevices(void)
 {
 	struct stat st;
 
 	if (!stat(DMDIR H_DEVICE, &st))
-		_system("dmsetup remove " DM_RETRY H_DEVICE, 0);
+		_system("dmsetup remove " DM_RETRY H_DEVICE DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR H_DEVICE_WRONG, &st))
-		_system("dmsetup remove " DM_RETRY H_DEVICE_WRONG, 0);
+		_system("dmsetup remove " DM_RETRY H_DEVICE_WRONG DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR L_DEVICE_0S, &st))
-		_system("dmsetup remove " DM_RETRY L_DEVICE_0S, 0);
+		_system("dmsetup remove " DM_RETRY L_DEVICE_0S DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR L_DEVICE_1S, &st))
-		_system("dmsetup remove " DM_RETRY L_DEVICE_1S, 0);
+		_system("dmsetup remove " DM_RETRY L_DEVICE_1S DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR L_DEVICE_WRONG, &st))
-		_system("dmsetup remove " DM_RETRY L_DEVICE_WRONG, 0);
+		_system("dmsetup remove " DM_RETRY L_DEVICE_WRONG DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR L_DEVICE_OK, &st))
-		_system("dmsetup remove " DM_RETRY L_DEVICE_OK, 0);
+		_system("dmsetup remove " DM_RETRY L_DEVICE_OK DM_NOSTDERR, 0);
 
 	t_dev_offset = 0;
 }
@@ -175,16 +177,16 @@ static void _cleanup(void)
 	//_system("udevadm settle", 0);
 
 	if (!stat(DMDIR CDEVICE_1, &st))
-		_system("dmsetup remove " DM_RETRY CDEVICE_1, 0);
+		_system("dmsetup remove " DM_RETRY CDEVICE_1 DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR CDEVICE_2, &st))
-		_system("dmsetup remove " DM_RETRY CDEVICE_2, 0);
+		_system("dmsetup remove " DM_RETRY CDEVICE_2 DM_NOSTDERR, 0);
 
 	if (!stat(DEVICE_EMPTY, &st))
-		_system("dmsetup remove " DM_RETRY DEVICE_EMPTY_name, 0);
+		_system("dmsetup remove " DM_RETRY DEVICE_EMPTY_name DM_NOSTDERR, 0);
 
 	if (!stat(DEVICE_ERROR, &st))
-		_system("dmsetup remove " DM_RETRY DEVICE_ERROR_name, 0);
+		_system("dmsetup remove " DM_RETRY DEVICE_ERROR_name DM_NOSTDERR, 0);
 
 	_cleanup_dmdevices();
 
@@ -527,8 +529,8 @@ static void AddDevicePlain(void)
 		EQ_(r_size>>SECTOR_SHIFT, params.size + 10);
 	EQ_(crypt_status(cd,CDEVICE_1),CRYPT_ACTIVE);
 	fd = open(path, O_RDONLY);
+	NOTFAIL_(fd, "Bad loop device.");
 	close(fd);
-	OK_(fd < 0);
 
 	// resize to minimal size
 	OK_(crypt_resize(cd,CDEVICE_1, 1)); // minimal device size
@@ -920,7 +922,7 @@ static void AddDeviceLuks(void)
 	OK_(crypt_keyslot_get_pbkdf(cd, 1, &pbkdf));
 	OK_(strcmp(pbkdf.type, CRYPT_KDF_PBKDF2));
 	OK_(strcmp(pbkdf.hash, params.hash));
-	EQ_(1000, pbkdf.iterations); /* set by minimum iterations above */
+	OK_(pbkdf.iterations < 1000); /* set by minimum iterations above */
 	EQ_(0, pbkdf.max_memory_kb);
 	EQ_(0, pbkdf.parallel_threads);
 
@@ -1312,8 +1314,8 @@ static void LuksHeaderBackup(void)
 
 	// exercise luksOpen using backup header on block device
 	fd = loop_attach(&DEVICE_3, BACKUP_FILE, 0, 0, &ro);
+	NOTFAIL_(fd, "Bad loop device.");
 	close(fd);
-	OK_(fd < 0);
 	OK_(crypt_init(&cd, DEVICE_3));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
 	OK_(crypt_set_data_device(cd, DMDIR L_DEVICE_OK));
@@ -1876,7 +1878,12 @@ int main(int argc, char *argv[])
 		printf("You must be root to run this test.\n");
 		exit(77);
 	}
-
+#ifndef NO_CRYPTSETUP_PATH
+	if (getenv("CRYPTSETUP_PATH")) {
+		printf("Cannot run this test with CRYPTSETUP_PATH set.\n");
+		exit(77);
+	}
+#endif
 	for (i = 1; i < argc; i++) {
 		if (!strcmp("-v", argv[i]) || !strcmp("--verbose", argv[i]))
 			_verbose = 1;
