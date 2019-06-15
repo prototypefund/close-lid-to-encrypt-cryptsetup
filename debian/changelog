@@ -1,5 +1,12 @@
-cryptsetup (2:2.1.0-6) UNRELEASED; urgency=medium
+cryptsetup (2:2.2.0~rc1-1) experimental; urgency=low
 
+  * New /testing/ upstream release 2.2.0 RC0.  Highlights include:
+    + New LUKS2 online reencryption extension, allowing reencryption of
+      mounted LUKS2 devices.
+    + Optional global serialization lock for memory hard PBKDF, to workaround
+      situations when multiple devices are unlocked in parallel, possibly
+      exhausting memory and triggering the OOM killer.  (Cf. #924560.)
+    + Add integritysetup support for bitmap mode (Linux >=5.2).
   * debian/control:
     + Add 'Multi-Arch: foreign' tags to 'cryptsetup-bin' and 'crytsetup-run',
       as binaries from these packages are architecture independent.
@@ -12,7 +19,7 @@ cryptsetup (2:2.1.0-6) UNRELEASED; urgency=medium
   * debian/doc/pandoc/encrypted-boot.md: Minor refactoring.
   * debian/gitlab-ci.yml: Adapt pandoc flags to Debian 9 (pass '-S').
 
- -- Guilhem Moulin <guilhem@debian.org>  Fri, 07 Jun 2019 15:26:23 +0200
+ -- Guilhem Moulin <guilhem@debian.org>  Sun, 16 Jun 2019 00:55:18 +0200
 
 cryptsetup (2:2.1.0-5) unstable; urgency=medium
 
