@@ -314,7 +314,7 @@ userspace.
 
         root@debian:~$ mkdir -m0700 /etc/keys
     <!-- -->
-        root@debian:~$ ( umask 0077 && dd if=/dev/urandom bs=1 count=64 of=/etc/keys/root.key )
+        root@debian:~$ ( umask 0077 && dd if=/dev/urandom bs=1 count=64 of=/etc/keys/root.key conv=excl,fsync )
         64+0 records in
         64+0 records out
         64 bytes copied, 0.000698363 s, 91.6 kB/s
