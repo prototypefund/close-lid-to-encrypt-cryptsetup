@@ -9,22 +9,25 @@ the Debian Installer does this in its “encrypted LVM” partitioning method.
 Since not all bootloaders are able to unlock LUKS devices, a plaintext
 `/boot` is the only solution that works for all of them.
 
-Since Jessie GRUB2 has been able to unlock LUKS devices with a new
+However, GRUB2 is (since Jessie) able to unlock LUKS devices with its
 [`cryptomount`](https://www.gnu.org/software/grub/manual/grub/html_node/cryptomount.html)
-command, hence enabling encryption of the `/boot` partition as well.
-(As unlocking happens before booting the kernel, that feature is not
-compatible with remote unlocking.)
+command, which therefore enables encryption of the `/boot` partition as
+well: using that feature reduces the amount of plaintext data written to
+disk.  It is especially interesting when GRUB is installed to a read-only
+media, for instance as [coreboot payload](https://doc.coreboot.org/payloads.html#grub2)
+flashed to a write-protected chip.  On the other hand, it is *incompatible*
+with some other features that only enabled later at initramfs stage, such
+as slash screens or remote unlocking.
 
-Enabling unlocking LUKS devices from GRUB [isn't exposed to the d-i
-interface](https://bugs.debian.org/814798) (as of Buster), hence people
-have come up with various custom workarounds.  But since the Buster
-release [`cryptsetup`(8)] defaults to a new [LUKS header format
-version](https://gitlab.com/cryptsetup/LUKS2-docs), which isn't
-supported by GRUB as of 2.04.  **Hence the pre-Buster workarounds won't
-work anymore**.  Until LUKS *version 2* support is [added to
-GRUB2](https://savannah.gnu.org/bugs/?55093), the device(s) holding
-`/boot` needs to be in *LUKS format version 1* to be unlocked from the
-boot loader.
+Since enabling unlocking LUKS devices from GRUB [isn't exposed to the d-i
+interface](https://bugs.debian.org/814798) (as of Buster), people have
+come up with various custom workarounds.  But as of Buster [`cryptsetup`(8)]
+defaults to a new [LUKS header format version](https://gitlab.com/cryptsetup/LUKS2-docs),
+which isn't supported by GRUB as of 2.04.  **Hence the pre-Buster
+workarounds won't work anymore**.  Until LUKS *version 2* support is
+[added to GRUB2](https://savannah.gnu.org/bugs/?55093), the device(s)
+holding `/boot` needs to be in *LUKS format version 1* to be unlocked from
+the boot loader.
 
 This document describes a generic way to unlock LUKS devices from GRUB
 for Debian Buster.
@@ -46,7 +49,7 @@ These two alternatives are described in the two following sub-sections.
 Formatting the existing `/boot` partition to LUKS1
 --------------------------------------------------
 
-Since the installer creates a separate (cleartext) `/boot` partition by
+Since the installer creates a separate (plaintext) `/boot` partition by
 default in its “encrypted LVM” partitioning method, the simplest
 solution is arguably to re-format it as LUKS1, especially if the root
 device is in LUKS2 format.
