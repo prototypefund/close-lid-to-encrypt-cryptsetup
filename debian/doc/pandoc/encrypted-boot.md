@@ -278,8 +278,6 @@ Enable the feature and update the GRUB image:
 
     root@debian:~$ echo "GRUB_ENABLE_CRYPTODISK=y" >>/etc/default/grub
 <!-- -->
-    root@debian:~$ echo "GRUB_PRELOAD_MODULES=\"luks cryptodisk\"" >>/etc/default/grub
-<!-- -->
     root@debian:~$ update-grub
 <!-- -->
     root@debian:~$ grub-install /dev/sda
