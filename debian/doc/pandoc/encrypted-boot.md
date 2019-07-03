@@ -184,7 +184,9 @@ to LUKS *version 1* to be able to unlock from GRUB.  Unlike the rest of
 this document, conversion can't be done on an open device, so you'll
 need reboot into a live CD or an [initramfs shell].  (The `(initramfs)`
 prompt strings in this sub-section indicates commands that are executed
-from an initramfs shell.)
+from an initramfs shell.)  Also, if you have valuable data in the root
+partition, then *make sure you have a backup* (at least of the LUKS
+header)!
 
 [initramfs shell]: https://wiki.debian.org/InitramfsDebug#Rescue_shell_.28also_known_as_initramfs_shell.29
 
