@@ -216,14 +216,11 @@ key slots, but LUKS1's only supported PBKDF algorithm is PBKDF2.  Hence
 the key slot has to be converted to PBKDF2 prior to LUKS format version
 downgrade.
 
-    (initramfs) cryptsetup luksChangeKey --key-slot 0 --pbkdf pbkdf2 /dev/sda3
-    Enter passphrase to be changed:
-    Enter new passphrase:
-    Verify passphrase:
+    (initramfs) cryptsetup luksConvertKey --pbkdf pbkdf2 /dev/sda3
+    Enter passphrase for keyslot to be converted:
 
-(You can reuse the existing passphrase in the above prompts.)  Now that
-all key slots use the PBKDF2 algorithm, the device shouldn't have any
-LUKS2-only features left, and can be converted to LUKS1.
+Now that all key slots use the PBKDF2 algorithm, the device shouldn't
+have any LUKS2-only features left, and can be converted to LUKS1.
 
     (initramfs) cryptsetup luksDump /dev/sda3 | grep "PBKDF:"
             PBKDF:      pbkdf2
@@ -309,7 +306,7 @@ trying to find the fine line between convenience and security.)
     Key Slot 0: ENABLED
         Iterations:             1000000
 <!-- -->
-    root@debian:~$ cryptsetup luksChangeKey --key-slot=0 --pbkdf-force-iterations=500000 /dev/sda2
+    root@debian:~$ cryptsetup luksChangeKey --pbkdf-force-iterations 500000 /dev/sda2
     Enter passphrase to be changed:
     Enter new passphrase:
     Verify passphrase:
