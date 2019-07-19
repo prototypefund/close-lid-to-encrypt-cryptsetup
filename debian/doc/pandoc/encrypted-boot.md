@@ -287,6 +287,33 @@ Enable the feature and update the GRUB image:
 If everything went well, `/boot/grub/grub.cfg` should contain `insmod
 cryptodisk` (and also `insmod lvm` if `/boot` is on a Logical Volume).
 
+*Note*: The PBKDF parameters are determined via benchmark upon key slot
+creation (or update).  Thus they only makes sense if the environment in
+which the LUKS device is opened matches (same CPU, same RAM size, etc.)
+the one in which it's been formated.  Unlocking from GRUB does count as
+an environment mismatch, because GRUB operates under tighter memory
+constraints and doesn't take advantage of all crypto-related CPU
+instructions.  Concretely, that means unlocking a LUKS device from GRUB
+might take *a lot* longer than doing it from the normal system.  Since
+GRUB's LUKS implementation isn't able to benchmark, you'll need to
+manually tune the PBKDF parameters.  It's easier for PBKDF2 as there is
+a single parameter to play with (iteration count) — while Argon2 has two
+(iteration count and memory) — and changing the iteration count
+linearly affects unlocking time.  For instance, if the “slow” keyslot
+has iteration count 1000000, halving it would speed up the unlocking
+by a factor of two. (And of course, making it twice as easy to
+brute-force, too.  Use your judgment when making manual benchmarks and
+trying to find the fine line between convenience and security.)
+
+    root@debian:~$ cryptsetup luksDump /dev/sda2 | grep -B1 Iterations:
+    Key Slot 0: ENABLED
+        Iterations:             1000000
+<!-- -->
+    root@debian:~$ cryptsetup luksChangeKey --key-slot=0 --pbkdf-force-iterations=500000 /dev/sda2
+    Enter passphrase to be changed:
+    Enter new passphrase:
+    Verify passphrase:
+
 
 Avoiding the extra password prompt
 ==================================
