@@ -312,6 +312,17 @@ is the whole point of running PBKDF benchmarks.)
 
 (You can reuse the existing passphrase in the above prompts.)
 
+*Note*: `cryptomount` lacks an option to specify the key slot index to
+open.  All active key slots are tried sequentially until a match is
+found.  Running the PBKDF algorithm is a slow operation, so to speed up
+things you'll want the key slot to unlock at GRUB stage to be the first
+active one.  Run the following command to discover its index.
+
+    root@debian:~$ cryptsetup luksOpen --test-passphrase --verbose /dev/sda3
+    Enter passphrase for /dev/sda3:
+    Key slot 0 unlocked.
+    Command successful.
+
 
 Avoiding the extra password prompt
 ==================================
