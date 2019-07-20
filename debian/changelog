@@ -4,6 +4,11 @@ cryptsetup (2:2.2.0~rc1-2) UNRELEASED; urgency=low
     the initramfs hook configuration.  The variable is no longer honored, and
     cryptsetup is always integrated to the initramfs when the
     'cryptsetup-initramfs' package is installed.
+  * debian/control:
+    + Swap 'cryptsetup' and 'cryptsetup-run' packages: the former now contains
+      init scripts, libraries, keyscripts, etc. while the latter is now a
+      transitional dummy package.
+    + Remove obsolete cryptsetup.maintscript.
 
  -- Guilhem Moulin <guilhem@debian.org>  Wed, 31 Jul 2019 20:43:48 +0200
 
