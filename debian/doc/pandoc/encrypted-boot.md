@@ -297,9 +297,10 @@ manually.  It's easier for PBKDF2 as there is a single parameter to play
 with (iteration count) — while Argon2 has two (iteration count and
 memory) — and changing it affects the unlocking time linearly: for
 instance halving the iteration count would speed up unlocking by a
-factor of two.  (And of course, making it twice as easy to brute-force.
-There is a trade-off to be made here.  Balancing convenience and security
-is the whole point of running PBKDF benchmarks.)
+factor of two.  (And of course, making low entropy passphrases twice as
+easy to brute-force.  There is a trade-off to be made here.  Balancing
+convenience and security is the whole point of running PBKDF
+benchmarks.)
 
     root@debian:~$ cryptsetup luksDump /dev/sda3 | grep -B1 "Iterations:"
     Key Slot 0: ENABLED
