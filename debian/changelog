@@ -7,6 +7,10 @@ cryptsetup (2:2.1.0-6) UNRELEASED; urgency=medium
     + Add 'Build-Depends: jq, xxd' as the jq(1) and xxd(1) executables are
       required for some upstream tests (skipped if the executables are not
       found in $PATH).
+    + Swap 'cryptsetup' and 'cryptsetup-run' packages: the former now contains
+      init scripts, libraries, keyscripts, etc. while the latter is now a
+      transitional dummy package.
+    + Remove obsolete cryptsetup.maintscript.
   * debian/*:
     + Fix path names for /usr/share/doc/cryptsetup*/**. (Closes: #904916).
     + Remove compatibility warnings regarding setting 'CRYPTSETUP' in
