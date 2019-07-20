@@ -3,21 +3,6 @@
 #
 
 #
-# CRYPTSETUP: [ y | n ]
-#
-# Add cryptsetup and its dependencies to the initramfs image, regardless
-# of _this_ machine configuration.  By default, they're only added when
-# a device is detected that needs to be unlocked at initramfs stage
-# (such as root or resume devices or ones with explicit 'initramfs' flag
-# in /etc/crypttab).
-# Note: Honoring this setting will be deprecated in the future.  Please
-# uninstall the 'cryptsetup-initramfs' package if you don't want the
-# cryptsetup initramfs integration.
-#
-
-#CRYPTSETUP=
-
-#
 # KEYFILE_PATTERN: ...
 #
 # The value of this variable is interpreted as a shell pattern.

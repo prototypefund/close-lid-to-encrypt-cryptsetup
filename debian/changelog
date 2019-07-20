@@ -1,3 +1,12 @@
+cryptsetup (2:2.2.0~rc1-2) UNRELEASED; urgency=low
+
+  * debian/*: Remove compatibility warnings regarding setting 'CRYPTSETUP' in
+    the initramfs hook configuration.  The variable is no longer honored, and
+    cryptsetup is always integrated to the initramfs when the
+    'cryptsetup-initramfs' package is installed.
+
+ -- Guilhem Moulin <guilhem@debian.org>  Wed, 31 Jul 2019 20:43:48 +0200
+
 cryptsetup (2:2.2.0~rc1-1) experimental; urgency=low
 
   * New /testing/ upstream release 2.2.0 RC0.  Highlights include:

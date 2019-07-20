@@ -378,20 +378,12 @@ add_crypto_modules() {
 #######################################################################
 # Begin real processing
 
-unset -v CRYPTSETUP KEYFILE_PATTERN
+unset -v KEYFILE_PATTERN
 KEYFILE_PATTERN=
 
 # Load the hook config
 if [ -f "/etc/cryptsetup-initramfs/conf-hook" ]; then
     . /etc/cryptsetup-initramfs/conf-hook
-fi
-
-if [ "${CRYPTSETUP-}" = "n" ] || [ "${CRYPTSETUP-}" = "N" ]; then
-    # XXX post-Buster: remove this warning and the auto-detection logic below
-    cryptsetup_message "WARNING: Honoring CRYPTSETUP=\"n\" will deprecated in the future." \
-        "Please uninstall the 'cryptsetup-initramfs' package instead" \
-        "if you don't want the cryptsetup initramfs integration."
-    exit 0
 fi
 
 if [ -n "$KEYFILE_PATTERN" ]; then
@@ -410,52 +402,44 @@ if [ -r "$TABFILE" ]; then
     crypttab_foreach_entry populate_CRYPTO_MODULES
 fi
 
-# per comment in the config file a non-empty KEYFILE_PATTERN value
-# implies CRYPTSETUP=y
-if [ -z "${CRYPTSETUP-}" ] && [ -z "${KEYFILE_PATTERN-}" ] && [ -z "$CRYPTO_MODULES" ]; then
-    cryptsetup_message "WARNING: The initramfs image may not contain cryptsetup binaries nor crypto modules." \
-        "If that's on purpose, you may want to uninstall the 'cryptsetup-initramfs' package in" \
-        "order to disable the cryptsetup initramfs integration and avoid this warning."
-else
-    # add required components
-    manual_add_modules dm_mod
-    manual_add_modules dm_crypt
+# add required components
+manual_add_modules dm_mod
+manual_add_modules dm_crypt
 
-    copy_exec /sbin/cryptsetup
-    copy_exec /sbin/dmsetup
-    copy_exec /lib/cryptsetup/askpass
+copy_exec /sbin/cryptsetup
+copy_exec /sbin/dmsetup
+copy_exec /lib/cryptsetup/askpass
 
-    # libargon2 uses pthread_cancel
-    LIBC_DIR="$(ldd /sbin/cryptsetup | sed -nr 's#.* => (/lib.*)/libc\.so\.[0-9.-]+ \(0x[[:xdigit:]]+\)$#\1#p')"
-    find -L "$LIBC_DIR" -maxdepth 1 -name 'libgcc_s.*' -type f | while read so; do
-        copy_exec "$so"
-    done
+# libargon2 uses pthread_cancel
+LIBC_DIR="$(ldd /sbin/cryptsetup | sed -nr 's#.* => (/lib.*)/libc\.so\.[0-9.-]+ \(0x[[:xdigit:]]+\)$#\1#p')"
+find -L "$LIBC_DIR" -maxdepth 1 -name 'libgcc_s.*' -type f | while read so; do
+    copy_exec "$so"
+done
 
-    # We need sed. Either via busybox or as standalone binary.
-    if [ "$BUSYBOX" = n ] || [ ! -e "$BUSYBOXDIR/busybox" ]; then
-        copy_exec /bin/sed
-    fi
-
-    # detect whether the host CPU has AES-NI support
-    if grep -Eq '^flags\s*:(.*\s)?aes(\s.*)?$' /proc/cpuinfo; then
-        CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }aesni"
-    fi
-
-    # add userspace crypto module (only required for opening LUKS2 devices
-    # we add the module unconditionally as it's the default format)
-    CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }algif_skcipher"
-
-    if [ "$MODULES" = most ]; then
-        for d in "$MODULESDIR"/kernel/arch/*/crypto; do
-            copy_modules_dir "${d#"$MODULESDIR/"}"
-        done
-        copy_modules_dir "kernel/crypto"
-    else
-        if [ "$MODULES" != "dep" ]; then
-            # with large initramfs, we always add a basic subset of modules
-            add_crypto_modules aes cbc chainiv cryptomgr krng sha256 xts
-        fi
-        add_crypto_modules $(printf '%s' "${CRYPTO_MODULES-}" | tr ' ' '\n' | sort -u)
-    fi
-    copy_file library /lib/cryptsetup/functions /lib/cryptsetup/functions
+# We need sed. Either via busybox or as standalone binary.
+if [ "$BUSYBOX" = n ] || [ ! -e "$BUSYBOXDIR/busybox" ]; then
+    copy_exec /bin/sed
 fi
+
+# detect whether the host CPU has AES-NI support
+if grep -Eq '^flags\s*:(.*\s)?aes(\s.*)?$' /proc/cpuinfo; then
+    CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }aesni"
+fi
+
+# add userspace crypto module (only required for opening LUKS2 devices
+# we add the module unconditionally as it's the default format)
+CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }algif_skcipher"
+
+if [ "$MODULES" = most ]; then
+    for d in "$MODULESDIR"/kernel/arch/*/crypto; do
+        copy_modules_dir "${d#"$MODULESDIR/"}"
+    done
+    copy_modules_dir "kernel/crypto"
+else
+    if [ "$MODULES" != "dep" ]; then
+        # with large initramfs, we always add a basic subset of modules
+        add_crypto_modules aes cbc chainiv cryptomgr krng sha256 xts
+    fi
+    add_crypto_modules $(printf '%s' "${CRYPTO_MODULES-}" | tr ' ' '\n' | sort -u)
+fi
+copy_file library /lib/cryptsetup/functions /lib/cryptsetup/functions
