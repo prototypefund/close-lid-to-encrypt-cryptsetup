@@ -7,8 +7,12 @@ cryptsetup (2:2.1.0-6) UNRELEASED; urgency=medium
     + Add 'Build-Depends: jq, xxd' as the jq(1) and xxd(1) executables are
       required for some upstream tests (skipped if the executables are not
       found in $PATH).
-  * debian/*: Fix path names for /usr/share/doc/cryptsetup*/**.
-    (Closes: #904916).
+  * debian/*:
+    + Fix path names for /usr/share/doc/cryptsetup*/**. (Closes: #904916).
+    + Remove compatibility warnings regarding setting 'CRYPTSETUP' in
+      the initramfs hook configuration.  The variable is no longer honored,
+      and cryptsetup is always integrated to the initramfs when the
+      'cryptsetup-initramfs' package is installed.
   * debian/doc/pandoc/encrypted-boot.md: Minor refactoring.
   * debian/gitlab-ci.yml: Adapt pandoc flags to Debian 9 (pass '-S').
 
