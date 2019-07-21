@@ -9,6 +9,7 @@ cryptsetup (2:2.2.0~rc1-2) UNRELEASED; urgency=low
       init scripts, libraries, keyscripts, etc. while the latter is now a
       transitional dummy package.
     + Remove obsolete cryptsetup.maintscript.
+    + Bump Standards-Version to 4.4.0 (no changes necessary).
   * debian/initramfs/conf-hook: Clarify that KEYFILE_PATTERN isn't expanded
     for crypttab(5) entries with a 'keyscript=' option. (Closes: #930696)
   * debian/doc/crypttab.xml: Point to README.initramfs in the "See Also"
