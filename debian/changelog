@@ -4,12 +4,19 @@ cryptsetup (2:2.2.0~rc1-2) UNRELEASED; urgency=low
     the initramfs hook configuration.  The variable is no longer honored, and
     cryptsetup is always integrated to the initramfs when the
     'cryptsetup-initramfs' package is installed.
+  * debian/cryptsetup.NEWS: Mention the 'cryptsetup' and 'cryptsetup-run'
+    package swap.
   * debian/control:
     + Swap 'cryptsetup' and 'cryptsetup-run' packages: the former now contains
       init scripts, libraries, keyscripts, etc. while the latter is now a
       transitional dummy package.
     + Remove obsolete cryptsetup.maintscript.
     + Bump Standards-Version to 4.4.0 (no changes necessary).
+    + Add 'cryptsetup-initramfs' to 'cryptsetup's Recommends:, so upgrading
+      systems pull it automatically on upgrade.  (cryptsetup <2:2.1.0-6 was a
+      dummy transitional package depending on cryptsetup-run and
+      cryptsetup-initramfs.)  Thanks to David Prévot for the precious help!
+      Closes: #932643.
   * debian/initramfs/conf-hook: Clarify that KEYFILE_PATTERN isn't expanded
     for crypttab(5) entries with a 'keyscript=' option. (Closes: #930696)
   * debian/doc/crypttab.xml: Point to README.initramfs in the "See Also"
