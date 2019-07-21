@@ -682,6 +682,7 @@ cdisk3 /dev/sda3 none dscard,cipher=twofish,size=256,hash=ripemd160
    <member><command moreinfo="refentry">cryptsetup</command>(8)</member>
    <member><command moreinfo="refentry">cryptdisks_start</command>(8)</member>
    <member><command moreinfo="refentry">cryptdisks_stop</command>(8)</member>
+   <member><filename>/usr/share/doc/cryptsetup-initramfs/README.initramfs.gz</filename></member>
   </simplelist>
  </refsect1>
 
