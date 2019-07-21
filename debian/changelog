@@ -17,6 +17,12 @@ cryptsetup (2:2.2.0~rc1-2) UNRELEASED; urgency=low
       dummy transitional package depending on cryptsetup-run and
       cryptsetup-initramfs.)  Thanks to David Prévot for the precious help!
       Closes: #932643.
+    + Add 'cryptsetup-run' to 'cryptsetup's Recommends.  This avoids it being
+      removed by `apt upgrade --autoremove` from <2:2.1.0-6, thus avoids the
+      old cryptsetup-run's prerm script showing a scary (but moot) warning.
+      After upgrading the prerm script is gone and the package can be removed
+      without troubles, so we can get rid of it after Bullseye.
+      (Closes: #932625.)
   * debian/initramfs/conf-hook: Clarify that KEYFILE_PATTERN isn't expanded
     for crypttab(5) entries with a 'keyscript=' option. (Closes: #930696)
   * debian/doc/crypttab.xml: Point to README.initramfs in the "See Also"
