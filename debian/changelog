@@ -11,6 +11,7 @@ cryptsetup (2:2.1.0-6) UNRELEASED; urgency=medium
       init scripts, libraries, keyscripts, etc. while the latter is now a
       transitional dummy package.
     + Remove obsolete cryptsetup.maintscript.
+    + Bump Standards-Version to 4.4.0 (no changes necessary).
   * debian/*:
     + Fix path names for /usr/share/doc/cryptsetup*/**. (Closes: #904916).
     + Remove compatibility warnings regarding setting 'CRYPTSETUP' in
