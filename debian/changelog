@@ -21,6 +21,8 @@ cryptsetup (2:2.1.0-6) UNRELEASED; urgency=medium
   * debian/gitlab-ci.yml: Adapt pandoc flags to Debian 9 (pass '-S').
   * debian/initramfs/conf-hook: Clarify that KEYFILE_PATTERN isn't expanded
     for crypttab(5) entries with a 'keyscript=' option. (Closes: #930696)
+  * debian/doc/crypttab.xml: Point to README.initramfs in the "See Also"
+    section. (Closes: #913233)
 
  -- Guilhem Moulin <guilhem@debian.org>  Fri, 07 Jun 2019 15:26:23 +0200
 
