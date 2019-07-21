@@ -1,3 +1,14 @@
+cryptsetup (2:2.1.0-7) UNRELEASED; urgency=low
+
+  * debian/cryptsetup.NEWS: Mention the 'cryptsetup' and 'cryptsetup-run'
+    package swap.
+  * debian/control: Add 'cryptsetup-initramfs' to 'cryptsetup's Recommends:,
+    so upgrading systems pull it automatically on upgrade.  (cryptsetup
+    <2:2.1.0-6 was a dummy transitional package depending on cryptsetup-run
+    and cryptsetup-initramfs.)  Closes: #932643.
+
+ -- Guilhem Moulin <guilhem@debian.org>  Sun, 21 Jul 2019 17:22:20 -0300
+
 cryptsetup (2:2.1.0-6) unstable; urgency=low
 
   * debian/control:
