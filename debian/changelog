@@ -1,4 +1,4 @@
-cryptsetup (2:2.1.0-6) UNRELEASED; urgency=medium
+cryptsetup (2:2.1.0-6) unstable; urgency=low
 
   * debian/control:
     + Add 'Multi-Arch: foreign' tags to 'cryptsetup-bin' and 'crytsetup-run',
@@ -25,7 +25,7 @@ cryptsetup (2:2.1.0-6) UNRELEASED; urgency=medium
   * debian/doc/crypttab.xml: Point to README.initramfs in the "See Also"
     section. (Closes: #913233)
 
- -- Guilhem Moulin <guilhem@debian.org>  Fri, 07 Jun 2019 15:26:23 +0200
+ -- Guilhem Moulin <guilhem@debian.org>  Sat, 20 Jul 2019 22:15:04 -0300
 
 cryptsetup (2:2.1.0-5) unstable; urgency=medium
 
