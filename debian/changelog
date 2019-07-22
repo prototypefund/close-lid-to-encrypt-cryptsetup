@@ -12,6 +12,8 @@ cryptsetup (2:2.1.0-7) UNRELEASED; urgency=low
     moot) warning.  After upgrading the prerm script is gone and the package
     can be removed without troubles, so we can get rid of it after Bullseye.
     (Closes: #932625.)
+  * cryptsetup-initramfs: Add loud warning upon "prerm remove" if there are
+    mapped crypt devices (like for cryptsetup.prerm).
 
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 21 Jul 2019 17:22:20 -0300
 
