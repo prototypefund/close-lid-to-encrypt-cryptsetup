@@ -27,6 +27,8 @@ cryptsetup (2:2.2.0~rc1-2) UNRELEASED; urgency=low
     for crypttab(5) entries with a 'keyscript=' option. (Closes: #930696)
   * debian/doc/crypttab.xml: Point to README.initramfs in the "See Also"
     section. (Closes: #913233)
+  * cryptsetup-initramfs: Add loud warning upon "prerm remove" if there are
+    mapped crypt devices (like for cryptsetup.prerm).
 
  -- Guilhem Moulin <guilhem@debian.org>  Wed, 31 Jul 2019 20:43:48 +0200
 
