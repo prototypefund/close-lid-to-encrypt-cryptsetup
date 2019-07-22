@@ -1,4 +1,4 @@
-cryptsetup (2:2.1.0-7) UNRELEASED; urgency=low
+cryptsetup (2:2.1.0-7) unstable; urgency=low
 
   * debian/cryptsetup.NEWS: Mention the 'cryptsetup' and 'cryptsetup-run'
     package swap.
@@ -15,7 +15,7 @@ cryptsetup (2:2.1.0-7) UNRELEASED; urgency=low
   * cryptsetup-initramfs: Add loud warning upon "prerm remove" if there are
     mapped crypt devices (like for cryptsetup.prerm).
 
- -- Guilhem Moulin <guilhem@debian.org>  Sun, 21 Jul 2019 17:22:20 -0300
+ -- Guilhem Moulin <guilhem@debian.org>  Sun, 21 Jul 2019 21:21:10 -0300
 
 cryptsetup (2:2.1.0-6) unstable; urgency=low
 
