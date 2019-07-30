@@ -1,3 +1,11 @@
+cryptsetup (2:2.1.0-8) UNRELEASED; urgency=medium
+
+  * encrypted-boot.md:
+    + Clarify partition layout.
+    + encrypted-boot.md: New section 'Using a custom keyboard layout'.
+
+ -- Guilhem Moulin <guilhem@debian.org>  Tue, 30 Jul 2019 13:41:52 +0200
+
 cryptsetup (2:2.1.0-7) unstable; urgency=low
 
   * debian/cryptsetup.NEWS: Mention the 'cryptsetup' and 'cryptsetup-run'
