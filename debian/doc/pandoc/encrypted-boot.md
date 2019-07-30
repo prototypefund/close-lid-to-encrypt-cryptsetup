@@ -441,9 +441,95 @@ userspace.
 Should be safe to reboot now :-)  If all went well you should see a
 single passphrase prompt.
 
+
+Using a custom keyboard layout
+==============================
+
+GRUB uses the US keyboard layout by default.  Alternative layouts for
+the LUKS passphrase prompts can't be loaded from `/boot` or the root
+file system, as the underlying devices haven't been mapped yet at that
+stage.  If you require another layout to type in your passphrase, then
+you'll need to manually generate the core image using
+[`grub-mkimage`(1)].  A possible solution is to embed a memdisk
+containing the keymap inside the core image.
+
+ 1. Create a memdisk (in GNU tar format) with the desired keymap, for
+    instance dvorak's.  (The XKB keyboard layout and variant passed to
+    `grub-kbdcomp`(1) are described in the [`setxkbmap`(1)] manual.)
+
+        root@debian:~$ memdisk="$(mktemp --tmpdir --directory)"
+    <!-- -->
+        root@debian:~$ grub-kbdcomp -o "$memdisk/keymap.gkb" us dvorak
+    <!-- -->
+        root@debian:~$ tar -C "$memdisk" -cf /boot/grub/memdisk.tar .
+
+ 2. Generate an early configuration file to embed inside the image.
+
+        root@debian:~$ uuid="$(blkid -o value -s UUID /dev/sda1)"
+    <!-- -->
+        root@debian:~$ cat >/etc/early-grub.cfg <<-EOF
+			terminal_input --append at_keyboard
+			keymap (memdisk)/keymap.gkb
+			cryptomount -u ${uuid//-/}
+
+			set root=(cryptouuid/${uuid//-/})
+			set prefix=/grub
+			configfile grub.cfg
+		EOF
+
+    *Note*: This is for the case of a separate `/boot` partition.  If
+    `/boot` resides on the root file system, then replace `/dev/sda1`
+    with `/dev/sda5` (the LUKS device holding the root file system) and
+    set `prefix=/boot/grub`; if it's in a logical volume you'll also
+    [need to set][GRUB device syntax] `root=(lvm/DMNAME)`.
+
+    *Note*: You might need to remove the first line if you use a USB
+    keyboard, or tweak it if GRUB doesn't see any PC/AT keyboard among its
+    available terminal input devices.  Start by specifing `terminal_input`
+    in an interactive GRUB shell in order to determine the suitable input
+    device.  (Choosing an incorrect device might prevent unlocking if no
+    input can be be entered.)
+
+ 3. Finally, manually create and install the GRUB image.  Don't use
+    `grub-install`(1) here, as we need to pass an early configuration
+    and a ramdisk.  Instead, use [`grub-mkimage`(1)] with suitable image
+    file name, format, and module list.
+
+        root@debian:~$ grub-mkimage \
+            -c /etc/early-grub.cfg -m /boot/grub/memdisk.tar \
+            -o "$IMAGE" -O "$FORMAT" \
+            diskfilter cryptodisk luks gcry_rijndael gcry_sha256 \
+            memdisk tar keylayouts configfile \
+            at_keyboard usb_keyboard uhci ehci \
+            ahci part_msdos part_gpt lvm ext2
+
+    (Replace with `ahci` with a suitable module if the drive holding
+    `/boot` isn't a SATA drive supporting AHCI.  Also, replace `ext2`
+    with a file system driver suitable for `/boot` if the file system
+    isn't ext2, ext3 or ext4.)
+
+    The value of `IMAGE` and `FORMAT` depend on whether GRUB is in EFI
+    or BIOS mode.
+
+     a. For EFI mode: `IMAGE="/boot/efi/EFI/debian/grubx64.efi"` and
+        `FORMAT="x86_64-efi"`.
+
+     b. For BIOS mode: `IMAGE="/boot/grub/i386-pc/core.img"`,
+        `FORMAT="i386-pc"` and set up the image as follows:
+
+            root@debian:~$ grub-bios-setup -d /boot/grub/i386-pc /dev/sda
+
+    You can now delete the memdisk and the early GRUB configuration
+    file, but note that subquent runs of `grub-install`(1) will override
+    these changes.
+
+
 [`cryptsetup`(8)]: https://manpages.debian.org/cryptsetup.8.en.html
 [`crypttab`(5)]: https://manpages.debian.org/crypttab.5.en.html
 [`fstab`(5)]: https://manpages.debian.org/fstab.5.en.html
 [`initramfs.conf`(5)]: https://manpages.debian.org/initramfs.conf.5.en.html
+[`grub-mkimage`(1)]: https://manpages.debian.org/grub-mkimage.1.en.html
+[`setxkbmap`(1)]: https://manpages.debian.org/setxkbmap.1.en.html
+[GRUB device syntax]: https://www.gnu.org/software/grub/manual/grub/grub.html#Device-syntax
 
  -- Guilhem Moulin <guilhem@debian.org>, Sun, 09 Jun 2019 16:35:20 +0200

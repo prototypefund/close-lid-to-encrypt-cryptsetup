@@ -37,7 +37,7 @@ pages:
     - for readme in Debian debug gnupg gnupg-sc initramfs keyctl opensc; do
           ${PANDOC} --toc -T "Debian Cryptsetup docs"
           -o public/README.$readme.html debian/README.$readme; done
-    - ${PANDOC} -No public/encrypted-boot.html debian/doc/pandoc/encrypted-boot.md
+    - ${PANDOC} -pNo public/encrypted-boot.html debian/doc/pandoc/encrypted-boot.md
   stage: deploy
   artifacts:
     paths:
