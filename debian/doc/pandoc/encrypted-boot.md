@@ -45,6 +45,21 @@ There are two alternatives here:
 
 These two alternatives are described in the two following sub-sections.
 
+We assume the system resides on a single drive `/dev/sda`, partitioned
+with d-i's “encrypted LVM” scheme:
+
+    root@debian:~$ lsblk -o NAME,FSTYPE,MOUNTPOINT /dev/sda
+    NAME                    FSTYPE      MOUNTPOINT
+    sda
+    ├─sda1                  ext2        /boot
+    ├─sda2
+    └─sda5                  crypto_LUKS
+      └─sda5_crypt          LVM2_member
+        ├─debian--vg-root   ext4        /
+        └─debian--vg-swap_1 swap        [SWAP]
+
+*Note*: The partition layout of your system may differ.
+
 
 Formatting the existing `/boot` partition to LUKS1
 --------------------------------------------------
@@ -75,18 +90,18 @@ system: no need to reboot into a live CD or an initramfs shell.
 
         root@debian:~$ install -m0600 /dev/null /tmp/boot.tar
     <!-- -->
-        root@debian:~$ tar -C /boot --acls --xattrs -cf /tmp/boot.tar .
+        root@debian:~$ tar -C /boot --acls --xattrs --one-file-system -cf /tmp/boot.tar .
     <!-- -->
         root@debian:~$ umount /boot
+
+    (If `/boot` has sub-mountpoints, like `/boot/efi`, you'll need to
+    unmount them as well.)
 
  3. Optionally, wipe out the underlying block device (assumed to be
     `/dev/sda1` in the rest of this sub-section).
 
-        root@debian:~$ dd if=/dev/urandom of=/dev/sda1 bs=1M
+        root@debian:~$ dd if=/dev/urandom of=/dev/sda1 bs=1M status=none
         dd: error writing '/dev/sda1': No space left on device
-        244+0 records in
-        243+0 records out
-        254803968 bytes (255 MB, 243 MiB) copied, 1.70967 s, 149 MB/s
 
  4. Format the underlying block device to LUKS1.  (Note the `--type luks1`
     in the command below, as Buster's [`cryptsetup`(8)] defaults to LUKS
@@ -137,6 +152,9 @@ system: no need to reboot into a live CD or an initramfs shell.
     <!-- -->
         root@debian:~$ tar -C /boot --acls --xattrs -xf /tmp/boot.tar
 
+    (If `/boot` had sub-mountpoints, like `/boot/efi`, you'll need to
+    mount them back as well.)
+
 You can skip the next sub-section and go directly to [Enabling
 `cryptomount` in GRUB2].  Note that `init`(1) needs to unlock the
 `/boot` partition *again* during the boot process.  See [Avoiding the
@@ -173,9 +191,9 @@ unused and can't easily be reclaimed by the root file system.
 ### Downgrading LUKS2 to LUKS1 ###
 
 Check the LUKS format version on the root device (assumed to be
-`/dev/sda3` in the rest of this sub-section):
+`/dev/sda5` in the rest of this sub-section):
 
-    root@debian:~$ cryptsetup luksDump /dev/sda3 | grep -A1 "^LUKS"
+    root@debian:~$ cryptsetup luksDump /dev/sda5 | grep -A1 "^LUKS"
     LUKS header information
     Version:        2
 
@@ -194,11 +212,11 @@ Run `cryptsetup convert --type luks1 DEVICE` to downgrade.  However if
 the device was created with the default parameters then in-place
 conversion will fail:
 
-    (initramfs) cryptsetup convert --type luks1 /dev/sda3
+    (initramfs) cryptsetup convert --type luks1 /dev/sda5
 
     WARNING!
     ========
-    This operation will convert /dev/sda3 to LUKS1 format.
+    This operation will convert /dev/sda5 to LUKS1 format.
 
 
     Are you sure? (Type uppercase yes): YES
@@ -207,7 +225,7 @@ conversion will fail:
 This is because its first key slot uses Argon2 as Password-Based Key
 Derivation Function (PBKDF) algorithm:
 
-    (initramfs) cryptsetup luksDump /dev/sda3 | grep "PBKDF:"
+    (initramfs) cryptsetup luksDump /dev/sda5 | grep "PBKDF:"
             PBKDF:      argon2i
 
 Argon2 is a *memory-hard* function that was selected as the winner of
@@ -216,25 +234,25 @@ key slots, but LUKS1's only supported PBKDF algorithm is PBKDF2.  Hence
 the key slot has to be converted to PBKDF2 prior to LUKS format version
 downgrade.
 
-    (initramfs) cryptsetup luksConvertKey --pbkdf pbkdf2 /dev/sda3
+    (initramfs) cryptsetup luksConvertKey --pbkdf pbkdf2 /dev/sda5
     Enter passphrase for keyslot to be converted:
 
 Now that all key slots use the PBKDF2 algorithm, the device shouldn't
 have any LUKS2-only features left, and can be converted to LUKS1.
 
-    (initramfs) cryptsetup luksDump /dev/sda3 | grep "PBKDF:"
+    (initramfs) cryptsetup luksDump /dev/sda5 | grep "PBKDF:"
             PBKDF:      pbkdf2
 <!-- -->
-    (initramfs) cryptsetup convert --type luks1 /dev/sda3
+    (initramfs) cryptsetup convert --type luks1 /dev/sda5
 
     WARNING!
     ========
-    This operation will convert /dev/sda3 to LUKS1 format.
+    This operation will convert /dev/sda5 to LUKS1 format.
 
 
     Are you sure? (Type uppercase yes): YES
 <!-- -->
-    (initramfs) cryptsetup luksDump /dev/sda3 | grep -A1 "^LUKS"
+    (initramfs) cryptsetup luksDump /dev/sda5 | grep -A1 "^LUKS"
     LUKS header information
 
 ### Moving `/boot` to the root file system ###
@@ -252,13 +270,17 @@ resides in a LUK1 device.)
     the old `/boot` mountpoint with the new directory.
 
     <!-- -->
-        root@debian:~$ cp -aT /boot /boot.tmp
+        root@debian:~$ cp -axT /boot /boot.tmp
     <!-- -->
         root@debian:~$ umount /boot
     <!-- -->
         root@debian:~$ rmdir /boot
     <!-- -->
         root@debian:~$ mv -T /boot.tmp /boot
+
+    (If `/boot` has sub-mountpoints, like `/boot/efi`, you'll need to
+    unmount them first, and then remount them once `/boot` has been
+    moved to the root file system.)
 
  3. Comment out the [`fstab`(5)] entry for the `/boot` mountpoint.
     Otherwise at reboot `init`(1) will mount it and therefore shadow data
@@ -302,16 +324,19 @@ easy to brute-force.  There is a trade-off to be made here.  Balancing
 convenience and security is the whole point of running PBKDF
 benchmarks.)
 
-    root@debian:~$ cryptsetup luksDump /dev/sda3 | grep -B1 "Iterations:"
+    root@debian:~$ cryptsetup luksDump /dev/sda1 | grep -B1 "Iterations:"
     Key Slot 0: ENABLED
         Iterations:             1000000
 <!-- -->
-    root@debian:~$ cryptsetup luksChangeKey --pbkdf-force-iterations 500000 /dev/sda3
+    root@debian:~$ cryptsetup luksChangeKey --pbkdf-force-iterations 500000 /dev/sda1
     Enter passphrase to be changed:
     Enter new passphrase:
     Verify passphrase:
 
-(You can reuse the existing passphrase in the above prompts.)
+(You can reuse the existing passphrase in the above prompts.  Replace
+`/dev/sda1` with the LUKS1 volume holding `/boot`; in this document
+that's `/dev/sda1` if `/boot` resides on a separated encrypted
+partition, or `/dev/sda5` if `/boot` was moved to the root file system.)
 
 *Note*: `cryptomount` lacks an option to specify the key slot index to
 open.  All active key slots are tried sequentially until a match is
@@ -319,8 +344,8 @@ found.  Running the PBKDF algorithm is a slow operation, so to speed up
 things you'll want the key slot to unlock at GRUB stage to be the first
 active one.  Run the following command to discover its index.
 
-    root@debian:~$ cryptsetup luksOpen --test-passphrase --verbose /dev/sda3
-    Enter passphrase for /dev/sda3:
+    root@debian:~$ cryptsetup luksOpen --test-passphrase --verbose /dev/sda5
+    Enter passphrase for /dev/sda5:
     Key slot 0 unlocked.
     Command successful.
 
@@ -361,10 +386,10 @@ userspace.
 
  2. Create a new key slot with that key file.
 
-        root@debian:~$ cryptsetup luksAddKey /dev/sda3 /etc/keys/root.key
+        root@debian:~$ cryptsetup luksAddKey /dev/sda5 /etc/keys/root.key
         Enter any existing passphrase:
     <!-- -->
-        root@debian:~$ cryptsetup luksDump /dev/sda3 | grep "^Key Slot"
+        root@debian:~$ cryptsetup luksDump /dev/sda5 | grep "^Key Slot"
         Key Slot 0: ENABLED
         Key Slot 1: ENABLED
         Key Slot 2: DISABLED
