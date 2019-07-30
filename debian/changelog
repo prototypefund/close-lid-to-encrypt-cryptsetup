@@ -3,6 +3,7 @@ cryptsetup (2:2.1.0-8) UNRELEASED; urgency=medium
   * encrypted-boot.md:
     + Clarify partition layout.
     + encrypted-boot.md: New section 'Using a custom keyboard layout'.
+  * d/gbp.conf: New section [export-orig] mirroring [buildpackage].
 
  -- Guilhem Moulin <guilhem@debian.org>  Tue, 30 Jul 2019 13:41:52 +0200
 
