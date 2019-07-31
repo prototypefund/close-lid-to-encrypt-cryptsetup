@@ -1,4 +1,4 @@
-cryptsetup (2:2.2.0~rc1-2) UNRELEASED; urgency=low
+cryptsetup (2:2.2.0~rc1-2) experimental; urgency=low
 
     The 'cryptsetup' and 'cryptsetup-run' packages have been swapped:
     'cryptsetup' now contains init scripts, libraries, keyscripts, etc.,
@@ -14,7 +14,7 @@ cryptsetup (2:2.2.0~rc1-2) UNRELEASED; urgency=low
     On the other hand, the 'cryptsetup-initramfs' package can be safely
     removed on systems not relying on initramfs integration.
 
- -- Guilhem Moulin <guilhem@debian.org>  Wed, 31 Jul 2019 20:51:01 +0200
+ -- Guilhem Moulin <guilhem@debian.org>  Wed, 31 Jul 2019 20:52:24 +0200
 
 cryptsetup (2:2.0.3-2) unstable; urgency=medium
 

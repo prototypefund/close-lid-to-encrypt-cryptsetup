@@ -1,5 +1,7 @@
-cryptsetup (2:2.2.0~rc1-2) UNRELEASED; urgency=low
+cryptsetup (2:2.2.0~rc1-2) experimental; urgency=low
 
+  * Rebase changes from 2:2.1.0-6 and 2:2.1.0-7 to enable smooth upgrade path
+    from sid to experimental. (Closes: #933487)
   * debian/*: Remove compatibility warnings regarding setting 'CRYPTSETUP' in
     the initramfs hook configuration.  The variable is no longer honored, and
     cryptsetup is always integrated to the initramfs when the
@@ -30,7 +32,7 @@ cryptsetup (2:2.2.0~rc1-2) UNRELEASED; urgency=low
   * cryptsetup-initramfs: Add loud warning upon "prerm remove" if there are
     mapped crypt devices (like for cryptsetup.prerm).
 
- -- Guilhem Moulin <guilhem@debian.org>  Wed, 31 Jul 2019 20:43:48 +0200
+ -- Guilhem Moulin <guilhem@debian.org>  Wed, 31 Jul 2019 20:52:24 +0200
 
 cryptsetup (2:2.2.0~rc1-1) experimental; urgency=low
 
