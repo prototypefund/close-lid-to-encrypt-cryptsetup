@@ -23,6 +23,7 @@ cryptsetup (2:2.1.0-7) unstable; urgency=low
     (Closes: #932625.)
   * cryptsetup-initramfs: Add loud warning upon "prerm remove" if there are
     mapped crypt devices (like for cryptsetup.prerm).
+  * Thanks to David Prévot for helping with the upgrade path!
 
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 21 Jul 2019 21:21:10 -0300
 
