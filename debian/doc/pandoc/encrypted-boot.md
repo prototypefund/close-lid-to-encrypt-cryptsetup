@@ -48,7 +48,7 @@ These two alternatives are described in the two following sub-sections.
 We assume the system resides on a single drive `/dev/sda`, partitioned
 with d-i's “encrypted LVM” scheme:
 
-    root@debian:~$ lsblk -o NAME,FSTYPE,MOUNTPOINT /dev/sda
+    root@debian:~# lsblk -o NAME,FSTYPE,MOUNTPOINT /dev/sda
     NAME                    FSTYPE      MOUNTPOINT
     sda
     ├─sda1                  ext2        /boot
@@ -83,16 +83,16 @@ system: no need to reboot into a live CD or an initramfs shell.
  1. Before copying content of the `/boot` directory, remount it read-only
     to make sure data is not modified while it's being copied.
 
-        root@debian:~$ mount -oremount,ro /boot
+        root@debian:~# mount -oremount,ro /boot
 
  2. Archive the directory elsewhere (on another device), and unmount it
     afterwards.
 
-        root@debian:~$ install -m0600 /dev/null /tmp/boot.tar
+        root@debian:~# install -m0600 /dev/null /tmp/boot.tar
     <!-- -->
-        root@debian:~$ tar -C /boot --acls --xattrs --one-file-system -cf /tmp/boot.tar .
+        root@debian:~# tar -C /boot --acls --xattrs --one-file-system -cf /tmp/boot.tar .
     <!-- -->
-        root@debian:~$ umount /boot
+        root@debian:~# umount /boot
 
     (If `/boot` has sub-mountpoints, like `/boot/efi`, you'll need to
     unmount them as well.)
@@ -100,14 +100,14 @@ system: no need to reboot into a live CD or an initramfs shell.
  3. Optionally, wipe out the underlying block device (assumed to be
     `/dev/sda1` in the rest of this sub-section).
 
-        root@debian:~$ dd if=/dev/urandom of=/dev/sda1 bs=1M status=none
+        root@debian:~# dd if=/dev/urandom of=/dev/sda1 bs=1M status=none
         dd: error writing '/dev/sda1': No space left on device
 
  4. Format the underlying block device to LUKS1.  (Note the `--type luks1`
     in the command below, as Buster's [`cryptsetup`(8)] defaults to LUKS
     version 2 for `luksFormat`.)
 
-        root@debian:~$ cryptsetup luksFormat --type luks1 /dev/sda1
+        root@debian:~# cryptsetup luksFormat --type luks1 /dev/sda1
 
         WARNING!
         ========
@@ -120,11 +120,11 @@ system: no need to reboot into a live CD or an initramfs shell.
  5. Add a corresponding entry to [`crypttab`(5)] with mapped device name
     `boot_crypt`, and open it afterwards.
 
-        root@debian:~$ uuid="$(blkid -o value -s UUID /dev/sda1)"
+        root@debian:~# uuid="$(blkid -o value -s UUID /dev/sda1)"
     <!-- -->
-        root@debian:~$ echo "boot_crypt UUID=$uuid none luks" | tee -a /etc/crypttab
+        root@debian:~# echo "boot_crypt UUID=$uuid none luks" | tee -a /etc/crypttab
     <!-- -->
-        root@debian:~$ cryptdisks_start boot_crypt
+        root@debian:~# cryptdisks_start boot_crypt
         Starting crypto disk...boot_crypt (starting)...
         Please unlock disk boot_crypt:  ********
         boot_crypt (started)...done.
@@ -134,11 +134,11 @@ system: no need to reboot into a live CD or an initramfs shell.
     Debian Installer does by default -- reusing the old UUID avoids
     editing the file.
 
-        root@debian:~$ grep /boot /etc/fstab
+        root@debian:~# grep /boot /etc/fstab
         # /boot was on /dev/sda1 during installation
         UUID=c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /boot           ext2    defaults        0       2
     <!-- -->
-        root@debian:~$ mkfs.ext2 -m0 -U c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /dev/mapper/boot_crypt
+        root@debian:~# mkfs.ext2 -m0 -U c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /dev/mapper/boot_crypt
         mke2fs 1.44.5 (15-Dec-2018)
         Creating filesystem with 246784 1k blocks and 61752 inodes
         Filesystem UUID: c104749f-a0fa-406c-9e9a-3fc01f8e2f78
@@ -147,10 +147,10 @@ system: no need to reboot into a live CD or an initramfs shell.
  7. Finally, mount `/boot` again from [`fstab`(5)], and copy the saved
     tarball to the new (and now encrypted) file system.
 
-        root@debian:~$ mount -v /boot
+        root@debian:~# mount -v /boot
         mount: /dev/mapper/boot_crypt mounted on /boot.
     <!-- -->
-        root@debian:~$ tar -C /boot --acls --xattrs -xf /tmp/boot.tar
+        root@debian:~# tar -C /boot --acls --xattrs -xf /tmp/boot.tar
 
     (If `/boot` had sub-mountpoints, like `/boot/efi`, you'll need to
     mount them back as well.)
@@ -193,7 +193,7 @@ unused and can't easily be reclaimed by the root file system.
 Check the LUKS format version on the root device (assumed to be
 `/dev/sda5` in the rest of this sub-section):
 
-    root@debian:~$ cryptsetup luksDump /dev/sda5 | grep -A1 "^LUKS"
+    root@debian:~# cryptsetup luksDump /dev/sda5 | grep -A1 "^LUKS"
     LUKS header information
     Version:        2
 
@@ -264,19 +264,19 @@ resides in a LUK1 device.)
  1. To ensure data is not modified while it's being copied, remount
     `/boot` read-only.
 
-        root@debian:~$ mount -oremount,ro /boot
+        root@debian:~# mount -oremount,ro /boot
 
  2. Recursively copy the directory to the root file system, and replace
     the old `/boot` mountpoint with the new directory.
 
     <!-- -->
-        root@debian:~$ cp -axT /boot /boot.tmp
+        root@debian:~# cp -axT /boot /boot.tmp
     <!-- -->
-        root@debian:~$ umount /boot
+        root@debian:~# umount /boot
     <!-- -->
-        root@debian:~$ rmdir /boot
+        root@debian:~# rmdir /boot
     <!-- -->
-        root@debian:~$ mv -T /boot.tmp /boot
+        root@debian:~# mv -T /boot.tmp /boot
 
     (If `/boot` has sub-mountpoints, like `/boot/efi`, you'll need to
     unmount them first, and then remount them once `/boot` has been
@@ -287,7 +287,7 @@ resides in a LUK1 device.)
     in the new `/boot` directory with data from the old plaintext
     partition.
 
-        root@debian:~$ grep /boot /etc/fstab
+        root@debian:~# grep /boot /etc/fstab
         ## /boot was on /dev/sda1 during installation
         #UUID=c104749f-a0fa-406c-9e9a-3fc01f8e2f78 /boot           ext2    defaults        0       2
 
@@ -297,11 +297,11 @@ Enabling `cryptomount` in GRUB2
 
 Enable the feature and update the GRUB image:
 
-    root@debian:~$ echo "GRUB_ENABLE_CRYPTODISK=y" >>/etc/default/grub
+    root@debian:~# echo "GRUB_ENABLE_CRYPTODISK=y" >>/etc/default/grub
 <!-- -->
-    root@debian:~$ update-grub
+    root@debian:~# update-grub
 <!-- -->
-    root@debian:~$ grub-install /dev/sda
+    root@debian:~# grub-install /dev/sda
 
 If everything went well, `/boot/grub/grub.cfg` should contain `insmod
 cryptodisk` (and also `insmod lvm` if `/boot` is on a Logical Volume).
@@ -324,11 +324,11 @@ easy to brute-force.  There is a trade-off to be made here.  Balancing
 convenience and security is the whole point of running PBKDF
 benchmarks.)
 
-    root@debian:~$ cryptsetup luksDump /dev/sda1 | grep -B1 "Iterations:"
+    root@debian:~# cryptsetup luksDump /dev/sda1 | grep -B1 "Iterations:"
     Key Slot 0: ENABLED
         Iterations:             1000000
 <!-- -->
-    root@debian:~$ cryptsetup luksChangeKey --pbkdf-force-iterations 500000 /dev/sda1
+    root@debian:~# cryptsetup luksChangeKey --pbkdf-force-iterations 500000 /dev/sda1
     Enter passphrase to be changed:
     Enter new passphrase:
     Verify passphrase:
@@ -344,7 +344,7 @@ found.  Running the PBKDF algorithm is a slow operation, so to speed up
 things you'll want the key slot to unlock at GRUB stage to be the first
 active one.  Run the following command to discover its index.
 
-    root@debian:~$ cryptsetup luksOpen --test-passphrase --verbose /dev/sda5
+    root@debian:~# cryptsetup luksOpen --test-passphrase --verbose /dev/sda5
     Enter passphrase for /dev/sda5:
     Key slot 0 unlocked.
     Command successful.
@@ -377,19 +377,19 @@ userspace.
  1. Generate the shared secret (here with 512 bits of entropy as it's also
     the size of the volume key) inside a new file.
 
-        root@debian:~$ mkdir -m0700 /etc/keys
+        root@debian:~# mkdir -m0700 /etc/keys
     <!-- -->
-        root@debian:~$ ( umask 0077 && dd if=/dev/urandom bs=1 count=64 of=/etc/keys/root.key conv=excl,fsync )
+        root@debian:~# ( umask 0077 && dd if=/dev/urandom bs=1 count=64 of=/etc/keys/root.key conv=excl,fsync )
         64+0 records in
         64+0 records out
         64 bytes copied, 0.000698363 s, 91.6 kB/s
 
  2. Create a new key slot with that key file.
 
-        root@debian:~$ cryptsetup luksAddKey /dev/sda5 /etc/keys/root.key
+        root@debian:~# cryptsetup luksAddKey /dev/sda5 /etc/keys/root.key
         Enter any existing passphrase:
     <!-- -->
-        root@debian:~$ cryptsetup luksDump /dev/sda5 | grep "^Key Slot"
+        root@debian:~# cryptsetup luksDump /dev/sda5 | grep "^Key Slot"
         Key Slot 0: ENABLED
         Key Slot 1: ENABLED
         Key Slot 2: DISABLED
@@ -402,7 +402,7 @@ userspace.
  3. Edit the [`crypttab`(5)] and set the third column to the key file path
     for the root device entry.
 
-        root@debian:~$ cat /etc/crypttab
+        root@debian:~# cat /etc/crypttab
         root_crypt UUID=… /etc/keys/root.key luks,discard,key-slot=1
 
     The unlock logic normally runs the PBKDF algorithm through each key
@@ -415,24 +415,24 @@ userspace.
     `glob`(7) expanding to the key path names to include to the initramfs
     image.
 
-        root@debian:~$ echo "KEYFILE_PATTERN=\"/etc/keys/*.key\"" >>/etc/cryptsetup-initramfs/conf-hook
+        root@debian:~# echo "KEYFILE_PATTERN=\"/etc/keys/*.key\"" >>/etc/cryptsetup-initramfs/conf-hook
 
  5. In `/etc/initramfs-tools/initramfs.conf`, set `UMASK` to a restrictive
     value to avoid leaking key material.  See [`initramfs.conf`(5)] for
     details.
 
-        root@debian:~$ echo UMASK=0077 >>/etc/initramfs-tools/initramfs.conf
+        root@debian:~# echo UMASK=0077 >>/etc/initramfs-tools/initramfs.conf
 
  6. Finally re-generate the initramfs image, and double-check that it
     1/ has restrictive permissions; and 2/ includes the key.
 
-        root@debian:~$ update-initramfs -u
+        root@debian:~# update-initramfs -u
         update-initramfs: Generating /boot/initrd.img-4.19.0-4-amd64
     <!-- -->
-        root@debian:~$ stat -L -c "%A  %n" /initrd.img
+        root@debian:~# stat -L -c "%A  %n" /initrd.img
         -rw-------  /initrd.img
     <!-- -->
-        root@debian:~$ lsinitramfs /initrd.img | grep "^cryptroot/keyfiles/"
+        root@debian:~# lsinitramfs /initrd.img | grep "^cryptroot/keyfiles/"
         cryptroot/keyfiles/root_crypt.key
 
     (`cryptsetup-initramfs` normalises and renames key files inside the
@@ -457,17 +457,17 @@ containing the keymap inside the core image.
     instance dvorak's.  (The XKB keyboard layout and variant passed to
     `grub-kbdcomp`(1) are described in the [`setxkbmap`(1)] manual.)
 
-        root@debian:~$ memdisk="$(mktemp --tmpdir --directory)"
+        root@debian:~# memdisk="$(mktemp --tmpdir --directory)"
     <!-- -->
-        root@debian:~$ grub-kbdcomp -o "$memdisk/keymap.gkb" us dvorak
+        root@debian:~# grub-kbdcomp -o "$memdisk/keymap.gkb" us dvorak
     <!-- -->
-        root@debian:~$ tar -C "$memdisk" -cf /boot/grub/memdisk.tar .
+        root@debian:~# tar -C "$memdisk" -cf /boot/grub/memdisk.tar .
 
  2. Generate an early configuration file to embed inside the image.
 
-        root@debian:~$ uuid="$(blkid -o value -s UUID /dev/sda1)"
+        root@debian:~# uuid="$(blkid -o value -s UUID /dev/sda1)"
     <!-- -->
-        root@debian:~$ cat >/etc/early-grub.cfg <<-EOF
+        root@debian:~# cat >/etc/early-grub.cfg <<-EOF
 			terminal_input --append at_keyboard
 			keymap (memdisk)/keymap.gkb
 			cryptomount -u ${uuid//-/}
@@ -495,7 +495,7 @@ containing the keymap inside the core image.
     and a ramdisk.  Instead, use [`grub-mkimage`(1)] with suitable image
     file name, format, and module list.
 
-        root@debian:~$ grub-mkimage \
+        root@debian:~# grub-mkimage \
             -c /etc/early-grub.cfg -m /boot/grub/memdisk.tar \
             -o "$IMAGE" -O "$FORMAT" \
             diskfilter cryptodisk luks gcry_rijndael gcry_sha256 \
@@ -517,7 +517,7 @@ containing the keymap inside the core image.
      b. For BIOS mode: `IMAGE="/boot/grub/i386-pc/core.img"`,
         `FORMAT="i386-pc"` and set up the image as follows:
 
-            root@debian:~$ grub-bios-setup -d /boot/grub/i386-pc /dev/sda
+            root@debian:~# grub-bios-setup -d /boot/grub/i386-pc /dev/sda
 
     You can now delete the memdisk and the early GRUB configuration
     file, but note that subquent runs of `grub-install`(1) will override
