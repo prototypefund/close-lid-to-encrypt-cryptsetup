@@ -4,6 +4,7 @@ cryptsetup (2:2.1.0-8) UNRELEASED; urgency=medium
     + Clarify partition layout.
     + encrypted-boot.md: New section 'Using a custom keyboard layout'.
   * d/gbp.conf: New section [export-orig] mirroring [buildpackage].
+  * d/gitlab-ci.yml: Add 'publish' stage and make yamllint(1) happy.
   * d/patches: Backport upstream commit c03e3fe8 so libcryptsetup's
     crypt_keyslot_add_by_volume_key() also works a on LUKS2 header where all
     bound key slots were deleted, like it does for LUKS1. (Closes: #934715)
