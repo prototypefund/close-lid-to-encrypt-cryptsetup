@@ -1,4 +1,4 @@
-cryptsetup (2:2.1.0-8) UNRELEASED; urgency=medium
+cryptsetup (2:2.1.0-8) unstable; urgency=medium
 
   * encrypted-boot.md:
     + Clarify partition layout.
@@ -9,7 +9,7 @@ cryptsetup (2:2.1.0-8) UNRELEASED; urgency=medium
     crypt_keyslot_add_by_volume_key() also works a on LUKS2 header where all
     bound key slots were deleted, like it does for LUKS1. (Closes: #934715)
 
- -- Guilhem Moulin <guilhem@debian.org>  Tue, 30 Jul 2019 13:41:52 +0200
+ -- Guilhem Moulin <guilhem@debian.org>  Wed, 14 Aug 2019 16:34:23 +0200
 
 cryptsetup (2:2.1.0-7) unstable; urgency=low
 
