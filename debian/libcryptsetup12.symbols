@@ -68,6 +68,10 @@ libcryptsetup.so.12 libcryptsetup12 #MINVER#
  crypt_metadata_locking@CRYPTSETUP_2.0 2:2.0
  crypt_persistent_flags_get@CRYPTSETUP_2.0 2:2.0
  crypt_persistent_flags_set@CRYPTSETUP_2.0 2:2.0
+ crypt_reencrypt@CRYPTSETUP_2.0 2:2.2
+ crypt_reencrypt_init_by_keyring@CRYPTSETUP_2.0 2:2.2
+ crypt_reencrypt_init_by_passphrase@CRYPTSETUP_2.0 2:2.2
+ crypt_reencrypt_status@CRYPTSETUP_2.0 2:2.2
  crypt_repair@CRYPTSETUP_2.0 2:1.4.3
  crypt_resize@CRYPTSETUP_2.0 2:1.4
  crypt_resume_by_keyfile@CRYPTSETUP_2.0 2:1.4

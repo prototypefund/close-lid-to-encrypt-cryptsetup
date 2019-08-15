@@ -1,3 +1,18 @@
+cryptsetup (2:2.2.0-1) unstable; urgency=medium
+
+  * New upstream release 2.2.0.  Highlights include:
+    + New LUKS2 online reencryption extension, allowing reencryption of
+      mounted LUKS2 devices.
+    + Optional global serialization lock for memory hard PBKDF, to workaround
+      situations when multiple devices are unlocked in parallel, possibly
+      exhausting memory and triggering the OOM killer.  (Cf. #924560.)
+    + Add integritysetup support for bitmap mode (Linux >=5.2).
+    + Reduce keyslots area size in luksFormat when the header device is too
+      small.
+  * Remove d/patches, applied upstream.
+
+ -- Guilhem Moulin <guilhem@debian.org>  Thu, 15 Aug 2019 09:31:55 +0200
+
 cryptsetup (2:2.1.0-8) unstable; urgency=medium
 
   * encrypted-boot.md:
