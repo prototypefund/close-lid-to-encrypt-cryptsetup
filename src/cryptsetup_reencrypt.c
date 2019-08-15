@@ -25,7 +25,7 @@
 #include <arpa/inet.h>
 #include <uuid/uuid.h>
 
-#define PACKAGE_REENC "crypt_reencrypt"
+#define PACKAGE_REENC "cryptsetup-reencrypt"
 
 #define NO_UUID "cafecafe-cafe-cafe-cafe-cafecafeeeee"
 
@@ -269,20 +269,15 @@ out:
 	return r;
 }
 
-static int create_empty_header(const char *new_file, uint64_t data_sectors)
+static int create_empty_header(const char *new_file)
 {
 	int fd, r = 0;
 
-	data_sectors *= SECTOR_SIZE;
-
-	if (!data_sectors)
-		data_sectors = 4096;
-
-	log_dbg("Creating empty file %s of size %" PRIu64 ".", new_file, data_sectors);
+	log_dbg("Creating empty file %s of size 4096.", new_file);
 
 	/* coverity[toctou] */
 	fd = open(new_file, O_CREAT|O_EXCL|O_WRONLY, S_IRUSR|S_IWUSR);
-	if (fd == -1 || posix_fallocate(fd, 0, data_sectors))
+	if (fd == -1 || posix_fallocate(fd, 0, 4096))
 		r = -EINVAL;
 	if (fd >= 0)
 		close(fd);
@@ -549,7 +544,7 @@ static int create_new_header(struct reenc_ctx *rc, struct crypt_device *cd_old,
 
 	r = set_pbkdf_params(cd_new, type);
 	if (r) {
-		log_err(_("Failed to set PBKDF parameters."));
+		log_err(_("Failed to set pbkdf parameters."));
 		goto out;
 	}
 
@@ -709,7 +704,7 @@ static int backup_luks_headers(struct reenc_ctx *rc)
 
 	rc->data_offset = crypt_get_data_offset(cd) + ROUND_SECTOR(opt_reduce_size);
 
-	if ((r = create_empty_header(rc->header_file_new, rc->data_offset)))
+	if ((r = create_empty_header(rc->header_file_new)))
 		goto out;
 
 	params.hash = opt_hash ?: DEFAULT_LUKS1_HASH;
@@ -794,7 +789,7 @@ static int backup_fake_header(struct reenc_ctx *rc)
 		}
 	}
 
-	r = create_empty_header(header_file_fake, 0);
+	r = create_empty_header(header_file_fake);
 	if (r < 0)
 		return r;
 
@@ -821,10 +816,12 @@ static int backup_fake_header(struct reenc_ctx *rc)
 		goto out;
 
 	/* The real header is backup header created in backup_luks_headers() */
-	if (rc->reencrypt_mode == DECRYPT)
+	if (rc->reencrypt_mode == DECRYPT) {
+		r = 0;
 		goto out;
+	}
 
-	r = create_empty_header(rc->header_file_new, ROUND_SECTOR(opt_reduce_size));
+	r = create_empty_header(rc->header_file_new);
 	if (r < 0)
 		goto out;
 
@@ -869,7 +866,7 @@ static int restore_luks_header(struct reenc_ctx *rc)
 
 	/*
 	 * For new encryption and new detached header in file just move it.
-	 * For existing file try to ensure we have prealocated space for restore.
+	 * For existing file try to ensure we have preallocated space for restore.
 	 */
 	if (opt_new && rc->device_header) {
 		r = stat(rc->device_header, &st);
@@ -1058,7 +1055,7 @@ static void zero_rest_of_device(int fd, size_t block_size, void *buf,
 	log_dbg("Zeroing rest of device.");
 
 	if (lseek64(fd, offset, SEEK_SET) < 0) {
-		log_dbg(_("Cannot seek to device offset.\n"));
+		log_dbg("Cannot seek to device offset.");
 		return;
 	}
 
@@ -1327,7 +1324,7 @@ static int initialize_passphrase(struct reenc_ctx *rc, const char *device)
 
 	if (opt_key_slot != CRYPT_ANY_SLOT)
 		snprintf(msg, sizeof(msg),
-			 _("Enter passphrase for key slot %u: "), opt_key_slot);
+			 _("Enter passphrase for key slot %d: "), opt_key_slot);
 	else
 		snprintf(msg, sizeof(msg), _("Enter any existing passphrase: "));
 
@@ -1338,7 +1335,7 @@ static int initialize_passphrase(struct reenc_ctx *rc, const char *device)
 		   rc->reencrypt_mode == DECRYPT) {
 		r = init_passphrase1(rc, cd, msg, opt_key_slot, 1, 0);
 	} else for (i = 0; i < crypt_keyslot_max(crypt_get_type(cd)); i++) {
-		snprintf(msg, sizeof(msg), _("Enter passphrase for key slot %u: "), i);
+		snprintf(msg, sizeof(msg), _("Enter passphrase for key slot %d: "), i);
 		r = init_passphrase1(rc, cd, msg, i, 1, 0);
 		if (r == -ENOENT) {
 			r = 0;

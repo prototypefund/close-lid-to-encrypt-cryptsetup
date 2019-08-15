@@ -323,3 +323,24 @@ int kernel_version(uint64_t *kversion)
 
 	return r;
 }
+
+bool crypt_string_in(const char *str, char **list, size_t list_size)
+{
+	size_t i;
+
+	for (i = 0; *list && i < list_size; i++, list++)
+		if (!strcmp(str, *list))
+			return true;
+
+	return false;
+}
+
+/* compare two strings (allows NULL values) */
+int crypt_strcmp(const char *a, const char *b)
+{
+	if (!a && !b)
+		return 0;
+	else if (!a || !b)
+		return 1;
+	return strcmp(a, b);
+}

@@ -139,7 +139,7 @@ int crypt_wipe_device(struct crypt_device *cd,
 	int (*progress)(uint64_t size, uint64_t offset, void *usrptr),
 	void *usrptr)
 {
-	int r, devfd = -1;
+	int r, devfd;
 	size_t bsize, alignment;
 	char *sf = NULL;
 	uint64_t dev_size;
@@ -157,7 +157,10 @@ int crypt_wipe_device(struct crypt_device *cd,
 	if (MISALIGNED_512(offset) || MISALIGNED_512(length) || MISALIGNED_512(wipe_block_size))
 		return -EINVAL;
 
-	devfd = device_open(cd, device, O_RDWR);
+	if (device_is_locked(device))
+		devfd = device_open_locked(cd, device, O_RDWR);
+	else
+		devfd = device_open(cd, device, O_RDWR);
 	if (devfd < 0)
 		return errno ? -errno : -EINVAL;
 
@@ -179,7 +182,7 @@ int crypt_wipe_device(struct crypt_device *cd,
 		goto out;
 
 	if (lseek64(devfd, offset, SEEK_SET) < 0) {
-		log_err(cd, "Cannot seek to device offset.");
+		log_err(cd, _("Cannot seek to device offset."));
 		r = -EINVAL;
 		goto out;
 	}
@@ -203,7 +206,7 @@ int crypt_wipe_device(struct crypt_device *cd,
 		r = wipe_block(cd, devfd, pattern, sf, bsize, alignment,
 			       wipe_block_size, offset, &need_block_init);
 		if (r) {
-			log_err(cd, "Device wipe error, offset %" PRIu64 ".", offset);
+			log_err(cd,_("Device wipe error, offset %" PRIu64 "."), offset);
 			break;
 		}
 
@@ -215,9 +218,8 @@ int crypt_wipe_device(struct crypt_device *cd,
 		}
 	}
 
-	device_sync(cd, device, devfd);
+	device_sync(cd, device);
 out:
-	close(devfd);
 	free(sf);
 	return r;
 }

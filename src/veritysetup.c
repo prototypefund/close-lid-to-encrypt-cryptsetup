@@ -257,21 +257,22 @@ static int action_status(int arg)
 				ci == CRYPT_BUSY ? " and is in use" : "");
 
 		r = crypt_init_by_name_and_header(&cd, action_argv[0], NULL);
-		if (r < 0 || !crypt_get_type(cd))
+		if (r < 0)
 			goto out;
 
-		log_std("  type:        %s\n", crypt_get_type(cd));
+		log_std("  type:        %s\n", crypt_get_type(cd) ?: "n/a");
 
 		r = crypt_get_active_device(cd, action_argv[0], &cad);
 		if (r < 0)
 			goto out;
 
-		log_std("  status:      %s\n",
-			cad.flags & CRYPT_ACTIVATE_CORRUPTED ? "corrupted" : "verified");
-
+		/* Print only VERITY type devices */
 		r = crypt_get_verity_info(cd, &vp);
 		if (r < 0)
 			goto out;
+
+		log_std("  status:      %s\n",
+			cad.flags & CRYPT_ACTIVATE_CORRUPTED ? "corrupted" : "verified");
 
 		log_std("  hash type:   %u\n", vp.hash_type);
 		log_std("  data block:  %u\n", vp.data_block_size);
@@ -360,7 +361,7 @@ static struct action_type {
 	{ "format",	action_format, 2, N_("<data_device> <hash_device>"),N_("format device") },
 	{ "verify",	action_verify, 3, N_("<data_device> <hash_device> <root_hash>"),N_("verify device") },
 	{ "open",	action_open,   4, N_("<data_device> <name> <hash_device> <root_hash>"),N_("open device as <name>") },
-	{ "close",	action_close,  1, N_("<name>"),N_("close device (deactivate and remove mapping)") },
+	{ "close",	action_close,  1, N_("<name>"),N_("close device (remove mapping)") },
 	{ "status",	action_status, 1, N_("<name>"),N_("show active device status") },
 	{ "dump",	action_dump,   1, N_("<hash_device>"),N_("show on-disk information") },
 	{ NULL, NULL, 0, NULL, NULL }

@@ -283,11 +283,16 @@ void tools_passphrase_msg(int r)
 {
 	if (r == -EPERM)
 		log_err(_("No key available with this passphrase."));
+	else if (r == -ENOENT)
+		log_err(_("No usable keyslot is available."));
 }
 
 int tools_read_mk(const char *file, char **key, int keysize)
 {
 	int fd;
+
+	if (!keysize || !key)
+		return -EINVAL;
 
 	*key = crypt_safe_alloc(keysize);
 	if (!*key)
@@ -298,7 +303,8 @@ int tools_read_mk(const char *file, char **key, int keysize)
 		log_err(_("Cannot read keyfile %s."), file);
 		goto fail;
 	}
-	if ((read(fd, *key, keysize) != keysize)) {
+
+	if (read_buffer(fd, *key, keysize) != keysize) {
 		log_err(_("Cannot read %d bytes from keyfile %s."), keysize, file);
 		close(fd);
 		goto fail;

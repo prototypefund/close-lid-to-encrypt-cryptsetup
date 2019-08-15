@@ -35,14 +35,14 @@ static int INTEGRITY_read_superblock(struct crypt_device *cd,
 	int devfd, r;
 
 	devfd = device_open(cd, device, O_RDONLY);
-	if(devfd < 0) {
+	if(devfd < 0)
 		return -EINVAL;
-	}
 
 	if (read_lseek_blockwise(devfd, device_block_size(cd, device),
 		device_alignment(device), sb, sizeof(*sb), offset) != sizeof(*sb) ||
 	    memcmp(sb->magic, SB_MAGIC, sizeof(sb->magic)) ||
-	    (sb->version != SB_VERSION_1 && sb->version != SB_VERSION_2)) {
+	    (sb->version != SB_VERSION_1 && sb->version != SB_VERSION_2 &&
+	     sb->version != SB_VERSION_3)) {
 		log_std(cd, "No integrity superblock detected on %s.\n",
 			device_path(device));
 		r = -EINVAL;
@@ -55,7 +55,6 @@ static int INTEGRITY_read_superblock(struct crypt_device *cd,
 		r = 0;
 	}
 
-	close(devfd);
 	return r;
 }
 
@@ -92,9 +91,11 @@ int INTEGRITY_dump(struct crypt_device *cd, struct device *device, uint64_t offs
 	log_std(cd, "sector_size %u\n", SECTOR_SIZE << sb.log2_sectors_per_block);
 	if (sb.version == SB_VERSION_2 && (sb.flags & SB_FLAG_RECALCULATING))
 		log_std(cd, "recalc_sector %" PRIu64 "\n", sb.recalc_sector);
-	log_std(cd, "flags %s%s\n",
+	log_std(cd, "log2_blocks_per_bitmap %u\n", sb.log2_blocks_per_bitmap_bit);
+	log_std(cd, "flags %s%s%s\n",
 		sb.flags & SB_FLAG_HAVE_JOURNAL_MAC ? "have_journal_mac " : "",
-		sb.flags & SB_FLAG_RECALCULATING ? "recalculating " : "");
+		sb.flags & SB_FLAG_RECALCULATING ? "recalculating " : "",
+		sb.flags & SB_FLAG_DIRTY_BITMAP ? "dirty_bitmap " : "");
 
 	return 0;
 }
@@ -211,6 +212,7 @@ int INTEGRITY_create_dmd_device(struct crypt_device *cd,
 
 int INTEGRITY_activate_dmd_device(struct crypt_device *cd,
 		       const char *name,
+		       const char *type,
 		       struct crypt_dm_active_device *dmd)
 {
 	int r;
@@ -234,7 +236,7 @@ int INTEGRITY_activate_dmd_device(struct crypt_device *cd,
 			return r;
 	}
 
-	r = dm_create_device(cd, name, "INTEGRITY", dmd);
+	r = dm_create_device(cd, name, type, dmd);
 	if (r < 0 && (dm_flags(cd, DM_INTEGRITY, &dmi_flags) || !(dmi_flags & DM_INTEGRITY_SUPPORTED))) {
 		log_err(cd, _("Kernel doesn't support dm-integrity mapping."));
 		return -ENOTSUP;
@@ -257,7 +259,7 @@ int INTEGRITY_activate(struct crypt_device *cd,
 	if (r < 0)
 		return r;
 
-	r = INTEGRITY_activate_dmd_device(cd, name, &dmd);
+	r = INTEGRITY_activate_dmd_device(cd, name, CRYPT_INTEGRITY, &dmd);
 	dm_targets_free(cd, &dmd);
 	return r;
 }
@@ -317,7 +319,7 @@ int INTEGRITY_format(struct crypt_device *cd,
 		}
 	}
 
-	r = dm_create_device(cd, tmp_name, "INTEGRITY", &dmdi);
+	r = dm_create_device(cd, tmp_name, CRYPT_INTEGRITY, &dmdi);
 	crypt_free_volume_key(vk);
 	dm_targets_free(cd, &dmdi);
 	if (r)

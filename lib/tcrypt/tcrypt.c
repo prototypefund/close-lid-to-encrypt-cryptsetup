@@ -582,13 +582,11 @@ static int TCRYPT_init_hdr(struct crypt_device *cd,
 				hdr->salt, TCRYPT_HDR_SALT_LEN,
 				key, TCRYPT_HDR_KEY_LEN,
 				iterations, 0, 0);
-		if (r < 0 && crypt_hash_size(tcrypt_kdf[i].hash) < 0) {
+		if (r < 0) {
 			log_verbose(cd, _("PBKDF2 hash algorithm %s not available, skipping."),
 				      tcrypt_kdf[i].hash);
 			continue;
 		}
-		if (r < 0)
-			break;
 
 		/* Decrypt header */
 		r = TCRYPT_decrypt_hdr(cd, hdr, key, params->flags);
@@ -635,7 +633,7 @@ int TCRYPT_read_phdr(struct crypt_device *cd,
 	struct device *base_device, *device = crypt_metadata_device(cd);
 	ssize_t hdr_size = sizeof(struct tcrypt_phdr);
 	char *base_device_path;
-	int devfd = 0, r;
+	int devfd, r;
 
 	assert(sizeof(struct tcrypt_phdr) == 512);
 
@@ -692,11 +690,10 @@ int TCRYPT_read_phdr(struct crypt_device *cd,
 			device_alignment(device), hdr, hdr_size,
 			TCRYPT_HDR_OFFSET_BCK) == hdr_size)
 			r = TCRYPT_init_hdr(cd, hdr, params);
-	} else if (read_blockwise(devfd, device_block_size(cd, device),
-			device_alignment(device), hdr, hdr_size) == hdr_size)
+	} else if (read_lseek_blockwise(devfd, device_block_size(cd, device),
+			device_alignment(device), hdr, hdr_size, 0) == hdr_size)
 		r = TCRYPT_init_hdr(cd, hdr, params);
 
-	close(devfd);
 	if (r < 0)
 		memset(hdr, 0, sizeof (*hdr));
 	return r;
@@ -920,9 +917,10 @@ out:
 }
 
 static int TCRYPT_status_one(struct crypt_device *cd, const char *name,
-			      const char *base_uuid, int index,
-			      size_t *key_size, char *cipher,
-			      uint64_t *data_offset, struct device **device)
+			     const char *base_uuid, int index,
+			     size_t *key_size, char *cipher,
+			     struct tcrypt_phdr *tcrypt_hdr,
+			     struct device **device)
 {
 	struct crypt_dm_active_device dmd;
 	struct dm_target *tgt = &dmd.segment;
@@ -955,7 +953,7 @@ static int TCRYPT_status_one(struct crypt_device *cd, const char *name,
 		strcat(cipher, "-");
 		strncat(cipher, tgt->u.crypt.cipher, MAX_CIPHER_LEN);
 		*key_size += tgt->u.crypt.vk->keylength;
-		*data_offset = tgt->u.crypt.offset * SECTOR_SIZE;
+		tcrypt_hdr->d.mk_offset = tgt->u.crypt.offset * SECTOR_SIZE;
 		device_free(cd, *device);
 		MOVE_REF(*device, tgt->data_device);
 	} else
@@ -993,10 +991,10 @@ int TCRYPT_init_by_name(struct crypt_device *cd, const char *name,
 
 	key_size = tgt->u.crypt.vk->keylength;
 	r = TCRYPT_status_one(cd, name, uuid, 1, &key_size,
-			      cipher, &tcrypt_hdr->d.mk_offset, device);
+			      cipher, tcrypt_hdr, device);
 	if (!r)
 		r = TCRYPT_status_one(cd, name, uuid, 2, &key_size,
-				      cipher, &tcrypt_hdr->d.mk_offset, device);
+				      cipher, tcrypt_hdr, device);
 
 	if (r < 0 && r != -ENODEV)
 		return r;

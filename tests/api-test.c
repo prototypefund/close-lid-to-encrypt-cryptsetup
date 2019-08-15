@@ -87,6 +87,8 @@ static char *DEVICE_3 = NULL;
 static char *tmp_file_1 = NULL;
 static char *test_loop_file = NULL;
 
+struct crypt_device *cd = NULL, *cd2 = NULL;
+
 // Helpers
 
 static int get_luks_offsets(int metadata_device,
@@ -143,27 +145,29 @@ static void _remove_keyfiles(void)
 #define DM_RETRY ""
 #endif
 
+#define DM_NOSTDERR " 2>/dev/null"
+
 static void _cleanup_dmdevices(void)
 {
 	struct stat st;
 
 	if (!stat(DMDIR H_DEVICE, &st))
-		_system("dmsetup remove " DM_RETRY H_DEVICE, 0);
+		_system("dmsetup remove " DM_RETRY H_DEVICE DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR H_DEVICE_WRONG, &st))
-		_system("dmsetup remove " DM_RETRY H_DEVICE_WRONG, 0);
+		_system("dmsetup remove " DM_RETRY H_DEVICE_WRONG DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR L_DEVICE_0S, &st))
-		_system("dmsetup remove " DM_RETRY L_DEVICE_0S, 0);
+		_system("dmsetup remove " DM_RETRY L_DEVICE_0S DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR L_DEVICE_1S, &st))
-		_system("dmsetup remove " DM_RETRY L_DEVICE_1S, 0);
+		_system("dmsetup remove " DM_RETRY L_DEVICE_1S DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR L_DEVICE_WRONG, &st))
-		_system("dmsetup remove " DM_RETRY L_DEVICE_WRONG, 0);
+		_system("dmsetup remove " DM_RETRY L_DEVICE_WRONG DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR L_DEVICE_OK, &st))
-		_system("dmsetup remove " DM_RETRY L_DEVICE_OK, 0);
+		_system("dmsetup remove " DM_RETRY L_DEVICE_OK DM_NOSTDERR, 0);
 
 	t_dev_offset = 0;
 }
@@ -172,19 +176,22 @@ static void _cleanup(void)
 {
 	struct stat st;
 
+	CRYPT_FREE(cd);
+	CRYPT_FREE(cd2);
+
 	//_system("udevadm settle", 0);
 
 	if (!stat(DMDIR CDEVICE_1, &st))
-		_system("dmsetup remove " DM_RETRY CDEVICE_1, 0);
+		_system("dmsetup remove " DM_RETRY CDEVICE_1 DM_NOSTDERR, 0);
 
 	if (!stat(DMDIR CDEVICE_2, &st))
-		_system("dmsetup remove " DM_RETRY CDEVICE_2, 0);
+		_system("dmsetup remove " DM_RETRY CDEVICE_2 DM_NOSTDERR, 0);
 
 	if (!stat(DEVICE_EMPTY, &st))
-		_system("dmsetup remove " DM_RETRY DEVICE_EMPTY_name, 0);
+		_system("dmsetup remove " DM_RETRY DEVICE_EMPTY_name DM_NOSTDERR, 0);
 
 	if (!stat(DEVICE_ERROR, &st))
-		_system("dmsetup remove " DM_RETRY DEVICE_ERROR_name, 0);
+		_system("dmsetup remove " DM_RETRY DEVICE_ERROR_name DM_NOSTDERR, 0);
 
 	_cleanup_dmdevices();
 
@@ -300,7 +307,6 @@ static int _setup(void)
 
 static void AddDevicePlain(void)
 {
-	struct crypt_device *cd;
 	struct crypt_params_plain params = {
 		.hash = "sha1",
 		.skip = 0,
@@ -324,7 +330,7 @@ static void AddDevicePlain(void)
 	FAIL_(crypt_init(&cd, DEVICE_WRONG), "nonexistent device name ");
 	FAIL_(crypt_init(&cd, DEVICE_CHAR), "character device as backing device");
 	OK_(crypt_init(&cd, tmp_file_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// test crypt_format, crypt_get_cipher, crypt_get_cipher_mode, crypt_get_volume_key_size
 	OK_(crypt_init(&cd,DEVICE_1));
@@ -344,7 +350,7 @@ static void AddDevicePlain(void)
 	// crypt_set_uuid()
 	FAIL_(crypt_set_uuid(cd,DEVICE_1_UUID),"can't set uuid to plain device");
 
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// default is "plain" hash - no password hash
 	OK_(crypt_init(&cd, DEVICE_1));
@@ -353,7 +359,7 @@ static void AddDevicePlain(void)
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0));
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// test boundaries in offset parameter
 	t_device_size(DEVICE_1,&size);
@@ -368,7 +374,7 @@ static void AddDevicePlain(void)
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_INACTIVE);
 	// data part of crypt device is of 1 sector size
 	params.offset = (size >> SECTOR_SHIFT) - 1;
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	OK_(crypt_init(&cd, DEVICE_1));
 	OK_(crypt_format(cd, CRYPT_PLAIN, cipher, cipher_mode, NULL, NULL, key_size, &params));
@@ -378,7 +384,7 @@ static void AddDevicePlain(void)
 	if (t_device_size(path, &r_size) >= 0)
 		EQ_(r_size>>SECTOR_SHIFT, 1);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// size > device_size
 	params.offset = 0;
@@ -387,7 +393,7 @@ static void AddDevicePlain(void)
 	OK_(crypt_format(cd, CRYPT_PLAIN, cipher, cipher_mode, NULL, NULL, key_size, &params));
 	FAIL_(crypt_activate_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, passphrase, strlen(passphrase), 0),"Device too small");
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_INACTIVE);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// offset == device_size (autodetect size)
 	params.offset = (size >> SECTOR_SHIFT);
@@ -396,7 +402,7 @@ static void AddDevicePlain(void)
 	OK_(crypt_format(cd, CRYPT_PLAIN, cipher, cipher_mode, NULL, NULL, key_size, &params));
 	FAIL_(crypt_activate_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, passphrase, strlen(passphrase), 0),"Device too small");
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_INACTIVE);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// offset == device_size (user defined size)
 	params.offset = (size >> SECTOR_SHIFT);
@@ -405,7 +411,7 @@ static void AddDevicePlain(void)
 	OK_(crypt_format(cd, CRYPT_PLAIN, cipher, cipher_mode, NULL, NULL, key_size, &params));
 	FAIL_(crypt_activate_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, passphrase, strlen(passphrase), 0),"Device too small");
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_INACTIVE);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// offset+size > device_size
 	params.offset = 42;
@@ -414,7 +420,7 @@ static void AddDevicePlain(void)
 	OK_(crypt_format(cd, CRYPT_PLAIN, cipher, cipher_mode, NULL, NULL, key_size, &params));
 	FAIL_(crypt_activate_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, passphrase, strlen(passphrase), 0),"Offset and size are beyond device real size");
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_INACTIVE);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// offset+size == device_size
 	params.offset = 42;
@@ -427,7 +433,7 @@ static void AddDevicePlain(void)
 		EQ_((r_size >> SECTOR_SHIFT),params.size);
 	OK_(crypt_deactivate(cd,CDEVICE_1));
 
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 	params.hash = "sha1";
 	params.offset = 0;
 	params.size = 0;
@@ -449,19 +455,19 @@ static void AddDevicePlain(void)
 	close(fd);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_INACTIVE);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// crypt_init_by_name_and_header
 	OK_(crypt_init(&cd,DEVICE_1));
 	OK_(crypt_format(cd, CRYPT_PLAIN, cipher, cipher_mode, NULL, NULL, key_size, &params));
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// init with detached header is not supported
 	OK_(crypt_init_data_device(&cd, DEVICE_2, DEVICE_1));
 	FAIL_(crypt_format(cd, CRYPT_PLAIN, cipher, cipher_mode, NULL, NULL, key_size, &params),
 	      "can't use plain with separate metadata device");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	FAIL_(crypt_init_by_name_and_header(&cd, CDEVICE_1, H_DEVICE),"can't init plain device by header device");
 	OK_(crypt_init_by_name(&cd, CDEVICE_1));
@@ -471,7 +477,7 @@ static void AddDevicePlain(void)
 	EQ_(params.skip, crypt_get_iv_offset(cd));
 	EQ_(params.offset, crypt_get_data_offset(cd));
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	OK_(crypt_init(&cd,DEVICE_1));
 	OK_(crypt_format(cd,CRYPT_PLAIN,cipher,cipher_mode,NULL,NULL,key_size,&params));
@@ -506,7 +512,7 @@ static void AddDevicePlain(void)
 		EQ_(r_size, size);
 	OK_(crypt_deactivate(cd,CDEVICE_1));
 	EQ_(crypt_status(cd,CDEVICE_1),CRYPT_INACTIVE);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// offset tests
 	OK_(crypt_init(&cd,DEVICE_1));
@@ -527,8 +533,8 @@ static void AddDevicePlain(void)
 		EQ_(r_size>>SECTOR_SHIFT, params.size + 10);
 	EQ_(crypt_status(cd,CDEVICE_1),CRYPT_ACTIVE);
 	fd = open(path, O_RDONLY);
+	NOTFAIL_(fd, "Bad loop device.");
 	close(fd);
-	OK_(fd < 0);
 
 	// resize to minimal size
 	OK_(crypt_resize(cd,CDEVICE_1, 1)); // minimal device size
@@ -539,7 +545,7 @@ static void AddDevicePlain(void)
 	if (!t_device_size(path,&r_size))
 		EQ_(r_size>>SECTOR_SHIFT, (size >> SECTOR_SHIFT)- 42);
 	OK_(crypt_deactivate(cd,CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	params.size = 0;
 	params.offset = 0;
@@ -554,16 +560,14 @@ static void AddDevicePlain(void)
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 
 	// retrieve volume key check
-	if (!_fips_mode) {
-		memset(key2, 0, key_size);
-		key_size--;
-		// small buffer
-		FAIL_(crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key2, &key_size, passphrase, strlen(passphrase)), "small buffer");
-		key_size++;
-		OK_(crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key2, &key_size, passphrase, strlen(passphrase)));
+	memset(key2, 0, key_size);
+	key_size--;
+	// small buffer
+	FAIL_(crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key2, &key_size, passphrase, strlen(passphrase)), "small buffer");
+	key_size++;
+	OK_(crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key2, &key_size, passphrase, strlen(passphrase)));
+	OK_(memcmp(key, key2, key_size));
 
-		OK_(memcmp(key, key2, key_size));
-	}
 	OK_(strcmp(cipher, crypt_get_cipher(cd)));
 	OK_(strcmp(cipher_mode, crypt_get_cipher_mode(cd)));
 	EQ_((int)key_size, crypt_get_volume_key_size(cd));
@@ -584,7 +588,7 @@ static void AddDevicePlain(void)
 	EQ_(0, crypt_activate_by_keyfile_device_offset(cd, CDEVICE_1, CRYPT_ANY_SLOT, KEYFILE1, 0, 0, 0));
 	OK_(crypt_deactivate(cd, CDEVICE_1));
 	_remove_keyfiles();
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	OK_(crypt_init(&cd,DEVICE_1));
 	OK_(crypt_format(cd,CRYPT_PLAIN,cipher,cipher_mode,NULL,NULL,key_size,&params));
@@ -597,7 +601,7 @@ static void AddDevicePlain(void)
 	EQ_(crypt_keyslot_status(cd, 0), CRYPT_SLOT_INVALID);
 	_remove_keyfiles();
 
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 }
 
 static int new_messages = 0;
@@ -610,7 +614,6 @@ static void new_log(int level, const char *msg, void *usrptr)
 
 static void CallbacksTest(void)
 {
-	struct crypt_device *cd;
 	struct crypt_params_plain params = {
 		.hash = "sha1",
 		.skip = 0,
@@ -634,12 +637,11 @@ static void CallbacksTest(void)
 	EQ_(new_messages, 1);
 	crypt_set_log_callback(cd, NULL, NULL);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 }
 
 static void UseLuksDevice(void)
 {
-	struct crypt_device *cd;
 	char key[128];
 	size_t key_size;
 
@@ -660,25 +662,23 @@ static void UseLuksDevice(void)
 	EQ_((int)key_size, crypt_get_volume_key_size(cd));
 	EQ_(1032, crypt_get_data_offset(cd));
 
-	if (!_fips_mode) {
-		EQ_(0, crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key, &key_size, KEY1, strlen(KEY1)));
-		OK_(crypt_volume_key_verify(cd, key, key_size));
-		OK_(crypt_activate_by_volume_key(cd, NULL, key, key_size, 0));
-		OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0));
-		EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
-		OK_(crypt_deactivate(cd, CDEVICE_1));
+	EQ_(0, crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key, &key_size, KEY1, strlen(KEY1)));
+	OK_(crypt_volume_key_verify(cd, key, key_size));
+	OK_(crypt_activate_by_volume_key(cd, NULL, key, key_size, 0));
+	OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0));
+	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
+	OK_(crypt_deactivate(cd, CDEVICE_1));
 
-		key[1] = ~key[1];
-		FAIL_(crypt_volume_key_verify(cd, key, key_size), "key mismatch");
-		FAIL_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0), "key mismatch");
-	}
-	crypt_free(cd);
+	key[1] = ~key[1];
+	FAIL_(crypt_volume_key_verify(cd, key, key_size), "key mismatch");
+	FAIL_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0), "key mismatch");
+
+	CRYPT_FREE(cd);
 }
 
 static void SuspendDevice(void)
 {
 	int suspend_status;
-	struct crypt_device *cd;
 
 	OK_(crypt_init(&cd, DEVICE_1));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
@@ -688,7 +688,7 @@ static void SuspendDevice(void)
 	if (suspend_status == -ENOTSUP) {
 		printf("WARNING: Suspend/Resume not supported, skipping test.\n");
 		OK_(crypt_deactivate(cd, CDEVICE_1));
-		crypt_free(cd);
+		CRYPT_FREE(cd);
 		return;
 	}
 
@@ -707,27 +707,27 @@ static void SuspendDevice(void)
 	OK_(crypt_resume_by_keyfile_device_offset(cd, CDEVICE_1, CRYPT_ANY_SLOT, KEYFILE1, 0, 0));
 	FAIL_(crypt_resume_by_keyfile(cd, CDEVICE_1, CRYPT_ANY_SLOT, KEYFILE1, 0), "not suspended");
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	/* create LUKS device with detached header */
 	OK_(crypt_init(&cd, DEVICE_1));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
 	OK_(crypt_set_data_device(cd, DEVICE_2));
 	OK_(crypt_activate_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, KEY1, strlen(KEY1), 0));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	/* Should be able to suspend but not resume if not header specified */
 	OK_(crypt_init_by_name(&cd, CDEVICE_1));
 	OK_(crypt_suspend(cd, CDEVICE_1));
 	FAIL_(crypt_suspend(cd, CDEVICE_1), "already suspended");
 	FAIL_(crypt_resume_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, KEY1, strlen(KEY1)-1), "no header");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	OK_(crypt_init_by_name_and_header(&cd, CDEVICE_1, DEVICE_1));
 	OK_(crypt_resume_by_passphrase(cd, CDEVICE_1, CRYPT_ANY_SLOT, KEY1, strlen(KEY1)));
 
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	_remove_keyfiles();
 }
@@ -735,7 +735,6 @@ static void SuspendDevice(void)
 static void AddDeviceLuks(void)
 {
 	enum { OFFSET_1M = 2048 , OFFSET_2M = 4096, OFFSET_4M = 8192, OFFSET_8M = 16384 };
-	struct crypt_device *cd;
 	struct crypt_params_luks1 params = {
 		.hash = "sha512",
 		.data_alignment = OFFSET_1M, // 4M, data offset will be 4096
@@ -764,13 +763,13 @@ static void AddDeviceLuks(void)
 	OK_(crypt_init(&cd, DMDIR H_DEVICE_WRONG));
 	params.data_alignment = 0;
 	FAIL_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params), "Not enough space for keyslots material");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// test payload_offset = 0 for encrypted device with external header device
 	OK_(crypt_init(&cd, DMDIR H_DEVICE));
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
 	EQ_(crypt_get_data_offset(cd), 0);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	params.data_alignment = 0;
 	params.data_device = NULL;
@@ -779,7 +778,7 @@ static void AddDeviceLuks(void)
 	OK_(crypt_init(&cd, DEVICE_2));
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
 	OK_(!(crypt_get_data_offset(cd) > 0));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// set_data_offset has priority, alignment must be 0 or must be compatible
 	params.data_alignment = 0;
@@ -787,14 +786,14 @@ static void AddDeviceLuks(void)
 	OK_(crypt_set_data_offset(cd, OFFSET_8M));
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
 	EQ_(crypt_get_data_offset(cd), OFFSET_8M);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// Load gets the value from metadata
 	OK_(crypt_init(&cd, DEVICE_2));
 	OK_(crypt_set_data_offset(cd, OFFSET_2M));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
 	EQ_(crypt_get_data_offset(cd), OFFSET_8M);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	params.data_alignment = OFFSET_4M;
 	OK_(crypt_init(&cd, DEVICE_2));
@@ -804,7 +803,7 @@ static void AddDeviceLuks(void)
 	OK_(crypt_set_data_offset(cd, OFFSET_4M));
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
 	EQ_(crypt_get_data_offset(cd), OFFSET_4M);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	/*
 	 * test limit values for backing device size
@@ -819,13 +818,13 @@ static void AddDeviceLuks(void)
 	// 1 sector less than required
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_WRONG));
 	FAIL_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params),	"Device too small");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// 0 sectors for encrypted area
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_0S));
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
 	FAIL_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0), "Encrypted area too small");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// 1 sector for encrypted area
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_1S));
@@ -846,7 +845,7 @@ static void AddDeviceLuks(void)
 	OK_(crypt_set_data_device(cd, DMDIR L_DEVICE_1S));
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0));
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	params.data_alignment = 0;
 	params.data_device = DEVICE_2;
@@ -856,11 +855,11 @@ static void AddDeviceLuks(void)
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
 	EQ_(crypt_keyslot_add_by_volume_key(cd, 7, key, key_size, passphrase, strlen(passphrase)), 7);
 	EQ_(crypt_activate_by_passphrase(cd, CDEVICE_1, 7, passphrase, strlen(passphrase) ,0), 7);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 	OK_(crypt_init_by_name_and_header(&cd, CDEVICE_1, DMDIR H_DEVICE));
 	FAIL_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params), "Context is already formatted");
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 	// check active status without header
 	OK_(crypt_init_by_name_and_header(&cd, CDEVICE_1, NULL));
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
@@ -869,7 +868,7 @@ static void AddDeviceLuks(void)
 	OK_(strcmp(cipher_mode, crypt_get_cipher_mode(cd)));
 	EQ_((int)key_size, crypt_get_volume_key_size(cd));
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	params.data_alignment = OFFSET_1M;
 	params.data_device = NULL;
@@ -878,12 +877,12 @@ static void AddDeviceLuks(void)
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_1S));
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 	params.data_alignment = 0;
 	params.data_device = DEVICE_2;
 	OK_(crypt_init(&cd, DMDIR H_DEVICE));
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 	// there we've got uuid mismatch
 	OK_(crypt_init_by_name_and_header(&cd, CDEVICE_1, DMDIR H_DEVICE));
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
@@ -892,7 +891,7 @@ static void AddDeviceLuks(void)
 	FAIL_(crypt_activate_by_volume_key(cd, CDEVICE_2, key, key_size, 0), "Device is active");
 	EQ_(crypt_status(cd, CDEVICE_2), CRYPT_INACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	params.data_device = NULL;
 
@@ -915,12 +914,12 @@ static void AddDeviceLuks(void)
 	crypt_set_iteration_time(cd, 1);
 	EQ_(1, crypt_keyslot_add_by_volume_key(cd, 1, key, key_size, KEY1, strlen(KEY1)));
 
-	// PBKDF info (in LUKS1 slots are ther same)
+	// PBKDF info (in LUKS1 slots are the same)
 	FAIL_(crypt_keyslot_get_pbkdf(cd, 1, NULL), "PBKDF struct required");
 	OK_(crypt_keyslot_get_pbkdf(cd, 1, &pbkdf));
 	OK_(strcmp(pbkdf.type, CRYPT_KDF_PBKDF2));
 	OK_(strcmp(pbkdf.hash, params.hash));
-	EQ_(1000, pbkdf.iterations); /* set by minimum iterations above */
+	OK_(pbkdf.iterations < 1000); /* set by minimum iterations above */
 	EQ_(0, pbkdf.max_memory_kb);
 	EQ_(0, pbkdf.parallel_threads);
 
@@ -964,12 +963,11 @@ static void AddDeviceLuks(void)
 	EQ_(7, crypt_activate_by_passphrase(cd, NULL, 7, passphrase2, strlen(passphrase2), 0));
 	EQ_(6, crypt_keyslot_change_by_passphrase(cd, CRYPT_ANY_SLOT, 6, passphrase2, strlen(passphrase2), passphrase, strlen(passphrase)));
 
-	if (!_fips_mode) {
-		EQ_(6, crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key2, &key_size, passphrase, strlen(passphrase)));
-		OK_(crypt_volume_key_verify(cd, key2, key_size));
+	EQ_(6, crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key2, &key_size, passphrase, strlen(passphrase)));
+	OK_(crypt_volume_key_verify(cd, key2, key_size));
 
-		OK_(memcmp(key, key2, key_size));
-	}
+	OK_(memcmp(key, key2, key_size));
+
 	OK_(strcmp(cipher, crypt_get_cipher(cd)));
 	OK_(strcmp(cipher_mode, crypt_get_cipher_mode(cd)));
 	EQ_((int)key_size, crypt_get_volume_key_size(cd));
@@ -986,13 +984,12 @@ static void AddDeviceLuks(void)
 	OK_(strcmp(DEVICE_TEST_UUID, crypt_get_uuid(cd)));
 
 	FAIL_(crypt_deactivate(cd, CDEVICE_2), "not active");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 	_cleanup_dmdevices();
 }
 
 static void UseTempVolumes(void)
 {
-	struct crypt_device *cd;
 	char tmp[256];
 
 	// Tepmporary device without keyslot but with on-disk LUKS header
@@ -1001,14 +998,14 @@ static void UseTempVolumes(void)
 	OK_(crypt_format(cd, CRYPT_LUKS1, "aes", "cbc-essiv:sha256", NULL, NULL, 16, NULL));
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_2, NULL, 0, 0));
 	EQ_(crypt_status(cd, CDEVICE_2), CRYPT_ACTIVE);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	OK_(crypt_init_by_name(&cd, CDEVICE_2));
 	OK_(crypt_deactivate(cd, CDEVICE_2));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// Dirty checks: device without UUID
-	// we should be able to remove it but not manuipulate with it
+	// we should be able to remove it but not manipulate with it
 	snprintf(tmp, sizeof(tmp), "dmsetup create %s --table \""
 		"0 100 crypt aes-cbc-essiv:sha256 deadbabedeadbabedeadbabedeadbabe 0 "
 		"%s 2048\"", CDEVICE_2, DEVICE_2);
@@ -1016,7 +1013,7 @@ static void UseTempVolumes(void)
 	OK_(crypt_init_by_name(&cd, CDEVICE_2));
 	OK_(crypt_deactivate(cd, CDEVICE_2));
 	FAIL_(crypt_activate_by_volume_key(cd, CDEVICE_2, NULL, 0, 0), "No known device type");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// Dirty checks: device with UUID but LUKS header key fingerprint must fail)
 	snprintf(tmp, sizeof(tmp), "dmsetup create %s --table \""
@@ -1027,13 +1024,13 @@ static void UseTempVolumes(void)
 	OK_(crypt_init_by_name(&cd, CDEVICE_2));
 	OK_(crypt_deactivate(cd, CDEVICE_2));
 	FAIL_(crypt_activate_by_volume_key(cd, CDEVICE_2, NULL, 0, 0), "wrong volume key");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// No slots
 	OK_(crypt_init(&cd, DEVICE_2));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
 	FAIL_(crypt_activate_by_volume_key(cd, CDEVICE_2, NULL, 0, 0), "volume key is lost");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// Plain device
 	OK_(crypt_init(&cd, DEVICE_2));
@@ -1044,12 +1041,11 @@ static void UseTempVolumes(void)
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_2, "volumekeyvolumek", 16, 0));
 	EQ_(crypt_status(cd, CDEVICE_2), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_2));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 }
 
 static void LuksHeaderRestore(void)
 {
-	struct crypt_device *cd;
 	struct crypt_params_luks1 params = {
 		.hash = "sha512",
 		.data_alignment = 2048, // 4M, data offset will be 4096
@@ -1081,7 +1077,7 @@ static void LuksHeaderRestore(void)
 	FAIL_(crypt_header_restore(cd, CRYPT_LUKS1, VALID_HEADER), "Cannot restore header over PLAIN type device");
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// invalid headers
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_OK));
@@ -1103,14 +1099,14 @@ static void LuksHeaderRestore(void)
 	OK_(crypt_header_restore(cd, CRYPT_LUKS1, VALID_HEADER));
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0));
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// volume key_size mismatch
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_OK));
 	memcpy(key2, key, key_size / 2);
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key2, key_size / 2, &params));
 	FAIL_(crypt_header_restore(cd, CRYPT_LUKS1, VALID_HEADER), "Volume keysize mismatch");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// payload offset mismatch
 	params.data_alignment = 8192;
@@ -1118,7 +1114,7 @@ static void LuksHeaderRestore(void)
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
 	FAIL_(crypt_header_restore(cd, CRYPT_LUKS1, VALID_HEADER), "Payload offset mismatch");
 	//_system("dmsetup table;sleep 1",1);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	/* check crypt_header_restore() properly loads crypt_device context */
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_OK));
@@ -1130,14 +1126,13 @@ static void LuksHeaderRestore(void)
 	OK_(crypt_header_restore(cd, CRYPT_LUKS, VALID_HEADER));
 	OK_(crypt_activate_by_volume_key(cd, NULL, key, key_size, 0));
 
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	_cleanup_dmdevices();
 }
 
 static void LuksHeaderLoad(void)
 {
-	struct crypt_device *cd;
 	struct crypt_params_luks1 params = {
 		.hash = "sha512",
 		.data_alignment = 2048,
@@ -1181,7 +1176,7 @@ static void LuksHeaderLoad(void)
 	params.data_device = DMDIR L_DEVICE_OK;
 	OK_(crypt_init(&cd, DMDIR H_DEVICE));
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 	OK_(crypt_init(&cd, DMDIR H_DEVICE));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
 	OK_(crypt_set_data_device(cd, DMDIR L_DEVICE_OK));
@@ -1190,23 +1185,23 @@ static void LuksHeaderLoad(void)
 	OK_(!crypt_get_metadata_device_name(cd));
 	EQ_(strcmp(DMDIR H_DEVICE, crypt_get_metadata_device_name(cd)), 0);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// repeat with init with two devices
 	OK_(crypt_init_data_device(&cd, DMDIR H_DEVICE, DMDIR L_DEVICE_OK));
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 	OK_(crypt_init_data_device(&cd, DMDIR H_DEVICE, DMDIR L_DEVICE_OK));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
 	OK_(!crypt_get_metadata_device_name(cd));
 	EQ_(strcmp(DMDIR H_DEVICE, crypt_get_metadata_device_name(cd)), 0);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// bad header: device too small (payloadOffset > device_size)
 	OK_(crypt_init(&cd, DMDIR H_DEVICE_WRONG));
 	FAIL_(crypt_load(cd, CRYPT_LUKS1, NULL), "Device too small");
 	NULL_(crypt_get_type(cd));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// 0 secs for encrypted data area
 	params.data_alignment = 2048;
@@ -1217,43 +1212,42 @@ static void LuksHeaderLoad(void)
 	OK_(crypt_get_metadata_size(cd, &mdata_size, &keyslots_size));
 	EQ_(mdata_size, LUKS_ALIGN_KEYSLOTS);
 	EQ_(keyslots_size, r_header_size * SECTOR_SIZE - mdata_size);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 	// load should be ok
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_0S));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
 	FAIL_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0), "Device too small");
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_INACTIVE);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// damaged header
 	OK_(_system("dd if=/dev/zero of=" DMDIR L_DEVICE_OK " bs=512 count=8 2>/dev/null", 1));
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_OK));
 	FAIL_(crypt_load(cd, CRYPT_LUKS1, NULL), "Header not found");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// plain device
 	OK_(crypt_init(&cd, DMDIR H_DEVICE));
 	FAIL_(crypt_load(cd, CRYPT_PLAIN, NULL), "Can't load nonLUKS device type");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 	OK_(crypt_init(&cd, DMDIR H_DEVICE));
 	OK_(crypt_format(cd, CRYPT_PLAIN, cipher, cipher_mode, NULL, key, key_size, &pl_params));
 	FAIL_(crypt_load(cd, CRYPT_LUKS1, NULL), "Can't load over nonLUKS device type");
 	FAIL_(crypt_set_metadata_size(cd, 0x004000, 0x004000), "Wrong context type");
 	FAIL_(crypt_get_metadata_size(cd, &mdata_size, &keyslots_size), "Wrong context type");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	/* check load sets proper device type */
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_0S));
 	OK_(crypt_load(cd, CRYPT_LUKS, NULL));
 	EQ_(strcmp(CRYPT_LUKS1, crypt_get_type(cd)), 0);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	_cleanup_dmdevices();
 }
 
 static void LuksHeaderBackup(void)
 {
-	struct crypt_device *cd;
 	struct crypt_params_luks1 params = {
 		.hash = "sha512",
 		.data_alignment = 2048,
@@ -1282,7 +1276,7 @@ static void LuksHeaderBackup(void)
 	EQ_(crypt_keyslot_add_by_volume_key(cd, 0, key, key_size, passphrase, strlen(passphrase)), 0);
 	OK_(crypt_header_backup(cd, CRYPT_LUKS1, BACKUP_FILE));
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// restore header from backup
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_OK));
@@ -1291,7 +1285,7 @@ static void LuksHeaderBackup(void)
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, key, key_size, 0));
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// exercise luksOpen using backup header in file
 	OK_(crypt_init(&cd, BACKUP_FILE));
@@ -1300,7 +1294,7 @@ static void LuksHeaderBackup(void)
 	EQ_(crypt_activate_by_passphrase(cd, CDEVICE_1, 0, passphrase, strlen(passphrase), 0), 0);
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	OK_(crypt_init(&cd, BACKUP_FILE));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
@@ -1308,19 +1302,19 @@ static void LuksHeaderBackup(void)
 	EQ_(crypt_activate_by_passphrase(cd, CDEVICE_1, 7, passphrase, strlen(passphrase), 0), 7);
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// exercise luksOpen using backup header on block device
 	fd = loop_attach(&DEVICE_3, BACKUP_FILE, 0, 0, &ro);
+	NOTFAIL_(fd, "Bad loop device.");
 	close(fd);
-	OK_(fd < 0);
 	OK_(crypt_init(&cd, DEVICE_3));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
 	OK_(crypt_set_data_device(cd, DMDIR L_DEVICE_OK));
 	EQ_(crypt_activate_by_passphrase(cd, CDEVICE_1, 0, passphrase, strlen(passphrase), 0), 0);
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	OK_(crypt_init(&cd, DEVICE_3));
 	OK_(crypt_load(cd, CRYPT_LUKS1, NULL));
@@ -1328,14 +1322,13 @@ static void LuksHeaderBackup(void)
 	EQ_(crypt_activate_by_passphrase(cd, CDEVICE_1, 7, passphrase, strlen(passphrase), 0), 7);
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	_cleanup_dmdevices();
 }
 
 static void ResizeDeviceLuks(void)
 {
-	struct crypt_device *cd, *cd2;
 	struct crypt_params_luks1 params = {
 		.hash = "sha512",
 		.data_alignment = 2048,
@@ -1374,7 +1367,7 @@ static void ResizeDeviceLuks(void)
 		EQ_(1000, r_size >> SECTOR_SHIFT);
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	params.data_alignment = 0;
 	params.data_device = DMDIR L_DEVICE_0S;
@@ -1394,7 +1387,7 @@ static void ResizeDeviceLuks(void)
 		EQ_(1000, r_size >> SECTOR_SHIFT);
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_OK));
 	OK_(crypt_load(cd, NULL, NULL));
@@ -1406,24 +1399,23 @@ static void ResizeDeviceLuks(void)
 	OK_(crypt_activate_by_volume_key(cd2, CDEVICE_2, key, key_size, 0));
 	FAIL_(crypt_resize(cd2, CDEVICE_1, 1), "Device got resized by wrong device context.");
 	OK_(crypt_deactivate(cd2, CDEVICE_2));
-	crypt_free(cd2);
+	CRYPT_FREE(cd2);
 
 	OK_(crypt_init(&cd2, DMDIR L_DEVICE_WRONG));
 	OK_(crypt_format(cd2, CRYPT_PLAIN, cipher, cipher_mode, NULL, key, key_size, NULL));
 	OK_(crypt_activate_by_volume_key(cd2, CDEVICE_2, key, key_size, 0));
 	FAIL_(crypt_resize(cd2, CDEVICE_1, 1), "Device got resized by wrong device context.");
 	OK_(crypt_deactivate(cd2, CDEVICE_2));
-	crypt_free(cd2);
+	CRYPT_FREE(cd2);
 
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	_cleanup_dmdevices();
 }
 
 static void HashDevicePlain(void)
 {
-	struct crypt_device *cd;
 	struct crypt_params_plain params = {
 		.hash = NULL,
 		.skip = 0,
@@ -1480,7 +1472,7 @@ static void HashDevicePlain(void)
 	FAIL_(strcmp(key, mk_hex), "only key length used");
 	OK_(strncmp(key, mk_hex, key_size));
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	_remove_keyfiles();
 
@@ -1497,7 +1489,7 @@ static void HashDevicePlain(void)
 	OK_(get_key_dm(CDEVICE_1, key, sizeof(key)));
 	OK_(strcmp(key, mk_hex));
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	_remove_keyfiles();
 
@@ -1542,12 +1534,11 @@ static void HashDevicePlain(void)
 
 	// FIXME: add keyfile="-" tests somehow
 
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 }
 
 static void VerityTest(void)
 {
-	struct crypt_device *cd;
 	const char *salt_hex =  "20c28ffc129c12360ba6ceea2b6cf04e89c2b41cfe6b8439eb53c1897f50df7b";
 	const char *root_hex =  "ab018b003a967fc782effb293b6dccb60b4f40c06bf80d16391acf686d28b5d6";
 	char salt[256], root_hash[256];
@@ -1569,11 +1560,11 @@ static void VerityTest(void)
 	/* block size */
 	params.data_block_size = 333;
 	FAIL_(crypt_format(cd, CRYPT_VERITY, NULL, NULL, NULL, NULL, 0, &params),
-		"Unsupppored block size.");
+		"Unsupported block size.");
 	params.data_block_size = 4096;
 	params.hash_block_size = 333;
 	FAIL_(crypt_format(cd, CRYPT_VERITY, NULL, NULL, NULL, NULL, 0, &params),
-		"Unsupppored block size.");
+		"Unsupported block size.");
 	params.hash_block_size = 4096;
 
 	/* salt size */
@@ -1593,13 +1584,13 @@ static void VerityTest(void)
 	params.hash_name = "sha256";
 
 	OK_(crypt_format(cd, CRYPT_VERITY, NULL, NULL, NULL, NULL, 0, &params));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	params.data_device = NULL;
 	OK_(crypt_init_data_device(&cd, DEVICE_2, DEVICE_EMPTY));
 	OK_(crypt_format(cd, CRYPT_VERITY, NULL, NULL, NULL, NULL, 0, &params));
 	EQ_(strcmp(DEVICE_2, crypt_get_metadata_device_name(cd)), 0);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	/* Verify */
 	OK_(crypt_init(&cd, DEVICE_2));
@@ -1629,12 +1620,12 @@ static void VerityTest(void)
 	if (crypt_activate_by_volume_key(cd, CDEVICE_1, root_hash, 32,
 	    CRYPT_ACTIVATE_READONLY) == -ENOTSUP) {
 		printf("WARNING: kernel dm-verity not supported, skipping test.\n");
-		crypt_free(cd);
+		CRYPT_FREE(cd);
 		return;
 	}
 	OK_(crypt_get_active_device(cd, CDEVICE_1, &cad));
 	EQ_(CRYPT_ACTIVATE_READONLY, cad.flags);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	OK_(crypt_init_by_name(&cd, CDEVICE_1));
 	OK_(crypt_deactivate(cd, CDEVICE_1));
@@ -1657,12 +1648,11 @@ static void VerityTest(void)
 	EQ_(CRYPT_ACTIVATE_READONLY|CRYPT_ACTIVATE_CORRUPTED, cad.flags);
 	OK_(crypt_deactivate(cd, CDEVICE_1));
 
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 }
 
 static void TcryptTest(void)
 {
-	struct crypt_device *cd = NULL;
 	struct crypt_active_device cad;
 	const char *passphrase = "aaaaaaaaaaaa";
 	const char *kf1 = "tcrypt-images/keyfile1";
@@ -1707,14 +1697,13 @@ static void TcryptTest(void)
 	EQ_(256, crypt_get_data_offset(cd));
 
 	memset(key, 0, key_size);
-	if (!_fips_mode) {
-		key_size--;
-		// small buffer
-		FAIL_(crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key, &key_size, NULL, 0), "small buffer");
-		key_size++;
-		OK_(crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key, &key_size, NULL, 0));
-		OK_(memcmp(key, key_def, key_size));
-	}
+
+	key_size--;
+	// small buffer
+	FAIL_(crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key, &key_size, NULL, 0), "small buffer");
+	key_size++;
+	OK_(crypt_volume_key_get(cd, CRYPT_ANY_SLOT, key, &key_size, NULL, 0));
+	OK_(memcmp(key, key_def, key_size));
 
 	reset_log();
 	OK_(crypt_dump(cd));
@@ -1723,7 +1712,7 @@ static void TcryptTest(void)
 
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, NULL, 0, CRYPT_ACTIVATE_READONLY));
 	NULL_(crypt_get_metadata_device_name(cd));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	OK_(crypt_init_by_name_and_header(&cd, CDEVICE_1, NULL));
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
@@ -1744,12 +1733,12 @@ static void TcryptTest(void)
 	EQ_(72, cad.size);
 
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// init with detached header is not supported
 	OK_(crypt_init_data_device(&cd, tcrypt_dev2, DEVICE_2));
 	FAIL_(crypt_load(cd, CRYPT_TCRYPT, &params), "can't use tcrypt with separate metadata device");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// Following test uses non-FIPS algorithms in the cipher chain
 	if(_fips_mode)
@@ -1761,11 +1750,11 @@ static void TcryptTest(void)
 	r = crypt_load(cd, CRYPT_TCRYPT, &params);
 	if (r < 0) {
 		printf("WARNING: cannot use non-AES encryption, skipping test.\n");
-		crypt_free(cd);
+		CRYPT_FREE(cd);
 		return;
 	}
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, NULL, 0, CRYPT_ACTIVATE_READONLY));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	// Deactivate the whole chain
 	EQ_(crypt_status(NULL, CDEVICE_1 "_1"), CRYPT_BUSY);
@@ -1775,7 +1764,6 @@ static void TcryptTest(void)
 
 static void IntegrityTest(void)
 {
-	struct crypt_device *cd;
 	struct crypt_params_integrity params = {
 		.tag_size = 4,
 		.integrity = "crc32c",
@@ -1790,7 +1778,7 @@ static void IntegrityTest(void)
 	ret = crypt_format(cd,CRYPT_INTEGRITY,NULL,NULL,NULL,NULL,0,&params);
 	if (ret < 0) {
 		printf("WARNING: cannot format integrity device, skipping test.\n");
-		crypt_free(cd);
+		CRYPT_FREE(cd);
 		return;
 	}
 	OK_(crypt_get_integrity_info(cd, &ip));
@@ -1802,11 +1790,11 @@ static void IntegrityTest(void)
 	EQ_(ip.journal_watermark, params.journal_watermark);
 	OK_(strcmp(ip.integrity,params.integrity));
 	FAIL_(crypt_set_uuid(cd,DEVICE_1_UUID),"can't set uuid to integrity device");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	OK_(crypt_init(&cd, DEVICE_1));
 	OK_(crypt_load(cd, CRYPT_INTEGRITY, NULL));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	OK_(crypt_init(&cd, DEVICE_1));
 	//params.tag_size = 8;
@@ -1815,7 +1803,7 @@ static void IntegrityTest(void)
 	OK_(crypt_load(cd, CRYPT_INTEGRITY, &params));
 	OK_(crypt_activate_by_volume_key(cd, CDEVICE_1, NULL, 0, 0));
 	EQ_(crypt_status(cd, CDEVICE_1), CRYPT_ACTIVE);
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	memset(&ip, 0, sizeof(ip));
 	OK_(crypt_init_by_name(&cd, CDEVICE_1));
@@ -1824,13 +1812,12 @@ static void IntegrityTest(void)
 	OK_(strcmp(ip.integrity,params.integrity));
 	OK_(strcmp(CRYPT_INTEGRITY,crypt_get_type(cd)));
 	OK_(crypt_deactivate(cd, CDEVICE_1));
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 }
 
 // Check that gcrypt is properly initialised in format
 static void NonFIPSAlg(void)
 {
-	struct crypt_device *cd;
 	struct crypt_params_luks1 params = {0};
 	char key[128] = "";
 	size_t key_size = 128 / 8;
@@ -1843,23 +1830,23 @@ static void NonFIPSAlg(void)
 	OK_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params));
 	FAIL_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params),
 	      "Already formatted.");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	params.hash = "whirlpool";
 	OK_(crypt_init(&cd, DEVICE_2));
 	ret = crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params);
 	if (ret < 0) {
 		printf("WARNING: whirlpool not supported, skipping test.\n");
-		crypt_free(cd);
+		CRYPT_FREE(cd);
 		return;
 	}
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 
 	params.hash = "md5";
 	OK_(crypt_init(&cd, DEVICE_2));
 	FAIL_(crypt_format(cd, CRYPT_LUKS1, cipher, cipher_mode, NULL, key, key_size, &params),
 	      "MD5 unsupported, too short");
-	crypt_free(cd);
+	CRYPT_FREE(cd);
 }
 
 static void int_handler(int sig __attribute__((__unused__)))
@@ -1876,7 +1863,12 @@ int main(int argc, char *argv[])
 		printf("You must be root to run this test.\n");
 		exit(77);
 	}
-
+#ifndef NO_CRYPTSETUP_PATH
+	if (getenv("CRYPTSETUP_PATH")) {
+		printf("Cannot run this test with CRYPTSETUP_PATH set.\n");
+		exit(77);
+	}
+#endif
 	for (i = 1; i < argc; i++) {
 		if (!strcmp("-v", argv[i]) || !strcmp("--verbose", argv[i]))
 			_verbose = 1;
@@ -1891,8 +1883,11 @@ int main(int argc, char *argv[])
 	register_cleanup(_cleanup);
 
 	_cleanup();
-	if (_setup())
-		goto out;
+	if (_setup()) {
+		printf("Cannot set test devices.\n");
+		_cleanup();
+		exit(77);
+	}
 
 	crypt_set_debug_level(_debug ? CRYPT_DEBUG_ALL : CRYPT_DEBUG_NONE);
 
@@ -1911,7 +1906,7 @@ int main(int argc, char *argv[])
 	RUN_(VerityTest, "DM verity");
 	RUN_(TcryptTest, "Tcrypt API");
 	RUN_(IntegrityTest, "Integrity API");
-out:
+
 	_cleanup();
 	return 0;
 }

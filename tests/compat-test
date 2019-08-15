@@ -1,7 +1,8 @@
 #!/bin/bash
 
 PS4='$LINENO:'
-CRYPTSETUP=../cryptsetup
+[ -z "$CRYPTSETUP_PATH" ] && CRYPTSETUP_PATH=".."
+CRYPTSETUP=$CRYPTSETUP_PATH/cryptsetup
 
 CRYPTSETUP_VALGRIND=../.libs/cryptsetup
 CRYPTSETUP_LIB_VALGRIND=../.libs
@@ -46,9 +47,9 @@ LOOPDEV=$(losetup -f 2>/dev/null)
 
 function remove_mapping()
 {
-	[ -b /dev/mapper/$DEV_NAME3 ] && dmsetup remove $DEV_NAME3 >/dev/null 2>&1
-	[ -b /dev/mapper/$DEV_NAME2 ] && dmsetup remove $DEV_NAME2 >/dev/null 2>&1
-	[ -b /dev/mapper/$DEV_NAME ] && dmsetup remove $DEV_NAME >/dev/null 2>&1
+	[ -b /dev/mapper/$DEV_NAME3 ] && dmsetup remove --retry $DEV_NAME3 >/dev/null 2>&1
+	[ -b /dev/mapper/$DEV_NAME2 ] && dmsetup remove --retry $DEV_NAME2 >/dev/null 2>&1
+	[ -b /dev/mapper/$DEV_NAME ] && dmsetup remove --retry $DEV_NAME >/dev/null 2>&1
 	losetup -d $LOOPDEV >/dev/null 2>&1
 	rm -f $ORIG_IMG $IMG $IMG10 $KEY1 $KEY2 $KEY5 $KEYE $HEADER_IMG $VK_FILE missing-file >/dev/null 2>&1
 }
@@ -63,7 +64,8 @@ function fail()
 {
 	[ -n "$1" ] && echo "$1"
 	remove_mapping
-	echo "FAILED at line $(caller)"
+	echo "FAILED backtrace:"
+	while caller $frame; do ((frame++)); done
 	exit 2
 }
 
@@ -88,7 +90,7 @@ function skip()
 
 function prepare()
 {
-	[ -b /dev/mapper/$DEV_NAME ] && dmsetup remove $DEV_NAME >/dev/null 2>&1
+	[ -b /dev/mapper/$DEV_NAME ] && dmsetup remove --retry $DEV_NAME >/dev/null 2>&1
 
 	case "$2" in
 	file)
@@ -200,9 +202,9 @@ echo $PWD0 | $CRYPTSETUP luksRemoveKey $IMG || fail
 echo $PWD2 | $CRYPTSETUP luksRemoveKey $IMG || fail
 # check if keys were deleted
 echo $PWD0 | $CRYPTSETUP luksOpen $IMG --test-passphrase 2>/dev/null && fail
-[ $? -ne 2 ] && fail "luksOpen should return EPERM exit code"
+[ $? -ne 1 ] && fail "luksOpen should return ENOENT exit code"
 echo $PWD2 | $CRYPTSETUP luksOpen $IMG --test-passphrase 2>/dev/null && fail
-[ $? -ne 2 ] && fail "luksOpen should return EPERM exit code"
+[ $? -ne 1 ] && fail "luksOpen should return ENOENT exit code"
 echo "[6] kill slot"
 # format new luks device with active keys PWD1, PWD2
 echo $PWD1 | $CRYPTSETUP -q luksFormat --type luks1 $IMG $FAST_PBKDF_OPT || fail
@@ -235,13 +237,12 @@ echo $PWD1 | $CRYPTSETUP luksAddKey $FAST_PBKDF_OPT $IMG -d $KEY1 || fail
 $CRYPTSETUP luksDump $IMG | grep -q "Key Slot 0: ENABLED" || fail
 $CRYPTSETUP luksDump $IMG | grep -q $TEST_UUID || fail
 echo $PWDW | $CRYPTSETUP luksDump $IMG --dump-master-key 2>/dev/null && fail
-echo $PWD1 | $CRYPTSETUP luksDump $IMG --dump-master-key | grep -q "MK dump:" || can_fail_fips
-$CRYPTSETUP luksDump -q $IMG --dump-master-key -d $KEY1 | grep -q "MK dump:" || can_fail_fips
-echo $PWD1 | $CRYPTSETUP luksDump -q $IMG --dump-master-key --master-key-file $VK_FILE >/dev/null || can_fail_fips
+echo $PWD1 | $CRYPTSETUP luksDump $IMG --dump-master-key | grep -q "MK dump:" || fail
+$CRYPTSETUP luksDump -q $IMG --dump-master-key -d $KEY1 | grep -q "MK dump:" || fail
+echo $PWD1 | $CRYPTSETUP luksDump -q $IMG --dump-master-key --master-key-file $VK_FILE >/dev/null || fail
 echo $PWD1 | $CRYPTSETUP luksDump -q $IMG --dump-master-key --master-key-file $VK_FILE 2>/dev/null && fail
-fips_mode || {
-	echo $PWD1 | $CRYPTSETUP luksAddKey $FAST_PBKDF_OPT --master-key-file $VK_FILE $IMG || fail
-}
+echo $PWD1 | $CRYPTSETUP luksAddKey $FAST_PBKDF_OPT --master-key-file $VK_FILE $IMG || fail
+
 echo "[10] uuid"
 echo $PWD1 | $CRYPTSETUP -q luksFormat --type luks1 $FAST_PBKDF_OPT --uuid $TEST_UUID $IMG || fail
 $CRYPTSETUP -q luksUUID $IMG | grep -q $TEST_UUID || fail
@@ -483,6 +484,12 @@ $CRYPTSETUP -q resize  $DEV_NAME --size 100 || fail
 $CRYPTSETUP -q status  $DEV_NAME | grep "size:" | grep -q "100 sectors" || fail
 $CRYPTSETUP -q resize  $DEV_NAME || fail
 $CRYPTSETUP -q status  $DEV_NAME | grep "size:" | grep -q "19997 sectors" || fail
+$CRYPTSETUP -q resize  $DEV_NAME --device-size 1M || fail
+$CRYPTSETUP -q status  $DEV_NAME | grep "size:" | grep -q "2048 sectors" || fail
+$CRYPTSETUP -q resize  $DEV_NAME --device-size 512k --size 1023 >/dev/null 2>&1 && fail
+$CRYPTSETUP -q status  $DEV_NAME | grep "size:" | grep -q "2048 sectors" || fail
+$CRYPTSETUP -q resize  $DEV_NAME --device-size 513 >/dev/null 2>&1 && fail
+$CRYPTSETUP -q status  $DEV_NAME | grep "size:" | grep -q "2048 sectors" || fail
 # Resize underlying loop device as well
 truncate -s 16M $IMG || fail
 $CRYPTSETUP -q resize  $DEV_NAME || fail
@@ -499,10 +506,13 @@ $CRYPTSETUP -q remove  $DEV_NAME || fail
 # 4k sector resize (if kernel supports it)
 echo $PWD1 | $CRYPTSETUP -q open --type plain $LOOPDEV $DEV_NAME --sector-size 4096 --size 8  >/dev/null 2>&1
 if [ $? -eq 0 ] ; then
-	$CRYPTSETUP -q status  $DEV_NAME | grep "size:" | grep -q "8 sectors"
+	$CRYPTSETUP -q status  $DEV_NAME | grep "size:" | grep -q "8 sectors" || fail
 	$CRYPTSETUP -q resize  $DEV_NAME --size 16 || fail
-	$CRYPTSETUP -q status  $DEV_NAME | grep "size:" | grep -q "16 sectors"
+	$CRYPTSETUP -q status  $DEV_NAME | grep "size:" | grep -q "16 sectors" || fail
 	$CRYPTSETUP -q resize  $DEV_NAME --size 9 2>/dev/null && fail
+	$CRYPTSETUP -q status  $DEV_NAME | grep "size:" | grep -q "16 sectors" || fail
+	$CRYPTSETUP -q resize  $DEV_NAME --device-size 4608 2>/dev/null && fail
+	$CRYPTSETUP -q status  $DEV_NAME | grep "size:" | grep -q "16 sectors" || fail
 	$CRYPTSETUP -q remove  $DEV_NAME || fail
 fi
 # verify is ignored on non-tty input
@@ -535,12 +545,10 @@ echo $PWD1 | $CRYPTSETUP luksAddKey $FAST_PBKDF_OPT $LOOPDEV -d $KEY1 || fail
 $CRYPTSETUP luksDump $LOOPDEV | grep -q "Key Slot 0: ENABLED" || fail
 $CRYPTSETUP luksDump $LOOPDEV | grep -q $TEST_UUID || fail
 echo $PWDW | $CRYPTSETUP luksDump $LOOPDEV --dump-master-key 2>/dev/null && fail
-echo $PWD1 | $CRYPTSETUP luksDump $LOOPDEV --dump-master-key | grep -q "MK dump:" || can_fail_fips
-$CRYPTSETUP luksDump -q $LOOPDEV --dump-master-key -d $KEY1 | grep -q "MK dump:" || can_fail_fips
-echo $PWD1 | $CRYPTSETUP luksDump -q $LOOPDEV --dump-master-key --master-key-file $VK_FILE > /dev/null || can_fail_fips
-fips_mode || {
-	echo $PWD1 | $CRYPTSETUP luksAddKey $FAST_PBKDF_OPT --master-key-file $VK_FILE $LOOPDEV || fail
-}
+echo $PWD1 | $CRYPTSETUP luksDump $LOOPDEV --dump-master-key | grep -q "MK dump:" || fail
+$CRYPTSETUP luksDump -q $LOOPDEV --dump-master-key -d $KEY1 | grep -q "MK dump:" || fail
+echo $PWD1 | $CRYPTSETUP luksDump -q $LOOPDEV --dump-master-key --master-key-file $VK_FILE > /dev/null || fail
+echo $PWD1 | $CRYPTSETUP luksAddKey $FAST_PBKDF_OPT --master-key-file $VK_FILE $LOOPDEV || fail
 
 prepare "[22] remove disappeared device" wipe
 dmsetup create $DEV_NAME --table "0 5000 linear $LOOPDEV 2" || fail
@@ -550,7 +558,7 @@ echo $PWD1 | $CRYPTSETUP -q luksOpen /dev/mapper/$DEV_NAME $DEV_NAME2 || fail
 dmsetup load $DEV_NAME --table "0 5000 error" || fail
 dmsetup resume $DEV_NAME || fail
 $CRYPTSETUP -q luksClose $DEV_NAME2 || fail
-dmsetup remove $DEV_NAME || fail
+dmsetup remove --retry $DEV_NAME || fail
 
 prepare "[23] ChangeKey passphrase and keyfile" wipe
 # [0]$KEY1 [1]key0
@@ -622,7 +630,7 @@ $CRYPTSETUP --key-file=/dev/mapper/$DEV_NAME2 -l 13 --keyfile-offset 5120000000 
 $CRYPTSETUP luksClose $DEV_NAME || fail
 $CRYPTSETUP luksChangeKey $LOOPDEV $FAST_PBKDF_OPT -d /dev/mapper/$DEV_NAME2 \
   --keyfile-offset 5120000000 -l 13 /dev/mapper/$DEV_NAME2 --new-keyfile-offset 5120000001 --new-keyfile-size 15 || fail
-dmsetup remove $DEV_NAME2
+dmsetup remove --retry $DEV_NAME2
 
 prepare "[25] Create shared segments" wipe
 echo $PWD1 | $CRYPTSETUP create $DEV_NAME $LOOPDEV  --hash sha1 --offset   0 --size 256 || fail
@@ -652,7 +660,7 @@ prepare "[27] luksOpen with specified key slot number" wipe
 # first, let's try passphrase option
 echo $PWD3 | $CRYPTSETUP luksFormat --type luks1 $FAST_PBKDF_OPT -S 5 $LOOPDEV || fail
 check $LUKS_HEADER $KEY_SLOT5 $KEY_MATERIAL5
-echo $PWD3 | $CRYPTSETUP luksOpen -S 4 $LOOPDEV $DEV_NAME && fail
+echo $PWD3 | $CRYPTSETUP luksOpen -S 4 $LOOPDEV $DEV_NAME 2>/dev/null && fail
 [ -b /dev/mapper/$DEV_NAME ] && fail
 echo $PWD3 | $CRYPTSETUP luksOpen -S 5 $LOOPDEV $DEV_NAME || fail
 check_exists
@@ -687,6 +695,7 @@ echo $PWD1 | $CRYPTSETUP -q luksFormat --type luks1 $FAST_PBKDF_OPT $LOOPDEV --h
 echo $PWD1 | $CRYPTSETUP -q luksFormat --type luks1 $FAST_PBKDF_OPT $LOOPDEV --header $HEADER_IMG --offset 80000 >/dev/null 2>&1 || fail
 echo $PWD1 | $CRYPTSETUP -q luksFormat --type luks1 $FAST_PBKDF_OPT $LOOPDEV --header $HEADER_IMG --offset 8192 || fail
 echo $PWD1 | $CRYPTSETUP -q luksFormat --type luks1 $FAST_PBKDF_OPT $LOOPDEV --header $HEADER_IMG --offset 0 || fail
+echo $PWD1 | $CRYPTSETUP luksOpen $LOOPDEV-missing --header $HEADER_IMG $DEV_NAME 2>/dev/null && fail
 echo $PWD1 | $CRYPTSETUP luksOpen $LOOPDEV --header $HEADER_IMG $DEV_NAME || fail
 $CRYPTSETUP -q resize  $DEV_NAME --size 100 --header $HEADER_IMG || fail
 $CRYPTSETUP -q status  $DEV_NAME --header $HEADER_IMG | grep "size:" | grep -q "100 sectors" || fail
@@ -848,7 +857,7 @@ eval spawn $CRYPTSETUP luksOpen -v $LOOPDEV -T 1 --test-passphrase
 expect timeout abort "Enter passphrase for $LOOPDEV:"
 sleep 0.1
 send "$PWD0\n"
-expect timeout abort "No key available with this passphrase."
+expect timeout abort "No usable keyslot is available."
 expect timeout abort eof
 exit
 EOF

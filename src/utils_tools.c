@@ -90,7 +90,8 @@ void clogger(struct crypt_device *cd, int level, const char *file, int line,
 
 	if (vsnprintf(&target[0], LOG_MAX_LEN, format, argp) > 0) {
 		/* All verbose and error messages in tools end with EOL. */
-		if (level == CRYPT_LOG_VERBOSE || level == CRYPT_LOG_ERROR)
+		if (level == CRYPT_LOG_VERBOSE || level == CRYPT_LOG_ERROR ||
+		    level == CRYPT_LOG_DEBUG || level == CRYPT_LOG_DEBUG_JSON)
 			strncat(target, "\n", LOG_MAX_LEN);
 
 		crypt_log(cd, level, target);
@@ -116,7 +117,7 @@ void tool_log(int level, const char *msg, void *usrptr __attribute__((unused)))
 	case CRYPT_LOG_DEBUG_JSON:
 	case CRYPT_LOG_DEBUG:
 		if (opt_debug)
-			fprintf(stdout, "# %s\n", msg);
+			fprintf(stdout, "# %s", msg);
 		break;
 	}
 }
@@ -128,12 +129,12 @@ void quiet_log(int level, const char *msg, void *usrptr)
 	tool_log(level, msg, usrptr);
 }
 
-int yesDialog(const char *msg, void *usrptr)
+static int _dialog(const char *msg, void *usrptr, int default_answer)
 {
 	const char *fail_msg = (const char *)usrptr;
 	char *answer = NULL;
 	size_t size = 0;
-	int r = 1, block;
+	int r = default_answer, block;
 
 	block = tools_signals_blocked();
 	if (block)
@@ -150,9 +151,9 @@ int yesDialog(const char *msg, void *usrptr)
 				log_err(_("Error reading response from terminal."));
 			else
 				log_dbg("Query interrupted on signal.");
-		} else if (strcmp(answer, "YES\n")) {
-			r = 0;
-			if (fail_msg)
+		} else {
+			r = !strcmp(answer, "YES\n");
+			if (!r && fail_msg)
 				log_err("%s", fail_msg);
 		}
 	}
@@ -162,6 +163,16 @@ int yesDialog(const char *msg, void *usrptr)
 
 	free(answer);
 	return r;
+}
+
+int yesDialog(const char *msg, void *usrptr)
+{
+	return _dialog(msg, usrptr, 1);
+}
+
+int noDialog(const char *msg, void *usrptr)
+{
+	return _dialog(msg, usrptr, 0);
 }
 
 void show_status(int errcode)
@@ -591,4 +602,20 @@ int tools_is_stdin(const char *key_file)
 		return 1;
 
 	return strcmp(key_file, "-") ? 0 : 1;
+}
+
+int tools_reencrypt_progress(uint64_t size, uint64_t offset, void *usrptr)
+{
+	static struct timeval start_time = {}, end_time = {};
+	int r = 0;
+
+	tools_time_progress(size, offset, &start_time, &end_time);
+
+	check_signal(&r);
+	if (r) {
+		tools_clear_line();
+		log_err("\nReencrypt interrupted.");
+	}
+
+	return r;
 }
