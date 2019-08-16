@@ -1,3 +1,19 @@
+cryptsetup (2:2.1.0-5+deb10u1) buster; urgency=high
+
+  * Backport upstream commits c03e3fe8, 725720df and fe4e1de5 to fix support
+    for LUKS2 headers without any bound keyslot.  Adding a new key slot using
+    the volume key was failing, both via the crypt_keyslot_add_by_volume_key()
+    API call and with `luksAddKey --master-key`.  The former in particular
+    might yield data loss if, in order to change a passphrase, an application
+    destroys the keyslot before adding a new one (using the volume key), cf.
+    #928893.  Note that doing so is *unsafe*: applications should instead use
+    crypt_keyslot_change_by_passphrase() from libcryptsetup >=1.6.0.
+    Trying to open LUKS2 volume by supplying the volume key on the command
+    line was also failing if there were no bound keyslot on the header.
+    (Closes: #934715)
+
+ -- Guilhem Moulin <guilhem@debian.org>  Fri, 16 Aug 2019 19:18:10 +0200
+
 cryptsetup (2:2.1.0-5) unstable; urgency=medium
 
   [ Jonas Meurer ]
