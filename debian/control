@@ -90,8 +90,9 @@ Description: disk encryption support - initramfs integration
  This package provides initramfs integration for cryptsetup.
 
 Package: cryptsetup-run
-Architecture: all
 Section: oldlibs
+Architecture: all
+Multi-Arch: foreign
 Depends: cryptsetup (>= 2:2.1.0-6), ${misc:Depends}
 Description: transitional dummy package for cryptsetup
  This is a transitional dummy package to get upgrading systems to install the
