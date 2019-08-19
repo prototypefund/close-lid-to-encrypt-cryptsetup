@@ -90,6 +90,3 @@ override_dh_fixperms-indep:
 	chmod 0755 debian/cryptsetup-initramfs/usr/share/cryptsetup/initramfs/bin/*
 	chmod 0755 debian/cryptsetup-initramfs/usr/share/initramfs-tools/hooks/*
 	chmod 0755 debian/cryptsetup-initramfs/usr/share/initramfs-tools/scripts/*/*
-
-override_dh_makeshlibs:
-	dh_makeshlibs -V --add-udeb=libcryptsetup12-udeb

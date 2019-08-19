@@ -2,6 +2,9 @@ cryptsetup (2:2.2.0-2) UNRELEASED; urgency=medium
 
   * debian/control: Add 'Multi-Arch: foreign' tag to the transitional dummy
     package 'crytsetup-run'.
+  * debian/control, debian/combat: Bump debhelper compatibility level to 12.
+  * debian/rules: Remove dh_makeshlibs(1) override; debhelper 12.3's auto
+    detection feature subsumes our use of --add-udeb=.
 
  -- Guilhem Moulin <guilhem@debian.org>  Sun, 18 Aug 2019 17:16:21 +0200
 
