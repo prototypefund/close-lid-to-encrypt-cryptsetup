@@ -1,3 +1,10 @@
+cryptsetup (2:2.1.0-5+deb10u2) buster; urgency=medium
+
+  * Cherry pick upstream commit 8f8f0b32: Fix mapped segments overflow on
+    32bit architectures.  Regression since 2:2.1.0-1.  (Closes: #935702)
+
+ -- Guilhem Moulin <guilhem@debian.org>  Mon, 26 Aug 2019 14:54:10 +0200
+
 cryptsetup (2:2.1.0-5+deb10u1) buster; urgency=high
 
   * Backport upstream commits c03e3fe8, 725720df and fe4e1de5 to fix support
