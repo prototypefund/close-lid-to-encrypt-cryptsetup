@@ -1,9 +1,9 @@
-cryptsetup (2:2.2.0-3) UNRELEASED; urgency=medium
+cryptsetup (2:2.2.0-3) unstable; urgency=medium
 
   * Cherry pick upstream commit 8f8f0b32: Fix mapped segments overflow on
     32bit architectures.  Regression since 2:2.1.0-1.  (Closes: #935702)
 
- -- Guilhem Moulin <guilhem@debian.org>  Mon, 26 Aug 2019 12:50:02 +0200
+ -- Guilhem Moulin <guilhem@debian.org>  Mon, 26 Aug 2019 12:53:45 +0200
 
 cryptsetup (2:2.2.0-2) unstable; urgency=medium
 
