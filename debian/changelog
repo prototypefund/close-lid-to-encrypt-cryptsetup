@@ -2,7 +2,7 @@ cryptsetup (2:2.2.0-2) unstable; urgency=medium
 
   * debian/control: Add 'Multi-Arch: foreign' tag to the transitional dummy
     package 'crytsetup-run'.
-  * debian/control, debian/combat: Bump debhelper compatibility level to 12.
+  * debian/control, debian/compat: Bump debhelper compatibility level to 12.
   * debian/rules: Remove dh_makeshlibs(1) override; debhelper 12.3's auto
     detection feature subsumes our use of --add-udeb=.  This fixes FTBFS with
     debhelper 12.5.
@@ -514,7 +514,7 @@ cryptsetup (2:2.0.3-2) unstable; urgency=medium
       is passed as argument to the keyscript. Mention the optional requirement
       to quote the value. (Closes: #826122)
     + Some minor wording improvements.
-  * debian/control, debian/combat: Bump debhelper compatibility level to 11.
+  * debian/control, debian/compat: Bump debhelper compatibility level to 11.
   * debian/rules:
     + Completely refactor the rules file, adapt to debhelper 11 style.
       (Closes: #901713)
