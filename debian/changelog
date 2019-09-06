@@ -1,3 +1,10 @@
+cryptsetup (2:2.2.1-1) unstable; urgency=medium
+
+  * New upstream bugfix release.
+  * Remove d/patches, applied upstream.
+
+ -- Guilhem Moulin <guilhem@debian.org>  Fri, 06 Sep 2019 13:28:55 +0200
+
 cryptsetup (2:2.2.0-3) unstable; urgency=medium
 
   * Cherry pick upstream commit 8f8f0b32: Fix mapped segments overflow on
