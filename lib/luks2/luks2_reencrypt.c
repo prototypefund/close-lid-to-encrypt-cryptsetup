@@ -817,8 +817,13 @@ static int reencrypt_offset(struct luks2_hdr *hdr,
 	return -EINVAL;
 }
 
-static uint64_t reencrypt_length(struct luks2_hdr *hdr, struct luks2_reenc_context *rh, uint64_t keyslot_area_length, uint64_t length_max)
+static uint64_t reencrypt_length(struct crypt_device *cd,
+		struct luks2_hdr *hdr,
+		struct luks2_reenc_context *rh,
+		uint64_t keyslot_area_length,
+		uint64_t length_max)
 {
+	unsigned long dummy, optimal_alignment;
 	uint64_t length;
 
 	if (rh->rp.type == REENC_PROTECTION_NONE)
@@ -834,6 +839,20 @@ static uint64_t reencrypt_length(struct luks2_hdr *hdr, struct luks2_reenc_conte
 		length = length_max;
 
 	length -= (length % rh->alignment);
+
+	/* Emits error later */
+	if (!length)
+		return length;
+
+	device_topology_alignment(cd, crypt_data_device(cd), &optimal_alignment, &dummy, length);
+
+	/* we have to stick with encryption sector size alignment */
+	if (optimal_alignment % rh->alignment)
+		return length;
+
+	/* align to opt-io size only if remaining size allows it */
+	if (length > optimal_alignment)
+		length -= (length % optimal_alignment);
 
 	return length;
 }
@@ -872,14 +891,14 @@ static int reencrypt_context_init(struct crypt_device *cd, struct luks2_hdr *hdr
 	rh->direction = reencrypt_direction(hdr);
 
 	if (!strcmp(params->resilience, "datashift")) {
-		log_dbg(cd, "Initializaing reencryption context with data_shift resilience.");
+		log_dbg(cd, "Initializing reencryption context with data_shift resilience.");
 		rh->rp.type = REENC_PROTECTION_DATASHIFT;
 		rh->data_shift = reencrypt_data_shift(hdr);
 	} else if (!strcmp(params->resilience, "journal")) {
-		log_dbg(cd, "Initializaing reencryption context with journal resilience.");
+		log_dbg(cd, "Initializing reencryption context with journal resilience.");
 		rh->rp.type = REENC_PROTECTION_JOURNAL;
 	} else if (!strcmp(params->resilience, "checksum")) {
-		log_dbg(cd, "Initializaing reencryption context with checksum resilience.");
+		log_dbg(cd, "Initializing reencryption context with checksum resilience.");
 		rh->rp.type = REENC_PROTECTION_CHECKSUM;
 
 		r = snprintf(rh->rp.p.csum.hash,
@@ -906,7 +925,7 @@ static int reencrypt_context_init(struct crypt_device *cd, struct luks2_hdr *hdr
 				   rh->rp.p.csum.checksums_len))
 			return -ENOMEM;
 	} else if (!strcmp(params->resilience, "none")) {
-		log_dbg(cd, "Initializaing reencryption context with none resilience.");
+		log_dbg(cd, "Initializing reencryption context with none resilience.");
 		rh->rp.type = REENC_PROTECTION_NONE;
 	} else {
 		log_err(cd, _("Unsupported resilience mode %s"), params->resilience);
@@ -920,7 +939,7 @@ static int reencrypt_context_init(struct crypt_device *cd, struct luks2_hdr *hdr
 	} else
 		rh->fixed_length = false;
 
-	rh->length = reencrypt_length(hdr, rh, area_length, params->max_hotzone_size << SECTOR_SHIFT);
+	rh->length = reencrypt_length(cd, hdr, rh, area_length, params->max_hotzone_size << SECTOR_SHIFT);
 	if (reencrypt_offset(hdr, rh->direction, device_size, &rh->length, &rh->offset)) {
 		log_dbg(cd, "Failed to get reencryption offset.");
 		return -EINVAL;
@@ -2700,7 +2719,7 @@ static int reencrypt_load_by_passphrase(struct crypt_device *cd,
 		required_size = mapping_size;
 
 	if (required_size) {
-		/* TODO: Add support for chaning fixed minimal size in reencryption mda where possible */
+		/* TODO: Add support for changing fixed minimal size in reencryption mda where possible */
 		if ((minimal_size && (required_size < minimal_size)) ||
 		    (required_size > (device_size >> SECTOR_SHIFT)) ||
 		    (!dynamic && (required_size != minimal_size)) ||

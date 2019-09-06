@@ -2692,7 +2692,7 @@ static void Luks2KeyslotAdd(void)
 	const char *mk_hex2 = "bb21158c733229347bd4e681891e213d94c685be6a5b84818afe7a78a6de7a1e";
 	size_t key_ret_len, key_size = strlen(mk_hex) / 2;
 	uint64_t r_payload_offset;
-	const struct crypt_pbkdf_type argon2kdf = {
+	struct crypt_pbkdf_type pbkdf = {
 		.type = "argon2i",
 		.hash = "sha256",
 		.iterations = 4,
@@ -2701,12 +2701,20 @@ static void Luks2KeyslotAdd(void)
 		.flags = CRYPT_PBKDF_NO_BENCHMARK,
 	};
 	struct crypt_params_luks2 params2 = {
-		.pbkdf = &argon2kdf,
+		.pbkdf = &pbkdf,
 		.sector_size = SECTOR_SIZE
 	};
 
 	crypt_decode_key(key, mk_hex, key_size);
 	crypt_decode_key(key2, mk_hex2, key_size);
+
+	/* Cannot use Argon2 in FIPS */
+	if (_fips_mode) {
+		pbkdf.type = CRYPT_KDF_PBKDF2;
+		pbkdf.parallel_threads = 0;
+		pbkdf.max_memory_kb = 0;
+		pbkdf.iterations = 1000;
+	}
 
 	OK_(get_luks2_offsets(1, 0, 0, NULL, &r_payload_offset));
 	OK_(create_dmdevice_over_loop(L_DEVICE_OK, r_payload_offset + 1));
@@ -3598,7 +3606,7 @@ static void Luks2Reencryption(void)
 /* reencryption currently depends on kernel keyring support */
 #if KERNEL_KEYRING
 	/* NOTES:
-	 *  - reencryption requires luks2 paramters. can we avoid it?
+	 *  - reencryption requires luks2 parameters. can we avoid it?
 	 */
 	uint32_t getflags;
 	uint64_t r_header_size, r_size_1;
@@ -3625,6 +3633,14 @@ static void Luks2Reencryption(void)
 	/* reencryption currently depends on kernel keyring support in dm-crypt */
 	if (!t_dm_crypt_keyring_support())
 		return;
+
+	/* Cannot use Argon2 in FIPS */
+	if (_fips_mode) {
+		pbkdf.type = CRYPT_KDF_PBKDF2;
+		pbkdf.parallel_threads = 0;
+		pbkdf.max_memory_kb = 0;
+		pbkdf.iterations = 1000;
+	}
 
 	OK_(get_luks2_offsets(0, 0, 0, &r_header_size, NULL));
 	OK_(create_dmdevice_over_loop(H_DEVICE, r_header_size));
@@ -3684,7 +3700,7 @@ static void Luks2Reencryption(void)
 	/* keyslot assigned to old segment remains active */
 	EQ_(crypt_keyslot_status(cd, 21), CRYPT_SLOT_ACTIVE);
 
-	FAIL_(crypt_reencrypt_init_by_passphrase(cd, NULL, PASSPHRASE, strlen(PASSPHRASE), 21, 10, "aes", "xts-plain", &rparams), "Reencryption already initalized.");
+	FAIL_(crypt_reencrypt_init_by_passphrase(cd, NULL, PASSPHRASE, strlen(PASSPHRASE), 21, 10, "aes", "xts-plain", &rparams), "Reencryption already initialized.");
 
 	rparams.flags = 0;
 	OK_(crypt_reencrypt_init_by_passphrase(cd, NULL, PASSPHRASE, strlen(PASSPHRASE), 21, 9, "aes", "xts-plain64", &rparams));
@@ -3751,7 +3767,7 @@ static void Luks2Reencryption(void)
 	OK_(crypt_reencrypt_init_by_passphrase(cd, NULL, PASSPHRASE, strlen(PASSPHRASE), 21, 9, "aes", "xts-plain64", &rparams));
 	OK_(crypt_reencrypt(cd, NULL));
 
-	/* FIXME: this is a bug, but not critical (data shift paramter is ignored after initialzation) */
+	/* FIXME: this is a bug, but not critical (data shift parameter is ignored after initialization) */
 	//rparams.data_shift = 8;
 	//FAIL_(crypt_reencrypt_init_by_passphrase(cd, NULL, PASSPHRASE, strlen(PASSPHRASE), 21, 9, "aes", "xts-plain64", &rparams), "Invalid reencryption parameters.");
 
@@ -3911,7 +3927,7 @@ static void Luks2Reencryption(void)
 	FAIL_(crypt_reencrypt_init_by_passphrase(cd, NULL, PASSPHRASE, strlen(PASSPHRASE), 1, 0, "aes", "xts-plain64", &rparams), "Device is too small.");
 	CRYPT_FREE(cd);
 	// BUG: We need reencrypt abort flag
-	/* it fails, but it's already initalized and we have no way to abort yet */
+	/* it fails, but it's already initialized and we have no way to abort yet */
 	OK_(crypt_init(&cd, DMDIR L_DEVICE_OK));
 	OK_(crypt_format(cd, CRYPT_LUKS2, "aes", "cbc-essiv:sha256", NULL, NULL, 32, &params2));
 	OK_(crypt_set_pbkdf_type(cd, &pbkdf));

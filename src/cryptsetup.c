@@ -979,8 +979,8 @@ static int set_pbkdf_params(struct crypt_device *cd, const char *dev_type)
 	pbkdf.hash = opt_hash ?: pbkdf_default->hash;
 	pbkdf.time_ms = (uint32_t)opt_iteration_time ?: pbkdf_default->time_ms;
 	if (strcmp(pbkdf.type, CRYPT_KDF_PBKDF2)) {
-		pbkdf.max_memory_kb = opt_pbkdf_memory ?: pbkdf_default->max_memory_kb;
-		pbkdf.parallel_threads = opt_pbkdf_parallel ?: pbkdf_default->parallel_threads;
+		pbkdf.max_memory_kb = (uint32_t)opt_pbkdf_memory ?: pbkdf_default->max_memory_kb;
+		pbkdf.parallel_threads = (uint32_t)opt_pbkdf_parallel ?: pbkdf_default->parallel_threads;
 	}
 
 	if (opt_pbkdf_iterations) {
@@ -1388,7 +1388,7 @@ static int action_open_luks(void)
 	if (opt_master_key_file) {
 		keysize = crypt_get_volume_key_size(cd);
 		if (!keysize && !opt_key_size) {
-			log_err(_("Cannot dermine volume key size for LUKS without keyslots, please use --key-size option."));
+			log_err(_("Cannot determine volume key size for LUKS without keyslots, please use --key-size option."));
 			r = -EINVAL;
 			goto out;
 		} else if (!keysize)
@@ -1699,7 +1699,7 @@ static int action_luksAddKey(void)
 
 	if (opt_master_key_file) {
 		if (!keysize && !opt_key_size) {
-			log_err(_("Cannot dermine volume key size for LUKS without keyslots, please use --key-size option."));
+			log_err(_("Cannot determine volume key size for LUKS without keyslots, please use --key-size option."));
 			r = -EINVAL;
 			goto out;
 		} else if (!keysize)
