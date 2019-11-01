@@ -25,6 +25,7 @@ Build-Depends: autoconf,
                libtool,
                pkg-config,
                po-debconf,
+               procps,
                uuid-dev,
                xsltproc,
                xxd
