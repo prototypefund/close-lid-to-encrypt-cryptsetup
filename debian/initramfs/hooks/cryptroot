@@ -328,6 +328,7 @@ populate_CRYPTO_MODULES() {
         cipher="${cipher#"${cipher%%-*}-"}" # chainmode-ivmode[:ivopts]"
         CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }${cipher%-*}" # chainmode
         iv="${cipher##*-}" # ivmode[:ivopts]"
+        CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }${iv%%:*}" # ivmode
         if [ "${iv#*:}" != "$iv" ]; then
             CRYPTO_MODULES="${CRYPTO_MODULES:+$CRYPTO_MODULES }${iv#*:}" # ivopts
         fi
