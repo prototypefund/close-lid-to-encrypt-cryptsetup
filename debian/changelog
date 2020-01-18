@@ -1,10 +1,10 @@
-cryptsetup (2:2.2.2-2) UNRELEASED; urgency=medium
+cryptsetup (2:2.2.2-2) unstable; urgency=medium
 
   [ Guilhem Moulin ]
   * d/initramfs/hooks/cryptroot: On initramfs images built with MODULES=dep,
     include the IV generator found in the cipher specification when there is a
     matching kernel module.  On 5.4 kernels ESSIV isn't implemented in
-    dm_crypt but by a dedicated 'essiv' module which thus needs to be
+    dm_crypt anymore, but by a dedicated 'essiv' module which thus needs to be
     available in order to unlock dm-crypt target using 'aes-cbc-essiv:sha256'.
     Closes: #948593.
 
@@ -13,7 +13,7 @@ cryptsetup (2:2.2.2-2) UNRELEASED; urgency=medium
   * Set upstream metadata fields: Bug-Database, Bug-Submit, Repository,
     Repository-Browse.
 
- -- Guilhem Moulin <guilhem@debian.org>  Tue, 14 Jan 2020 01:59:20 +0100
+ -- Guilhem Moulin <guilhem@debian.org>  Sat, 18 Jan 2020 20:53:19 +0100
 
 cryptsetup (2:2.2.2-1) unstable; urgency=medium
 
