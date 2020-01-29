@@ -3,6 +3,7 @@ cryptsetup (2:2.2.2-3) UNRELEASED; urgency=medium
   * Install cryptdisks_{start,stop} bash completion scripts to the right
     path/name so they are loaded automatically. This was no longer the case
     since 2:1.7.0-1.  (Closes: #949623)
+  * d/*.install: Replace tabs with spaces.
 
  -- Guilhem Moulin <guilhem@debian.org>  Wed, 29 Jan 2020 16:43:48 +0100
 
