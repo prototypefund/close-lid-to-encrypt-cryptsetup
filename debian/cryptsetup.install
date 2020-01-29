@@ -1,5 +1,5 @@
 debian/askpass				/lib/cryptsetup/
-debian/bash_completion/cryptdisks	/usr/share/bash-completion/completions/
+debian/bash_completion/cryptdisks_start	/usr/share/bash-completion/completions/
 debian/checks/*				/lib/cryptsetup/checks/
 debian/cryptdisks-functions		/lib/cryptsetup/
 debian/functions			/lib/cryptsetup/
