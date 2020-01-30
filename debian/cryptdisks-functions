@@ -176,25 +176,44 @@ setup_mapping() {
     return 1
 }
 
-# Removes all mappings in crypttab
+# Removes all mappings in crypttab, except the ones holding the root
+# file system or /usr
 do_stop() {
+    local devno_rootfs devno_usr
     dmsetup mknodes
     log_action_begin_msg "Stopping $INITSTATE crypto disks"
+
+    devno_rootfs="$(get_mnt_devno /)" || devno_rootfs=""
+    devno_usr="$(get_mnt_devno /usr)" || devno_usr=""
 
     crypttab_foreach_entry _do_stop_callback
     log_action_end_msg 0
 }
 _do_stop_callback() {
-    local i rv=0
-    for i in 1 2 4 8 16 32; do
-        remove_mapping "$CRYPTTAB_NAME" 3<&- && break || rv=$?
-        if [ $rv -eq 1 ] || [ $rv -eq 2 -a $i -gt 16 ]; then
-            log_action_end_msg $rv
-            break
-        fi
-        log_action_cont_msg "$CRYPTTAB_NAME busy..."
-        sleep $i
-    done
+    local i rv=0 skip="n"
+
+    # traverse the device tree for each crypttab(5) entry, that's
+    # suboptimal but we can't use mapped device names as they might
+    # contain any character other than NUL.  shouldn't be much overhead
+    # anyway as the device tree is likely not that long
+    loop_cryptdevs _do_stop_skipped $devno_rootfs $devno_usr
+
+    if [ "$skip" = "n" ]; then
+        for i in 1 2 4 8 16 32; do
+            remove_mapping "$CRYPTTAB_NAME" 3<&- && break || rv=$?
+            if [ $rv -eq 1 ] || [ $rv -eq 2 -a $i -gt 16 ]; then
+                log_action_end_msg $rv
+                break
+            fi
+            log_action_cont_msg "$CRYPTTAB_NAME busy..."
+            sleep $i
+        done
+    fi
+}
+_do_stop_skipped() {
+    if [ "$1" = "$CRYPTTAB_NAME" ]; then
+        skip="y"
+    fi
 }
 
 # device_msg([$name], $message)
