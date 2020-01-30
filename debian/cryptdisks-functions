@@ -85,13 +85,12 @@ setup_mapping() {
         loud="yes"
     fi
 
-    if [ -n "${CRYPTTAB_OPTION_noearly+x}" ] && [ "$INITSTATE" = "early" ]; then
-        [ -z "${FORCE_START-}" ] || device_msg "ignored"
-        return 0
-    fi
-    if [ -n "${CRYPTTAB_OPTION_noauto+x}" ] && [ "$INITSTATE" != "manual" ]; then
-        [ -z "${FORCE_START-}" ] || device_msg "ignored"
-        return 0
+    if [ -z "${FORCE_START-}" ]; then
+        if [ "$INITSTATE" = "early" -a -n "${CRYPTTAB_OPTION_noearly+x}" ] ||
+                [ "$INITSTATE" != "manual" -a -n "${CRYPTTAB_OPTION_noauto+x}" ]; then
+            device_msg "ignored"
+            return 0
+        fi
     fi
 
     if [ -z "${CRYPTTAB_OPTION_keyscript+x}" ] && [ "$CRYPTTAB_KEY" != "none" ]; then

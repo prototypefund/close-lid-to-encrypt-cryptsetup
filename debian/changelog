@@ -4,6 +4,9 @@ cryptsetup (2:2.2.2-3) UNRELEASED; urgency=medium
     path/name so they are loaded automatically. This was no longer the case
     since 2:1.7.0-1.  (Closes: #949623)
   * d/*.install: Replace tabs with spaces.
+  * d/cryptdisks-functions: Fix broken $FORCE_START handling.  Since
+    2:2.0.3-2 the SysV init scripts' "force-start" option was no longer
+    overriding noauto/noearly.  (Closes: #933142)
 
  -- Guilhem Moulin <guilhem@debian.org>  Wed, 29 Jan 2020 16:43:48 +0100
 
