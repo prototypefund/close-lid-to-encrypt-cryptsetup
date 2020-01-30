@@ -7,6 +7,7 @@ cryptsetup (2:2.2.2-3) UNRELEASED; urgency=medium
   * d/cryptdisks-functions: Fix broken $FORCE_START handling.  Since
     2:2.0.3-2 the SysV init scripts' "force-start" option was no longer
     overriding noauto/noearly.  (Closes: #933142)
+  * Move some functions to d/function from the initramfs hook.
 
  -- Guilhem Moulin <guilhem@debian.org>  Wed, 29 Jan 2020 16:43:48 +0100
 

@@ -240,7 +240,7 @@ crypttab_resolve_source() {
     [ ! -f "$CRYPTTAB_SOURCE" ] || return 0
     # otherwise resolve the block device specification
     local dev="$CRYPTTAB_SOURCE"
-    dev="$(resolve_device_spec "$dev")" && CRYPTTAB_SOURCE="$dev" || return 1
+    dev="$(_resolve_device_spec "$dev")" && CRYPTTAB_SOURCE="$dev" || return 1
 }
 
 # run_keyscript($keyscriptarg, $tried_count)
@@ -365,12 +365,12 @@ crypttab_key_check() {
     fi
 }
 
-# resolve_device_spec($spec)
+# _resolve_device_spec($spec)
 #   Resolve LABEL=<label>, UUID=<uuid>, PARTUUID=<partuuid> and
 #   PARTLABEL=<partlabel> to a block special device.  If $spec is
 #   already a (link to a block special device) then it is echoed as is.
 #   Return 1 if $spec doesn't correspond to a block special device.
-resolve_device_spec() {
+_resolve_device_spec() {
     local spec="$1"
     case "$spec" in
         UUID=*|LABEL=*|PARTUUID=*|PARTLABEL=*)
@@ -442,7 +442,7 @@ crypttab_find_entry() {
 #   entry found. Variables CRYPTTAB_NAME, CRYPTTAB_SOURCE, CRYPTTAB_KEY
 #   and CRYPTTAB_OPTIONS are set accordingly and available to the
 #   $callback.  (In addition _CRYPTTAB_NAME, _CRYPTTAB_SOURCE,
-#   _CRYPTTAB_KEY and _CRYPTTAB_OPTIONS are set to the unmangled values
+#   _CRYPTTAB_KEY and _CRYPTTAB_OPTIONS are set to the original values
 #   before decoding the escape sequence.)
 #   Return 0 if a match is found, and 1 otherwise.
 crypttab_foreach_entry() {
@@ -470,6 +470,115 @@ crypttab_foreach_entry() {
 
         "$callback" 9<&-
     done 9<"$TABFILE"
+}
+
+# _device_uuid($device)
+#   Print the UUID attribute of given block special $device.  Return 0
+#   on success, 1 on error.
+_device_uuid() {
+    local device="$1" uuid
+    if uuid="$(blkid -s UUID -o value -- "$device")" && [ -n "$uuid" ]; then
+        printf '%s\n' "$uuid"
+    else
+        return 1
+    fi
+}
+
+# _resolve_device({$device | $spec})
+#   Take a path to (or spec for) a block special device, and set DEV to
+#   the (symlink to block) device, and MAJ (resp. MIN) to its major-ID
+#   (resp. minor ID) decimal value.  On error these variables are not
+#   changed and 1 is returned.
+_resolve_device() {
+    local spec="$1" dev devno maj min
+    if dev="$(_resolve_device_spec "$spec")" &&
+            devno="$(stat -L -c"%t:%T" -- "$dev" 2>/dev/null)" &&
+            maj="${devno%:*}" && min="${devno#*:}" &&
+            [ "$devno" = "$maj:$min" ] && [ -n "$maj" ] && [ -n "$min" ] &&
+            maj=$(( 0x$maj )) && min=$(( 0x$min )) && [ $maj -gt 0 ]; then
+        DEV="$dev"
+        MAJ="$maj"
+        MIN="$min"
+        return 0
+    else
+        cryptsetup_message "ERROR: Couldn't resolve device $spec"
+    fi
+    return 1
+}
+
+# get_mnt_devno($mountpoint)
+#   Print the major:minor device ID(s) holding the file system currently
+#   mounted currenty mounted on $mountpoint.
+#   Return 0 on success, 1 on error (if $mountpoint is not a mountpoint).
+get_mnt_devno() {
+    local wantmount="$1" devnos="" uuid dev IFS
+    local spec mountpoint fstype _ DEV MAJ MIN
+
+    while IFS=" 	" read -r spec mountpoint fstype _; do
+        # treat lines starting with '#' as comments; /proc/mounts
+        # doesn't seem to contain these but per procfs(5) the format of
+        # that file is analogous to fstab(5)'s
+        if [ "${spec#\#}" = "$spec" ] && [ -n "$spec" ] &&
+                [ "$(printf '%b' "$mountpoint")" = "$wantmount" ]; then
+            # take the last mountpoint if used several times (shadowed)
+            unset -v devnos
+            spec="$(printf '%b' "$spec")"
+            _resolve_device "$spec" || continue # _resolve_device() already warns on error
+            fstype="$(printf '%b' "$fstype")"
+            if [ "$fstype" = "btrfs" ]; then
+                # btrfs can span over multiple devices
+                if uuid="$(_device_uuid "$DEV")"; then
+                    for dev in "/sys/fs/$fstype/$uuid/devices"/*/dev; do
+                        devnos="${devnos:+$devnos }$(cat "$dev")"
+                    done
+                else
+                    cryptsetup_message "ERROR: $spec: Couldn't determine UUID"
+                fi
+            elif [ -n "$fstype" ]; then
+                devnos="$MAJ:$MIN"
+            fi
+        fi
+    done </proc/mounts
+
+    if [ -z "${devnos:+x}" ]; then
+        return 1 # not found
+    else
+        printf '%s' "$devnos"
+    fi
+}
+
+# foreach_cryptdev($callback, $maj:$min, [$maj:$min ..])
+#   Run $callback on the (unmangled) name of each dm-crypt device
+#   recursively holding $maj:$min (typically corresponding to an md,
+#   linear, or dm-crypt device).  Slaves that aren't dm-crypt devices
+#   are ignored.
+foreach_cryptdev() {
+    local callback="$1" devno base
+    shift
+    for devno in "$@"; do
+        base="/sys/dev/block/$devno"
+        if [ ! -d "$base" ]; then
+            cryptsetup_message "ERROR: Couldn't find sysfs directory for $devno"
+            return 1
+        fi
+        _foreach_cryptdev "$callback" "$base"
+    done
+}
+_foreach_cryptdev() {
+    local callback="$1" d="$2" devno maj min name slave
+    [ -d "$d/slaves" ] || return 0
+    if [ -d "$d/dm" ] && devno="$(cat "$d/dev")" &&
+            maj="${devno%:*}" && min="${devno#*:}" &&
+            [ "$devno" = "$maj:$min" ] && [ -n "$maj" ] && [ -n "$min" ] &&
+            [ "$(dmsetup info -c --noheadings -o subsystem -j "$maj" -m "$min")" = "CRYPT" ] &&
+            name="$(dmsetup info -c --noheadings -o unmangled_name -j "$maj" -m "$min")"; then
+        "$callback" "$name"
+    fi
+    for slave in "$d/slaves"/*; do
+        if [ -d "$slave" ] && slave="$(realpath -e -- "$slave")"; then
+            _foreach_cryptdev "$callback" "$slave"
+        fi
+    done
 }
 
 # vim: set filetype=sh :
