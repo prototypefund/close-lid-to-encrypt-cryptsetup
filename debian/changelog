@@ -1,5 +1,7 @@
 cryptsetup (2:2.3.0-1) UNRELEASED; urgency=medium
 
+  * New upstream release, introducing support for BitLocker-compatible
+    devices (BITLK format) used in Windows systems.
   * Install cryptdisks_{start,stop} bash completion scripts to the right
     path/name so they are loaded automatically. This was no longer the case
     since 2:1.7.0-1.  (Closes: #949623)
