@@ -1,3 +1,10 @@
+cryptsetup (2:2.2.2-3) unstable; urgency=high
+
+  * initramfs hook: Workaround fix for the libgcc_s's source location.
+    (Closes: #950628, #939766.)  See #950254 for the proper fix.
+
+ -- Guilhem Moulin <guilhem@debian.org>  Tue, 04 Feb 2020 14:11:12 +0100
+
 cryptsetup (2:2.2.2-2) unstable; urgency=medium
 
   [ Guilhem Moulin ]
