@@ -299,7 +299,7 @@
    </varlistentry>
 
    <varlistentry>
-       <term><emphasis>veracrypt</emphasis>, <emphasis>tcrypt-veracrypt</emphasis></term>
+    <term><emphasis>veracrypt</emphasis>, <emphasis>tcrypt-veracrypt</emphasis></term>
     <listitem>
      <simpara>
       Use VeraCrypt extension to TrueCrypt device. Only useful in
@@ -310,7 +310,7 @@
    </varlistentry>
 
    <varlistentry>
-       <term><emphasis>tcrypthidden</emphasis>, <emphasis>tcrypt-hidden</emphasis></term>
+    <term><emphasis>tcrypthidden</emphasis>, <emphasis>tcrypt-hidden</emphasis></term>
     <listitem>
      <simpara>
        Use hidden TCRYPT header (ignored for non-TCRYPT devices).
