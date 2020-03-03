@@ -76,23 +76,20 @@
    useful.
   </simpara>
   <simpara>
-   The fourth field, <emphasis>options</emphasis>, describes the cryptsetup
-   options associated with the encryption process. At minimum, the field should
-   contain either the string <emphasis>luks</emphasis> respectively
-   <emphasis>tcrypt</emphasis> or the <emphasis>cipher</emphasis>,
-   <emphasis>hash</emphasis> and <emphasis>size</emphasis> options.
-   Some options can be changed on active devices using
+   The fourth field, <emphasis>options</emphasis>, is an optional comma-separated
+   list of options and/or flags describing the device type (<emphasis>luks</emphasis>,
+   <emphasis>tcrypt</emphasis>, or <emphasis>plain</emphasis> which is also the default)
+   and cryptsetup options associated with the encryption process.  The supported options
+   are described below.
+   For plain dm-crypt devices the <emphasis>cipher</emphasis>, <emphasis>hash</emphasis>
+   and <emphasis>size</emphasis> options are required.
+   Some options can be changed on active mappings using
    <command>cryptsetup refresh [&lt;options&gt;] &lt;name&gt;</command>.
-   Moreover some options can be permanently written to the metada of LUKS2
-   headers using the <command>--persistent</command> option flag.
+   Furthermore some options can be permanently written into metadata of LUKS2
+   headers using cryptsetup's <emphasis>--persistent</emphasis> flag.
   </simpara>
   <simpara>
-   Options are in the format: <emphasis>key</emphasis>=<emphasis>value</emphasis>
-   [,<emphasis>key</emphasis>=<emphasis>value</emphasis> &#8230;]. The
-   supported options are described below.
-  </simpara>
-  <simpara>
-   Note that all four fields are mandatory and that a missing field will lead
+   Note that the first three fields are required and that a missing field will lead
    to unspecified behaviour.
   </simpara>
  </refsect1>

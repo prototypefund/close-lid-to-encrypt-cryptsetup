@@ -36,6 +36,7 @@ cryptsetup_message() {
 #   For error and warning messages, CRYPTTAB_NAME, (resp. CRYPTTAB_KEY)
 #   should be set to the (unmangled) mapped device name (resp. key
 #   file).
+#   Moreover CRYPTTAB_TYPE is set the device type.
 #   Return 1 on parsing error, 0 otherwise (incl. if unknown options
 #   were encountered).
 crypttab_parse_options() {
@@ -104,12 +105,18 @@ crypttab_parse_options() {
     done
     IFS=" "
 
-    if [ "$quiet" = "n" ] &&
-            [ -z "${CRYPTTAB_OPTION_luks+x}" ] && [ -n "${CRYPTTAB_OPTION_header+x}" ]; then
-        cryptsetup_message "WARNING: Option 'luks' missing in crypttab for target $CRYPTTAB_NAME." \
-                           "Headers are only supported for LUKS devices."
+    if ! _get_crypt_type; then # set CRYPTTAB_TYPE to the type of crypt device
+        CRYPTTAB_TYPE="plain"
+        if [ "$quiet" = "n" ]; then
+            cryptsetup_message "WARNING: $CRYPTTAB_NAME: couldn't determine device type," \
+                               "assuming default ($CRYPTTAB_TYPE)."
+        fi
     fi
-    if [ -z "${CRYPTTAB_OPTION_luks+x}" ] && [ -z "${CRYPTTAB_OPTION_tcrypt+x}" ]; then
+
+    if [ "$quiet" = "n" ] && [ -n "${CRYPTTAB_OPTION_header+x}" ] && [ "$CRYPTTAB_TYPE" != "luks" ]; then
+        cryptsetup_message "WARNING: $CRYPTTAB_NAME: Headers are only supported for LUKS devices."
+    fi
+    if [ "$CRYPTTAB_TYPE" = "plain" ]; then
         # the compiled-in default for these are subject to change
         options='cipher size'
         if [ -n "${CRYPTTAB_OPTION_keyscript+x}" ] || [ "$CRYPTTAB_KEY" = "none" ]; then
@@ -272,21 +279,32 @@ run_keyscript() {
     exec "$keyscript" "$keyscriptarg"
 }
 
-# get_crypt_type()
+# _get_crypt_type()
 #    Set CRYPTTAB_TYPE to the mapping type, depending on its
 #    $CRYPTTAB_OPTION_<option> values
-get_crypt_type() {
-    if [ "${CRYPTTAB_OPTION_tcrypt-}" = "yes" ]; then
-        CRYPTTAB_TYPE="tcrypt"
+#    Return a non-zero status if the mapping couldn't be determined
+_get_crypt_type() {
+    local s="$CRYPTTAB_SOURCE" t=""
+
+    if [ "${CRYPTTAB_OPTION_luks-}" = "yes" ]; then
+        t="luks"
+    elif [ "${CRYPTTAB_OPTION_tcrypt-}" = "yes" ]; then
+        t="tcrypt"
     elif [ "${CRYPTTAB_OPTION_plain-}" = "yes" ]; then
-        CRYPTTAB_TYPE="plain"
-    elif [ "${CRYPTTAB_OPTION_luks-}" = "yes" ] ||
-            /sbin/cryptsetup isLuks -- "${CRYPTTAB_OPTION_header-$CRYPTTAB_SOURCE}"; then
-        CRYPTTAB_TYPE="luks"
-    else
-        # assume plain dm-crypt device by default
-        CRYPTTAB_TYPE="plain"
+        t="plain"
+    elif [ -n "${CRYPTTAB_OPTION_header+x}" ]; then
+        # detached headers are only supported for LUKS devices
+        if [ -e "$CRYPTTAB_OPTION_header" ] && /sbin/cryptsetup isLuks -- "$CRYPTTAB_OPTION_header"; then
+            t="luks"
+        fi
+    elif [ -f "$s" ] || s="$(_resolve_device_spec "$CRYPTTAB_SOURCE")"; then
+        if /sbin/cryptsetup isLuks -- "$s"; then
+            t="luks"
+        fi
     fi
+
+    [ -n "$t" ] || return 1
+    CRYPTTAB_TYPE="$t"
 }
 
 # unlock_mapping([$keyfile])
@@ -419,7 +437,7 @@ crypttab_find_entry() {
 
             # unmangle names
             CRYPTTAB_NAME="$(printf '%b' "$_CRYPTTAB_NAME")"
-            if [ -z "$_CRYPTTAB_SOURCE" ] || [ -z "$_CRYPTTAB_KEY" ] || [ -z "$_CRYPTTAB_OPTIONS" ]; then
+            if [ -z "$_CRYPTTAB_SOURCE" ] || [ -z "$_CRYPTTAB_KEY" ]; then
                 cryptsetup_message "WARNING: '$CRYPTTAB_NAME' is missing some arguments, see crypttab(5)"
                 continue
             elif [ "$CRYPTTAB_NAME" = "$target" ]; then
@@ -460,7 +478,7 @@ crypttab_foreach_entry() {
         # unmangle names
         CRYPTTAB_NAME="$(printf '%b' "$_CRYPTTAB_NAME")"
 
-        if [ -z "$_CRYPTTAB_SOURCE" ] || [ -z "$_CRYPTTAB_KEY" ] || [ -z "$_CRYPTTAB_OPTIONS" ]; then
+        if [ -z "$_CRYPTTAB_SOURCE" ] || [ -z "$_CRYPTTAB_KEY" ]; then
             cryptsetup_message "WARNING: '$CRYPTTAB_NAME' is missing some arguments, see crypttab(5)"
             continue
         fi

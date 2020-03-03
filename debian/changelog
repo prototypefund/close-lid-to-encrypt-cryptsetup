@@ -2,6 +2,10 @@ cryptsetup (2:2.3.0-1) UNRELEASED; urgency=medium
 
   * New upstream release, introducing support for BitLocker-compatible
     devices (BITLK format) used in Windows systems.
+  * crypttab(5): Make the 4th field (options) optional so we don't have to
+    introduce a new keyword for each new device type.  (That field is also
+    optional in the systemd implementation.)  Other fields (dm target name,
+    source device, and key file) remain required.
   * Install cryptdisks_{start,stop} bash completion scripts to the right
     path/name so they are loaded automatically. This was no longer the case
     since 2:1.7.0-1.  (Closes: #949623)
