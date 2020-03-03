@@ -2,6 +2,10 @@ cryptsetup (2:2.3.0-1) UNRELEASED; urgency=medium
 
   * New upstream release, introducing support for BitLocker-compatible
     devices (BITLK format) used in Windows systems.
+    WARNING: crypttab(5) support for these devices is currently *experimental*
+    and requires blkid from util-linux >=2.33 (i.e., Buster or later).  These
+    devices currently have no keyword to use in the 4th field (unlike 'luks'
+    or 'plain'), the device type is inferred from the signature instead.
   * crypttab(5): Make the 4th field (options) optional so we don't have to
     introduce a new keyword for each new device type.  (That field is also
     optional in the systemd implementation.)  Other fields (dm target name,

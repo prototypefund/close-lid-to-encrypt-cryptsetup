@@ -284,7 +284,7 @@ run_keyscript() {
 #    $CRYPTTAB_OPTION_<option> values
 #    Return a non-zero status if the mapping couldn't be determined
 _get_crypt_type() {
-    local s="$CRYPTTAB_SOURCE" t=""
+    local s="$CRYPTTAB_SOURCE" t="" blk_t
 
     if [ "${CRYPTTAB_OPTION_luks-}" = "yes" ]; then
         t="luks"
@@ -300,6 +300,8 @@ _get_crypt_type() {
     elif [ -f "$s" ] || s="$(_resolve_device_spec "$CRYPTTAB_SOURCE")"; then
         if /sbin/cryptsetup isLuks -- "$s"; then
             t="luks"
+        elif blk_t="$(blkid -s TYPE -o value -- "$s")" && [ "$blk_t" = "BitLocker" ]; then
+            t="bitlk"
         fi
     fi
 
