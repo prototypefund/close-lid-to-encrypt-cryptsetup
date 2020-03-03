@@ -458,15 +458,16 @@ crypttab_foreach_entry() {
         fi
 
         # unmangle names
-        CRYPTTAB_NAME="$(   printf '%b' "$_CRYPTTAB_NAME"   )"
-        CRYPTTAB_SOURCE="$( printf '%b' "$_CRYPTTAB_SOURCE" )"
-        CRYPTTAB_KEY="$(    printf '%b' "$_CRYPTTAB_KEY"    )"
-        CRYPTTAB_OPTIONS="$(printf '%b' "$_CRYPTTAB_OPTIONS")"
+        CRYPTTAB_NAME="$(printf '%b' "$_CRYPTTAB_NAME")"
 
-        if [ -z "$CRYPTTAB_SOURCE" ] || [ -z "$CRYPTTAB_KEY" ] || [ -z "$CRYPTTAB_OPTIONS" ]; then
+        if [ -z "$_CRYPTTAB_SOURCE" ] || [ -z "$_CRYPTTAB_KEY" ] || [ -z "$_CRYPTTAB_OPTIONS" ]; then
             cryptsetup_message "WARNING: '$CRYPTTAB_NAME' is missing some arguments, see crypttab(5)"
             continue
         fi
+
+        CRYPTTAB_SOURCE="$( printf '%b' "$_CRYPTTAB_SOURCE" )"
+        CRYPTTAB_KEY="$(    printf '%b' "$_CRYPTTAB_KEY"    )"
+        CRYPTTAB_OPTIONS="$(printf '%b' "$_CRYPTTAB_OPTIONS")"
 
         "$callback" 9<&-
     done 9<"$TABFILE"
